@@ -290,7 +290,11 @@ const W=[
 ["attNeedFile","Please choose a file first.","يرجى اختيار ملف أولاً."],
 ["attDel","Remove this attachment?","هل تريد إزالة هذا المرفق؟"],
 ["l_attached","Attachment added","تمت إضافة مرفق"],
-["l_attRemoved","Attachment removed","تمت إزالة مرفق"]
+["l_attRemoved","Attachment removed","تمت إزالة مرفق"],
+["st_Cancelled","Cancelled","ملغي"],
+["cancelReq","Cancel request","إلغاء الطلب"],
+["confirmCancel","Cancel this request? It will be closed and no longer processed.","هل تريد إلغاء هذا الطلب؟ سيتم إغلاقه ولن تتم معالجته."],
+["attErrT","Could not load attachments: ","تعذر تحميل المرفقات: "]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -348,7 +352,7 @@ async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.le
  if(error)return msg(error.message);msg(t('accCreated'))}
 const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
 const bar=()=>`<div class="nav">${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
-const SC={'Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
+const SC={'Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
 const pillS=st=>`<span class="pill ${SC[st]||''}">${esc(t('st_'+st))}</span>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
  await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
@@ -356,8 +360,8 @@ function setTab(v){showArch=v;listView()}
 
 // ===== Dashboard =====
 let DB=null,H={f:'',q:'',rel:'all'};
-const FIN=s=>s=='Approved'||s=='Rejected';
-const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Approved':4,'Rejected':4};
+const FIN=s=>s=='Approved'||s=='Rejected'||s=='Cancelled';
+const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Approved':4,'Rejected':4,'Cancelled':0};
 const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval'];
 const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
 async function loadAll(){
@@ -420,7 +424,7 @@ function drawHome(){
 const acc=(title,body,open)=>`<details class="card acc" ${open?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
 function adminBlock(){
  const A=DB.crs,n=s=>A.filter(r=>r.status==s).length,over=list('overdue');
- const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected'];
+ const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected','Cancelled'];
  const ap=n('Approved'),rj=n('Rejected'),fn=ap+rj;
  const lgT={};DB.lg.forEach(l=>{const k=l.cr_id+'|'+l.action.slice(7);(lgT[k]=lgT[k]||[]).push(new Date(l.at))});
  const cyc=A.filter(r=>r.status=='Approved'&&lgT[r.id+'|Approved']).map(r=>(Math.max(...lgT[r.id+'|Approved'])-new Date(r.created_at))/864e5);
@@ -469,15 +473,15 @@ function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
 async function openCR(id){
  const [a,b,c,e]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
- cr=a.data;sigs=b.data;atts=e.data||[];const logs=c.data,st=cr.status,arch=!!cr.archived;
- const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected';
+ cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data,st=cr.status,arch=!!cr.archived;
+ const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
  const canApp=adm&&!arch&&['Reviewed','Awaiting Approval'].includes(st);
- const showRev=adm||!['Draft','Returned to PM','Submitted'].includes(st);
+ const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
  const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
  const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
@@ -487,7 +491,7 @@ async function openCR(id){
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'proj':'flow'}
  const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
- if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
+ if(ed)acts+=`<button onclick="saveDraft()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
@@ -495,20 +499,21 @@ async function openCR(id){
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
- if(cr.created_by==me.id||adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
+ if(ed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
+ if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
  const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`;
  const tf=k=>`<div><label>${t('f_'+k)} <span class="rq">*</span></label>${tx(k)}</div>`;
  const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
  const s0=STEP[st];
  const canDelAtt=a=>!arch&&(adm||(ed&&a.uploaded_by==me.id));
- const attB=(atts.length||ed)?`<div class="sig att"><b>📎 ${t('att')}</b>${ed?` <span class="mut">(${t('optional')})</span>`:''}${atts.map(a=>`<div class="srow"><div><a href="#" class="al" onclick="openAtt(${a.id});return false">${esc(a.title)}</a><br><span class="mut">${esc(users[a.uploaded_by]?.full_name||'')} · ${szf(a.size)}</span></div>${canDelAtt(a)?`<button class="sm" onclick="delAtt(${a.id})">✕</button>`:''}</div>`).join('')}${!atts.length?`<div class="mut">${t('attNone')}</div>`:''}${ed?`<div class="row"><input id="at_t" placeholder="${t('attTitle')}"><input id="at_f" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"><button class="p" id="at_b" onclick="addAtt()">${t('attAdd')}</button></div>`:''}</div>`:'';
+ const attB=(atts.length||ed||attErr)?`<div class="sig att"><b>📎 ${t('att')}</b>${ed?` <span class="mut">(${t('optional')})</span>`:''}${atts.map(a=>`<div class="srow"><div><a href="#" class="al" onclick="openAtt(${a.id});return false">${esc(a.title)}</a><br><span class="mut">${esc(users[a.uploaded_by]?.full_name||'')} · ${szf(a.size)}</span></div>${canDelAtt(a)?`<button class="sm" onclick="delAtt(${a.id})">✕</button>`:''}</div>`).join('')}${attErr?`<div class="mut" style="color:var(--r)">${t('attErrT')}${esc(attErr)}</div>`:(!atts.length?`<div class="mut">${t('attNone')}</div>`:'')}${ed?`<div class="row"><input id="at_t" placeholder="${t('attTitle')}"><input id="at_f" type="file" onchange="if(!$('at_t').value&&this.files[0])$('at_t').value=this.files[0].name.replace(/[.][^.]*$/,'')" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"><button class="p" id="at_b" onclick="addAtt()">${t('attAdd')}</button></div>`:''}</div>`:'';
  app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}${d.pname?' · '+esc(d.pname):''}</span></div>${pillS(st)}</div>
  <div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s0?'on':''}"></i>`).join('')}</div>
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
  ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}</div>
  ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
- <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
+ <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${k=='flow'&&atts.length?' 📎'+atts.length:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
  <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div><div class="fg">${F.map(k=>`<div class="${k=='pname'?'full':''}"><label>${t('f_'+k)} <span class="rq">*</span></label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>${pnav('','chg')}</div>
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
@@ -524,19 +529,23 @@ document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.clas
 window.addEventListener('resize',()=>{if(cr)fit()});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cr&&curView)fit()});
 const szf=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB';
+async function uploadAtt(f,title){
+ const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase();
+ const path=cr.id+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
+ const up=await sb.storage.from('attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});
+ if(up.error)throw up.error;
+ const ins=await sb.from('attachments').insert({cr_id:cr.id,title:title,path:path,size:f.size,mime:f.type||'',uploaded_by:me.id});
+ if(ins.error){await sb.storage.from('attachments').remove([path]);throw ins.error}
+ await lg(cr.id,'attached|'+title)}
 async function addAtt(){
  const f=$('at_f').files[0];if(!f)return msg(t('attNeedFile'));if(f.size>10485760)return msg(t('attBig'));
  const title=$('at_t').value.trim()||f.name,b=$('at_b');b.disabled=true;b.textContent=t('attUp');
- try{
-  await save(false);
-  const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase();
-  const path=cr.id+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
-  const up=await sb.storage.from('attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});
-  if(up.error)throw up.error;
-  const ins=await sb.from('attachments').insert({cr_id:cr.id,title:title,path:path,size:f.size,mime:f.type||'',uploaded_by:me.id});
-  if(ins.error){await sb.storage.from('attachments').remove([path]);throw ins.error}
-  await lg(cr.id,'attached|'+title);openCR(cr.id)
- }catch(err){b.disabled=false;b.textContent=t('attAdd');msg(err.message||String(err))}}
+ try{await save(false);await uploadAtt(f,title);openCR(cr.id)}
+ catch(err){b.disabled=false;b.textContent=t('attAdd');msg(err.message||String(err))}}
+async function flushAtt(){const fi=$('at_f'),f=fi&&fi.files[0];if(!f)return;if(f.size>10485760)throw new Error(t('attBig'));
+ const title=($('at_t').value.trim())||f.name;fi.value='';$('at_t').value='';await uploadAtt(f,title)}
+async function saveDraft(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
+async function cancelCR(){if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
  const w=window.open('','_blank');
  const {data,error}=await sb.storage.from('attachments').createSignedUrl(a.path,300);
@@ -557,6 +566,7 @@ async function setStatus(s,extra={}){await sb.from('change_requests').update({st
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);homeView()}
 async function archiveCR(v){const {error}=await sb.from('change_requests').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
 async function submitCR(){
+ try{await flushAtt()}catch(err){return msg(err.message||String(err))}
  await save(false);
  const miss=[...F,...T].filter(k=>!String(cr.data[k]||'').trim());
  if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
