@@ -66,6 +66,13 @@ details.acc>.in{padding:0 14px 14px}
 .sig.st1{border-inline-start-color:var(--am)}.sig.st2{border-inline-start-color:var(--g)}
 .srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
 .al{color:var(--g);font-weight:700;text-decoration:underline;word-break:break-word}.sig.att{border-inline-start-color:var(--r)}
+.hr2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.nw{background:#fff;color:var(--g);border-color:#fff;font-weight:800;padding:9px 16px}
+.lr{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.lr label{flex:1}.nbtn{padding:0 8px;font-size:13px;line-height:22px;border-radius:99px;background:#fff;margin-top:4px;flex:0 0 auto}.nbtn.has{background:var(--am2);border-color:var(--am)}
+.nbox textarea{margin-top:4px;border-color:var(--am);background:var(--am2);min-height:64px;resize:vertical;line-height:1.6}
+.nbar{margin:0 0 8px}.nbar .mut{margin-top:6px}
+.nt{margin-top:6px;border:1.5px solid var(--r);border-inline-start-width:5px;background:var(--r2);border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}.nt b{display:block;color:var(--r);font-size:12.5px;margin-bottom:2px;white-space:normal}.nt.old{border-color:var(--am);background:var(--am2)}.nt.old b{color:var(--am)}
+.nbd{background:var(--am);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px}
 .log{font-size:12.5px;color:var(--mut);max-height:200px;overflow:auto}
 .actbar{position:fixed;inset-inline:0;bottom:0;z-index:15;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
 .actbar .row{margin:0;max-width:900px;margin-inline:auto;justify-content:center}
@@ -294,7 +301,14 @@ const W=[
 ["st_Cancelled","Cancelled","ملغي"],
 ["cancelReq","Cancel request","إلغاء الطلب"],
 ["confirmCancel","Cancel this request? It will be closed and no longer processed.","هل تريد إلغاء هذا الطلب؟ سيتم إغلاقه ولن تتم معالجته."],
-["attErrT","Could not load attachments: ","تعذر تحميل المرفقات: "]
+["attErrT","Could not load attachments: ","تعذر تحميل المرفقات: "],
+["noteMode","Notes on fields (optional)","ملاحظات على الحقول (اختياري)"],
+["noteModeOn","Notes mode: ON","وضع الملاحظات: مفعّل"],
+["noteHint","Optional. Open a tab, tap 💬 beside any field and write a note. Notes reach the requester when you return the request. Leave fields empty if no note.","اختياري. افتح أي تبويب واضغط 💬 بجانب الحقل واكتب ملاحظتك. تصل الملاحظات لمقدّم الطلب عند إعادة الطلب. اترك الحقل فارغاً إن لم تكن هناك ملاحظة."],
+["notePh","Note for the requester on this field…","ملاحظة لمقدّم الطلب على هذا الحقل…"],
+["noteTitle","Note from","ملاحظة من"],
+["noteBannerRet","This request was returned with notes on {n} field(s). Each note appears in red under its field.","أُعيد هذا الطلب مع ملاحظات على {n} حقل. تظهر كل ملاحظة بإطار أحمر تحت الحقل المعني."],
+["noteBannerOld","Notes from the previous return (version {v}) are shown under the fields.","ملاحظات الإعادة السابقة (الإصدار {v}) ظاهرة تحت الحقول."]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -304,7 +318,7 @@ const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 const F=["pname","pcode","by","prio","edate","sector","dept","sponsor","pmname"];
 const T=["desc","reason","scope","cost","sched","stake","chal"];
-let me,users={},cr,atts=[],sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
+let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
 const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
@@ -413,7 +427,7 @@ function drawHome(){
  const adm=me.role=='admin';
  const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
  const acts=list('action');
- app.innerHTML=bar()+`<div class="hero"><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>
+ app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}</div>
  <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
@@ -477,6 +491,7 @@ async function openCR(id){
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
+ if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
@@ -503,9 +518,18 @@ async function openCR(id){
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
  const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`;
- const tf=k=>`<div><label>${t('f_'+k)} <span class="rq">*</span></label>${tx(k)}</div>`;
+ const tf=k=>fld(k,tx(k));
  const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
  const s0=STEP[st];
+ const canNote=canRet&&!ed,NT=d._notes,nv0=k=>(NOTES[cr.id]||{})[k]||'',nHas=k=>nv0(k).trim()!=='';
+ const nbtn=k=>canNote&&noteMode?`<button class="nbtn ${nHas(k)?'has':''}" data-nb="${k}" onclick="toggleNb('${k}')">💬</button>`:'';
+ const nbox=k=>canNote&&noteMode?`<div class="nbox" id="nb_${k}" style="display:${nHas(k)?'block':'none'}"><textarea data-n="${k}" rows="2" placeholder="${t('notePh')}">${esc(nv0(k))}</textarea></div>`:'';
+ const ntx=k=>NT&&NT.items&&NT.items[k]?`<div class="nt ${ed?'':'old'}"><b>💬 ${t('noteTitle')} ${esc(NT.by)} · ${t('version')} ${NT.v}</b>${esc(NT.items[k])}</div>`:'';
+ const fld=(k,ctrl,cls)=>`<div class="${cls||''}"><div class="lr"><label>${t('f_'+k)} <span class="rq">*</span></label>${nbtn(k)}</div>${ctrl}${nbox(k)}${ntx(k)}</div>`;
+ const ncnt=k=>REQ[k]?REQ[k].filter(x=>NT&&NT.items&&NT.items[x]).length:0;
+ const nN=NT&&NT.items?Object.keys(NT.items).length:0;
+ const nbn=nN?`<div class="nt ${ed?'':'old'}" style="margin:0 0 10px"><b>${(st=='Returned to PM'?t('noteBannerRet'):t('noteBannerOld')).replace('{n}',nN).replace('{v}',NT.v)}</b></div>`:'';
+ const nbar=canNote?`<div class="nbar"><button class="${noteMode?'p':''}" onclick="toggleNoteMode()">💬 ${noteMode?t('noteModeOn'):t('noteMode')}</button>${noteMode?`<div class="mut">${t('noteHint')}</div>`:''}</div>`:'';
  const canDelAtt=a=>!arch&&(adm||(ed&&a.uploaded_by==me.id));
  const attB=(atts.length||ed||attErr)?`<div class="sig att"><b>📎 ${t('att')}</b>${ed?` <span class="mut">(${t('optional')})</span>`:''}${atts.map(a=>`<div class="srow"><div><a href="#" class="al" onclick="openAtt(${a.id});return false">${esc(a.title)}</a><br><span class="mut">${esc(users[a.uploaded_by]?.full_name||'')} · ${szf(a.size)}</span></div>${canDelAtt(a)?`<button class="sm" onclick="delAtt(${a.id})">✕</button>`:''}</div>`).join('')}${attErr?`<div class="mut" style="color:var(--r)">${t('attErrT')}${esc(attErr)}</div>`:(!atts.length?`<div class="mut">${t('attNone')}</div>`:'')}${ed?`<div class="row"><input id="at_t" placeholder="${t('attTitle')}"><input id="at_f" type="file" onchange="if(!$('at_t').value&&this.files[0])$('at_t').value=this.files[0].name.replace(/[.][^.]*$/,'')" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"><button class="p" id="at_b" onclick="addAtt()">${t('attAdd')}</button></div>`:''}</div>`:'';
  app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}${d.pname?' · '+esc(d.pname):''}</span></div>${pillS(st)}</div>
@@ -513,8 +537,9 @@ async function openCR(id){
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
  ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}</div>
  ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
- <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${k=='flow'&&atts.length?' 📎'+atts.length:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
- <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div><div class="fg">${F.map(k=>`<div class="${k=='pname'?'full':''}"><label>${t('f_'+k)} <span class="rq">*</span></label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>${pnav('','chg')}</div>
+ ${nbn}${nbar}
+ <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${k=='flow'&&atts.length?' 📎'+atts.length:''}${ncnt(k)?`<i class="nbd">💬${ncnt(k)}</i>`:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
+ <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div><div class="fg">${F.map(k=>fld(k,k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`,k=='pname'?'full':'')).join('')}</div>${pnav('','chg')}</div>
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
@@ -522,7 +547,7 @@ async function openCR(id){
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
-document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg()}if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value;if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg()}if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value;if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(x.dataset&&x.dataset.k)updProg()});
 document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))setTimeout(()=>grow(x),50)});
@@ -545,6 +570,8 @@ async function addAtt(){
 async function flushAtt(){const fi=$('at_f'),f=fi&&fi.files[0];if(!f)return;if(f.size>10485760)throw new Error(t('attBig'));
  const title=($('at_t').value.trim())||f.name;fi.value='';$('at_t').value='';await uploadAtt(f,title)}
 async function saveDraft(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
+function toggleNoteMode(){noteMode=!noteMode;if(noteMode)ftab='proj';openCR(cr.id)}
+function toggleNb(k){const b=$('nb_'+k);if(!b)return;const show=b.style.display=='none';b.style.display=show?'block':'none';if(show){const a=b.querySelector('textarea');if(a)a.focus()}}
 async function cancelCR(){if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
  const w=window.open('','_blank');
@@ -580,7 +607,9 @@ async function sendApproval(){
  await setStatus('Awaiting Approval');openCR(cr.id)}
 async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
  await sb.from('signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
- await setStatus('Returned to PM',{comment:c,version:cr.version+1});await lg(cr.id,'returned|'+c);openCR(cr.id)}
+ const nn=NOTES[cr.id]||{},items={};Object.keys(nn).forEach(k=>{const v=String(nn[k]||'').trim();if(v)items[k]=v});
+ const nd={...cr.data};if(Object.keys(items).length)nd._notes={v:cr.version,by:me.full_name,at:new Date().toISOString(),items:items};else delete nd._notes;
+ await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)}
 async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
 
 // ---- signing ----
