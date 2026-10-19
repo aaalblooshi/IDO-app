@@ -101,6 +101,7 @@ const W=[
 ["External","External","خارجي"],
 ["addStake","+ Add stakeholder","+ إضافة صاحب مصلحة"],
 ["workflow","Workflow & signatures","سير العمل والتوقيعات"],
+["optNote","Assigning reviewers and approvers is optional. The admin can assign them after you submit.","تعيين المراجعين والمعتمدين اختياري، ويمكن للمسؤول تعيينهم بعد الإرسال."],
 ["stg_created","Created by","أعدّه"],
 ["stg_reviewed","Reviewed by","راجعه"],
 ["stg_approved","Approved by","اعتمده"],
@@ -115,7 +116,6 @@ const W=[
 ["reject","Reject","رفض"],
 ["del","Delete request","حذف الطلب"],
 ["confirmDel","Delete this request permanently?","هل تريد حذف هذا الطلب نهائياً؟"],
-["needRev","Please assign at least one reviewer and one approver.","يرجى تعيين مراجع واحد ومعتمد واحد على الأقل."],
 ["auditLog","Audit log","سجل التدقيق"],
 ["already","Already added.","تمت إضافته مسبقاً."],
 ["complete","Please complete: ","يرجى استكمال: "],
@@ -236,8 +236,8 @@ async function openCR(id){
  const canRet=(adm||inStage)&&(st=='PMO Review'||st=='Awaiting Approval');
  const mine=sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
  const d=cr.data,dis=ed?'':'disabled';
- const opts=sg=>Object.values(users).filter(u=>sg=='created'||u.role=='admin'||(sg=='reviewed'&&u.role=='pmo')||(sg=='approved'&&u.role=='sponsor'));
- const blk=(sg,can)=>`<div class="sig"><b>${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}">${opts(sg).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const opts=()=>Object.values(users);
+ const blk=(sg,can)=>`<div class="sig"><b>${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='';
  if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
@@ -249,7 +249,7 @@ async function openCR(id){
  <div class="card"><h2>${t('projDetails')}</h2><div class="g2">${F.map(k=>`<div><label>${t('f_'+k)} *</label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div></div>
  <div class="card"><h2>${t('changeDetails')}</h2>${T.map(k=>`<label>${t('f_'+k)} *</label><textarea data-k="${k}" ${dis}>${esc(d[k])}</textarea>`).join('')}</div>
  <div class="card"><h2>${t('stakeTitle')}</h2><div class="mut">${t('stakeNote')}</div><div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thType')}</th><th>${t('thImpact')}</th><th>${t('thHow')}</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed&&cr.stakeholders.length>1?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}</div>
- <div class="card"><h2>${t('workflow')}</h2>${blk('created',canA)}${blk('reviewed',canA)}${blk('approved',canA)}<div class="row">${acts}</div></div>
+ <div class="card"><h2>${t('workflow')}</h2>${ed?`<div class="mut" style="margin-bottom:8px">${t('optNote')}</div>`:''}${blk('created',canA)}${blk('reviewed',canA)}${blk('approved',canA)}<div class="row">${acts}</div></div>
  <div class="card"><h2>${t('auditLog')}</h2><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></div>`}
 document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k)cr.data[x.dataset.k]=x.value;if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value});
 const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
@@ -266,7 +266,6 @@ async function submitCR(){
  const miss=[...F,...T].filter(k=>!String(cr.data[k]||'').trim());
  if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
  if(!cr.stakeholders.some(x=>x.n.trim()&&x.i.trim()&&x.c.trim()))return msg(t('addStakeMsg'));
- if(!sigs.some(s=>s.stage=='reviewed')||!sigs.some(s=>s.stage=='approved'))return msg(t('needRev'));
  const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
  await setStatus('PMO Review');openCR(cr.id)}
 async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
