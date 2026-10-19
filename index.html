@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Change Request System</title>
-<style>ا
+<style>
 *{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#1d2330;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
 #app{max-width:820px;margin:0 auto;padding:10px}
 .lang{display:flex;justify-content:flex-end;max-width:820px;margin:0 auto;padding:10px 10px 0}
@@ -92,7 +92,7 @@ const W=[
 ["f_stake","Impact on stakeholders","الأثر على أصحاب المصلحة"],
 ["f_chal","Challenges if change isn’t approved","التحديات في حال عدم اعتماد التغيير"],
 ["stakeTitle","Stakeholders to be notified","أصحاب المصلحة المراد إبلاغهم"],
-["stakeNote","Information only, no approval needed.","للعلم فقط، ولا يلزم اعتمادهم."],
+["stakeNote","Optional. For information only, no approval needed.","اختياري. للعلم فقط، ولا يلزم اعتمادهم."],
 ["thName","Name","الاسم"],
 ["thType","Internal / External","داخلي / خارجي"],
 ["thImpact","Impact","الأثر"],
@@ -118,10 +118,14 @@ const W=[
 ["reject","Reject","رفض"],
 ["del","Delete request","حذف الطلب"],
 ["confirmDel","Delete this request permanently?","هل تريد حذف هذا الطلب نهائياً؟"],
+["archive","Archive","أرشفة"],
+["restore","Restore from archive","استرجاع من الأرشيف"],
+["tabActive","Active","النشطة"],
+["tabArch","Archive","الأرشيف"],
+["archBanner","This request is archived.","هذا الطلب مؤرشف."],
 ["auditLog","Audit log","سجل التدقيق"],
 ["already","Already added.","تمت إضافته مسبقاً."],
 ["complete","Please complete: ","يرجى استكمال: "],
-["addStakeMsg","Add at least one complete stakeholder row.","أضف صف صاحب مصلحة واحداً مكتملاً على الأقل."],
 ["creatorsSign","All creators must sign before submitting.","يجب أن يوقّع جميع المعدّين قبل الإرسال."],
 ["retPrompt","Comment for the requester (required):","تعليق لمقدّم الطلب (مطلوب):"],
 ["rejPrompt","Reason for rejection (required):","سبب الرفض (مطلوب):"],
@@ -163,7 +167,9 @@ const W=[
 ["l_assigned","Assigned","تم تعيين"],
 ["l_removed","Removed a signatory","تمت إزالة موقّع"],
 ["l_returned","Returned (signatures reset)","تمت الإعادة (أُعيد ضبط التوقيعات)"],
-["l_rejected","Rejected","تم الرفض"]
+["l_rejected","Rejected","تم الرفض"],
+["l_archived","Archived","تمت الأرشفة"],
+["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -173,7 +179,7 @@ const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 const F=["pname","pcode","by","prio","edate","sector","dept","sponsor","pmname"];
 const T=["desc","reason","scope","cost","sched","stake","chal"];
-let me,users={},cr,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false;
+let me,users={},cr,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
 const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
@@ -181,6 +187,8 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='status')return t('l_status')+t('st_'+p[1]);
  if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
  if(k=='removed')return t('l_removed');
+ if(k=='archived')return t('l_archived');
+ if(k=='restored')return t('l_restored');
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  return a}
@@ -217,10 +225,12 @@ async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.le
 const bar=()=>`<div class="bar"><b>${t('barTitle')}</b><span class="mut">${esc(me.full_name)} · ${t('role_'+me.role)}</span><span><button onclick="listView()">${t('requests')}</button> ${me.role=='admin'?`<button onclick="adminView()">${t('admin')}</button> `:''}<button onclick="editMe()">${t('myProfile')}</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></span></div>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
  await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
+function setTab(v){showArch=v;listView()}
 
 async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div><div class="scroll"><table><tr><th>${t('code')}</th><th>${t('project')}</th><th>${t('priority')}</th><th>${t('status')}</th><th>${t('createdCol')}</th><th></th></tr>${data.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.data.pname)}</td><td>${esc(pl(r.data.prio))}</td><td><span class="pill">${esc(t('st_'+r.status))}</span></td><td>${esc(users[r.created_by]?.full_name)}</td><td><button onclick="openCR(${r.id})">${t('open')}</button></td></tr>`).join('')||`<tr><td colspan="6">${t('noReq')}</td></tr>`}</table></div></div>`}
+ const adm=me.role=='admin',act=data.filter(r=>!r.archived),arc=data.filter(r=>r.archived),rows=adm&&showArch?arc:act;
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 8px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}<div class="scroll"><table><tr><th>${t('code')}</th><th>${t('project')}</th><th>${t('priority')}</th><th>${t('status')}</th><th>${t('createdCol')}</th><th></th></tr>${rows.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.data.pname)}</td><td>${esc(pl(r.data.prio))}</td><td><span class="pill">${esc(t('st_'+r.status))}</span></td><td>${esc(users[r.created_by]?.full_name)}</td><td><button onclick="openCR(${r.id})">${t('open')}</button></td></tr>`).join('')||`<tr><td colspan="6">${t('noReq')}</td></tr>`}</table></div></div>`}
 async function newCR(){
  const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:me.id,data:{by:me.full_name,pmname:me.full_name},stakeholders:[{n:'',t:'Internal',i:'',c:''}]}).select().single();
  if(error)return msg(error.message);
@@ -229,32 +239,34 @@ async function newCR(){
 async function openCR(id){
  const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
  if(!a.data)return listView();
- cr=a.data;sigs=b.data;const logs=c.data,st=cr.status;
+ cr=a.data;sigs=b.data;const logs=c.data,st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected';
- const ed=cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
+ const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
- const canAdm=adm&&!fin;
+ const canAdm=adm&&!fin&&!arch;
  const showRA=adm||!['Draft','Returned to PM','Submitted'].includes(st);
  const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
- const canRet=(adm&&['Submitted','PMO Review','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st));
- const mine=sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
+ const canRet=!arch&&((adm&&['Submitted','PMO Review','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
+ const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
  const d=cr.data,dis=ed?'':'disabled';
  const opts=()=>Object.values(users);
  const blk=(sg,can)=>`<div class="sig"><b>${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='';
  if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
- if(adm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
+ if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
- if(st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(adm)acts+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(cr.created_by==me.id||adm)acts+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  app.innerHTML=bar()+`<div class="card"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}</span></div><span class="pill">${esc(t('st_'+st))}</span></div>
+ ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
  ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}</div>
  <div class="card"><h2>${t('projDetails')}</h2><div class="g2">${F.map(k=>`<div><label>${t('f_'+k)} *</label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div></div>
  <div class="card"><h2>${t('changeDetails')}</h2>${T.map(k=>`<label>${t('f_'+k)} *</label><textarea data-k="${k}" ${dis}>${esc(d[k])}</textarea>`).join('')}</div>
- <div class="card"><h2>${t('stakeTitle')}</h2><div class="mut">${t('stakeNote')}</div><div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thType')}</th><th>${t('thImpact')}</th><th>${t('thHow')}</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed&&cr.stakeholders.length>1?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}</div>
- <div class="card"><h2>${t('workflow')}</h2>${adm&&st=='Submitted'?`<div class="mut" style="margin-bottom:8px">${t('adminNote')}</div>`:''}${blk('created',ed||canAdm)}${showRA?blk('reviewed',canAdm)+blk('approved',canAdm):''}<div class="row">${acts}</div></div>
+ <div class="card"><h2>${t('stakeTitle')}</h2><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.length?`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thType')}</th><th>${t('thImpact')}</th><th>${t('thHow')}</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>`:''}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}</div>
+ <div class="card"><h2>${t('workflow')}</h2>${canAdm&&st=='Submitted'?`<div class="mut" style="margin-bottom:8px">${t('adminNote')}</div>`:''}${blk('created',ed||canAdm)}${showRA?blk('reviewed',canAdm)+blk('approved',canAdm):''}<div class="row">${acts}</div></div>
  <div class="card"><h2>${t('auditLog')}</h2><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></div>`}
 document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k)cr.data[x.dataset.k]=x.value;if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value});
 const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
@@ -266,11 +278,11 @@ async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.v
 async function rmSig(id){await sb.from('signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
 async function setStatus(s,extra={}){await sb.from('change_requests').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);listView()}
+async function archiveCR(v){const {error}=await sb.from('change_requests').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
 async function submitCR(){
  await save(false);
  const miss=[...F,...T].filter(k=>!String(cr.data[k]||'').trim());
  if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
- if(!cr.stakeholders.some(x=>x.n.trim()&&x.i.trim()&&x.c.trim()))return msg(t('addStakeMsg'));
  const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
  await setStatus('Submitted');openCR(cr.id)}
 async function sendReview(){
