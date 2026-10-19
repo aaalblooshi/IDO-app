@@ -34,13 +34,11 @@ canvas{width:100%;height:140px;border:1px solid #d9dde5;border-radius:8px;touch-
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
-// ====== PASTE YOUR TWO SUPABASE VALUES HERE (Project Settings > API) ======
-const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co/rest/vl/";
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-// ==========================================================================
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=i=>document.getElementById(i),app=$('app');
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); we
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const msg=t=>alert(t);
 const F=[["pname","Project name"],["pcode","Project code"],["by","Request submitted by"],["prio","Change priority"],["edate","Estimated date for the change"],["sector","Sector"],["dept","Department"],["sponsor","Project sponsor name"],["pmname","Project manager name"]];
 const T=[["desc","Change description"],["reason","Reasons for the change"],["scope","Impact on project scope"],["cost","Impact on project cost"],["sched","Impact on project schedule"],["stake","Impact on stakeholders"],["chal","Challenges if change isn’t approved"]];
