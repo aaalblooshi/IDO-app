@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Change Request System</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#1d2330;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{max-width:820px;margin:0 auto;padding:10px}
+.card{background:#fff;border:1px solid #d9dde5;border-radius:12px;padding:14px;margin-bottom:12px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+h1{font-size:19px;margin:0 0 8px}h2{font-size:15px;margin:0 0 8px}.mut{color:#6b7385;font-size:13px}
+label{display:block;font-size:13px;color:#6b7385;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px;border:1px solid #d9dde5;border-radius:8px;font:inherit;background:#fff;color:#1d2330}
+textarea{min-height:60px}input:disabled,select:disabled,textarea:disabled{background:#eef0f4}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}@media(max-width:520px){.g2{grid-template-columns:1fr}}
+button{font:inherit;padding:8px 13px;border-radius:8px;border:1px solid #d9dde5;background:#fff;cursor:pointer}
+.p{background:#2457d6;color:#fff;border-color:#2457d6}.g{background:#1b8a4b;color:#fff;border-color:#1b8a4b}.r{background:#c23b3b;color:#fff;border-color:#c23b3b}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center}
+.pill{background:#2457d6;color:#fff;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{border-bottom:1px solid #d9dde5;padding:4px;text-align:left;font-size:13px}td input,td select{padding:5px}
+.sig{border:1px dashed #c4c9d4;border-radius:10px;padding:10px;margin-bottom:8px}
+.srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
+.log{font-size:12px;color:#6b7385;max-height:150px;overflow:auto}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:12px}.modal.on{display:flex}
+.box{background:#fff;border-radius:12px;padding:14px;width:100%;max-width:420px}
+canvas{width:100%;height:140px;border:1px solid #d9dde5;border-radius:8px;touch-action:none;display:block}
+</style></head><body>
+<div id="app"></div>
+<div class="modal" id="modal"><div class="box"><h2>Sign</h2>
+<div class="row" style="margin:0 0 8px"><button id="td" class="p">Draw</button><button id="tu">Upload picture</button></div>
+<div id="pd"><canvas id="cv"></canvas><div class="row"><button onclick="clr()">Clear</button></div></div>
+<div id="pu" style="display:none"><input type="file" id="file" accept="image/png,image/jpeg"><img id="prev" style="max-height:90px;display:none;margin-top:6px"></div>
+<div class="row"><button class="p" onclick="confirmSign()">Confirm signature</button><button onclick="$('modal').classList.remove('on')">Cancel</button></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// ====== PASTE YOUR TWO SUPABASE VALUES HERE (Project Settings > API) ======
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co/rest/vl/";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+// ==========================================================================
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=i=>document.getElementById(i),app=$('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); we
+const msg=t=>alert(t);
+const F=[["pname","Project name"],["pcode","Project code"],["by","Request submitted by"],["prio","Change priority"],["edate","Estimated date for the change"],["sector","Sector"],["dept","Department"],["sponsor","Project sponsor name"],["pmname","Project manager name"]];
+const T=[["desc","Change description"],["reason","Reasons for the change"],["scope","Impact on project scope"],["cost","Impact on project cost"],["sched","Impact on project schedule"],["stake","Impact on stakeholders"],["chal","Challenges if change isn’t approved"]];
+let me,users={},cr,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false;
+const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
+
+async function start(){
+ if(!sb){app.innerHTML='<div class="card" style="max-width:420px;margin:40px auto"><h1>Almost there</h1><p>The page opened, but it is not connected to your database yet.</p><p>Paste your Supabase <b>Project URL</b> and <b>anon key</b> near the top of the code. Also check that this device has internet access.</p></div>';return}
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)return loginView();
+ const {data:ps}=await sb.from('profiles').select('*');
+ users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];listView();
+}
+function loginView(){app.innerHTML=`<div class="card" style="max-width:380px;margin:40px auto"><h1>Change Request System</h1>
+<label>Full name (new accounts only)</label><input id="fn"><label>Email</label><input id="em" type="email"><label>Password (6+ characters)</label><input id="pw" type="password">
+<div class="row"><button class="p" onclick="login()">Sign in</button><button onclick="signup()">Create account</button></div></div>`}
+async function login(){const {error}=await sb.auth.signInWithPassword({email:$('em').value,password:$('pw').value});error?msg(error.message):start()}
+async function signup(){const {error}=await sb.auth.signUp({email:$('em').value,password:$('pw').value,options:{data:{full_name:$('fn').value}}});
+ if(error)return msg(error.message);msg('Account created. Click Sign in.')}
+const bar=()=>`<div class="bar"><b>Change Requests</b><span class="mut">${esc(me.full_name)} · ${me.role}</span><span><button onclick="listView()">Requests</button> ${me.role=='admin'?'<button onclick="adminView()">Admin</button> ':''}<button onclick="editMe()">My profile</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">Sign out</button></span></div>`;
+async function editMe(){const n=prompt('Your full name',me.full_name);if(n===null)return;const j=prompt('Your job title',me.job_title||'');if(j===null)return;
+ await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
+
+async function listView(){
+ const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>All requests</h2>${['pm','admin'].includes(me.role)?'<button class="p" onclick="newCR()">+ New request</button>':''}</div><div class="scroll"><table><tr><th>Code</th><th>Project</th><th>Priority</th><th>Status</th><th>Created by</th><th></th></tr>${data.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.data.pname)}</td><td>${esc(r.data.prio)}</td><td><span class="pill">${esc(r.status)}</span></td><td>${esc(users[r.created_by]?.full_name)}</td><td><button onclick="openCR(${r.id})">Open</button></td></tr>`).join('')||'<tr><td colspan="6">No requests yet.</td></tr>'}</table></div></div>`}
+async function newCR(){
+ const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:me.id,data:{by:me.full_name,pmname:me.full_name},stakeholders:[{n:'',t:'Internal',i:'',c:''}]}).select().single();
+ if(error)return msg(error.message);
+ await sb.from('signatories').insert({cr_id:data.id,stage:'created',user_id:me.id});await lg(data.id,'Request created');openCR(data.id)}
+
+async function openCR(id){
+ const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
+ cr=a.data;sigs=b.data;const logs=c.data,st=cr.status;
+ const ed=cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
+ const pmo=['pmo','admin'].includes(me.role)&&(st=='PMO Review'||st=='Awaiting Approval');
+ const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
+ const mine=sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
+ const d=cr.data,dis=ed?'':'disabled';
+ const blk=(sg,title,can)=>`<div class="sig"><b>${title}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||u.role)}</span><br>${s.status=='signed'?'✔ signed '+new Date(s.signed_at).toLocaleString():'<span class="mut">pending</span>'}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||'<div class="mut">No one assigned</div>'}${can?`<div class="row"><select id="as_${sg}">${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${u.role})</option>`).join('')}</select><button onclick="addSig('${sg}')">Add</button></div>`:''}</div>`;
+ let acts='';
+ if(ed)acts+=`<button onclick="save()">Save draft</button><button class="p" onclick="submitCR()">Submit to PMO</button>`;
+ if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">Sign</button>`;
+ if(pmo)acts+=`<button class="r" onclick="ret()">Return to PM</button>`;
+ if(st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">Reject</button>`;
+ app.innerHTML=bar()+`<div class="card"><div class="top"><div><h1>${esc(cr.code)} · version ${cr.version}</h1><span class="mut">Created by ${esc(users[cr.created_by]?.full_name)}</span></div><span class="pill">${esc(st)}</span></div>
+ ${cr.comment?`<div class="sig" style="margin-top:8px"><b>Latest comment:</b> ${esc(cr.comment)}</div>`:''}</div>
+ <div class="card"><h2>Project details</h2><div class="g2">${F.map(([k,l])=>`<div><label>${l} *</label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option ${d.prio==o?'selected':''}>${o}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div></div>
+ <div class="card"><h2>Change details</h2>${T.map(([k,l])=>`<label>${l} *</label><textarea data-k="${k}" ${dis}>${esc(d[k])}</textarea>`).join('')}</div>
+ <div class="card"><h2>Stakeholders to be notified</h2><div class="mut">Information only, no approval needed.</div><div class="scroll"><table><tr><th>Name</th><th>Internal / External</th><th>Impact</th><th>How notified</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option ${x.t=='Internal'?'selected':''}>Internal</option><option ${x.t=='External'?'selected':''}>External</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed&&cr.stakeholders.length>1?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>${ed?'<div class="row"><button onclick="addSh()">+ Add stakeholder</button></div>':''}</div>
+ <div class="card"><h2>Workflow &amp; signatures</h2>${blk('created','Created by',ed)}${blk('reviewed','Reviewed by',pmo)}${blk('approved','Approved by',pmo)}<div class="row">${acts}</div></div>
+ <div class="card"><h2>Audit log</h2><div class="log">${logs.map(l=>`<div>${new Date(l.at).toLocaleString()} · <b>${esc(l.user_name)}</b>: ${esc(l.action)}</div>`).join('')}</div></div>`}
+document.addEventListener('input',e=>{const t=e.target;if(t.dataset.k)cr.data[t.dataset.k]=t.value;if(t.dataset.i!==undefined)cr.stakeholders[t.dataset.i][t.dataset.s]=t.value});
+const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
+const delSh=i=>{cr.stakeholders.splice(i,1);save(true)};
+async function save(q){const {error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
+async function addSig(sg){const u=$('as_'+sg).value;if(sigs.some(s=>s.stage==sg&&s.user_id==u))return msg('Already added.');
+ if(cr.created_by==me.id&&sg=='created')await save(false);
+ await sb.from('signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'Assigned '+users[u].full_name+' to '+sg);openCR(cr.id)}
+async function rmSig(id){await sb.from('signatories').delete().eq('id',id);await lg(cr.id,'Removed a signatory');openCR(cr.id)}
+async function setStatus(s,extra={}){await sb.from('change_requests').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'Status → '+s)}
+async function submitCR(){
+ await save(false);
+ const miss=[...F,...T].filter(([k])=>!String(cr.data[k]||'').trim());
+ if(miss.length)return msg('Please complete: '+miss.map(m=>m[1]).join(', '));
+ if(!cr.stakeholders.some(x=>x.n.trim()&&x.i.trim()&&x.c.trim()))return msg('Add at least one complete stakeholder row.');
+ const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg('All creators must sign before submitting.');
+ await setStatus('PMO Review');openCR(cr.id)}
+async function ret(){const c=prompt('Comment for the project manager (required):');if(!c)return;
+ await sb.from('signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
+ await setStatus('Returned to PM',{comment:c,version:cr.version+1});await lg(cr.id,'Returned: '+c+' (signatures reset)');openCR(cr.id)}
+async function rej(){const c=prompt('Reason for rejection (required):');if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'Rejected: '+c);openCR(cr.id)}
+
+// ---- signing ----
+function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';$('modal').classList.add('on');
+ const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
+function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
+$('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
+const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
+const pos=e=>{const r=$('cv').getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+const cv=$('cv');cv.onpointerdown=e=>{down=true;const p=pos(e);ctx.beginPath();ctx.moveTo(...p);cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke();drawn=true};cv.onpointerup=()=>down=false;
+$('file').onchange=function(){const f=this.files[0];if(!f)return;
+ if(!/^image\/(png|jpeg)$/.test(f.type))return msg('Please choose a PNG or JPG.');if(f.size>1048576)return msg('File is larger than 1 MB.');
+ const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
+async function confirmSign(){
+ let img;if(mode=='d'){if(!drawn)return msg('Please draw your signature.');img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg('Please upload a picture.');img=upImg}
+ if(cr.created_by==me.id&&pend.stage=='created')await save(false);
+ await sb.from('signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
+ await lg(cr.id,'Signed ('+pend.stage+')');
+ const {data}=await sb.from('signatories').select('*').eq('cr_id',cr.id);
+ const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
+ if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Awaiting Approval');
+ else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved');
+ $('modal').classList.remove('on');openCR(cr.id)}
+
+// ---- admin ----
+function adminView(){app.innerHTML=bar()+`<div class="card"><h2>Users &amp; roles</h2><div class="mut">Roles: pm (Project Manager), pmo, sponsor, admin.</div><div class="scroll"><table><tr><th>Name</th><th>Email</th><th>Job title</th><th>Role</th><th></th></tr>${Object.values(users).map(u=>`<tr><td>${esc(u.full_name)}</td><td>${esc(u.email)}</td><td><input id="j_${u.id}" value="${esc(u.job_title)}"></td><td><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option ${u.role==r?'selected':''}>${r}</option>`).join('')}</select></td><td><button onclick="saveU('${u.id}')">Save</button></td></tr>`).join('')}</table></div></div>`}
+async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg('Saved'),start())}
+start();
+</script></body></html>
