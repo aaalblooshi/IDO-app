@@ -101,7 +101,7 @@ const W=[
 ["External","External","خارجي"],
 ["addStake","+ Add stakeholder","+ إضافة صاحب مصلحة"],
 ["workflow","Workflow & signatures","سير العمل والتوقيعات"],
-["optNote","Assigning reviewers and approvers is optional. The admin can assign them after you submit.","تعيين المراجعين والمعتمدين اختياري، ويمكن للمسؤول تعيينهم بعد الإرسال."],
+["adminNote","Choose the reviewer(s) and approver(s), who can be any user, then tap Send for review.","اختر المراجع والمعتمد (يمكن أن يكون أي مستخدم) ثم اضغط إرسال للمراجعة."],
 ["stg_created","Created by","أعدّه"],
 ["stg_reviewed","Reviewed by","راجعه"],
 ["stg_approved","Approved by","اعتمده"],
@@ -110,9 +110,11 @@ const W=[
 ["signedOn","✔ signed","✔ تم التوقيع"],
 ["add","Add","إضافة"],
 ["saveDraft","Save draft","حفظ المسودة"],
-["submit","Submit for review","إرسال للمراجعة"],
+["submit","Submit request","تقديم الطلب"],
+["sendRev","Send for review","إرسال للمراجعة"],
+["needRev","Please assign at least one reviewer and one approver.","يرجى تعيين مراجع واحد ومعتمد واحد على الأقل."],
 ["sign","Sign","توقيع"],
-["returnPM","Return to PM","إعادة إلى مدير المشروع"],
+["returnPM","Return to requester","إعادة إلى مقدّم الطلب"],
 ["reject","Reject","رفض"],
 ["del","Delete request","حذف الطلب"],
 ["confirmDel","Delete this request permanently?","هل تريد حذف هذا الطلب نهائياً؟"],
@@ -121,7 +123,7 @@ const W=[
 ["complete","Please complete: ","يرجى استكمال: "],
 ["addStakeMsg","Add at least one complete stakeholder row.","أضف صف صاحب مصلحة واحداً مكتملاً على الأقل."],
 ["creatorsSign","All creators must sign before submitting.","يجب أن يوقّع جميع المعدّين قبل الإرسال."],
-["retPrompt","Comment for the project manager (required):","تعليق لمدير المشروع (مطلوب):"],
+["retPrompt","Comment for the requester (required):","تعليق لمقدّم الطلب (مطلوب):"],
 ["rejPrompt","Reason for rejection (required):","سبب الرفض (مطلوب):"],
 ["signTitle","Sign","التوقيع"],
 ["draw","Draw","رسم"],
@@ -134,7 +136,7 @@ const W=[
 ["pngjpg","Please choose a PNG or JPG.","يرجى اختيار صورة PNG أو JPG."],
 ["big","File is larger than 1 MB.","حجم الملف أكبر من 1 ميغابايت."],
 ["usersRoles","Users & roles","المستخدمون والأدوار"],
-["rolesNote","Roles: Project Manager, Institutional Development Office, Sponsor, Admin.","الأدوار: مدير مشروع، مكتب التطوير المؤسسي، راعي المشروع، مسؤول النظام."],
+["rolesNote","Admin sees all requests and assigns reviewers and approvers (any user, any role). Other users only see requests they created or were assigned to.","المسؤول يرى كل الطلبات ويعيّن المراجعين والمعتمدين (أي مستخدم وبأي دور). بقية المستخدمين يرون فقط الطلبات التي أنشأوها أو عُيّنوا عليها."],
 ["thEmail","Email","البريد الإلكتروني"],
 ["thJob","Job title","المسمى الوظيفي"],
 ["thRole","Role","الدور"],
@@ -145,160 +147,4 @@ const W=[
 ["role_sponsor","Sponsor","راعي المشروع"],
 ["role_admin","Admin","مسؤول النظام"],
 ["st_Draft","Draft","مسودة"],
-["st_Returned to PM","Returned to PM","معاد إلى مدير المشروع"],
-["st_PMO Review","Under review","قيد المراجعة"],
-["st_Awaiting Approval","Awaiting Approval","بانتظار الاعتماد"],
-["st_Approved","Approved","معتمد"],
-["st_Rejected","Rejected","مرفوض"],
-["p_Low","Low","منخفضة"],
-["p_Medium","Medium","متوسطة"],
-["p_High","High","عالية"],
-["p_Critical","Critical","حرجة"],
-["l_created","Request created","تم إنشاء الطلب"],
-["l_signed","Signed","تم التوقيع"],
-["l_status","Status: ","الحالة: "],
-["l_assigned","Assigned","تم تعيين"],
-["l_removed","Removed a signatory","تمت إزالة موقّع"],
-["l_returned","Returned (signatures reset)","تمت الإعادة (أُعيد ضبط التوقيعات)"],
-["l_rejected","Rejected","تم الرفض"]
-];
-const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
-let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
-const t=k=>D[lang][k]??D.en[k]??k;
-const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
-const pl=v=>v?t('p_'+v):'';
-const msg=x=>alert(x);
-const F=["pname","pcode","by","prio","edate","sector","dept","sponsor","pmname"];
-const T=["desc","reason","scope","cost","sched","stake","chal"];
-let me,users={},cr,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false;
-const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
-function logT(a){const p=a.split('|'),k=p[0];
- if(k=='created')return t('l_created');
- if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
- if(k=='status')return t('l_status')+t('st_'+p[1]);
- if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
- if(k=='removed')return t('l_removed');
- if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
- if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
- return a}
-function applyStatic(){
- document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';document.title=t('appTitle');
- $('lb').textContent=lang=='ar'?'English':'العربية';
- $('mt').textContent=t('signTitle');$('td').textContent=t('draw');$('tu').textContent=t('upload');
- $('clb').textContent=t('clear');$('cfb').textContent=t('confirm');$('cnb').textContent=t('cancel')}
-async function toggleLang(){
- if(editing&&sb&&cr){try{await save(false)}catch(e){}}
- const ids=['fn','em','pw'],v=ids.map(i=>$(i)?$(i).value:'');
- lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(e){}
- applyStatic();if(curView)await curView();
- ids.forEach((i,j)=>{if($(i)&&v[j])$(i).value=v[j]})}
-
-// ===== App =====
-async function start(){
- curView=start;editing=false;
- if(!sb){app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('almost')}</p></div>`;return}
- const {data:{session}}=await sb.auth.getSession();
- if(!session)return loginView();
- const {data:ps}=await sb.from('profiles').select('*');
- users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];listView();
-}
-function loginView(){curView=loginView;editing=false;
- app.innerHTML=`<div class="card" style="max-width:380px;margin:40px auto"><h1>${t('appTitle')}</h1>
-<label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><input id="pw" type="password" dir="ltr">
-<div class="row"><button class="p" onclick="login()">${t('signIn')}</button><button onclick="signup()">${t('createAcc')}</button></div></div>`}
-async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return msg(t('typeBoth'));
- const {error}=await sb.auth.signInWithPassword({email:e,password:p});error?msg(error.message):start()}
-async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.length<6)return msg(t('typeSignup'));
- const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
- if(error)return msg(error.message);msg(t('accCreated'))}
-const bar=()=>`<div class="bar"><b>${t('barTitle')}</b><span class="mut">${esc(me.full_name)} · ${t('role_'+me.role)}</span><span><button onclick="listView()">${t('requests')}</button> ${me.role=='admin'?`<button onclick="adminView()">${t('admin')}</button> `:''}<button onclick="editMe()">${t('myProfile')}</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></span></div>`;
-async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
- await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
-
-async function listView(){curView=listView;editing=false;
- const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div><div class="scroll"><table><tr><th>${t('code')}</th><th>${t('project')}</th><th>${t('priority')}</th><th>${t('status')}</th><th>${t('createdCol')}</th><th></th></tr>${data.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.data.pname)}</td><td>${esc(pl(r.data.prio))}</td><td><span class="pill">${esc(t('st_'+r.status))}</span></td><td>${esc(users[r.created_by]?.full_name)}</td><td><button onclick="openCR(${r.id})">${t('open')}</button></td></tr>`).join('')||`<tr><td colspan="6">${t('noReq')}</td></tr>`}</table></div></div>`}
-async function newCR(){
- const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:me.id,data:{by:me.full_name,pmname:me.full_name},stakeholders:[{n:'',t:'Internal',i:'',c:''}]}).select().single();
- if(error)return msg(error.message);
- await sb.from('signatories').insert({cr_id:data.id,stage:'created',user_id:me.id});await lg(data.id,'created');openCR(data.id)}
-
-async function openCR(id){
- const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
- if(!a.data)return listView();
- cr=a.data;sigs=b.data;const logs=c.data,st=cr.status;
- const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected';
- const ed=cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
- curView=()=>openCR(id);editing=ed;
- const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
- const canA=ed||(adm&&!fin);
- const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
- const canRet=(adm||inStage)&&(st=='PMO Review'||st=='Awaiting Approval');
- const mine=sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
- const d=cr.data,dis=ed?'':'disabled';
- const opts=()=>Object.values(users);
- const blk=(sg,can)=>`<div class="sig"><b>${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
- let acts='';
- if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
- if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
- if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
- if(st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
- if(cr.created_by==me.id||adm)acts+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
- app.innerHTML=bar()+`<div class="card"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}</span></div><span class="pill">${esc(t('st_'+st))}</span></div>
- ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}</div>
- <div class="card"><h2>${t('projDetails')}</h2><div class="g2">${F.map(k=>`<div><label>${t('f_'+k)} *</label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div></div>
- <div class="card"><h2>${t('changeDetails')}</h2>${T.map(k=>`<label>${t('f_'+k)} *</label><textarea data-k="${k}" ${dis}>${esc(d[k])}</textarea>`).join('')}</div>
- <div class="card"><h2>${t('stakeTitle')}</h2><div class="mut">${t('stakeNote')}</div><div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thType')}</th><th>${t('thImpact')}</th><th>${t('thHow')}</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed&&cr.stakeholders.length>1?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}</div>
- <div class="card"><h2>${t('workflow')}</h2>${ed?`<div class="mut" style="margin-bottom:8px">${t('optNote')}</div>`:''}${blk('created',canA)}${blk('reviewed',canA)}${blk('approved',canA)}<div class="row">${acts}</div></div>
- <div class="card"><h2>${t('auditLog')}</h2><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></div>`}
-document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k)cr.data[x.dataset.k]=x.value;if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value});
-const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
-const delSh=i=>{cr.stakeholders.splice(i,1);save(true)};
-async function save(q){const {error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
-async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.value;if(sigs.some(x=>x.stage==sg&&x.user_id==u))return msg(t('already'));
- if(cr.created_by==me.id&&editing)await save(false);
- await sb.from('signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
-async function rmSig(id){await sb.from('signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
-async function setStatus(s,extra={}){await sb.from('change_requests').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
-async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);listView()}
-async function submitCR(){
- await save(false);
- const miss=[...F,...T].filter(k=>!String(cr.data[k]||'').trim());
- if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
- if(!cr.stakeholders.some(x=>x.n.trim()&&x.i.trim()&&x.c.trim()))return msg(t('addStakeMsg'));
- const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
- await setStatus('PMO Review');openCR(cr.id)}
-async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
- await sb.from('signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
- await setStatus('Returned to PM',{comment:c,version:cr.version+1});await lg(cr.id,'returned|'+c);openCR(cr.id)}
-async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
-
-// ---- signing ----
-function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';$('modal').classList.add('on');
- const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
-function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
-$('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
-const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
-const pos=e=>{const r=$('cv').getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-const cv=$('cv');cv.onpointerdown=e=>{down=true;const p=pos(e);ctx.beginPath();ctx.moveTo(...p);cv.setPointerCapture(e.pointerId)};
-cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke();drawn=true};cv.onpointerup=()=>down=false;
-$('file').onchange=function(){const f=this.files[0];if(!f)return;
- if(!/^image\/(png|jpeg)$/.test(f.type))return msg(t('pngjpg'));if(f.size>1048576)return msg(t('big'));
- const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
-async function confirmSign(){
- let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
- if(cr.created_by==me.id&&pend.stage=='created')await save(false);
- await sb.from('signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage);
- const {data}=await sb.from('signatories').select('*').eq('cr_id',cr.id);
- const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
- if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Awaiting Approval');
- else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved');
- $('modal').classList.remove('on');openCR(cr.id)}
-
-// ---- admin ----
-function adminView(){curView=adminView;editing=false;
- app.innerHTML=bar()+`<div class="card"><h2>${t('usersRoles')}</h2><div class="mut">${t('rolesNote')}</div><div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thEmail')}</th><th>${t('thJob')}</th><th>${t('thRole')}</th><th></th></tr>${Object.values(users).map(u=>`<tr><td>${esc(u.full_name)}</td><td dir="ltr">${esc(u.email)}</td><td><input id="j_${u.id}" value="${esc(u.job_title)}"></td><td><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('role_'+r)}</option>`).join('')}</select></td><td><button onclick="saveU('${u.id}')">${t('save')}</button></td></tr>`).join('')}</table></div></div>`}
-async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
-applyStatic();start();
-</script></body></html>
+["st
