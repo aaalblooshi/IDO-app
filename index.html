@@ -13,6 +13,7 @@ body{margin:0;color:var(--ink);font:14.5px/1.6 var(--fnt);background:radial-grad
 #hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 .hin{max-width:900px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .logo{height:44px;width:auto;display:block}
+.flash{animation:fl 1.2s ease}@keyframes fl{0%{box-shadow:0 0 0 4px var(--g)}100%{box-shadow:0 0 0 0 transparent}}#lst{scroll-margin-top:calc(var(--hh,90px) + 8px);min-height:calc(100vh - var(--hh,90px) - 90px)}#lst .top .sm{white-space:nowrap;flex:0 0 auto}
 .ttl{max-width:900px;margin:0 auto;padding:0 14px 7px;font-weight:800;font-size:17px;color:var(--ch);display:flex;align-items:center;gap:8px}.ttl:before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--r) 0 50%,var(--g) 50% 100%)}
 .stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#d1101d}.stripe i:nth-child(2){background:#0a6b3d}.stripe i:nth-child(3){background:#1b1d1f}.stripe i:nth-child(4){background:#a8a7a7}
 #lb{padding:6px 14px;border-radius:99px;font-size:13px;background:var(--ch);color:#fff;border-color:var(--ch)}
@@ -431,7 +432,8 @@ const passQ=x=>{const r=x.r;if(H.q&&!`${r.code} ${r.data.pname||''}`.toLowerCase
 const list=f=>DB.crs.map(r=>DB.by[r.id]).filter(x=>passF(x,f));
 const bars=rows=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(([l,n])=>`<div class="hb"><span>${esc(l)}</span><div><i style="width:${n/m*100}%"></i></div><b>${n}</b></div>`).join('')||'<div class="mut">—</div>'};
 async function homeView(){curView=homeView;editing=false;DB=await loadAll();enrich();drawHome()}
-function setF(f){H.f=(H.f==f?'':f);drawHome()}
+function fLabel(f){if(!f)return'';if(f.startsWith('st:'))return t('st_'+f.slice(3));const m={action:'c_action',mine:me.role=='admin'?'c_mineA':'c_mine',returned:'c_returned',approved:'c_approved',rejected:'c_rejected'};return m[f]?t(m[f]):''}
+function setF(f){const on=H.f!=f;H.f=on?f:'';drawHome();if(on){const e=$('lst');if(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');e.scrollIntoView({behavior:'smooth',block:'start'})}}}
 function drawList(){const rows=list(H.f).filter(passQ);$('hl').innerHTML=rows.map(x=>rowH(x,me.role=='admin')).join('')||`<div class="mut">${t('noReq')}</div>`}
 function drawHome(){
  const adm=me.role=='admin';
@@ -441,7 +443,7 @@ function drawHome(){
  <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
- +`<div class="card"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}</h2>${H.f?`<button class="sm" onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="fg"><div><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"></div><div><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div></div><div id="hl" style="margin-top:10px"></div></div>`;
+ +`<div class="card" id="lst"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}${H.f?' — '+esc(fLabel(H.f)):''}</h2>${H.f?`<button class="sm" onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="fg"><div><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"></div><div><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div></div><div id="hl" style="margin-top:10px"></div></div>`;
  $('hq').oninput=e=>{H.q=e.target.value;drawList()};
  $('hr').onchange=e=>{H.rel=e.target.value;drawList()};
  drawList()}
