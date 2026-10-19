@@ -1,39 +1,81 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
 <title>Change Request System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#1d2330;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
-#app{max-width:820px;margin:0 auto;padding:10px}
-.lang{display:flex;justify-content:flex-end;max-width:820px;margin:0 auto;padding:10px 10px 0}
-.card{background:#fff;border:1px solid #d9dde5;border-radius:12px;padding:14px;margin-bottom:12px}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-h1{font-size:19px;margin:0 0 8px}h2{font-size:15px;margin:0 0 8px}.mut{color:#6b7385;font-size:13px}
-label{display:block;font-size:13px;color:#6b7385;margin:8px 0 3px}
-input,select,textarea{width:100%;padding:8px;border:1px solid #d9dde5;border-radius:8px;font:inherit;background:#fff;color:#1d2330}
-input[dir=ltr]{text-align:left}
-textarea{min-height:60px}input:disabled,select:disabled,textarea:disabled{background:#eef0f4}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:520px){.g2{grid-template-columns:1fr}}
-button{font:inherit;padding:8px 13px;border-radius:8px;border:1px solid #d9dde5;background:#fff;cursor:pointer}
-.p{background:#2457d6;color:#fff;border-color:#2457d6}.g{background:#1b8a4b;color:#fff;border-color:#1b8a4b}.r{background:#c23b3b;color:#fff;border-color:#c23b3b}
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--r2:#fdecee;--am:#b7791f;--am2:#fdf3df;--ch:#23272b;--fnt:"Cairo","Segoe UI",Tahoma,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font:14.5px/1.6 var(--fnt);background:radial-gradient(800px 380px at 100% -60px,#dcefe3 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#fbe4e6 0,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
+#hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hin{max-width:900px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{height:44px;width:auto;display:block}
+.stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#d1101d}.stripe i:nth-child(2){background:#0a6b3d}.stripe i:nth-child(3){background:#1b1d1f}.stripe i:nth-child(4){background:#a8a7a7}
+#lb{padding:6px 14px;border-radius:99px;font-size:13px;background:var(--ch);color:#fff;border-color:var(--ch)}
+#app{max-width:900px;margin:0 auto;padding:12px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(35,39,43,.04),0 6px 18px rgba(35,39,43,.05)}
+h1{font-size:20px;margin:0 0 6px;font-weight:800}h2{font-size:16px;margin:0 0 8px;font-weight:800;color:var(--ch)}.mut{color:var(--mut);font-size:13px}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--mut);margin:8px 0 3px}.rq{color:var(--r)}
+input,select,textarea{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:16px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(10,107,61,.15)}
+input[dir=ltr]{text-align:start}
+input:disabled,select:disabled{background:#f7f5ef;-webkit-text-fill-color:var(--ink);opacity:1;border-color:#ece8de}
+textarea.ta{resize:none;overflow:hidden;line-height:1.65;display:block}
+.ta-w{position:relative}.ta-w.clamped::after{content:"⌄";position:absolute;inset-inline:0;bottom:1px;text-align:center;height:24px;line-height:30px;color:var(--g);font-weight:800;background:linear-gradient(transparent,#fff 80%);border-radius:0 0 10px 10px;pointer-events:none}
+.ro{background:#f7f5ef;border:1.5px solid #ece8de;border-radius:10px;padding:9px 11px;font-size:15.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:76px;overflow:hidden;position:relative;cursor:pointer}
+.ro.open{max-height:none}.ro.more::after{content:"⌄";position:absolute;inset-inline:0;bottom:0;text-align:center;height:26px;line-height:34px;color:var(--g);font-weight:800;background:linear-gradient(rgba(247,245,239,0),#f7f5ef 80%)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.fg .full{grid-column:1/-1}
+button{font:inherit;font-weight:700;padding:9px 15px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;transition:transform .08s,box-shadow .15s}
+button:active{transform:scale(.97)}
+.p,.g{background:linear-gradient(135deg,#0a6b3d,#0f8d52);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(10,107,61,.25)}
+.r{background:var(--r);color:#fff;border-color:transparent}
+.sm{padding:4px 11px;font-size:13px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.pill{background:#2457d6;color:#fff;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
-.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:520px}
-th,td{border-bottom:1px solid #d9dde5;padding:4px;text-align:start;font-size:13px}td input,td select{padding:5px}
-.sig{border:1px dashed #c4c9d4;border-radius:10px;padding:10px;margin-bottom:8px}
-.srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
-.log{font-size:12px;color:#6b7385;max-height:150px;overflow:auto}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:12px}.modal.on{display:flex}
-.box{background:#fff;border-radius:12px;padding:14px;width:100%;max-width:420px}
-canvas{width:100%;height:140px;border:1px solid #d9dde5;border-radius:8px;touch-action:none;display:block}
-.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.k{border:1px solid #d9dde5;border-radius:10px;padding:10px;cursor:pointer;font-size:13px;color:#6b7385;background:#fff}
-.k b{display:block;font-size:24px;color:#1d2330}.k.on{border-color:#2457d6;background:#eef3ff}.k.hot{border-color:#c23b3b}.k.hot b{color:#c23b3b}
-.pg{display:flex;gap:3px;margin:6px 0}.pg i{flex:1;height:5px;border-radius:3px;background:#d9dde5}.pg i.on{background:#2457d6}
+.pill{background:var(--ch);color:#fff;border-radius:99px;padding:2px 11px;font-size:12px;font-weight:700;white-space:nowrap;display:inline-block}
+.pill.s-d{background:#8a8f96}.pill.s-ret{background:var(--am)}.pill.s-ok{background:var(--g)}.pill.s-no{background:var(--r)}.pill.act{background:var(--r)}
+.nav{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding:2px 1px}.nav::-webkit-scrollbar{display:none}.nav>*{flex:0 0 auto}
+.nv{padding:5px 13px;border-radius:99px;font-size:13.5px;background:#fff}.nv.on{background:var(--ch);color:#fff;border-color:var(--ch)}
+.uchip{font-size:12.5px;color:var(--mut);font-weight:600}
+.hero{border-radius:18px;padding:16px 18px;margin-bottom:12px;color:#fff;background:linear-gradient(135deg,#1b1d1f 0%,#2a3036 55%,#0a6b3d 170%);border-inline-start:6px solid var(--r);box-shadow:0 8px 24px rgba(35,39,43,.2)}
+.hero h2{color:#fff;margin:0;font-size:19px}.hero .mut{color:#c9cdd2}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
+.k{border:1px solid var(--line);border-top:4px solid var(--g);border-radius:12px;padding:9px 11px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--mut);background:#fff;line-height:1.35}
+.k b{display:block;font-size:26px;line-height:1.2;color:var(--ink)}.k.on{background:var(--g2);border-color:var(--g)}.k.hot{border-top-color:var(--r)}.k.hot b{color:var(--r)}
+.k:nth-child(2){border-top-color:var(--ch)}.k:nth-child(3){border-top-color:var(--am)}.k:nth-child(4){border-top-color:var(--g)}.k:nth-child(5){border-top-color:var(--r)}.k:nth-child(n+6){border-top-color:#a8a7a7}
+.item{border:1px solid var(--line);border-inline-start:4px solid var(--g);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff}
+.pg{display:flex;gap:3px;margin:6px 0}.pg i{flex:1;height:6px;border-radius:3px;background:#e9e5da}.pg i.on{background:linear-gradient(90deg,var(--g),#2fa569)}
 .hb{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}.hb span{width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hb div{flex:1;background:#eef0f4;border-radius:4px;height:10px}.hb i{display:block;height:10px;background:#2457d6;border-radius:4px}.hb b{min-width:22px;text-align:end}
+.hb div{flex:1;background:#eeeadf;border-radius:5px;height:10px}.hb i{display:block;height:10px;background:linear-gradient(90deg,var(--g),#2fa569);border-radius:5px}.hb b{min-width:22px;text-align:end}
+details.acc{padding:0}details.acc>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:16px;color:var(--ch)}
+details.acc>summary::-webkit-details-marker{display:none}details.acc>summary::after{content:"⌄";color:var(--g);font-size:20px;transition:transform .2s}details.acc[open]>summary::after{transform:rotate(180deg)}
+details.acc>.in{padding:0 14px 14px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:start;font-size:13px}
+.crh{border-inline-start:6px solid var(--g)}
+.fp{margin:0 0 8px}.fp .bg{height:6px;border-radius:3px;background:#e9e5da;overflow:hidden}.fp .bg i{display:block;height:6px;width:0;background:linear-gradient(90deg,var(--r),var(--am),var(--g));transition:width .25s}.fp .mut{font-size:12px;margin-top:2px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 8px;margin-bottom:4px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tb{flex:0 0 auto;white-space:nowrap;border-radius:12px;padding:8px 14px;font-size:14px;color:var(--mut);background:#fff}
+.tb.on{background:var(--ch);color:#fff;border-color:var(--ch)}
+.tb .bd{background:var(--r);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px;display:none}
+.pn{display:none}.pn.on{display:block}
+.sec{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ch);margin:0 0 4px}.sec::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--r)}
+.sh{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:8px 0;background:#fcfbf8;position:relative}.sh>button{position:absolute;top:8px;inset-inline-end:8px}
+.sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
+.sig.st1{border-inline-start-color:var(--am)}.sig.st2{border-inline-start-color:var(--g)}
+.srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
+.log{font-size:12.5px;color:var(--mut);max-height:200px;overflow:auto}
+.actbar{position:fixed;inset-inline:0;bottom:0;z-index:15;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.actbar .row{margin:0;max-width:900px;margin-inline:auto;justify-content:center}
+.pnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.modal{position:fixed;inset:0;background:rgba(20,22,24,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}.modal.on{display:flex}
+.box{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:420px;border-top:5px solid var(--g)}
+canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}
+.lcard{max-width:400px;margin:24px auto;border-top:5px solid var(--g)}
+@media(max-width:380px){.fg{grid-template-columns:1fr}.logo{height:38px}}
 </style></head><body>
-<div class="lang"><button id="lb" onclick="toggleLang()">العربية</button></div>
+<header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><button id="lb" onclick="toggleLang()">العربية</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <div id="app"></div>
 <div class="modal" id="modal"><div class="box"><h2 id="mt">Sign</h2>
 <div class="row" style="margin:0 0 8px"><button id="td" class="p">Draw</button><button id="tu">Upload picture</button></div>
@@ -224,7 +266,19 @@ const W=[
 ["w_avg","Avg. response (days)","متوسط الاستجابة (أيام)"],
 ["ch_month","Requests per month","الطلبات شهرياً"],
 ["ch_prio","By priority","حسب الأولوية"],
-["ch_dept","By department","حسب القسم"]
+["ch_dept","By department","حسب القسم"],
+["tab_proj","Project","المشروع"],
+["tab_chg","Change","التغيير"],
+["tab_imp","Impact","الأثر"],
+["tab_stk","Stakeholders","أصحاب المصلحة"],
+["tab_flow","Workflow","سير العمل"],
+["impactTitle","Impact of the change","أثر التغيير"],
+["next","Next ›","التالي ‹"],
+["back","‹ Back","› السابق"],
+["progress","required fields completed","حقول مطلوبة مكتملة"],
+["tagline","Sign in to manage change requests","سجّل الدخول لإدارة طلبات التغيير"],
+["moreActs","More actions","إجراءات أخرى"],
+["tapHint","Tap a long text to expand it","اضغط على النص الطويل لتوسيعه"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -270,7 +324,7 @@ async function start(){
  users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];homeView();
 }
 function loginView(){curView=loginView;editing=false;
- app.innerHTML=`<div class="card" style="max-width:380px;margin:40px auto"><h1>${t('appTitle')}</h1>
+ app.innerHTML=`<div class="card lcard"><h1>${t('appTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('tagline')}</div>
 <label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><input id="pw" type="password" dir="ltr">
 <div class="row"><button class="p" onclick="login()">${t('signIn')}</button><button onclick="signup()">${t('createAcc')}</button></div></div>`}
 async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return msg(t('typeBoth'));
@@ -278,7 +332,10 @@ async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)re
 async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.length<6)return msg(t('typeSignup'));
  const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
  if(error)return msg(error.message);msg(t('accCreated'))}
-const bar=()=>`<div class="bar"><b>${t('barTitle')}</b><span class="mut">${esc(me.full_name)} · ${t('role_'+me.role)}</span><span><button onclick="homeView()">${t('home')}</button> <button onclick="listView()">${t('requests')}</button> ${me.role=='admin'?`<button onclick="adminView()">${t('admin')}</button> `:''}<button onclick="editMe()">${t('myProfile')}</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></span></div>`;
+const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
+const bar=()=>`<div class="nav">${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
+const SC={'Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
+const pillS=st=>`<span class="pill ${SC[st]||''}">${esc(t('st_'+st))}</span>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
  await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
 function setTab(v){showArch=v;listView()}
@@ -317,7 +374,7 @@ function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.s
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
 function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
- return `<div class="sig"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pill">${esc(t('st_'+r.status))}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row">${x.act?`<span class="pill" style="background:#c23b3b">${t(x.act)}</span>`:''}<button onclick="openCR(${r.id})">${t('open')}</button>${rem&&['PMO Review','Awaiting Approval'].includes(r.status)?`<button onclick="remind(${r.id})">${t('remindBtn')}</button>`:''}</div></div>`}
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button>${rem&&['PMO Review','Awaiting Approval'].includes(r.status)?`<button class="sm" onclick="remind(${r.id})">${t('remindBtn')}</button>`:''}</div></div>`}
 function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(!f)return true;
  if(f=='action')return !!x.act;
@@ -338,13 +395,15 @@ function drawHome(){
  const adm=me.role=='admin';
  const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
  const acts=list('action');
- app.innerHTML=bar()+`<div class="card"><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
+ app.innerHTML=bar()+`<div class="hero"><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>
+ <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
- +`<div class="card"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}</h2>${H.f?`<button onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="g2"><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div><div id="hl" style="margin-top:10px"></div></div>`;
+ +`<div class="card"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}</h2>${H.f?`<button class="sm" onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="fg"><div><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"></div><div><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div></div><div id="hl" style="margin-top:10px"></div></div>`;
  $('hq').oninput=e=>{H.q=e.target.value;drawList()};
  $('hr').onchange=e=>{H.rel=e.target.value;drawList()};
  drawList()}
+const acc=(title,body,open)=>`<details class="card acc" ${open?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
 function adminBlock(){
  const A=DB.crs,n=s=>A.filter(r=>r.status==s).length,over=list('overdue');
  const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected'];
@@ -363,11 +422,11 @@ function adminBlock(){
  const dm={};A.forEach(r=>{const k=(r.data.dept||'').trim();if(k)dm[k]=(dm[k]||0)+1});
  const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
  const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
- return `<div class="card"><h2>${t('pipe')}</h2><div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div></div>
- <div class="card"><h2>${t('overdue')} (${over.length})</h2>${over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`}</div>
- <div class="card"><h2>${t('kpis')}</h2><div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div></div>
- <div class="card"><h2>${t('workload')}</h2><div class="scroll"><table style="min-width:0"><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div></div>
- <div class="card"><h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_prio')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_dept')}</h2>${bars(dp)}</div>`}
+ return acc(t('pipe'),`<div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div>`,true)
+ +acc(`${t('overdue')} (${over.length})`,over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`,over.length>0)
+ +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
+ +acc(t('workload'),`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div>`,false)
+ +acc(t('ch_month')+' / '+t('ch_prio')+' / '+t('ch_dept'),`<h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_prio')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_dept')}</h2>${bars(dp)}`,false)}
 async function remind(id){const {data,error}=await sb.rpc('remind_now',{cid:id});if(error)return msg(error.message);
  if(!data)return msg(t('noRemind'));await lg(id,'reminded');msg(t('reminded')+' '+data)}
 
@@ -375,12 +434,24 @@ async function remind(id){const {data,error}=await sb.rpc('remind_now',{cid:id})
 async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
  const adm=me.role=='admin',act=data.filter(r=>!r.archived),arc=data.filter(r=>r.archived),rows=adm&&showArch?arc:act;
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 8px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}<div class="scroll"><table><tr><th>${t('code')}</th><th>${t('project')}</th><th>${t('priority')}</th><th>${t('status')}</th><th>${t('createdCol')}</th><th></th></tr>${rows.map(r=>`<tr><td>${esc(r.code)}</td><td>${esc(r.data.pname)}</td><td>${esc(pl(r.data.prio))}</td><td><span class="pill">${esc(t('st_'+r.status))}</span></td><td>${esc(users[r.created_by]?.full_name)}</td><td><button onclick="openCR(${r.id})">${t('open')}</button></td></tr>`).join('')||`<tr><td colspan="6">${t('noReq')}</td></tr>`}</table></div></div>`}
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="mut">${t('priority')}: ${esc(pl(r.data.prio))||'—'} · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
 async function newCR(){
  const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:me.id,data:{by:me.full_name,pmname:me.full_name},stakeholders:[]}).select().single();
  if(error)return msg(error.message);
  await sb.from('signatories').insert({cr_id:data.id,stage:'created',user_id:me.id});await lg(data.id,'created');openCR(data.id)}
 
+let ftab='proj',ftabKey='';
+const TABS=['proj','chg','imp','stk','flow'];
+const REQ={proj:F,chg:['desc','reason','chal'],imp:['scope','cost','sched','stake']};
+const COLL=76;
+function grow(x){if(!x.offsetParent)return;x.style.height='auto';const full=x.scrollHeight+2,foc=document.activeElement===x,h=foc?Math.max(full,COLL):Math.min(Math.max(full,46),COLL);x.style.height=h+'px';x.parentNode.classList.toggle('clamped',!foc&&full>COLL+2)}
+function fitRO(){document.querySelectorAll('.pn.on .ro').forEach(e=>e.classList.toggle('more',!e.classList.contains('open')&&e.scrollHeight>e.clientHeight+2))}
+function fit(){document.querySelectorAll('.pn.on textarea.ta').forEach(grow);fitRO()}
+function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==k));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('on',p.dataset.t==k));fit()}
+function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
+function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
+ for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]||'').trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
+ const p=$('fpb');if(p)p.style.width=((tot-m)/tot*100)+'%';const l=$('fpt');if(l)l.textContent=(tot-m)+'/'+tot+' '+t('progress')}
 async function openCR(id){
  const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
  if(!a.data)return homeView();
@@ -399,27 +470,43 @@ async function openCR(id){
  const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
  const d=cr.data,dis=ed?'':'disabled';
  const opts=()=>Object.values(users);
- const blk=(sg,can)=>`<div class="sig"><b>${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
- let acts='';
+ const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'proj':'flow'}
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ let acts='',more='';
  if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
- if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))acts+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
- if(adm)acts+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
- if(cr.created_by==me.id||adm)acts+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
+ if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
+ if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
+ if(cr.created_by==me.id||adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
- app.innerHTML=bar()+`<div class="card"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}</span></div><span class="pill">${esc(t('st_'+st))}</span></div>
+ const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`;
+ const tf=k=>`<div><label>${t('f_'+k)} <span class="rq">*</span></label>${tx(k)}</div>`;
+ const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
+ const s0=STEP[st];
+ app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}${d.pname?' · '+esc(d.pname):''}</span></div>${pillS(st)}</div>
+ <div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s0?'on':''}"></i>`).join('')}</div>
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
  ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}</div>
- <div class="card"><h2>${t('projDetails')}</h2><div class="g2">${F.map(k=>`<div><label>${t('f_'+k)} *</label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div></div>
- <div class="card"><h2>${t('changeDetails')}</h2>${T.map(k=>`<label>${t('f_'+k)} *</label><textarea data-k="${k}" ${dis}>${esc(d[k])}</textarea>`).join('')}</div>
- <div class="card"><h2>${t('stakeTitle')}</h2><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.length?`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thType')}</th><th>${t('thImpact')}</th><th>${t('thHow')}</th><th></th></tr>${cr.stakeholders.map((x,i)=>`<tr><td><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></td><td><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></td><td><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></td><td><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></td><td>${ed?`<button onclick="delSh(${i})">✕</button>`:''}</td></tr>`).join('')}</table></div>`:''}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}</div>
- <div class="card"><h2>${t('workflow')}</h2>${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm)}${showRev?blk('reviewed',canRev):''}${showApp?blk('approved',canApp):''}<div class="row">${acts}</div></div>
- <div class="card"><h2>${t('auditLog')}</h2><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></div>`}
-document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k)cr.data[x.dataset.k]=x.value;if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value});
+ ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
+ <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
+ <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div><div class="fg">${F.map(k=>`<div class="${k=='pname'?'full':''}"><label>${t('f_'+k)} <span class="rq">*</span></label>${k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>${pnav('','chg')}</div>
+ <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
+ <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
+ <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div>${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('stk','')}
+ <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
+ ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
+ updProg();fit()}
+document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg()}if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value;if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('change',e=>{const x=e.target;if(x.dataset&&x.dataset.k)updProg()});
+document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))setTimeout(()=>grow(x),50)});
+window.addEventListener('resize',()=>{if(cr)fit()});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cr&&curView)fit()});
 const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
 const delSh=i=>{cr.stakeholders.splice(i,1);save(true)};
 async function save(q){const {error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
@@ -449,30 +536,4 @@ async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus
 
 // ---- signing ----
 function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';$('modal').classList.add('on');
- const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
-function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
-$('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
-const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
-const pos=e=>{const r=$('cv').getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-const cv=$('cv');cv.onpointerdown=e=>{down=true;const p=pos(e);ctx.beginPath();ctx.moveTo(...p);cv.setPointerCapture(e.pointerId)};
-cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke();drawn=true};cv.onpointerup=()=>down=false;
-$('file').onchange=function(){const f=this.files[0];if(!f)return;
- if(!/^image\/(png|jpeg)$/.test(f.type))return msg(t('pngjpg'));if(f.size>1048576)return msg(t('big'));
- const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
-async function confirmSign(){
- let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
- if(cr.created_by==me.id&&pend.stage=='created')await save(false);
- await sb.from('signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage);
- const {data}=await sb.from('signatories').select('*').eq('cr_id',cr.id);
- const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
- if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Reviewed');
- else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved');
- $('modal').classList.remove('on');openCR(cr.id)}
-
-// ---- admin ----
-function adminView(){curView=adminView;editing=false;
- app.innerHTML=bar()+`<div class="card"><h2>${t('usersRoles')}</h2><div class="mut">${t('rolesNote')}</div><div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('thEmail')}</th><th>${t('thJob')}</th><th>${t('thRole')}</th><th></th></tr>${Object.values(users).map(u=>`<tr><td>${esc(u.full_name)}</td><td dir="ltr">${esc(u.email)}</td><td><input id="j_${u.id}" value="${esc(u.job_title)}"></td><td><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('role_'+r)}</option>`).join('')}</select></td><td><button onclick="saveU('${u.id}')">${t('save')}</button></td></tr>`).join('')}</table></div></div>`}
-async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
-applyStatic();start();
-</script></body></html>
+ const c=$('cv');c.width=c.offsetWidth
