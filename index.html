@@ -65,6 +65,7 @@ details.acc>.in{padding:0 14px 14px}
 .sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
 .sig.st1{border-inline-start-color:var(--am)}.sig.st2{border-inline-start-color:var(--g)}
 .srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
+.al{color:var(--g);font-weight:700;text-decoration:underline;word-break:break-word}.sig.att{border-inline-start-color:var(--r)}
 .log{font-size:12.5px;color:var(--mut);max-height:200px;overflow:auto}
 .actbar{position:fixed;inset-inline:0;bottom:0;z-index:15;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
 .actbar .row{margin:0;max-width:900px;margin-inline:auto;justify-content:center}
@@ -278,7 +279,18 @@ const W=[
 ["progress","required fields completed","حقول مطلوبة مكتملة"],
 ["tagline","Sign in to manage change requests","سجّل الدخول لإدارة طلبات التغيير"],
 ["moreActs","More actions","إجراءات أخرى"],
-["tapHint","Tap a long text to expand it","اضغط على النص الطويل لتوسيعه"]
+["tapHint","Tap a long text to expand it","اضغط على النص الطويل لتوسيعه"],
+["att","Supporting attachments","مرفقات داعمة"],
+["optional","optional","اختياري"],
+["attTitle","Attachment title","عنوان المرفق"],
+["attAdd","+ Add attachment","+ إضافة مرفق"],
+["attUp","Uploading…","جارٍ الرفع…"],
+["attNone","No attachments.","لا توجد مرفقات."],
+["attBig","File is larger than 10 MB.","حجم الملف أكبر من 10 ميغابايت."],
+["attNeedFile","Please choose a file first.","يرجى اختيار ملف أولاً."],
+["attDel","Remove this attachment?","هل تريد إزالة هذا المرفق؟"],
+["l_attached","Attachment added","تمت إضافة مرفق"],
+["l_attRemoved","Attachment removed","تمت إزالة مرفق"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -288,7 +300,7 @@ const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 const F=["pname","pcode","by","prio","edate","sector","dept","sponsor","pmname"];
 const T=["desc","reason","scope","cost","sched","stake","chal"];
-let me,users={},cr,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
+let me,users={},cr,atts=[],sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
 const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
@@ -299,6 +311,8 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='archived')return t('l_archived');
  if(k=='restored')return t('l_restored');
  if(k=='reminded')return t('l_reminded');
+ if(k=='attached')return t('l_attached')+': '+p.slice(1).join('|');
+ if(k=='attremoved')return t('l_attRemoved')+': '+p.slice(1).join('|');
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  return a}
@@ -453,9 +467,9 @@ function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
  for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]||'').trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
  const p=$('fpb');if(p)p.style.width=((tot-m)/tot*100)+'%';const l=$('fpt');if(l)l.textContent=(tot-m)+'/'+tot+' '+t('progress')}
 async function openCR(id){
- const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
+ const [a,b,c,e]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
- cr=a.data;sigs=b.data;const logs=c.data,st=cr.status,arch=!!cr.archived;
+ cr=a.data;sigs=b.data;atts=e.data||[];const logs=c.data,st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
@@ -487,6 +501,8 @@ async function openCR(id){
  const tf=k=>`<div><label>${t('f_'+k)} <span class="rq">*</span></label>${tx(k)}</div>`;
  const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
  const s0=STEP[st];
+ const canDelAtt=a=>!arch&&(adm||(ed&&a.uploaded_by==me.id));
+ const attB=(atts.length||ed)?`<div class="sig att"><b>📎 ${t('att')}</b>${ed?` <span class="mut">(${t('optional')})</span>`:''}${atts.map(a=>`<div class="srow"><div><a href="#" class="al" onclick="openAtt(${a.id});return false">${esc(a.title)}</a><br><span class="mut">${esc(users[a.uploaded_by]?.full_name||'')} · ${szf(a.size)}</span></div>${canDelAtt(a)?`<button class="sm" onclick="delAtt(${a.id})">✕</button>`:''}</div>`).join('')}${!atts.length?`<div class="mut">${t('attNone')}</div>`:''}${ed?`<div class="row"><input id="at_t" placeholder="${t('attTitle')}"><input id="at_f" type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.xls,.xlsx,.ppt,.pptx"><button class="p" id="at_b" onclick="addAtt()">${t('attAdd')}</button></div>`:''}</div>`:'';
  app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${esc(cr.code)} · ${t('version')} ${cr.version}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)}${d.pname?' · '+esc(d.pname):''}</span></div>${pillS(st)}</div>
  <div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s0?'on':''}"></i>`).join('')}</div>
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
@@ -497,7 +513,7 @@ async function openCR(id){
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
- <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div>${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('stk','')}
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('stk','')}
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
@@ -507,6 +523,29 @@ document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.class
 document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))setTimeout(()=>grow(x),50)});
 window.addEventListener('resize',()=>{if(cr)fit()});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cr&&curView)fit()});
+const szf=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB';
+async function addAtt(){
+ const f=$('at_f').files[0];if(!f)return msg(t('attNeedFile'));if(f.size>10485760)return msg(t('attBig'));
+ const title=$('at_t').value.trim()||f.name,b=$('at_b');b.disabled=true;b.textContent=t('attUp');
+ try{
+  await save(false);
+  const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase();
+  const path=cr.id+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
+  const up=await sb.storage.from('attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});
+  if(up.error)throw up.error;
+  const ins=await sb.from('attachments').insert({cr_id:cr.id,title:title,path:path,size:f.size,mime:f.type||'',uploaded_by:me.id});
+  if(ins.error){await sb.storage.from('attachments').remove([path]);throw ins.error}
+  await lg(cr.id,'attached|'+title);openCR(cr.id)
+ }catch(err){b.disabled=false;b.textContent=t('attAdd');msg(err.message||String(err))}}
+async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
+ const w=window.open('','_blank');
+ const {data,error}=await sb.storage.from('attachments').createSignedUrl(a.path,300);
+ if(error){if(w)w.close();return msg(error.message)}
+ if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl}
+async function delAtt(id){const a=atts.find(x=>x.id==id);if(!a||!confirm(t('attDel')))return;
+ await sb.storage.from('attachments').remove([a.path]);
+ const {error}=await sb.from('attachments').delete().eq('id',id);if(error)return msg(error.message);
+ await lg(cr.id,'attremoved|'+a.title);if(editing)await save(false);openCR(cr.id)}
 const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
 const delSh=i=>{cr.stakeholders.splice(i,1);save(true)};
 async function save(q){const {error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
