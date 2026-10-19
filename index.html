@@ -13,10 +13,10 @@ label{display:block;font-size:13px;color:#6b7385;margin:8px 0 3px}
 input,select,textarea{width:100%;padding:8px;border:1px solid #d9dde5;border-radius:8px;font:inherit;background:#fff;color:#1d2330}
 input[dir=ltr]{text-align:left}
 textarea{min-height:60px}input:disabled,select:disabled,textarea:disabled{background:#eef0f4}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}@media(max-width:520px){.g2{grid-template-columns:1fr}}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:520px){.g2{grid-template-columns:1fr}}
 button{font:inherit;padding:8px 13px;border-radius:8px;border:1px solid #d9dde5;background:#fff;cursor:pointer}
 .p{background:#2457d6;color:#fff;border-color:#2457d6}.g{background:#1b8a4b;color:#fff;border-color:#1b8a4b}.r{background:#c23b3b;color:#fff;border-color:#c23b3b}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .pill{background:#2457d6;color:#fff;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:520px}
 th,td{border-bottom:1px solid #d9dde5;padding:4px;text-align:start;font-size:13px}td input,td select{padding:5px}
@@ -26,6 +26,12 @@ th,td{border-bottom:1px solid #d9dde5;padding:4px;text-align:start;font-size:13p
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:12px}.modal.on{display:flex}
 .box{background:#fff;border-radius:12px;padding:14px;width:100%;max-width:420px}
 canvas{width:100%;height:140px;border:1px solid #d9dde5;border-radius:8px;touch-action:none;display:block}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.k{border:1px solid #d9dde5;border-radius:10px;padding:10px;cursor:pointer;font-size:13px;color:#6b7385;background:#fff}
+.k b{display:block;font-size:24px;color:#1d2330}.k.on{border-color:#2457d6;background:#eef3ff}.k.hot{border-color:#c23b3b}.k.hot b{color:#c23b3b}
+.pg{display:flex;gap:3px;margin:6px 0}.pg i{flex:1;height:5px;border-radius:3px;background:#d9dde5}.pg i.on{background:#2457d6}
+.hb{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}.hb span{width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb div{flex:1;background:#eef0f4;border-radius:4px;height:10px}.hb i{display:block;height:10px;background:#2457d6;border-radius:4px}.hb b{min-width:22px;text-align:end}
 </style></head><body>
 <div class="lang"><button id="lb" onclick="toggleLang()">العربية</button></div>
 <div id="app"></div>
@@ -56,13 +62,14 @@ const W=[
 ["typeSignup","Please type your email and a password of 6+ characters.","يرجى إدخال البريد الإلكتروني وكلمة مرور من 6 أحرف على الأقل."],
 ["accCreated","Account created. Click Sign in.","تم إنشاء الحساب. اضغط تسجيل الدخول."],
 ["barTitle","Change Requests","طلبات التغيير"],
-["requests","Requests","الطلبات"],
+["home","Home","الرئيسية"],
+["requests","All requests","كل الطلبات"],
 ["admin","Admin","الإدارة"],
 ["myProfile","My profile","ملفي الشخصي"],
 ["signOut","Sign out","تسجيل الخروج"],
 ["yourName","Your full name","اسمك الكامل"],
 ["yourJob","Your job title","مسماك الوظيفي"],
-["allReq","Requests","الطلبات"],
+["allReq","All requests","كل الطلبات"],
 ["newReq","+ New request","+ طلب جديد"],
 ["code","Code","الرمز"],
 ["project","Project","المشروع"],
@@ -173,7 +180,51 @@ const W=[
 ["l_returned","Returned (signatures reset)","تمت الإعادة (أُعيد ضبط التوقيعات)"],
 ["l_rejected","Rejected","تم الرفض"],
 ["l_archived","Archived","تمت الأرشفة"],
-["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"]
+["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"],
+["l_reminded","Reminder sent","تم إرسال تذكير"],
+["hello","Hello","مرحباً"],
+["c_action","Needs my action","بانتظار إجرائي"],
+["c_mine","My requests in progress","طلباتي الجارية"],
+["c_mineA","All in progress","كل الطلبات الجارية"],
+["c_returned","Returned","معادة للتعديل"],
+["c_approved","Approved","معتمدة"],
+["c_rejected","Rejected","مرفوضة"],
+["actTitle","Needs your action now","يحتاج إجراءك الآن"],
+["noAction","Nothing needs your action.","لا يوجد ما يحتاج إجراءك."],
+["a_draft","Complete and submit","أكمل وقدّم الطلب"],
+["a_edit","Edit and resubmit","عدّل وأعد التقديم"],
+["a_review","Sign as reviewer","وقّع كمراجع"],
+["a_approve","Sign as approver","وقّع كمعتمد"],
+["a_assignRev","Select reviewer(s)","اختر المراجع"],
+["a_assignApp","Select approver(s)","اختر المعتمد"],
+["myReqs","Requests I’m involved in","الطلبات المرتبطة بي"],
+["rel","My role","دوري"],
+["r_all","All","الكل"],
+["r_created","Requester","مقدّم الطلب"],
+["r_reviewer","Reviewer","مراجع"],
+["r_approver","Approver","معتمد"],
+["search","Search code or project…","ابحث بالرمز أو اسم المشروع…"],
+["with","With","لدى"],
+["dayW","day(s)","يوم"],
+["pipe","Pipeline","مراحل الطلبات"],
+["overdue","Overdue (3+ days)","متأخرة (3 أيام فأكثر)"],
+["noOverdue","No overdue requests.","لا توجد طلبات متأخرة."],
+["remindBtn","Send reminder","إرسال تذكير"],
+["reminded","Reminder sent to (people):","تم إرسال التذكير إلى (عدد الأشخاص):"],
+["noRemind","No one to remind.","لا يوجد من يُذكَّر."],
+["kpis","Key figures","مؤشرات عامة"],
+["kpi_total","Total requests","إجمالي الطلبات"],
+["kpi_appr","Approved","نسبة المعتمد"],
+["kpi_rej","Rejected","نسبة المرفوض"],
+["kpi_cycle","Avg. cycle (days)","متوسط المدة (أيام)"],
+["kpi_month","This month","هذا الشهر"],
+["kpi_prev","last month","الشهر السابق"],
+["workload","Workload","عبء العمل"],
+["w_pending","Pending","معلّقة"],
+["w_avg","Avg. response (days)","متوسط الاستجابة (أيام)"],
+["ch_month","Requests per month","الطلبات شهرياً"],
+["ch_prio","By priority","حسب الأولوية"],
+["ch_dept","By department","حسب القسم"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -193,6 +244,7 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='removed')return t('l_removed');
  if(k=='archived')return t('l_archived');
  if(k=='restored')return t('l_restored');
+ if(k=='reminded')return t('l_reminded');
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  return a}
@@ -215,7 +267,7 @@ async function start(){
  const {data:{session}}=await sb.auth.getSession();
  if(!session)return loginView();
  const {data:ps}=await sb.from('profiles').select('*');
- users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];listView();
+ users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];homeView();
 }
 function loginView(){curView=loginView;editing=false;
  app.innerHTML=`<div class="card" style="max-width:380px;margin:40px auto"><h1>${t('appTitle')}</h1>
@@ -226,11 +278,100 @@ async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)re
 async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.length<6)return msg(t('typeSignup'));
  const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
  if(error)return msg(error.message);msg(t('accCreated'))}
-const bar=()=>`<div class="bar"><b>${t('barTitle')}</b><span class="mut">${esc(me.full_name)} · ${t('role_'+me.role)}</span><span><button onclick="listView()">${t('requests')}</button> ${me.role=='admin'?`<button onclick="adminView()">${t('admin')}</button> `:''}<button onclick="editMe()">${t('myProfile')}</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></span></div>`;
+const bar=()=>`<div class="bar"><b>${t('barTitle')}</b><span class="mut">${esc(me.full_name)} · ${t('role_'+me.role)}</span><span><button onclick="homeView()">${t('home')}</button> <button onclick="listView()">${t('requests')}</button> ${me.role=='admin'?`<button onclick="adminView()">${t('admin')}</button> `:''}<button onclick="editMe()">${t('myProfile')}</button> <button onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></span></div>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
  await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
 function setTab(v){showArch=v;listView()}
 
+// ===== Dashboard =====
+let DB=null,H={f:'',q:'',rel:'all'};
+const FIN=s=>s=='Approved'||s=='Rejected';
+const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Approved':4,'Rejected':4};
+const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval'];
+const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
+async function loadAll(){
+ const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').order('id',{ascending:false}),sb.from('signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('audit_log').select('cr_id,action,at').like('action','status|%')]);
+ const all=a.data||[];
+ return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[]}}
+function enrich(){
+ const adm=me.role=='admin';DB.by={};
+ DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
+ DB.sg.forEach(s=>{if(DB.by[s.cr_id])DB.by[s.cr_id].sg.push(s)});
+ DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>s.user_id==me.id);
+  if(r.created_by==me.id)x.rel.push('created');
+  if(my.some(s=>s.stage=='reviewed'))x.rel.push('reviewer');
+  if(my.some(s=>s.stage=='approved'))x.rel.push('approver');
+  if(r.created_by==me.id&&st=='Draft')x.act='a_draft';
+  else if(r.created_by==me.id&&st=='Returned to PM')x.act='a_edit';
+  else if(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))x.act='a_review';
+  else if(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))x.act='a_approve';
+  else if(adm&&st=='Submitted')x.act='a_assignRev';
+  else if(adm&&st=='Reviewed')x.act='a_assignApp';
+  x.days=dsince(r.stage_at||r.created_at);
+  x.over=HOLD.includes(st)&&x.days>=3;
+ })}
+function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>users[s.user_id]?.full_name).filter(Boolean).join(', ');
+ if(st=='Draft'||st=='Returned to PM')return users[r.created_by]?.full_name||'';
+ if(st=='Submitted'||st=='Reviewed')return t('role_admin');
+ if(st=='PMO Review')return nm('reviewed');
+ if(st=='Awaiting Approval')return nm('approved');
+ return ''}
+function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
+ return `<div class="sig"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pill">${esc(t('st_'+r.status))}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row">${x.act?`<span class="pill" style="background:#c23b3b">${t(x.act)}</span>`:''}<button onclick="openCR(${r.id})">${t('open')}</button>${rem&&['PMO Review','Awaiting Approval'].includes(r.status)?`<button onclick="remind(${r.id})">${t('remindBtn')}</button>`:''}</div></div>`}
+function passF(x,f){const r=x.r,adm=me.role=='admin';
+ if(!f)return true;
+ if(f=='action')return !!x.act;
+ if(f=='mine')return (adm||r.created_by==me.id)&&!FIN(r.status);
+ if(f=='returned')return r.status=='Returned to PM'&&(adm||r.created_by==me.id);
+ if(f=='approved')return r.status=='Approved';
+ if(f=='rejected')return r.status=='Rejected';
+ if(f=='overdue')return x.over;
+ if(f.startsWith('st:'))return r.status==f.slice(3);
+ return true}
+const passQ=x=>{const r=x.r;if(H.q&&!`${r.code} ${r.data.pname||''}`.toLowerCase().includes(H.q.toLowerCase()))return false;return H.rel=='all'||x.rel.includes(H.rel)};
+const list=f=>DB.crs.map(r=>DB.by[r.id]).filter(x=>passF(x,f));
+const bars=rows=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(([l,n])=>`<div class="hb"><span>${esc(l)}</span><div><i style="width:${n/m*100}%"></i></div><b>${n}</b></div>`).join('')||'<div class="mut">—</div>'};
+async function homeView(){curView=homeView;editing=false;DB=await loadAll();enrich();drawHome()}
+function setF(f){H.f=(H.f==f?'':f);drawHome()}
+function drawList(){const rows=list(H.f).filter(passQ);$('hl').innerHTML=rows.map(x=>rowH(x,me.role=='admin')).join('')||`<div class="mut">${t('noReq')}</div>`}
+function drawHome(){
+ const adm=me.role=='admin';
+ const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
+ const acts=list('action');
+ app.innerHTML=bar()+`<div class="card"><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
+ <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
+ +(adm?adminBlock():'')
+ +`<div class="card"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}</h2>${H.f?`<button onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="g2"><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div><div id="hl" style="margin-top:10px"></div></div>`;
+ $('hq').oninput=e=>{H.q=e.target.value;drawList()};
+ $('hr').onchange=e=>{H.rel=e.target.value;drawList()};
+ drawList()}
+function adminBlock(){
+ const A=DB.crs,n=s=>A.filter(r=>r.status==s).length,over=list('overdue');
+ const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected'];
+ const ap=n('Approved'),rj=n('Rejected'),fn=ap+rj;
+ const lgT={};DB.lg.forEach(l=>{const k=l.cr_id+'|'+l.action.slice(7);(lgT[k]=lgT[k]||[]).push(new Date(l.at))});
+ const cyc=A.filter(r=>r.status=='Approved'&&lgT[r.id+'|Approved']).map(r=>(Math.max(...lgT[r.id+'|Approved'])-new Date(r.created_at))/864e5);
+ const avg=a=>a.length?(a.reduce((p,c)=>p+c,0)/a.length).toFixed(1):'—';
+ const WL={};const wu=u=>WL[u]=WL[u]||{p:0,d:[]};
+ DB.sg.forEach(s=>{const c=DB.by[s.cr_id];if(!c||s.stage=='created')return;const need=s.stage=='reviewed'?'PMO Review':'Awaiting Approval';
+  if(s.status=='pending'&&c.r.status==need)wu(s.user_id).p++;
+  if(s.status=='signed'&&s.signed_at){const st0=(lgT[s.cr_id+'|'+need]||[]).filter(d=>d<=new Date(s.signed_at));if(st0.length)wu(s.user_id).d.push((new Date(s.signed_at)-Math.max(...st0))/864e5)}});
+ const now=new Date(),ym=d=>d.getFullYear()*12+d.getMonth(),cm=ym(now);
+ const mc=k=>A.filter(r=>ym(new Date(r.created_at))==cm-k).length;
+ const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{month:'short'}),mc(k)]});
+ const pr=['Low','Medium','High','Critical'].map(p=>[t('p_'+p),A.filter(r=>r.data.prio==p).length]);
+ const dm={};A.forEach(r=>{const k=(r.data.dept||'').trim();if(k)dm[k]=(dm[k]||0)+1});
+ const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
+ return `<div class="card"><h2>${t('pipe')}</h2><div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div></div>
+ <div class="card"><h2>${t('overdue')} (${over.length})</h2>${over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`}</div>
+ <div class="card"><h2>${t('kpis')}</h2><div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div></div>
+ <div class="card"><h2>${t('workload')}</h2><div class="scroll"><table style="min-width:0"><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div></div>
+ <div class="card"><h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_prio')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_dept')}</h2>${bars(dp)}</div>`}
+async function remind(id){const {data,error}=await sb.rpc('remind_now',{cid:id});if(error)return msg(error.message);
+ if(!data)return msg(t('noRemind'));await lg(id,'reminded');msg(t('reminded')+' '+data)}
+
+// ===== Requests list =====
 async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
  const adm=me.role=='admin',act=data.filter(r=>!r.archived),arc=data.filter(r=>r.archived),rows=adm&&showArch?arc:act;
@@ -242,7 +383,7 @@ async function newCR(){
 
 async function openCR(id){
  const [a,b,c]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false})]);
- if(!a.data)return listView();
+ if(!a.data)return homeView();
  cr=a.data;sigs=b.data;const logs=c.data,st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
@@ -266,6 +407,7 @@ async function openCR(id){
  if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t('sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))acts+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
  if(adm)acts+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(cr.created_by==me.id||adm)acts+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
@@ -286,7 +428,7 @@ async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.v
  await sb.from('signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
 async function rmSig(id){await sb.from('signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
 async function setStatus(s,extra={}){await sb.from('change_requests').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
-async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);listView()}
+async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);homeView()}
 async function archiveCR(v){const {error}=await sb.from('change_requests').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
 async function submitCR(){
  await save(false);
