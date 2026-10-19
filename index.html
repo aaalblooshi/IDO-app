@@ -536,4 +536,30 @@ async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus
 
 // ---- signing ----
 function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';$('modal').classList.add('on');
- const c=$('cv');c.width=c.offsetWidth
+ const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
+function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
+$('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
+const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
+const pos=e=>{const r=$('cv').getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+const cv=$('cv');cv.onpointerdown=e=>{down=true;const p=pos(e);ctx.beginPath();ctx.moveTo(...p);cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke();drawn=true};cv.onpointerup=()=>down=false;
+$('file').onchange=function(){const f=this.files[0];if(!f)return;
+ if(!/^image\/(png|jpeg)$/.test(f.type))return msg(t('pngjpg'));if(f.size>1048576)return msg(t('big'));
+ const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
+async function confirmSign(){
+ let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
+ if(cr.created_by==me.id&&pend.stage=='created')await save(false);
+ await sb.from('signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
+ await lg(cr.id,'signed|'+pend.stage);
+ const {data}=await sb.from('signatories').select('*').eq('cr_id',cr.id);
+ const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
+ if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Reviewed');
+ else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved');
+ $('modal').classList.remove('on');openCR(cr.id)}
+
+// ---- admin ----
+function adminView(){curView=adminView;editing=false;
+ app.innerHTML=bar()+`<div class="card"><h2>${t('usersRoles')}</h2><div class="mut">${t('rolesNote')}</div></div>`+Object.values(users).map(u=>`<div class="card"><div class="top"><b>${esc(u.full_name)}</b><span class="pill">${t('role_'+u.role)}</span></div><div class="mut" dir="ltr" style="text-align:start">${esc(u.email)}</div><div class="fg"><div><label>${t('thJob')}</label><input id="j_${u.id}" value="${esc(u.job_title)}"></div><div><label>${t('thRole')}</label><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('role_'+r)}</option>`).join('')}</select></div></div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div></div>`).join('')}
+async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
+applyStatic();start();
+</script></body></html>
