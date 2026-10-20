@@ -90,7 +90,7 @@ canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;to
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:520px){.fg3{grid-template-columns:1fr 1fr}.fg3>div:last-child{grid-column:1/-1}}
 .fg3>div{min-width:0}.fg3 input{min-width:0;width:100%;max-width:100%}input[type=date]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none}
 .dur{padding:9px 12px;border-radius:10px;background:var(--g2);color:var(--g);font-weight:800;min-height:42px}
-.lrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}.lrow input{flex:1}
+.lrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
 .rk{display:inline-block;padding:3px 14px;border-radius:99px;font-weight:800;color:#fff}.rk.low{background:#0a6b3d}.rk.med{background:#f2c200;color:#1b1d1f}.rk.high{background:#d1101d}.rk.none{background:#e4dfd4;color:#6b6f76}
 </style></head><body>
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><button id="lb" onclick="toggleLang()">العربية</button></div><div class="ttl" id="ttl"></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
@@ -434,7 +434,7 @@ const W=[
 ["f_dur", "Implementation period", "مدة التنفيذ"],
 ["f_sdate", "Start date", "تاريخ البدء"],
 ["f_edate", "End date", "تاريخ الانتهاء"],
-["f_months", "Duration (months, automatic)", "المدة بالأشهر (تلقائية)"],
+["f_months", "Duration (months)", "المدة بالأشهر"],
 ["badDates", "End date must be after the start date.", "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."],
 ["f_owner", "Project owner", "مالك المشروع"],
 ["f_sector", "Sector", "القطاع"],
@@ -678,7 +678,7 @@ const STAR=['pname','pdesc','ptype','goal','purpose','dur','owner','sector','dep
 const TABS=['gen','ctx','stk','res','rsk','flow'];
 const TOT=16;
 const COLS={
- acts:[{c:'a',l:'a_act',area:1},{c:'d',l:'a_del',area:1},{c:'t',l:'a_time'}],
+ acts:[{c:'a',l:'a_act',area:1},{c:'d',l:'a_del',area:1},{c:'t',l:'a_time',area:1}],
  reqs:[{c:'r',l:'r_req',area:1},{c:'dp',l:'r_dept'},{c:'d',l:'r_det',area:1},{c:'n',l:'r_n',type:'number'},{c:'c',l:'r_cost',type:'number'}],
  team:[{c:'j',l:'t_job'},{c:'n',l:'t_name'},{c:'e',l:'t_mail',type:'email'},{c:'m',l:'t_task',area:1}],
  risks:[{c:'d',l:'k_desc',area:1},{c:'p',l:'k_when'},{c:'o',l:'k_owner'},{c:'i',l:'k_imp',sel:5},{c:'x',l:'k_prob',sel:5}]
@@ -753,7 +753,7 @@ async function openCR(id){
   if(col.area)return ed?`<div class="ta-w"><textarea class="ta" rows="1" ${at}>${esc(v)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(v)||'—'}</div>`;
   return `<input ${at} type="${col.type||'text'}" ${col.type=='number'?'inputmode="decimal" step="any" min="0"':''} ${col.type=='email'?'dir="ltr"':''} value="${esc(v)}" ${dis}>`};
  const rowsEd=a=>{const arr=d[a];return (arr.length?arr.map((r,i)=>`<div class="sh"><div class="fg">${COLS[a].map((col,j)=>`<div class="${col.area||j==0?'full':''}" ${j==0&&ed?'style="padding-inline-end:46px"':''}><label>${t(col.l)}</label>${cell(a,i,col,r[col.c])}</div>`).join('')}${a=='risks'?`<div class="full"><label>${t('k_score')}</label>${riskHTML(r,i)}</div>`:''}</div>${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addRow')}</button></div>`:'')};
- const listEd=a=>{const arr=d[a];return (arr.length?arr.map((v,i)=>`<div class="lrow"><input data-a="${a}" data-r="${i}" value="${esc(v)}" ${dis}>${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addItem')}</button></div>`:'')};
+ const listEd=a=>{const arr=d[a];return (arr.length?arr.map((v,i)=>`<div class="lrow">${ed?`<div class="ta-w" style="flex:1"><textarea class="ta" rows="1" data-a="${a}" data-r="${i}">${esc(v)}</textarea></div>`:`<div class="ro" style="flex:1" onclick="this.classList.toggle('open');fitRO()">${esc(v)||'—'}</div>`}${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addItem')}</button></div>`:'')};
  const goalOpts=GOALS.map((g,i)=>[i+1,g[lang=='ar'?0:1]]);
  const deptOpts=d.sector?Array.from({length:DEPTS},(_,i)=>[i+1,depL(d.sector,i+1)]):[];
  const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
@@ -770,7 +770,7 @@ async function openCR(id){
   ${fld('pdesc',tx('pdesc'),'full')}
   ${fld('ptype',sel('ptype',[['strategic',t('pt_strategic')],['operational',t('pt_operational')]]))}
   ${fld('goal',sel('goal',goalOpts))}
-  ${fld('gov',`<div class="gv">${sel('gov',[['yes',t('yes')],['no',t('no')]])}<input data-k="govtxt" id="govtxt" placeholder="${t('f_govtxt')}" value="${esc(d.govtxt)}" ${dis} style="${d.gov=='yes'?'':'display:none'}"></div>`,'full')}
+  ${fld('gov',`<div class="gv">${sel('gov',[['yes',t('yes')],['no',t('no')]])}<div id="govw" style="${d.gov=='yes'?'':'display:none'}">${ed?`<div class="ta-w"><textarea class="ta" data-k="govtxt" placeholder="${t('f_govtxt')}">${esc(d.govtxt)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d.govtxt)||'—'}</div>`}</div></div>`,'full')}
   ${fld('purpose',tx('purpose'),'full')}
   ${fld('dur',`<div class="fg3"><div><label>${t('f_sdate')}</label><input data-k="sdate" type="date" value="${esc(d.sdate)}" ${dis}></div><div><label>${t('f_edate')}</label><input data-k="edate" type="date" value="${esc(d.edate)}" ${dis}></div><div><label>${t('f_months')}</label><div class="dur" id="dur">${durTxt()}</div></div></div>`,'full')}
   ${fld('owner',inp('owner'))}
@@ -794,7 +794,7 @@ document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
  if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;
  if(x.dataset.k=='sector'){cr.data.sector=x.value;cr.data.dept='';fillDept()}
- if(x.dataset.k=='gov'){const g=$('govtxt');if(g)g.style.display=x.value=='yes'?'':'none'}
+ if(x.dataset.k=='gov'){const g=$('govw');if(g){g.style.display=x.value=='yes'?'':'none';fit()}}
  if(x.dataset.a&&x.dataset.c=='i'||x.dataset.c=='x'){const b=$('rk_'+x.dataset.r);if(b&&cr.data.risks[+x.dataset.r])b.outerHTML=riskHTML(cr.data.risks[+x.dataset.r],+x.dataset.r)}
  if(x.dataset.k)updProg()});
 document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))grow(x)});
@@ -890,12 +890,11 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  kids.push(T([R([t('pcode'),t('docNo'),t('docType'),t('issue')].map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:21,al:AL.CENTER,sa:0}),{w:hw[i],fill:GRN})),1),R([cr.code,cr.doc_no,t('docTypeV'),cr.issued_at?fdate(cr.issued_at):'—'].map((x,i)=>C(P(x,{b:1,al:AL.CENTER,sa:0}),{w:hw[i],fill:'F7FAF8'})))],hw));
  kids.push(P(t('apprBlock'),{al:AL.CENTER,b:1,c:GRN,size:30,sb:400,sa:120,kn:true}));
  const sw=[3000,2800,2000,2400],srows=[hdrRow([t('thName'),t('thJob'),t('tDate'),t('x_sign')],sw)];
- for(const sg of ['created','reviewed','approved']){const ss=sigs.filter(s=>s.stage==sg);if(!ss.length)continue;
-  srows.push(R([C(P(t('stg_'+sg),{b:1,c:GRN,sa:0}),{w:10200,span:4,fill:LIGHT})]));
-  for(const s of ss){const u=nm(s.user_id);let sc=[P('')];
-   if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
-   srows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||t('role_'+u.role),{sa:0,size:20}),{w:sw[1],v:D.VerticalAlign.CENTER}),C(P(s.status=='signed'?fdate(s.signed_at):'—',{sa:0,al:AL.CENTER}),{w:sw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sw[3],v:D.VerticalAlign.CENTER})]))}}
- if(srows.length==1)srows.push(R(sw.map(w=>C(P(''),{w}))));
+ const apS=cr.status=='Approved'?sigs.filter(s=>s.stage=='approved'&&s.status=='signed'):[]; // details appear ONLY after the charter is approved
+ for(const s of apS){const u=nm(s.user_id);let sc=[P('')];
+  if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
+  srows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||t('role_'+u.role),{sa:0,size:20}),{w:sw[1],v:D.VerticalAlign.CENTER}),C(P(fdate(s.signed_at),{sa:0,al:AL.CENTER}),{w:sw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sw[3],v:D.VerticalAlign.CENTER})]))}
+ if(!apS.length)srows.push(new D.TableRow({cantSplit:true,height:{value:1100,rule:D.HeightRule.ATLEAST},children:sw.map(w=>C(new D.Paragraph({children:[]}),{w}))}));
  kids.push(T(srows,sw));
  // ---- page 2: table of contents
  const SEC=['s_info','s_stk','s_acts','s_res','s_agr','s_rsk','s_appr'];
@@ -910,7 +909,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  const mo=monthsBetween(d.sdate,d.edate);
  rw(t('dur'),[P(t('f_sdate')+': '+fdate(d.sdate),{sa:20}),P(t('f_edate')+': '+fdate(d.edate),{sa:20}),P(t('f_months')+': '+(mo==null?'—':ad(mo)),{sa:0,b:1})]);
  rw(t('f_owner'),d.owner);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));rw(t('f_pmname'),d.pmname);
- rw(t('f_budget'),d.budget===''||d.budget==null?'':Number(d.budget).toLocaleString('en-US')+' '+t('aed'));
+ rw(t('f_budget'),d.budget===''||d.budget==null?'':String(d.budget)+' '+t('aed'));
  rw(t('f_nrisk'),d.nrisk);rw(t('f_alt'),d.alt);rw(t('f_impact'),d.impact);rw(t('f_outputs'),d.outputs);
  kids.push(T(rows,lw));
  // ---- 2. stakeholders + 3. activities
@@ -924,7 +923,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  kids.push(sec(4,t('s_res'),true));
  kids.push(P(t('reqs_hint'),{it:1,c:'6B6F76',sa:80,kn:true}));
  const qw=[2400,1900,2900,1000,2000],rq=A('reqs');
- kids.push(T([hdrRow([t('r_req'),t('r_dept'),t('r_det'),t('r_n'),t('r_cost')],qw),...(rq.length?rq:[{r:'',dp:'',d:'',n:'',c:''}]).map(r=>R([r.r,r.dp,r.d,r.n,r.c===''||r.c==null?'':Number(r.c).toLocaleString('en-US')].map((v,j)=>C(P(v,{sa:0}),{w:qw[j]}))))],qw));
+ kids.push(T([hdrRow([t('r_req'),t('r_dept'),t('r_det'),t('r_n'),t('r_cost')],qw),...(rq.length?rq:[{r:'',dp:'',d:'',n:'',c:''}]).map(r=>R([r.r,r.dp,r.d,r.n,r.c===''||r.c==null?'':String(r.c)].map((v,j)=>C(P(v,{sa:0}),{w:qw[j]}))))],qw));
  kids.push(gap());kids.push(P(t('team_hint'),{it:1,c:'6B6F76',sa:80,kn:true}));
  const tw=[2300,2300,2700,2900],tm=A('team');
  kids.push(T([hdrRow([t('t_job'),t('t_name'),t('t_mail'),t('t_task')],tw),...(tm.length?tm:[{j:'',n:'',e:'',m:''}]).map(r=>R([r.j,r.n,r.e,r.m].map((v,j)=>C(P(v,{sa:0}),{w:tw[j]}))))],tw));
