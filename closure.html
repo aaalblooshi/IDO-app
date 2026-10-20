@@ -63,6 +63,7 @@ details.acc>.in{padding:0 14px 14px}
 .tb .bd{background:var(--r);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px;display:none}
 .pn{display:none}.pn.on{display:block}
 .sec{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ch);margin:0 0 4px}.sec::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--r)}
+.opt{font-weight:400;color:var(--mut);font-size:11.5px;margin-inline-start:4px}.sec2{font-weight:800;color:var(--g);margin:6px 0 0}
 .pick{border:1px dashed var(--g);background:#f4faf6;border-radius:12px;padding:10px 12px;margin:0 0 12px}.pick select{width:100%;margin:6px 0}
 .sh{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:8px 0;background:#fcfbf8;position:relative}.sh>button{position:absolute;top:8px;inset-inline-end:8px}
 .sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
@@ -256,6 +257,10 @@ const W=[
 ["upload","Upload picture","رفع صورة"],
 ["clear","Clear","مسح"],
 ["confirm","Confirm signature","تأكيد التوقيع"],
+["pgFmt","{d}/{t} fields completed — required {rd}/{rt} · optional {od}/{ot}","{d}/{t} حقل مكتمل — الإلزامية {rd}/{rt} · الاختيارية {od}/{ot}"],
+["signSubmit","Sign and send for review","توقيع وإرسال للمراجعة"],
+["signSendApp","Sign and send for approval","توقيع وإرسال للاعتماد"],
+["signApprove","Sign and approve","توقيع واعتماد"],
 ["cancel","Cancel","إلغاء"],
 ["drawFirst","Please draw your signature.","يرجى رسم توقيعك."],
 ["uploadFirst","Please upload a picture.","يرجى رفع صورة."],
@@ -455,9 +460,9 @@ const W=[
 ["f_edate", "End date", "تاريخ الانتهاء"],
 ["f_dur", "Project timeline", "الأهداف الزمنية للمشروع"],
 ["dur", "Project timeline", "الأهداف الزمنية للمشروع"],
-["f_rbyn", "Prepared by – name", "أعدّ التقرير – الاسم"],
-["f_rbyj", "Prepared by – job title", "أعدّ التقرير – المسمى الوظيفي"],
-["f_rby", "Report prepared by", "أعدّ التقرير"],
+["f_rbyn", "Name", "الاسم"],
+["f_rbyj", "Job title", "المسمى الوظيفي"],
+["f_rby", "Preparation", "الإعداد"],
 ["f_pstatus", "Project status", "حالة المشروع"],
 ["ps_completed", "Completed", "مكتمل"],
 ["ps_cancelled", "Cancelled or stopped", "ملغى أو موقوف"],
@@ -517,6 +522,10 @@ const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
 const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
+const filled=v=>Array.isArray(v)?v.some(filled):(v&&typeof v=='object')?Object.values(v).some(filled):String(v==null?'':v).trim()!=='';
+const shF=x=>!!(x&&(x.n||x.i||x.c));
+const stripBlank=()=>{if(cr&&cr.data)Object.keys(cr.data).forEach(k=>{if(Array.isArray(cr.data[k]))cr.data[k]=cr.data[k].filter(filled)});if(cr&&Array.isArray(cr.stakeholders))cr.stakeholders=cr.stakeholders.filter(shF)};
+const pgText=(rd,rt,od,ot)=>t('pgFmt').replace('{d}',rd+od).replace('{t}',rt+ot).replace('{rd}',rd).replace('{rt}',rt).replace('{od}',od).replace('{ot}',ot);
 const lg=(id,a)=>sb.from('closure_audit').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
@@ -634,7 +643,7 @@ function drawHome(){
  const adm=me.role=='admin';
  const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
  const acts=list('action');
- app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}</div>
+ app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}${me.role=='admin'?`<button class="nw" onclick="goDraft()">📌 ${t('assignDraft')}</button>`:''}</div>
  <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
@@ -705,8 +714,10 @@ async function submitCR(){
  const d=cr.data,miss=Object.values(REQ).flat().filter(k=>!String(d[k]==null?'':d[k]).trim());
  if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
  if(d.sdate&&d.edate&&new Date(d.edate)<new Date(d.sdate))return msg(t('badDates'));
- const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
- await setStatus('Submitted');openCR(cr.id)}
+ stripBlank();await save(false);await openCR(cr.id);
+ await proceedSubmit()}
+
+async function goDraft(){await listView();draftBox();const e=$('adr');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})}
 
 // ===== Project closure report: data model & form =====
 /* ---- قابلة للتعديل: أهداف المركز (عربي، إنجليزي) — غيّر النصوص هنا ---- */
@@ -723,6 +734,7 @@ const riskHTML=(r,i)=>{const s=score(r);return `<span class="rk ${s?lvl(s):'none
 const fdate=v=>v?fdx(v).slice(0,10):'';
 const CANF=['c_reason','c_fin','c_done','c_pct','c_impact'];
 const REQ={gen:['pname','pcode','pdesc','sector','dept','pmname','owner','rdate','sdate','edate','rbyn','rbyj','pstatus'],ach:['summary'],lsn:[],can:[]};
+const OPTF=['outs','bens','bmeasure','ugoals','ubens','probs','rsks','depts','deliv','less','orgchg'];
 const syncReq=()=>{REQ.can=cr&&cr.data&&cr.data.pstatus=='cancelled'?CANF:[]};
 const TABKEYS={gen:['pname','pcode','pdesc','sector','dept','pmname','owner','rdate','sdate','edate','rbyn','rbyj','pstatus'],ach:['summary','outs','bens','bmeasure','ugoals','ubens'],lsn:['probs','rsks','depts','deliv','less','orgchg'],can:CANF};
 const STAR=[...REQ.gen,'summary',...CANF];
@@ -747,7 +759,7 @@ function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classLi
 function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
 function updProg(){if(!editing||!cr)return;syncReq();let m=0,tot=0;
  for(const k in REQ){tot+=REQ[k].length;const n=REQ[k].filter(x=>!String(cr.data[x]==null?'':cr.data[x]).trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
- const p=$('fpb');if(p)p.style.width=(tot?(tot-m)/tot*100:0)+'%';const l=$('fpt');if(l)l.textContent=(tot-m)+'/'+tot+' '+t('progress')}
+ const od=OPTF.filter(k=>filled(cr.data[k])).length;const p=$('fpb');if(p)p.style.width=((tot-m+od)/(tot+OPTF.length)*100)+'%';const l=$('fpt');if(l)l.textContent=pgText(tot-m,tot,od,OPTF.length)}
 function fillDept(){const s=document.querySelector('select[data-k=dept]');if(!s)return;const sc=cr.data.sector;
  s.innerHTML='<option value=""></option>'+(sc?Array.from({length:DEPTS},(_,i)=>`<option value="${i+1}">${esc(depL(sc,i+1))}</option>`).join(''):'');s.value=cr.data.dept||'';s.disabled=!sc}
 async function openCR(id){
@@ -762,14 +774,14 @@ async function openCR(id){
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
- const canApp=adm&&!arch&&['Reviewed','Awaiting Approval'].includes(st);
+ const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st);
  const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
- const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
+ const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
  const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
  const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
  const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
- [...LISTS,'bmeasure','deliv'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});syncReq();
+ const ARR=[...LISTS,'bmeasure','deliv'];ARR.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});syncReq();if(ed)ARR.forEach(k=>{if(!d[k].length){d[k].push(typeof BLANK[k]=='object'?{...BLANK[k]}:'');if(typeof BLANK[k]=='object'&&OPEN[k]===undefined)OPEN[k]=0}});
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
@@ -778,7 +790,7 @@ async function openCR(id){
  if(ed)acts+=`<button onclick="saveDraft()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
- if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'apprBtn':'sign')}</button>`;
+ if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
@@ -793,7 +805,7 @@ async function openCR(id){
  const nbtn=k=>canNote&&noteMode?`<button class="nbtn ${nHas(k)?'has':''}" data-nb="${k}" onclick="toggleNb('${k}')">💬</button>`:'';
  const nbox=k=>canNote&&noteMode?`<div class="nbox" id="nb_${k}" style="display:${nHas(k)?'block':'none'}"><textarea data-n="${k}" rows="2" placeholder="${t('notePh')}">${esc(nv0(k))}</textarea></div>`:'';
  const ntx=k=>NT&&NT.items&&NT.items[k]?`<div class="nt ${ed?'':'old'}"><b>💬 ${t('noteTitle')} ${esc(NT.by)} · ${t('version')} ${NT.v}</b>${esc(NT.items[k])}</div>`:'';
- const fld=(k,ctrl,cls,hint)=>`<div class="${cls||''}"><div class="lr"><label>${t('f_'+k)}${STAR.includes(k)?' <span class="rq">*</span>':''}</label>${nbtn(k)}</div>${hint?`<div class="mut" style="margin:-2px 0 6px">${hint}</div>`:''}${ctrl}${nbox(k)}${ntx(k)}</div>`;
+ const fld=(k,ctrl,cls,hint)=>`<div class="${cls||''}"><div class="lr"><label>${t('f_'+k)}${STAR.includes(k)?' <span class="rq">*</span>':` <span class="opt">(${t('optional')})</span>`}</label>${nbtn(k)}</div>${hint?`<div class="mut" style="margin:-2px 0 6px">${hint}</div>`:''}${ctrl}${nbox(k)}${ntx(k)}</div>`;
  const tf=k=>fld(k,tx(k));
  const ncnt=k=>TABKEYS[k]?TABKEYS[k].filter(x=>NT&&NT.items&&NT.items[x]).length:0;
  const nN=NT&&NT.items?Object.keys(NT.items).length:0;
@@ -836,6 +848,7 @@ async function openCR(id){
   ${fld('rdate',inp('rdate','date'),'full')}
   ${fld('sdate',inp('sdate','date'))}
   ${fld('edate',inp('edate','date'))}
+  <div class="full sec2">${t('f_rby')}</div>
   ${fld('rbyn',inp('rbyn'))}
   ${fld('rbyj',inp('rbyj'))}
  </div>${pnav('','ach')}</div>
@@ -867,10 +880,11 @@ const mvRow=(a,i,dv)=>{const r=cr.data[a],j=i+dv;if(j<0||j>=r.length)return;[r[i
 function pasteBox(a){const b=$('pb_'+a);if(b)b.style.display=b.style.display=='none'?'':'none'}
 function pasteGo(a){const tx=$('pt_'+a).value.replace(/\r/g,'');const lines=tx.split('\n').filter(l=>l.trim()!=='');if(!lines.length)return;
  const isO=typeof BLANK[a]=='object',num=s=>String(s).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'');
+ cr.data[a]=cr.data[a].filter(filled);
  for(const ln of lines){if(!isO){cr.data[a].push(ln.trim());continue}
   const cells=ln.split('\t'),r={...BLANK[a]};COLS[a].forEach((c,j)=>{let v=(cells[j]||'').trim();if(c.type=='number')v=num(v);if(c.sel){v=num(v);v=(+v>=1&&+v<=5)?String(Math.round(+v)):''}r[c.c]=v});cr.data[a].push(r)}
  OPEN[a]=null;save(true)}
-const delRow=(a,i)=>{cr.data[a].splice(i,1);save(true)};
+const delRow=(a,i)=>{cr.data[a].splice(i,1);if(!cr.data[a].length)delete OPEN[a];save(true)};
 async function save(q){
  const {error}=await sb.from('closure_reports').update({data:cr.data}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
 
@@ -912,6 +926,11 @@ async function archiveCR(v){const {error}=await sb.from('closure_reports').updat
 async function sendReview(){
  if(!sigs.some(s=>s.stage=='reviewed'))return msg(t('needRev'));
  await setStatus('PMO Review');openCR(cr.id)}
+async function proceedSubmit(){
+ const mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
+ if(mine&&mine.status!='signed'){openSign(mine.id,'created',true);return}
+ if(sigs.filter(s=>s.stage=='created').some(s=>s.status!='signed'))return msg(t('creatorsSign'));
+ await setStatus('Submitted');openCR(cr.id)}
 async function sendApproval(){
  if(!sigs.some(s=>s.stage=='approved'))return msg(t('needApp'));
  await setStatus('Awaiting Approval');openCR(cr.id)}
@@ -923,7 +942,7 @@ async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
 async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
 
 // ---- signing ----
-function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'apprConfirm':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
@@ -936,14 +955,16 @@ $('file').onchange=function(){const f=this.files[0];if(!f)return;
  const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
 async function confirmSign(){
  let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
+ if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
  await sb.from('closure_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
  await lg(cr.id,'signed|'+pend.stage);
  if(pend.stage=='approved'){const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('closure_reports').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx}];await sb.from('closure_reports').update({data:nd}).eq('id',cr.id);await lg(cr.id,'approvenote|'+tx)}}
  const {data}=await sb.from('closure_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
- if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Reviewed');
+ if(cr.status=='PMO Review'&&all('reviewed')){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}
  else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved',{issued_at:new Date().toISOString()});
+ else if(pend.submit&&pend.stage=='created'&&['Draft','Returned to PM'].includes(cr.status)){if(data.some(x=>x.stage=='created'&&x.status!='signed'))msg(t('creatorsSign'));else await setStatus('Submitted')}
  $('modal').classList.remove('on');openCR(cr.id)}
 
 // ===== Admin export: Word (single closure report) / Excel + JSON backup (all reports) =====
@@ -961,7 +982,7 @@ async function busy(id,fn){const b=$(id),old=b?b.textContent:'';if(b){b.disabled
 // ---------- Word ----------
 function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Arial',GRN='0A6B3D',RED='D1101D',LIGHT='E5F2EA',LINE='B9C7BE';
- const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k]:[];
+ const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k].filter(filled):[];
  const AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
  const runs=(tx,o={})=>String(tx==null||tx===''?'—':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||22,bold:!!o.b,italics:!!o.it,color:o.c}));
  const P=(tx,o={})=>new D.Paragraph({bidirectional:rtl,alignment:o.al||al,spacing:{before:o.sb||0,after:o.sa==null?40:o.sa},keepNext:o.kn,pageBreakBefore:o.pb,children:runs(tx,o)});
@@ -1057,8 +1078,8 @@ const LISTK=['outs','bens','ugoals','ubens','probs','rsks','depts','less'];
 function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
  const fd=fdx;const {crs,sg,lg,at}=await loadExportData(),rtl=lang=='ar',nm=id=>(users[id]||{}).full_name||'',code={};crs.forEach(c=>code[c.id]=c.code);
  const who=(id,stg)=>sg.filter(s=>s.cr_id==id&&s.stage==stg).map(s=>nm(s.user_id)+' ('+(s.status=='signed'?t('signedOn').replace('✔ ','')+' '+fd(s.signed_at):t('pending'))+')').join('\n');
- const A=(c,k)=>Array.isArray((c.data||{})[k])?c.data[k]:[];
- const r1=[[t('x_code'),t('docNo'),t('version'),t('x_status'),t('f_pname'),t('f_pcode'),t('f_pstatus'),t('f_pdesc'),t('f_sector'),t('f_dept'),t('f_pmname'),t('f_owner'),t('f_rdate'),t('f_sdate'),t('f_edate'),t('f_rbyn'),t('f_rbyj'),t('f_summary'),t('f_orgchg'),t('f_c_reason'),t('f_c_fin'),t('f_c_done'),t('f_c_pct'),t('f_c_impact'),t('issue'),t('x_created'),t('createdCol'),t('x_updated'),t('x_archived'),t('latest'),t('stg_created'),t('stg_reviewed'),t('stg_approved'),t('apprNoteT'),t('noteTitle')]];
+ const A=(c,k)=>Array.isArray((c.data||{})[k])?c.data[k].filter(filled):[];
+ const r1=[[t('x_code'),t('docNo'),t('version'),t('x_status'),t('f_pname'),t('f_pcode'),t('f_pstatus'),t('f_pdesc'),t('f_sector'),t('f_dept'),t('f_pmname'),t('f_owner'),t('f_rdate'),t('f_sdate'),t('f_edate'),t('f_rby')+' - '+t('f_rbyn'),t('f_rby')+' - '+t('f_rbyj'),t('f_summary'),t('f_orgchg'),t('f_c_reason'),t('f_c_fin'),t('f_c_done'),t('f_c_pct'),t('f_c_impact'),t('issue'),t('x_created'),t('createdCol'),t('x_updated'),t('x_archived'),t('latest'),t('stg_created'),t('stg_reviewed'),t('stg_approved'),t('apprNoteT'),t('noteTitle')]];
  crs.forEach(c=>{const d=c.data||{},NI=d._notes&&d._notes.items||{};
   r1.push([c.code,c.doc_no,c.version,t('st_'+c.status),d.pname||'',d.pcode||'',d.pstatus?t('ps_'+d.pstatus):'',d.pdesc||'',secL(d.sector),depL(d.sector,d.dept),d.pmname||'',d.owner||'',d.rdate||'',d.sdate||'',d.edate||'',d.rbyn||'',d.rbyj||'',d.summary||'',d.orgchg||'',d.c_reason||'',d.c_fin||'',d.c_done||'',d.c_pct===''||d.c_pct==null?'':Number(d.c_pct),d.c_impact||'',c.issued_at?fdate(c.issued_at):'',fd(c.created_at),nm(c.created_by),fd(c.stage_at||c.created_at),c.archived?t('x_yes'):t('x_no'),c.comment||'',who(c.id,'created'),who(c.id,'reviewed'),who(c.id,'approved'),(Array.isArray(d._anotes)?d._anotes:[]).map(x=>x.by+': '+x.text).join('\n'),Object.keys(NI).map(k=>(t('f_'+k)||k)+': '+NI[k]).join('\n')])});
  const r2=[[t('x_code'),t('f_pname'),t('x_type'),t('thName')]];crs.forEach(c=>LISTK.forEach(k=>A(c,k).filter(v=>String(v).trim()).forEach(v=>r2.push([c.code,(c.data||{}).pname||'',t('f_'+k),v]))));
