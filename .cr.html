@@ -405,7 +405,7 @@ async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.le
  const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
  if(error)return msg(error.message);msg(t('accCreated'))}
 const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
-const bar=()=>`<div class="nav">${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
+const bar=()=>`<div class="nav"><button class="nv" onclick="location.href='./'">${lang=='ar'?'⬅ خدمات المكتب':'⬅ Office services'}</button>${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
 const SC={'Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
 const pillS=st=>`<span class="pill ${SC[st]||''}">${esc(t('st_'+st))}</span>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
