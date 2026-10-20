@@ -113,7 +113,7 @@ const AXES=[
   title:{ar:'إدارة المشاريع',en:'Project Management'},
   desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
   services:[
-   {icon:'plus',status:'soon',href:'',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع واعتماده لإطلاق مشروع جديد.',en:'Prepare and approve the project charter to launch a new project.'}},
+   {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
    {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
    {icon:'check',status:'soon',href:'',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
   ]},
@@ -190,9 +190,8 @@ const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
-const STATS={
- cr:async(me)=>{
-  const [a,b]=await Promise.all([sb.from('change_requests').select('id,status,created_by,archived'),sb.from('signatories').select('cr_id,stage,status').eq('user_id',me.id)]);
+const mkStats=(tbl,stbl,page)=>async(me)=>{
+  const [a,b]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id)]);
   if(a.error)throw a.error;if(b.error)throw b.error;
   const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
   let created=0,action=0,done=0;const adm=me.role=='admin';
@@ -201,8 +200,8 @@ const STATS={
    if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
    const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
    if(act)action++});
-  return[{k:'created',n:created,c:'#23272b',href:'cr.html#f=created'},{k:'action',n:action,c:'#d1101d',href:'cr.html#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:'cr.html#f=done'}]}
-};
+  return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}]};
+const STATS={cr:mkStats('change_requests','signatories','cr.html'),ch:mkStats('charters','charter_signatories','charter.html')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
  if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
@@ -211,7 +210,7 @@ async function loadMine(){
   if(!session){MINE={state:'login'};return drawMine()}
   const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   if(!me)throw new Error('no profile');
-  const panels=[];for(const s of sv)panels.push({s,tiles:await STATS[s.stats](me)});
+  const panels=[];for(const s of sv){let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}panels.push({s,tiles})}
   MINE={state:'ok',name:me.full_name||'',panels}
  }catch(e){MINE={state:'error'}}
  drawMine()}
@@ -221,7 +220,7 @@ function drawMine(){
  if(MINE.state=='login')body=`<div class="login"><span>${T('needLogin')}</span><a href="cr.html">${T('signIn')}</a></div>`;
  else if(MINE.state=='error')body=`<div class="login">${T('mineErr')}</div>`;
  else if(MINE.state=='loading')body='<div class="sk"></div>';
- else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles.map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join('')}</div></div>`).join('');
+ else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles?tiles.map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
  el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body;
  el.querySelectorAll('.tile b').forEach(b=>{const n=+b.dataset.n;if(matchMedia('(prefers-reduced-motion:reduce)').matches||MINE.shown){b.textContent=n;return}let st=performance.now();(function f(t){const p=Math.min(1,(t-st)/700);b.textContent=Math.round(n*p);if(p<1)requestAnimationFrame(f)})(st)});
  if(MINE.state=='ok')MINE.shown=true}
