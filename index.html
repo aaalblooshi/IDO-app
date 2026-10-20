@@ -1,1 +1,162 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>خدمات مكتب التطوير المؤسسي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--r2:#fdecee;--am:#b7791f;--am2:#fdf3df;--ch:#23272b;--fnt:"Cairo","Segoe UI",Tahoma,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:radial-gradient(800px 380px at 100% -60px,#dcefe3 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#fbe4e6 0,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
+#hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hin{max-width:1000px;margin:0 auto;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{height:44px;width:auto;display:block}
+.stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#d1101d}.stripe i:nth-child(2){background:#0a6b3d}.stripe i:nth-child(3){background:#1b1d1f}.stripe i:nth-child(4){background:#a8a7a7}
+button{font:inherit;font-weight:700;cursor:pointer}
+#lb{padding:7px 16px;border-radius:99px;border:0;background:var(--ch);color:#fff;font-size:14px}
+main{max-width:1000px;margin:0 auto;padding:16px 14px 40px}
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:26px 22px 22px;color:#fff;background:linear-gradient(135deg,#1b1d1f 0%,#2a3036 55%,#0a6b3d 170%);border-inline-start:7px solid var(--r);box-shadow:0 12px 32px rgba(35,39,43,.22);margin-bottom:16px}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero:before{width:260px;height:260px;inset-inline-end:-80px;top:-110px;background:radial-gradient(circle,rgba(10,107,61,.55),transparent 70%);animation:float 9s ease-in-out infinite}
+.hero:after{width:200px;height:200px;inset-inline-end:90px;bottom:-120px;background:radial-gradient(circle,rgba(209,16,29,.35),transparent 70%);animation:float 11s ease-in-out infinite reverse}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(14px)}}
+.hero h1{position:relative;margin:0 0 4px;font-size:clamp(23px,5.5vw,34px);font-weight:800;line-height:1.3}
+.hero p{position:relative;margin:0;color:#c9cdd2;font-size:15px;max-width:560px}
+.stats{position:relative;display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+.stat{flex:1 1 90px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px 12px;backdrop-filter:blur(4px)}
+.stat b{display:block;font-size:24px;line-height:1.2;font-weight:800}.stat span{font-size:12.5px;color:#c9cdd2}
+.tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.sbox{flex:1 1 220px;position:relative}
+.sbox input{width:100%;font:inherit;padding:11px 42px;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);outline:0;transition:border-color .15s,box-shadow .15s}
+.sbox input:focus{border-color:var(--g);box-shadow:0 0 0 4px rgba(10,107,61,.12)}
+.sbox svg{position:absolute;inset-inline-start:13px;top:50%;transform:translateY(-50%);width:19px;height:19px;stroke:var(--mut)}
+.chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:2px 1px;flex:1 1 100%}.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:7px 15px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:14px;transition:all .15s}
+.chip.on{background:var(--ch);color:#fff;border-color:var(--ch);box-shadow:0 4px 12px rgba(35,39,43,.25)}
+.axis{background:var(--card);border:1px solid var(--line);border-radius:20px;margin-bottom:14px;box-shadow:0 1px 2px rgba(35,39,43,.04),0 8px 24px rgba(35,39,43,.06);overflow:hidden}
+.axis.anim{opacity:0;transform:translateY(14px);animation:up .55s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(var(--i)*90ms)}
+@keyframes up{to{opacity:1;transform:none}}
+.axh{width:100%;display:flex;align-items:center;gap:13px;padding:15px 16px;border:0;background:transparent;text-align:start;color:var(--ink);position:relative}
+.axh:before{content:"";position:absolute;inset-inline-start:0;top:0;bottom:0;width:6px;background:var(--ac)}
+.ico{flex:0 0 auto;width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:color-mix(in srgb,var(--ac) 12%,#fff);color:var(--ac)}
+.ico svg{width:25px;height:25px}
+.axh .tt{flex:1;min-width:0}.axh h2{margin:0;font-size:19px;font-weight:800;line-height:1.35}.axh small{color:var(--mut);font-size:13px}
+.cnt{flex:0 0 auto;font-size:12.5px;font-weight:700;padding:3px 11px;border-radius:99px;background:color-mix(in srgb,var(--ac) 12%,#fff);color:var(--ac)}
+.chev{flex:0 0 auto;width:22px;height:22px;stroke:var(--mut);transition:transform .3s}
+.axis.closed .chev{transform:rotate(-90deg)}[dir=rtl] .axis.closed .chev{transform:rotate(90deg)}
+.body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .35s ease}.axis.closed .body{grid-template-rows:0fr}
+.body>div{overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:4px 16px 16px}
+.svc{position:relative;display:flex;flex-direction:column;gap:8px;padding:15px;border-radius:16px;border:1.5px solid var(--line);background:#fff;color:inherit;text-decoration:none;transition:transform .2s,box-shadow .2s,border-color .2s;overflow:hidden}
+.svc.live{cursor:pointer}
+.svc.live:hover,.svc.live:focus-visible{transform:translateY(-4px);border-color:var(--ac);box-shadow:0 14px 30px rgba(35,39,43,.13);outline:0}
+.svc.live:before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 60%);opacity:0;transition:opacity .2s}
+.svc.live:hover:before{opacity:1}
+.svc .ico{width:42px;height:42px;border-radius:13px}.svc .ico svg{width:22px;height:22px}
+.svc h3{margin:0;font-size:16.5px;font-weight:800;line-height:1.4;position:relative}
+.svc p{margin:0;color:var(--mut);font-size:13.5px;flex:1;position:relative}
+.svc .ft{display:flex;align-items:center;justify-content:space-between;position:relative;margin-top:2px}
+.badge{font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px}
+.badge.ok{background:var(--g2);color:var(--g)}.badge.soon{background:var(--am2);color:var(--am)}
+.go{width:22px;height:22px;stroke:var(--ac);transition:transform .2s}
+[dir=rtl] .go{transform:scaleX(-1)}[dir=rtl] .svc.live:hover .go{transform:scaleX(-1) translateX(5px)}[dir=ltr] .svc.live:hover .go{transform:translateX(5px)}
+.svc.soon{background:repeating-linear-gradient(135deg,#fff 0 10px,#faf9f5 10px 20px);border-style:dashed;cursor:default}
+.svc.soon .ico{background:#f0eee7;color:#8a8d93}.svc.soon h3{color:#4a4e55}
+.empty{margin:4px 16px 16px;padding:22px;border:1.5px dashed var(--line);border-radius:16px;text-align:center;color:var(--mut);background:#faf9f5}
+.empty b{display:block;color:var(--ink);font-size:16px}
+.none{text-align:center;color:var(--mut);padding:26px}
+footer{text-align:center;color:var(--mut);font-size:12.5px;padding:10px 0 26px}
+mark{background:#fff0a8;border-radius:4px;padding:0 2px}
+@media(max-width:520px){.hero{padding:22px 16px 18px}.axh{padding:13px 14px}.grid{padding:2px 12px 14px}.ico{width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.axis{opacity:1;transform:none}}
+</style></head><body>
+<header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><button id="lb" onclick="toggleLang()">English</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
+<main>
+ <section class="hero"><h1 id="ttl"></h1><p id="sub"></p><div class="stats" id="stats"></div></section>
+ <div class="tools"><div class="sbox"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" type="search" autocomplete="off"></div><div class="chips" id="chips"></div></div>
+ <div id="axes"></div>
+ <footer id="foot"></footer>
+</main>
+<script>
+/* =====================================================================
+   كيف تضيف محورًا أو خدمة؟  How to add an axis or a service
+   - لإضافة خدمة: أضف سطرًا جديدًا داخل services للمحور المطلوب.
+   - لإضافة محور: انسخ كتلة محور كاملة {id:..., services:[...]} وعدّلها.
+   - status:'live' = متاحة (ضع الرابط في href) ، status:'soon' = قريبًا
+   - icon: واحدة من: layers, plus, refresh, check, shield, target, file, users, chart, book
+   ===================================================================== */
+const AXES=[
+ {id:'projects',color:'#0a6b3d',icon:'layers',
+  title:{ar:'إدارة المشاريع',en:'Project Management'},
+  desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
+  services:[
+   {icon:'plus',status:'soon',href:'',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع واعتماده لإطلاق مشروع جديد.',en:'Prepare and approve the project charter to launch a new project.'}},
+   {icon:'refresh',status:'live',href:'cr.html',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
+   {icon:'check',status:'soon',href:'',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
+  ]},
+ {id:'quality',color:'#d1101d',icon:'shield',
+  title:{ar:'إدارة الجودة والوثائق',en:'Quality & Documents Management'},
+  desc:{ar:'الجودة والسياسات والوثائق المؤسسية',en:'Quality, policies and institutional documents'},
+  services:[]},
+ {id:'strategy',color:'#23272b',icon:'target',
+  title:{ar:'إدارة الاستراتيجية',en:'Strategy Management'},
+  desc:{ar:'التخطيط الاستراتيجي ومتابعة الأداء',en:'Strategic planning and performance follow-up'},
+  services:[]}
+];
+const UI={
+ title:{ar:'خدمات مكتب التطوير المؤسسي',en:'Institutional Development Office Services'},
+ sub:{ar:'بوابة موحّدة لخدمات المكتب. اختر المحور ثم الخدمة التي تحتاجها.',en:'One gateway to the office services. Pick an axis, then the service you need.'},
+ axes:{ar:'المحاور',en:'Axes'},services:{ar:'الخدمات',en:'Services'},avail:{ar:'متاحة الآن',en:'Available now'},
+ search:{ar:'ابحث عن خدمة…',en:'Search for a service…'},all:{ar:'الكل',en:'All'},
+ live:{ar:'متاحة',en:'Available'},soon:{ar:'قريبًا',en:'Coming soon'},open:{ar:'فتح الخدمة',en:'Open service'},
+ svc:{ar:'خدمات',en:'services'},one:{ar:'خدمة',en:'service'},
+ emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
+ none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
+ foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
+};
+const IC={
+ layers:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+ plus:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6"/><path d="M9 15h6"/>',
+ refresh:'<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>',
+ check:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>',
+ shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+ target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+ file:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+ chart:'<path d="M3 3v18h18"/><path d="M7 15v3"/><path d="M12 10v8"/><path d="M17 6v12"/>',
+ book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V22h16"/>'
+};
+const svg=(n,c)=>`<svg class="${c||''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${IC[n]||IC.file}</svg>`;
+const $=id=>document.getElementById(id),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(e){}
+let flt='all',qs='',closed={},first=true;
+const T=k=>UI[k][lang],L=o=>o[lang]||o.ar;
+const norm=s=>String(s).toLowerCase().replace(/[ً-ْـ]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي');
+function hl(s){const q=qs.trim();if(!q)return esc(s);const n=norm(s),k=norm(q),i=n.indexOf(k);if(i<0||n.length!=String(s).length)return esc(s);return esc(s.slice(0,i))+'<mark>'+esc(s.slice(i,i+k.length))+'</mark>'+esc(s.slice(i+k.length))}
+function counter(el,to){if(matchMedia('(prefers-reduced-motion:reduce)').matches||!first){el.textContent=to;return}let n=0;const st=performance.now(),dur=700;(function f(t){const p=Math.min(1,(t-st)/dur);el.textContent=Math.round(to*p);if(p<1)requestAnimationFrame(f)})(st)}
+function draw(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';document.title=T('title');
+ $('lb').textContent=lang=='ar'?'English':'العربية';$('ttl').textContent=T('title');$('sub').textContent=T('sub');$('q').placeholder=T('search');$('foot').textContent=T('foot');
+ const all=AXES.reduce((n,a)=>n+a.services.length,0),live=AXES.reduce((n,a)=>n+a.services.filter(s=>s.status=='live').length,0);
+ $('stats').innerHTML=[[AXES.length,'axes'],[all,'services'],[live,'avail']].map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b><span>${T(k)}</span></div>`).join('');
+ document.querySelectorAll('.stat b').forEach(b=>counter(b,+b.dataset.n));
+ $('chips').innerHTML=[['all',T('all')],...AXES.map(a=>[a.id,L(a.title)])].map(([id,t])=>`<button class="chip ${flt==id?'on':''}" data-f="${id}">${esc(t)}</button>`).join('');
+ const k=norm(qs.trim());let shown=0;
+ const html=AXES.filter(a=>flt=='all'||flt==a.id).map((a,i)=>{
+  const sv=a.services.filter(s=>!k||norm(L(s.title)+' '+L(s.desc)+' '+L(a.title)).includes(k));
+  if(k&&!sv.length)return'';shown++;
+  const op=k?true:!closed[a.id];
+  const cards=sv.map(s=>{const live=s.status=='live',tag=live?'a':'div';
+   return`<${tag} class="svc ${live?'live':'soon'}" ${live?`href="${esc(s.href)}"`:'aria-disabled="true"'}><div class="ico">${svg(s.icon)}</div><h3>${hl(L(s.title))}</h3><p>${hl(L(s.desc))}</p><div class="ft"><span class="badge ${live?'ok':'soon'}">${live?T('live'):T('soon')}</span>${live?svg('arrow','go'):''}</div></${tag}>`}).join('');
+  const n=a.services.length;
+  return`<section class="axis ${op?'':'closed'} ${first?'anim':''}" style="--ac:${a.color};--i:${i}" data-a="${a.id}"><button class="axh" onclick="tg('${a.id}')" aria-expanded="${op}"><div class="ico">${svg(a.icon)}</div><div class="tt"><h2>${esc(L(a.title))}</h2><small>${esc(L(a.desc))}</small></div><span class="cnt">${n==0?T('soon'):(lang=='ar'&&n==2?'خدمتان':n+' '+(n==1?T('one'):T('svc')))}</span>${svg('chev','chev')}</button><div class="body"><div>${sv.length?`<div class="grid">${cards}</div>`:`<div class="empty"><b>${T('emptyT')}</b>${T('emptyD')}</div>`}</div></div></section>`}).join('');
+ $('axes').innerHTML=html||`<div class="none">${T('none')}</div>`;first=false}
+IC.arrow='<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>';IC.chev='<path d="m6 9 6 6 6-6"/>';
+function tg(id){closed[id]=!closed[id];const e=document.querySelector(`.axis[data-a="${id}"]`);if(e){e.classList.toggle('closed',!!closed[id]);e.querySelector('.axh').setAttribute('aria-expanded',!closed[id])}}
+function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(e){}draw()}
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b){flt=b.dataset.f;draw()}});
+$('q').addEventListener('input',e=>{qs=e.target.value;const s=e.target.selectionStart;draw();const q=$('q');q.value=qs;q.focus();try{q.setSelectionRange(s,s)}catch(x){}});
+draw();
+</script></body></html>
