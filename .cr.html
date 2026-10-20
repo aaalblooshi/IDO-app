@@ -110,6 +110,8 @@ const W=[
 ["apprConfirm","Confirm approval","تأكيد الاعتماد"],
 ["apprNotePh","Approval note (optional)","ملاحظة مع الاعتماد (اختيارية)"],
 ["apprNoteT","Approver note","ملاحظة المعتمد"],
+["x_mineCreated","Created by me","أنشأتُها"],
+["x_mineDone","Completed","المكتملة"],
 ["x_wait","Preparing…","جارٍ التجهيز…"],
 ["x_fail","Export failed:","تعذّر التصدير:"],
 ["x_formTitle","Change Request Form","نموذج طلب تغيير"],
@@ -393,7 +395,10 @@ async function start(){
  const {data:{session}}=await sb.auth.getSession();
  if(!session)return loginView();
  const {data:ps}=await sb.from('profiles').select('*');
- users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];homeView();
+ users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];
+ const hm=/^#f=([a-z]+)/.exec(location.hash||'');
+ if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
+ homeView();
 }
 function loginView(){curView=loginView;editing=false;
  app.innerHTML=`<div class="card lcard"><h1>${t('appTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('tagline')}</div>
@@ -452,6 +457,8 @@ function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(f=='action')return !!x.act;
  if(f=='mine')return (adm||r.created_by==me.id)&&!FIN(r.status);
  if(f=='returned')return r.status=='Returned to PM'&&(adm||r.created_by==me.id);
+ if(f=='created')return x.rel.includes('created');
+ if(f=='done')return (r.status=='Approved'||r.status=='Rejected')&&x.rel.length>0;
  if(f=='approved')return r.status=='Approved';
  if(f=='rejected')return r.status=='Rejected';
  if(f=='overdue')return x.over;
@@ -461,7 +468,7 @@ const passQ=x=>{const r=x.r;if(H.q&&!`${r.code} ${r.data.pname||''}`.toLowerCase
 const list=f=>DB.crs.map(r=>DB.by[r.id]).filter(x=>passF(x,f));
 const bars=rows=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(([l,n])=>`<div class="hb"><span>${esc(l)}</span><div><i style="width:${n/m*100}%"></i></div><b>${n}</b></div>`).join('')||'<div class="mut">—</div>'};
 async function homeView(){curView=homeView;editing=false;DB=await loadAll();enrich();drawHome()}
-function fLabel(f){if(!f)return'';if(f.startsWith('st:'))return t('st_'+f.slice(3));const m={action:'c_action',mine:me.role=='admin'?'c_mineA':'c_mine',returned:'c_returned',approved:'c_approved',rejected:'c_rejected'};return m[f]?t(m[f]):''}
+function fLabel(f){if(!f)return'';if(f.startsWith('st:'))return t('st_'+f.slice(3));const m={created:'x_mineCreated',done:'x_mineDone',action:'c_action',mine:me.role=='admin'?'c_mineA':'c_mine',returned:'c_returned',approved:'c_approved',rejected:'c_rejected'};return m[f]?t(m[f]):''}
 function setF(f){const on=H.f!=f;H.f=on?f:'';drawHome();if(on){const e=$('lst');if(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');e.scrollIntoView({behavior:'smooth',block:'start'})}}}
 function drawList(){const rows=list(H.f).filter(passQ);$('hl').innerHTML=rows.map(x=>rowH(x,me.role=='admin')).join('')||`<div class="mut">${t('noReq')}</div>`}
 function drawHome(){
