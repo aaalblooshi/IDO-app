@@ -115,7 +115,7 @@ const AXES=[
   services:[
    {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
    {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
-   {icon:'check',status:'soon',href:'',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
+   {icon:'check',status:'live',href:'closure.html',stats:'cl',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
   ]},
  {id:'quality',color:'#d1101d',icon:'shield',
   title:{ar:'إدارة الجودة والوثائق',en:'Quality & Documents Management'},
@@ -201,7 +201,7 @@ const mkStats=(tbl,stbl,page)=>async(me)=>{
    const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}]};
-const STATS={cr:mkStats('change_requests','signatories','cr.html'),ch:mkStats('charters','charter_signatories','charter.html')};
+const STATS={cr:mkStats('change_requests','signatories','cr.html'),ch:mkStats('charters','charter_signatories','charter.html'),cl:mkStats('closure_reports','closure_signatories','closure.html')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
  if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
