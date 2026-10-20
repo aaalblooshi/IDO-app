@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>خدمات مكتب التطوير المؤسسي</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -27,6 +28,25 @@ main{max-width:1000px;margin:0 auto;padding:16px 14px 40px}
 .stats{position:relative;display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 .stat{flex:1 1 90px;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:8px 12px;backdrop-filter:blur(4px)}
 .stat b{display:block;font-size:24px;line-height:1.2;font-weight:800}.stat span{font-size:12.5px;color:#c9cdd2}
+.mine{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(35,39,43,.04),0 8px 24px rgba(35,39,43,.06)}
+.mh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.mh h2{margin:0;font-size:18px;font-weight:800}.mh small{color:var(--mut);font-size:13px}
+.pan{border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff}
+.pan:last-child{margin-bottom:0}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:inherit;text-decoration:none}
+.ph .ico{width:38px;height:38px;border-radius:12px}.ph .ico svg{width:20px;height:20px}
+.ph b{flex:1;font-size:15.5px;line-height:1.4}.ph .go{width:20px;height:20px}
+.tl{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.tile{position:relative;display:block;text-decoration:none;color:inherit;border:1.5px solid var(--line);border-top:5px solid var(--tc);border-radius:14px;padding:10px 11px 9px;background:#fff;transition:transform .18s,box-shadow .18s}
+.tile:hover,.tile:focus-visible{transform:translateY(-3px);box-shadow:0 10px 22px rgba(35,39,43,.12);outline:0}
+.tile b{display:block;font-size:30px;line-height:1.15;font-weight:800;color:var(--tc)}
+.tile span{display:block;font-size:12.8px;color:var(--mut);line-height:1.4;margin-top:2px}
+.tile.hot{background:var(--r2);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(209,16,29,.28)}50%{box-shadow:0 0 0 6px rgba(209,16,29,0)}}
+.sk{height:84px;border-radius:14px;background:linear-gradient(90deg,#f1efe8 0,#faf9f5 50%,#f1efe8 100%);background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{to{background-position:-200% 0}}
+.login{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--mut)}
+.login a{padding:9px 18px;border-radius:12px;background:var(--g);color:#fff;text-decoration:none;font-weight:700}
 .tools{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .sbox{flex:1 1 220px;position:relative}
 .sbox input{width:100%;font:inherit;padding:11px 42px;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);outline:0;transition:border-color .15s,box-shadow .15s}
@@ -75,6 +95,7 @@ mark{background:#fff0a8;border-radius:4px;padding:0 2px}
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><button id="lb" onclick="toggleLang()">English</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <main>
  <section class="hero"><h1 id="ttl"></h1><p id="sub"></p><div class="stats" id="stats"></div></section>
+ <section class="mine" id="mine" hidden></section>
  <div class="tools"><div class="sbox"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input id="q" type="search" autocomplete="off"></div><div class="chips" id="chips"></div></div>
  <div id="axes"></div>
  <footer id="foot"></footer>
@@ -93,7 +114,7 @@ const AXES=[
   desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
   services:[
    {icon:'plus',status:'soon',href:'',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع واعتماده لإطلاق مشروع جديد.',en:'Prepare and approve the project charter to launch a new project.'}},
-   {icon:'refresh',status:'live',href:'cr.html',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
+   {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
    {icon:'check',status:'soon',href:'',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
   ]},
  {id:'quality',color:'#d1101d',icon:'shield',
@@ -114,6 +135,10 @@ const UI={
  svc:{ar:'خدمات',en:'services'},one:{ar:'خدمة',en:'service'},
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
+ mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},
+ needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
+ mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
 };
 const IC={
@@ -158,5 +183,49 @@ function tg(id){closed[id]=!closed[id];const e=document.querySelector(`.axis[dat
 function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(e){}draw()}
 $('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b){flt=b.dataset.f;draw()}});
 $('q').addEventListener('input',e=>{qs=e.target.value;const s=e.target.selectionStart;draw();const q=$('q');q.value=qs;q.focus();try{q.setSelectionRange(s,s)}catch(x){}});
-draw();
+
+/* ---------- لوحة المستخدم: تُحمَّل من قاعدة البيانات مباشرة ---------- */
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
+/* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
+const STATS={
+ cr:async(me)=>{
+  const [a,b]=await Promise.all([sb.from('change_requests').select('id,status,created_by,archived'),sb.from('signatories').select('cr_id,stage,status').eq('user_id',me.id)]);
+  if(a.error)throw a.error;if(b.error)throw b.error;
+  const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
+  let created=0,action=0,done=0;const adm=me.role=='admin';
+  (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
+   if(mine)created++;
+   if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
+   const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
+   if(act)action++});
+  return[{k:'created',n:created,c:'#23272b',href:'cr.html#f=created'},{k:'action',n:action,c:'#d1101d',href:'cr.html#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:'cr.html#f=done'}]}
+};
+async function loadMine(){
+ const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
+ if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
+ try{
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){MINE={state:'login'};return drawMine()}
+  const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+  if(!me)throw new Error('no profile');
+  const panels=[];for(const s of sv)panels.push({s,tiles:await STATS[s.stats](me)});
+  MINE={state:'ok',name:me.full_name||'',panels}
+ }catch(e){MINE={state:'error'}}
+ drawMine()}
+function drawMine(){
+ const el=$('mine');if(!MINE||MINE.state=='none'){el.hidden=true;return}el.hidden=false;
+ let body;
+ if(MINE.state=='login')body=`<div class="login"><span>${T('needLogin')}</span><a href="cr.html">${T('signIn')}</a></div>`;
+ else if(MINE.state=='error')body=`<div class="login">${T('mineErr')}</div>`;
+ else if(MINE.state=='loading')body='<div class="sk"></div>';
+ else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles.map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join('')}</div></div>`).join('');
+ el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body;
+ el.querySelectorAll('.tile b').forEach(b=>{const n=+b.dataset.n;if(matchMedia('(prefers-reduced-motion:reduce)').matches||MINE.shown){b.textContent=n;return}let st=performance.now();(function f(t){const p=Math.min(1,(t-st)/700);b.textContent=Math.round(n*p);if(p<1)requestAnimationFrame(f)})(st)});
+ if(MINE.state=='ok')MINE.shown=true}
+MINE={state:'loading'};
+const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
+draw();loadMine();
 </script></body></html>
