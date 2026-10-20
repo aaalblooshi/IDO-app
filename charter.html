@@ -1,1 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>Project Charter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--r2:#fdecee;--am:#b7791f;--am2:#fdf3df;--ch:#23272b;--fnt:"Cairo","Segoe UI",Tahoma,Arial,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font:14.5px/1.6 var(--fnt);background:radial-gradient(800px 380px at 100% -60px,#dcefe3 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#fbe4e6 0,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
+#hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hin{max-width:900px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{height:44px;width:auto;display:block}
+.flash{animation:fl 1.2s ease}@keyframes fl{0%{box-shadow:0 0 0 4px var(--g)}100%{box-shadow:0 0 0 0 transparent}}#lst{scroll-margin-top:calc(var(--hh,90px) + 8px);min-height:calc(100vh - var(--hh,90px) - 90px)}#lst .top .sm{white-space:nowrap;flex:0 0 auto}
+.ttl{max-width:900px;margin:0 auto;padding:0 14px 7px;font-weight:800;font-size:17px;color:var(--ch);display:flex;align-items:center;gap:8px}.ttl:before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--r) 0 50%,var(--g) 50% 100%)}
+.stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#d1101d}.stripe i:nth-child(2){background:#0a6b3d}.stripe i:nth-child(3){background:#1b1d1f}.stripe i:nth-child(4){background:#a8a7a7}
+#lb{padding:6px 14px;border-radius:99px;font-size:13px;background:var(--ch);color:#fff;border-color:var(--ch)}
+#app{max-width:900px;margin:0 auto;padding:12px 12px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(35,39,43,.04),0 6px 18px rgba(35,39,43,.05)}
+h1{font-size:20px;margin:0 0 6px;font-weight:800}h2{font-size:16px;margin:0 0 8px;font-weight:800;color:var(--ch)}.mut{color:var(--mut);font-size:13px}
+label{display:block;font-size:12.5px;font-weight:700;color:var(--mut);margin:8px 0 3px}.rq{color:var(--r)}
+input,select,textarea{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:10px;font:inherit;font-size:16px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(10,107,61,.15)}
+input[dir=ltr]{text-align:start}
+input:disabled,select:disabled{background:#f7f5ef;-webkit-text-fill-color:var(--ink);opacity:1;border-color:#ece8de}
+textarea.ta{resize:none;overflow:hidden;line-height:1.65;display:block}
+.ta-w{position:relative}.ta-w.clamped::after{content:"⌄";position:absolute;inset-inline:0;bottom:1px;text-align:center;height:24px;line-height:30px;color:var(--g);font-weight:800;background:linear-gradient(transparent,#fff 80%);border-radius:0 0 10px 10px;pointer-events:none}
+.ro{background:#f7f5ef;border:1.5px solid #ece8de;border-radius:10px;padding:9px 11px;font-size:15.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:76px;overflow:hidden;position:relative;cursor:pointer}
+.ro.open{max-height:none}.ro.more::after{content:"⌄";position:absolute;inset-inline:0;bottom:0;text-align:center;height:26px;line-height:34px;color:var(--g);font-weight:800;background:linear-gradient(rgba(247,245,239,0),#f7f5ef 80%)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}.fg .full{grid-column:1/-1}
+button{font:inherit;font-weight:700;padding:9px 15px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;transition:transform .08s,box-shadow .15s}
+button:active{transform:scale(.97)}
+.p,.g{background:linear-gradient(135deg,#0a6b3d,#0f8d52);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(10,107,61,.25)}
+.r{background:var(--r);color:#fff;border-color:transparent}
+.sm{padding:4px 11px;font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pill{background:var(--ch);color:#fff;border-radius:99px;padding:2px 11px;font-size:12px;font-weight:700;white-space:nowrap;display:inline-block}
+.pill.s-d{background:#8a8f96}.pill.s-ret{background:var(--am)}.pill.s-ok{background:var(--g)}.pill.s-no{background:var(--r)}.pill.act{background:var(--r)}
+.nav{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding:2px 1px}.nav::-webkit-scrollbar{display:none}.nav>*{flex:0 0 auto}
+.nv{padding:5px 13px;border-radius:99px;font-size:13.5px;background:#fff}.nv.on{background:var(--ch);color:#fff;border-color:var(--ch)}
+.uchip{font-size:12.5px;color:var(--mut);font-weight:600}
+.hero{border-radius:18px;padding:16px 18px;margin-bottom:12px;color:#fff;background:linear-gradient(135deg,#1b1d1f 0%,#2a3036 55%,#0a6b3d 170%);border-inline-start:6px solid var(--r);box-shadow:0 8px 24px rgba(35,39,43,.2)}
+.hero h2{color:#fff;margin:0;font-size:19px}.hero .mut{color:#c9cdd2}
+.kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px}
+.k{border:1px solid var(--line);border-top:4px solid var(--g);border-radius:12px;padding:9px 11px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--mut);background:#fff;line-height:1.35}
+.k b{display:block;font-size:26px;line-height:1.2;color:var(--ink)}.k.on{background:var(--g2);border-color:var(--g)}.k.hot{border-top-color:var(--r)}.k.hot b{color:var(--r)}
+.k:nth-child(2){border-top-color:var(--ch)}.k:nth-child(3){border-top-color:var(--am)}.k:nth-child(4){border-top-color:var(--g)}.k:nth-child(5){border-top-color:var(--r)}.k:nth-child(n+6){border-top-color:#a8a7a7}
+.item{border:1px solid var(--line);border-inline-start:4px solid var(--g);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff}
+.pg{display:flex;gap:3px;margin:6px 0}.pg i{flex:1;height:6px;border-radius:3px;background:#e9e5da}.pg i.on{background:linear-gradient(90deg,var(--g),#2fa569)}
+.hb{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:13px}.hb span{width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb div{flex:1;background:#eeeadf;border-radius:5px;height:10px}.hb i{display:block;height:10px;background:linear-gradient(90deg,var(--g),#2fa569);border-radius:5px}.hb b{min-width:22px;text-align:end}
+details.acc{padding:0}details.acc>summary{list-style:none;cursor:pointer;padding:13px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:16px;color:var(--ch)}
+details.acc>summary::-webkit-details-marker{display:none}details.acc>summary::after{content:"⌄";color:var(--g);font-size:20px;transition:transform .2s}details.acc[open]>summary::after{transform:rotate(180deg)}
+details.acc>.in{padding:0 14px 14px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:start;font-size:13px}
+.crh{border-inline-start:6px solid var(--g)}
+.fp{margin:0 0 8px}.fp .bg{height:6px;border-radius:3px;background:#e9e5da;overflow:hidden}.fp .bg i{display:block;height:6px;width:0;background:linear-gradient(90deg,var(--r),var(--am),var(--g));transition:width .25s}.fp .mut{font-size:12px;margin-top:2px}
+.tabs{position:sticky;top:var(--hh,90px);z-index:15;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:6px 1px 8px;margin-bottom:4px;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tb{flex:0 0 auto;white-space:nowrap;border-radius:12px;padding:8px 14px;font-size:14px;color:var(--mut);background:#fff}
+.tb.on{background:var(--ch);color:#fff;border-color:var(--ch)}
+.tb .bd{background:var(--r);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px;display:none}
+.pn{display:none}.pn.on{display:block}
+.sec{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ch);margin:0 0 4px}.sec::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--r)}
+.sh{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:8px 0;background:#fcfbf8;position:relative}.sh>button{position:absolute;top:8px;inset-inline-end:8px}
+.sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
+.sig.st1{border-inline-start-color:var(--am)}.sig.st2{border-inline-start-color:var(--g)}
+.srow{display:flex;justify-content:space-between;gap:6px;padding:4px 0}.sig img{max-height:56px;display:block;margin-top:4px}
+.al{color:var(--g);font-weight:700;text-decoration:underline;word-break:break-word}.sig.att{border-inline-start-color:var(--r)}
+.hr2{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.nw{background:#fff;color:var(--g);border-color:#fff;font-weight:800;padding:9px 16px}
+.lr{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.lr label{flex:1}.nbtn{padding:0 8px;font-size:13px;line-height:22px;border-radius:99px;background:#fff;margin-top:4px;flex:0 0 auto}.nbtn.has{background:var(--am2);border-color:var(--am)}
+.nbox textarea{margin-top:4px;border-color:var(--am);background:var(--am2);min-height:64px;resize:vertical;line-height:1.6}
+.nbar{margin:0 0 8px}.nbar .mut{margin-top:6px}
+.nt{margin-top:6px;border:1.5px solid var(--r);border-inline-start-width:5px;background:var(--r2);border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}.nt.ap{border-color:var(--g);background:var(--g2)}.nt.ap b{color:var(--g)}.nt b{display:block;color:var(--r);font-size:12.5px;margin-bottom:2px;white-space:normal}.nt.old{border-color:var(--am);background:var(--am2)}.nt.old b{color:var(--am)}
+.nbd{background:var(--am);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px}
+.log{font-size:12.5px;color:var(--mut);max-height:200px;overflow:auto}
+.actbar{position:fixed;inset-inline:0;bottom:0;z-index:15;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.actbar .row{margin:0;max-width:900px;margin-inline:auto;justify-content:center}
+.pnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
+.modal{position:fixed;inset:0;background:rgba(20,22,24,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}.modal.on{display:flex}
+.box{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:420px;border-top:5px solid var(--g)}
+canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}
+.lcard{max-width:400px;margin:24px auto;border-top:5px solid var(--g)}
+@media(max-width:380px){.fg{grid-template-columns:1fr}.logo{height:38px}}
+.dinfo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.dinfo div{background:#f7faf8;border:1px solid var(--line);border-radius:10px;padding:6px 9px;min-width:0}.dinfo span{display:block;font-size:11.5px;color:var(--mut)}.dinfo b{display:block;font-size:13.5px;overflow-wrap:anywhere}
+@media(max-width:560px){.dinfo{grid-template-columns:repeat(2,1fr)}}
+.gv{display:grid;grid-template-columns:130px 1fr;gap:8px}@media(max-width:420px){.gv{grid-template-columns:1fr}}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:520px){.fg3{grid-template-columns:1fr 1fr}.fg3>div:last-child{grid-column:1/-1}}
+.fg3>div{min-width:0}.fg3 input{min-width:0;width:100%;max-width:100%}input[type=date]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none}
+.dur{padding:9px 12px;border-radius:10px;background:var(--g2);color:var(--g);font-weight:800;min-height:42px}
+.lrow{display:flex;gap:8px;align-items:center;margin-bottom:8px}.lrow input{flex:1}
+.rk{display:inline-block;padding:3px 14px;border-radius:99px;font-weight:800;color:#fff}.rk.low{background:#0a6b3d}.rk.med{background:#f2c200;color:#1b1d1f}.rk.high{background:#d1101d}.rk.none{background:#e4dfd4;color:#6b6f76}
+</style></head><body>
+<header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><button id="lb" onclick="toggleLang()">العربية</button></div><div class="ttl" id="ttl"></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
+<div id="app"></div>
+<div class="modal" id="modal"><div class="box"><h2 id="mt">Sign</h2>
+<div class="row" style="margin:0 0 8px"><button id="td" class="p">Draw</button><button id="tu">Upload picture</button></div>
+<div id="pd"><canvas id="cv"></canvas><div class="row"><button id="clb" onclick="clr()">Clear</button></div></div>
+<div id="pu" style="display:none"><input type="file" id="file" accept="image/png,image/jpeg"><img id="prev" style="max-height:90px;display:none;margin-top:6px"></div>
+<div id="anw" style="display:none;margin-top:10px"><textarea id="ant" rows="2" style="width:100%"></textarea></div>
+<div class="row"><button class="p" id="cfb" onclick="confirmSign()">Confirm signature</button><button id="cnb" onclick="$('modal').classList.remove('on')">Cancel</button></div>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=i=>document.getElementById(i),app=$('app');
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+// ===== Languages =====
+const W=[
+["appTitle","Project Change Request Management","إدارة طلبات التغيير في المشاريع"],
+["apprBtn","Approve","اعتماد"],
+["apprTitle","Approval","الاعتماد"],
+["apprConfirm","Confirm approval","تأكيد الاعتماد"],
+["apprNotePh","Approval note (optional)","ملاحظة مع الاعتماد (اختيارية)"],
+["apprNoteT","Approver note","ملاحظة المعتمد"],
+["x_mineCreated","Created by me","أنشأتُها"],
+["x_mineDone","Completed","المكتملة"],
+["x_wait","Preparing…","جارٍ التجهيز…"],
+["x_fail","Export failed:","تعذّر التصدير:"],
+["x_formTitle","Change Request Form","نموذج طلب تغيير"],
+["x_code","Request no.","رقم الطلب"],
+["x_status","Status","الحالة"],
+["x_created","Created on","تاريخ الإنشاء"],
+["x_updated","Last update","آخر تحديث"],
+["x_none","None","لا يوجد"],
+["x_state","Status","الحالة"],
+["x_sign","Signature","التوقيع"],
+["x_date","Date","التاريخ"],
+["x_user","User","المستخدم"],
+["x_action","Action","الإجراء"],
+["x_printed","Printed by","طُبع بواسطة"],
+["x_archived","Archived","مؤرشف"],
+["x_yes","Yes","نعم"],
+["x_no","No","لا"],
+["x_stage","Stage","المرحلة"],
+["x_signedAt","Signed on","تاريخ التوقيع"],
+["x_sh_req","Requests","الطلبات"],
+["x_sh_stk","Stakeholders","أصحاب المصلحة"],
+["x_sh_sig","Signatures","التواقيع"],
+["x_sh_att","Attachments","المرفقات"],
+["x_sh_log","Audit log","سجل الإجراءات"],
+["x_word","Export to Word","تصدير إلى Word"],
+["x_excel","Download Excel (all requests)","تنزيل Excel (كل الطلبات)"],
+["x_backup","Backup (JSON)","نسخة احتياطية (JSON)"],
+["x_expTitle","Export & backup","التصدير والنسخ الاحتياطي"],
+["x_expNote","Excel includes all requests with their status and details. The JSON backup also includes signature images; attachment files stay in storage.","ملف Excel يحوي كل الطلبات مع حالتها وتفاصيلها. النسخة الاحتياطية JSON تشمل أيضاً صور التواقيع (ملفات المرفقات تبقى محفوظة في التخزين)."],
+["almost","The page opened, but it is not connected to your database yet. Check the Supabase URL and key near the top of the code.","فُتحت الصفحة، لكنها غير متصلة بقاعدة البيانات بعد. تحقق من رابط Supabase والمفتاح في أعلى الكود."],
+["fullName","Full name (new accounts only)","الاسم الكامل (للحسابات الجديدة فقط)"],
+["email","Email","البريد الإلكتروني"],
+["password","Password (6+ characters)","كلمة المرور (6 أحرف على الأقل)"],
+["signIn","Sign in","تسجيل الدخول"],
+["createAcc","Create account","إنشاء حساب"],
+["typeBoth","Please type your email and password.","يرجى إدخال البريد الإلكتروني وكلمة المرور."],
+["typeSignup","Please type your email and a password of 6+ characters.","يرجى إدخال البريد الإلكتروني وكلمة مرور من 6 أحرف على الأقل."],
+["accCreated","Account created. Click Sign in.","تم إنشاء الحساب. اضغط تسجيل الدخول."],
+["barTitle","Change Requests","طلبات التغيير"],
+["home","Home","الرئيسية"],
+["requests","All requests","كل الطلبات"],
+["admin","Admin","الإدارة"],
+["myProfile","My profile","ملفي الشخصي"],
+["signOut","Sign out","تسجيل الخروج"],
+["yourName","Your full name","اسمك الكامل"],
+["yourJob","Your job title","مسماك الوظيفي"],
+["allReq","All requests","كل الطلبات"],
+["newReq","+ New request","+ طلب جديد"],
+["code","Code","الرمز"],
+["project","Project","المشروع"],
+["priority","Priority","الأولوية"],
+["status","Status","الحالة"],
+["createdCol","Created by","أنشأه"],
+["open","Open","فتح"],
+["noReq","No requests yet.","لا توجد طلبات بعد."],
+["version","version","الإصدار"],
+["latest","Latest comment:","آخر تعليق:"],
+["projDetails","Project details","تفاصيل المشروع"],
+["f_pname","Project name","اسم المشروع"],
+["f_pcode","Project code","رمز المشروع"],
+["f_by","Request submitted by","مقدّم الطلب"],
+["f_prio","Change priority","أولوية التغيير"],
+["f_edate","Estimated date for the change","التاريخ المقدّر للتغيير"],
+["f_sector","Sector","القطاع"],
+["f_dept","Department","الإدارة"],
+["f_sponsor","Project owner","مالك المشروع"],
+["f_pmname","Project manager","مدير المشروع"],
+["changeDetails","Change details","تفاصيل التغيير"],
+["f_desc","Change description","وصف التغيير"],
+["f_reason","Reasons for the change","أسباب التغيير"],
+["f_scope","Impact on project scope","الأثر على نطاق المشروع"],
+["f_cost","Impact on project cost","الأثر على تكلفة المشروع"],
+["f_sched","Impact on project schedule","الأثر على الجدول الزمني للمشروع"],
+["f_stake","Impact on stakeholders","الأثر على أصحاب المصلحة"],
+["f_chal","Challenges if change isn’t approved","التحديات في حال عدم اعتماد التغيير"],
+["stakeTitle","Stakeholders to be notified","أصحاب المصلحة المراد إبلاغهم"],
+["stakeNote","Optional. For information only, no approval needed.","اختياري. للعلم فقط، ولا يلزم اعتمادهم."],
+["thName","Name","الاسم"],
+["thType","Internal / External","داخلي / خارجي"],
+["thImpact","Impact","الأثر"],
+["thHow","How notified","طريقة الإبلاغ"],
+["Internal","Internal","داخلي"],
+["External","External","خارجي"],
+["addStake","+ Add stakeholder","+ إضافة صاحب مصلحة"],
+["workflow","Workflow & signatures","سير العمل والتوقيعات"],
+["adminNoteRev","Choose the reviewer(s), who can be any user, then tap Send for review.","اختر المراجع (يمكن أن يكون أي مستخدم) ثم اضغط إرسال للمراجعة."],
+["adminNoteApp","Review is complete. Choose the approver(s), who can be any user, then tap Send for approval.","اكتملت المراجعة. اختر المعتمد (يمكن أن يكون أي مستخدم) ثم اضغط إرسال للاعتماد."],
+["stg_created","Preparation & submission","الإعداد والتقديم"],
+["stg_reviewed","Review","المراجعة"],
+["stg_approved","Approval","الاعتماد"],
+["noOne","No one assigned","لم يتم تعيين أحد"],
+["pending","pending signature","بانتظار التوقيع"],
+["signedOn","✔ signed","✔ تم التوقيع"],
+["add","Add","إضافة"],
+["saveDraft","Save draft","حفظ المسودة"],
+["submit","Submit request","تقديم الطلب"],
+["sendRev","Send for review","إرسال للمراجعة"],
+["sendApp","Send for approval","إرسال للاعتماد"],
+["needRev","Please assign at least one reviewer.","يرجى تعيين مراجع واحد على الأقل."],
+["needApp","Please assign at least one approver.","يرجى تعيين معتمد واحد على الأقل."],
+["sign","Sign","توقيع"],
+["returnPM","Return to requester","إعادة إلى مقدّم الطلب"],
+["reject","Reject","رفض"],
+["del","Delete request","حذف الطلب"],
+["confirmDel","Delete this request permanently?","هل تريد حذف هذا الطلب نهائياً؟"],
+["archive","Archive","أرشفة"],
+["restore","Restore from archive","استرجاع من الأرشيف"],
+["tabActive","Active","النشطة"],
+["tabArch","Archive","الأرشيف"],
+["archBanner","This request is archived.","هذا الطلب مؤرشف."],
+["auditLog","Audit log","سجل التدقيق"],
+["already","Already added.","تمت إضافته مسبقاً."],
+["complete","Please complete: ","يرجى استكمال: "],
+["creatorsSign","All creators must sign before submitting.","يجب أن يوقّع جميع المعدّين قبل الإرسال."],
+["retPrompt","Comment for the requester (required):","تعليق لمقدّم الطلب (مطلوب):"],
+["rejPrompt","Reason for rejection (required):","سبب الرفض (مطلوب):"],
+["signTitle","Sign","التوقيع"],
+["draw","Draw","رسم"],
+["upload","Upload picture","رفع صورة"],
+["clear","Clear","مسح"],
+["confirm","Confirm signature","تأكيد التوقيع"],
+["cancel","Cancel","إلغاء"],
+["drawFirst","Please draw your signature.","يرجى رسم توقيعك."],
+["uploadFirst","Please upload a picture.","يرجى رفع صورة."],
+["pngjpg","Please choose a PNG or JPG.","يرجى اختيار صورة PNG أو JPG."],
+["big","File is larger than 1 MB.","حجم الملف أكبر من 1 ميغابايت."],
+["usersRoles","Users & roles","المستخدمون والأدوار"],
+["rolesNote","Admin sees all requests and assigns reviewers, then approvers (any user, any role). Other users only see requests they created or were assigned to.","المسؤول يرى كل الطلبات ويعيّن المراجعين ثم المعتمدين (أي مستخدم وبأي دور). بقية المستخدمين يرون فقط الطلبات التي أنشأوها أو عُيّنوا عليها."],
+["thEmail","Email","البريد الإلكتروني"],
+["thJob","Job title","المسمى الوظيفي"],
+["thRole","Role","الدور"],
+["save","Save","حفظ"],
+["saved","Saved","تم الحفظ"],
+["role_pm","Project Manager","مدير مشروع"],
+["role_pmo","Institutional Development Office","مكتب التطوير المؤسسي"],
+["role_sponsor","Sponsor","راعي المشروع"],
+["role_admin","Admin","مسؤول النظام"],
+["st_Draft","Draft","مسودة"],
+["st_Returned to PM","Returned to requester","معاد إلى مقدّم الطلب"],
+["st_Submitted","Awaiting reviewer assignment","بانتظار اختيار المراجع"],
+["st_PMO Review","Under review","قيد المراجعة"],
+["st_Reviewed","Reviewed – awaiting approver","تمت المراجعة – بانتظار اختيار المعتمد"],
+["st_Awaiting Approval","Awaiting approval","بانتظار الاعتماد"],
+["st_Approved","Approved","معتمد"],
+["st_Rejected","Rejected","مرفوض"],
+["p_Low","Low","منخفضة"],
+["p_Medium","Medium","متوسطة"],
+["p_High","High","عالية"],
+["p_Critical","Critical","حرجة"],
+["l_created","Request created","تم إنشاء الطلب"],
+["l_signed","Signed","تم التوقيع"],
+["l_status","Status: ","الحالة: "],
+["l_assigned","Assigned","تم تعيين"],
+["l_removed","Removed a signatory","تمت إزالة موقّع"],
+["l_returned","Returned (signatures reset)","تمت الإعادة (أُعيد ضبط التوقيعات)"],
+["l_rejected","Rejected","تم الرفض"],
+["l_archived","Archived","تمت الأرشفة"],
+["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"],
+["l_reminded","Reminder sent","تم إرسال تذكير"],
+["hello","Hello","مرحباً"],
+["c_action","Needs my action","بانتظار إجرائي"],
+["c_mine","My requests in progress","طلباتي الجارية"],
+["c_mineA","All in progress","كل الطلبات الجارية"],
+["c_returned","Returned","معادة للتعديل"],
+["c_approved","Approved","معتمدة"],
+["c_rejected","Rejected","مرفوضة"],
+["actTitle","Needs your action now","يحتاج إجراءك الآن"],
+["noAction","Nothing needs your action.","لا يوجد ما يحتاج إجراءك."],
+["a_draft","Complete and submit","أكمل وقدّم الطلب"],
+["a_edit","Edit and resubmit","عدّل وأعد التقديم"],
+["a_review","Sign as reviewer","وقّع كمراجع"],
+["a_approve","Sign as approver","وقّع كمعتمد"],
+["a_assignRev","Select reviewer(s)","اختر المراجع"],
+["a_assignApp","Select approver(s)","اختر المعتمد"],
+["myReqs","Requests I’m involved in","الطلبات المرتبطة بي"],
+["rel","My role","دوري"],
+["r_all","All","الكل"],
+["r_created","Requester","مقدّم الطلب"],
+["r_reviewer","Reviewer","مراجع"],
+["r_approver","Approver","معتمد"],
+["search","Search code or project…","ابحث بالرمز أو اسم المشروع…"],
+["with","With","لدى"],
+["dayW","day(s)","يوم"],
+["pipe","Pipeline","مراحل الطلبات"],
+["overdue","Overdue (3+ days)","متأخرة (3 أيام فأكثر)"],
+["noOverdue","No overdue requests.","لا توجد طلبات متأخرة."],
+["remindBtn","Send reminder","إرسال تذكير"],
+["reminded","Reminder sent to (people):","تم إرسال التذكير إلى (عدد الأشخاص):"],
+["noRemind","No one to remind.","لا يوجد من يُذكَّر."],
+["kpis","Key figures","مؤشرات عامة"],
+["kpi_total","Total requests","إجمالي الطلبات"],
+["kpi_appr","Approved","نسبة المعتمد"],
+["kpi_rej","Rejected","نسبة المرفوض"],
+["kpi_cycle","Avg. cycle (days)","متوسط المدة (أيام)"],
+["kpi_month","This month","هذا الشهر"],
+["kpi_prev","last month","الشهر السابق"],
+["workload","Workload","عبء العمل"],
+["w_pending","Pending","معلّقة"],
+["w_avg","Avg. response (days)","متوسط الاستجابة (أيام)"],
+["ch_month","Requests per month","الطلبات شهرياً"],
+["ch_type","By priority","حسب الأولوية"],
+["ch_sector","By department","حسب القسم"],
+["tab_proj","Project","المشروع"],
+["tab_chg","Change","التغيير"],
+["tab_imp","Impact","الأثر"],
+["tab_stk","Stakeholders","أصحاب المصلحة"],
+["tab_flow","Workflow","سير العمل"],
+["impactTitle","Impact of the change","أثر التغيير"],
+["next","Next ›","التالي ‹"],
+["back","‹ Back","› السابق"],
+["progress","required fields completed","حقول مطلوبة مكتملة"],
+["tagline","Sign in to manage change requests","سجّل الدخول لإدارة طلبات التغيير"],
+["moreActs","More actions","إجراءات أخرى"],
+["tapHint","Tap a long text to expand it","اضغط على النص الطويل لتوسيعه"],
+["att","Supporting attachments","مرفقات داعمة"],
+["optional","optional","اختياري"],
+["attTitle","Attachment title","عنوان المرفق"],
+["attAdd","+ Add attachment","+ إضافة مرفق"],
+["attUp","Uploading…","جارٍ الرفع…"],
+["attNone","No attachments.","لا توجد مرفقات."],
+["attBig","File is larger than 10 MB.","حجم الملف أكبر من 10 ميغابايت."],
+["attNeedFile","Please choose a file first.","يرجى اختيار ملف أولاً."],
+["attDel","Remove this attachment?","هل تريد إزالة هذا المرفق؟"],
+["l_attached","Attachment added","تمت إضافة مرفق"],
+["l_attRemoved","Attachment removed","تمت إزالة مرفق"],
+["st_Cancelled","Cancelled","ملغي"],
+["cancelReq","Cancel request","إلغاء الطلب"],
+["confirmCancel","Cancel this request? It will be closed and no longer processed.","هل تريد إلغاء هذا الطلب؟ سيتم إغلاقه ولن تتم معالجته."],
+["attErrT","Could not load attachments: ","تعذر تحميل المرفقات: "],
+["noteMode","Notes on fields (optional)","ملاحظات على الحقول (اختياري)"],
+["noteModeOn","Notes mode: ON","وضع الملاحظات: مفعّل"],
+["noteHint","Optional. Open a tab, tap 💬 beside any field and write a note. Notes reach the requester when you return the request. Leave fields empty if no note.","اختياري. افتح أي تبويب واضغط 💬 بجانب الحقل واكتب ملاحظتك. تصل الملاحظات لمقدّم الطلب عند إعادة الطلب. اترك الحقل فارغاً إن لم تكن هناك ملاحظة."],
+["notePh","Note for the requester on this field…","ملاحظة لمقدّم الطلب على هذا الحقل…"],
+["noteTitle","Note from","ملاحظة من"],
+["noteBannerRet","This request was returned with notes on {n} field(s). Each note appears in red under its field.","أُعيد هذا الطلب مع ملاحظات على {n} حقل. تظهر كل ملاحظة بإطار أحمر تحت الحقل المعني."],
+["noteBannerOld","Notes from the previous return (version {v}) are shown under the fields.","ملاحظات الإعادة السابقة (الإصدار {v}) ظاهرة تحت الحقول."]
+,
+["appTitle", "Project Charter Preparation", "إعداد ميثاق المشروع"],
+["tagline", "Sign in to manage project charters", "سجّل الدخول لإدارة مواثيق المشاريع"],
+["barTitle", "Project Charters", "مواثيق المشاريع"],
+["requests", "All charters", "كل المواثيق"],
+["allReq", "All charters", "كل المواثيق"],
+["newReq", "+ New charter", "+ ميثاق جديد"],
+["noReq", "No charters yet.", "لا توجد مواثيق بعد."],
+["myReqs", "Charters I’m involved in", "المواثيق المرتبطة بي"],
+["c_mine", "My charters in progress", "مواثيقي الجارية"],
+["c_mineA", "All in progress", "كل المواثيق الجارية"],
+["r_created", "Preparer", "المُعِدّ"],
+["submit", "Submit charter", "تقديم الميثاق"],
+["returnPM", "Return to preparer", "إعادة إلى المُعِدّ"],
+["del", "Delete charter", "حذف الميثاق"],
+["confirmDel", "Delete this charter permanently?", "هل تريد حذف هذا الميثاق نهائياً؟"],
+["archBanner", "This charter is archived.", "هذا الميثاق مؤرشف."],
+["retPrompt", "Comment for the preparer (required):", "تعليق للمُعِدّ (مطلوب):"],
+["rolesNote", "Admin sees all charters and assigns reviewers, then approvers (any user, any role). Other users only see charters they created or were assigned to. Only the admin can delete an approved charter.", "المسؤول يرى كل المواثيق ويعيّن المراجعين ثم المعتمدين (أي مستخدم وبأي دور). بقية المستخدمين يرون فقط المواثيق التي أنشأوها أو أُسندت إليهم. لا يستطيع حذف الميثاق المعتمد إلا المسؤول."],
+["st_Returned to PM", "Returned to preparer", "معاد إلى المُعِدّ"],
+["l_created", "Charter created", "تم إنشاء الميثاق"],
+["noOverdue", "No overdue charters.", "لا توجد مواثيق متأخرة."],
+["kpi_total", "Total charters", "إجمالي المواثيق"],
+["ch_month", "Charters per month", "المواثيق شهرياً"],
+["ch_type", "By project type", "حسب نوع المشروع"],
+["ch_sector", "By sector", "حسب القطاع"],
+["cancelReq", "Cancel charter", "إلغاء الميثاق"],
+["confirmCancel", "Cancel this charter? It will be closed and no longer processed.", "هل تريد إلغاء هذا الميثاق؟ سيتم إغلاقه ولن تتم معالجته."],
+["noteHint", "Optional. Open a tab, tap 💬 beside any field and write a note. Notes reach the preparer when you return the charter. Leave fields empty if no note.", "اختياري. افتح أي تبويب واضغط 💬 بجانب أي حقل واكتب ملاحظة. تصل الملاحظات إلى المُعِدّ عند إعادة الميثاق. اترك الحقول فارغة إن لم تكن لديك ملاحظة."],
+["notePh", "Note for the preparer on this field…", "ملاحظة للمُعِدّ على هذا الحقل…"],
+["noteBannerRet", "This charter was returned with notes on {n} field(s). Each note appears in red under its field.", "أُعيد هذا الميثاق مع ملاحظات على {n} حقل. تظهر كل ملاحظة بإطار أحمر تحت حقلها."],
+["noteBannerOld", "Notes from the previous return (version {v}) are shown under the fields.", "ملاحظات الإعادة السابقة (الإصدار {v}) ظاهرة تحت الحقول."],
+["x_formTitle", "Project Charter", "ميثاق مشروع"],
+["x_code", "Project code", "رمز المشروع"],
+["x_sh_req", "Charters", "المواثيق"],
+["x_excel", "Download Excel (all charters)", "تنزيل Excel (كل المواثيق)"],
+["x_expNote", "Excel includes all charters with their status and details (stakeholders, activities, needs, team, risks, signatures and audit log). The JSON backup also includes signature images.", "ملف Excel يحوي كل المواثيق مع حالتها وتفاصيلها (أصحاب المصلحة، الأنشطة، الاحتياجات، الفريق، المخاطر، التواقيع وسجل الإجراءات). النسخة الاحتياطية JSON تشمل أيضاً صور التواقيع."],
+["x_type", "Type", "النوع"],
+["x_level", "Level", "المستوى"],
+["aed", "AED", "درهم"],
+["monthsU", "months", "شهر"],
+["tab_gen", "Project", "المشروع"],
+["tab_ctx", "Details", "التفاصيل"],
+["tab_stk", "Stakeholders", "أصحاب المصلحة"],
+["tab_res", "Needs & team", "الاحتياجات والفريق"],
+["tab_rsk", "Risks & approvals", "المخاطر والموافقات"],
+["s_info", "Project information", "معلومات المشروع"],
+["s_stk", "Stakeholders", "أصحاب المصلحة"],
+["s_acts", "Project activities", "أنشطة المشروع"],
+["s_res", "Project needs and team", "احتياجات وفريق عمل المشروع"],
+["s_agr", "Agreements", "الاتفاقيات"],
+["s_rsk", "Project assumptions, risks and constraints", "افتراضات ومخاطر وقيود المشروع"],
+["s_appr", "Approvals list", "قائمة الموافقات"],
+["toc", "Table of contents", "قائمة المحتويات"],
+["apprBlock", "Approval", "الاعتماد"],
+["docType", "Document type", "نوع الوثيقة"],
+["docTypeV", "Project charter", "ميثاق مشروع"],
+["docNo", "Document no.", "رقم الوثيقة"],
+["issue", "Issue date", "تاريخ الإصدار"],
+["pcode", "Project code", "رمز المشروع"],
+["charterOf", "Project charter", "ميثاق مشروع"],
+["tDate", "Date", "التاريخ"],
+["issueAuto", "Set on approval", "عند الاعتماد"],
+["f_pname", "Project name", "اسم المشروع"],
+["f_pdesc", "Project description", "وصف المشروع"],
+["f_ptype", "Project type", "نوع المشروع"],
+["pt_strategic", "Strategic", "استراتيجي"],
+["pt_operational", "Operational", "تشغيلي"],
+["f_goal", "Link to the Center’s goals", "الربط بأهداف المركز"],
+["f_gov", "Link to national strategies?", "هل يوجد ربط باستراتيجيات الدولة؟"],
+["f_govtxt", "National strategies", "الاستراتيجيات المرتبطة"],
+["yes", "Yes", "نعم"],
+["no", "No", "لا"],
+["f_purpose", "Project objective", "الهدف من المشروع"],
+["dur", "Implementation period", "مدة التنفيذ"],
+["f_dur", "Implementation period", "مدة التنفيذ"],
+["f_sdate", "Start date", "تاريخ البدء"],
+["f_edate", "End date", "تاريخ الانتهاء"],
+["f_months", "Duration (months, automatic)", "المدة بالأشهر (تلقائية)"],
+["badDates", "End date must be after the start date.", "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."],
+["f_owner", "Project owner", "مالك المشروع"],
+["f_sector", "Sector", "القطاع"],
+["f_dept", "Department", "الإدارة"],
+["f_pmname", "Project manager", "مدير المشروع"],
+["f_budget", "Estimated budget (AED)", "الموازنة التقديرية (بالدرهم)"],
+["f_nrisk", "Expected risks if the project is not approved", "المخاطر المتوقعة في حال عدم اعتماد المشروع"],
+["f_alt", "Alternative options if the project budget is not approved", "الخيارات البديلة في حال عدم اعتماد ميزانية المشروع"],
+["f_impact", "Impact of implementing the project", "أثر تطبيق المشروع"],
+["f_outputs", "Project deliverables", "مخرجات المشروع"],
+["f_stk_int", "Internal stakeholders (Center sectors and departments)", "أصحاب المصلحة الداخليون (القطاعات والإدارات داخل المركز)"],
+["f_stk_ext", "External stakeholders (companies, suppliers, government entities)", "أصحاب المصلحة الخارجيون (الشركات – الموردون – الهيئات الحكومية)"],
+["f_acts", "Activities", "أنشطة المشروع"],
+["a_act", "Activity", "النشاط"],
+["a_del", "Deliverables", "التسليمات"],
+["a_time", "Timeline", "الجدول الزمني"],
+["f_reqs", "Needs", "الاحتياجات"],
+["reqs_hint", "Please provide details of the requirements requested from the Center’s departments and sectors to complete the project, if any.", "يرجى تقديم تفاصيل المتطلبات المطلوبة من قبل إدارات وقطاعات المركز لإنجاز المشروع - إن وجدت"],
+["r_req", "Requirement", "المتطلبات"],
+["r_dept", "Department", "الإدارة"],
+["r_det", "Details", "التفاصيل"],
+["r_n", "Count", "العدد"],
+["r_cost", "Estimated cost", "التكلفة المتوقعة"],
+["f_team", "Project team", "فريق عمل المشروع"],
+["team_hint", "Please state the number of project team members and success partners who will work directly on the project.", "يرجى توضيح عدد أعضاء فريق عمل المشروع - شركاء النجاح الذين سيعملون على المشروع بشكل مباشر"],
+["t_job", "Job title", "المسمى الوظيفي"],
+["t_name", "Name", "الاسم"],
+["t_mail", "Email", "البريد الإلكتروني"],
+["t_task", "Tasks", "المهام"],
+["f_agr", "Required agreements", "الاتفاقيات المطلوبة"],
+["f_risks", "Project risks", "مخاطر المشروع"],
+["risks_hint", "Initial assessment: choose impact and probability (1–5). The risk score is their product: green up to 4, yellow 5–12, red 15 and above.", "التقييم الابتدائي: اختر درجة التأثير والاحتمالية (١–٥). درجة الخطر هي حاصل ضربهما: أخضر حتى ٤، أصفر من ٥ إلى ١٢، أحمر من ١٥ فأكثر."],
+["k_desc", "Risk description", "وصف الخطر"],
+["k_when", "Expected time / phase", "الوقت أو المرحلة المتوقعة"],
+["k_owner", "Risk owner", "المسؤول عن الخطر"],
+["k_imp", "Impact (1–5)", "درجة التأثير (١–٥)"],
+["k_prob", "Probability (1–5)", "درجة الاحتمالية (١–٥)"],
+["k_score", "Risk score", "درجة الخطر"],
+["lv_low", "Low", "منخفض"],
+["lv_med", "Medium", "متوسط"],
+["lv_high", "High", "مرتفع"],
+["f_assume", "Project assumptions", "افتراضات المشروع"],
+["f_constr", "Project constraints", "قيود المشروع"],
+["f_appr", "Required approvals", "الموافقات المطلوبة"],
+["addRow", "+ Add row", "+ إضافة صف"],
+["addItem", "+ Add item", "+ إضافة بند"]
+];
+const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
+let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
+const t=k=>D[lang][k]??D.en[k]??k;
+const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
+const pl=v=>v?t('p_'+v):'';
+const msg=x=>alert(x);
+let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
+const lg=(id,a)=>sb.from('charter_audit').insert({cr_id:id,user_name:me.full_name,action:a});
+function logT(a){const p=a.split('|'),k=p[0];
+ if(k=='created')return t('l_created');
+ if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
+ if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
+ if(k=='status')return t('l_status')+t('st_'+p[1]);
+ if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
+ if(k=='removed')return t('l_removed');
+ if(k=='archived')return t('l_archived');
+ if(k=='restored')return t('l_restored');
+ if(k=='reminded')return t('l_reminded');
+ if(k=='attached')return t('l_attached')+': '+p.slice(1).join('|');
+ if(k=='attremoved')return t('l_attRemoved')+': '+p.slice(1).join('|');
+ if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
+ if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
+ return a}
+function setHH(){const h=$('hd');if(h)document.documentElement.style.setProperty('--hh',h.offsetHeight+'px')}
+window.addEventListener('resize',setHH);window.addEventListener('load',setHH);
+function applyStatic(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';document.title=t('appTitle');$('ttl').textContent=t('appTitle');setHH();
+ $('lb').textContent=lang=='ar'?'English':'العربية';
+ $('mt').textContent=t('signTitle');$('td').textContent=t('draw');$('tu').textContent=t('upload');
+ $('clb').textContent=t('clear');$('cfb').textContent=t('confirm');$('cnb').textContent=t('cancel')}
+async function toggleLang(){
+ if(editing&&sb&&cr){try{await save(false)}catch(e){}}
+ const ids=['fn','em','pw'],v=ids.map(i=>$(i)?$(i).value:'');
+ lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(e){}
+ applyStatic();if(curView)await curView();
+ ids.forEach((i,j)=>{if($(i)&&v[j])$(i).value=v[j]})}
+
+// ===== App =====
+async function start(){
+ curView=start;editing=false;
+ if(!sb){app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('almost')}</p></div>`;return}
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)return loginView();
+ const {data:ps}=await sb.from('profiles').select('*');
+ users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];
+ const hm=/^#f=([a-z]+)/.exec(location.hash||'');
+ if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
+ homeView();
+}
+function loginView(){curView=loginView;editing=false;
+ app.innerHTML=`<div class="card lcard"><h1>${t('appTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('tagline')}</div>
+<label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><input id="pw" type="password" dir="ltr">
+<div class="row"><button class="p" onclick="login()">${t('signIn')}</button><button onclick="signup()">${t('createAcc')}</button></div></div>`}
+async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return msg(t('typeBoth'));
+ const {error}=await sb.auth.signInWithPassword({email:e,password:p});error?msg(error.message):start()}
+async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.length<6)return msg(t('typeSignup'));
+ const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
+ if(error)return msg(error.message);msg(t('accCreated'))}
+const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
+const bar=()=>`<div class="nav"><button class="nv" onclick="location.href='./'">${lang=='ar'?'⬅ خدمات المكتب':'⬅ Office services'}</button>${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
+const SC={'Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
+const pillS=st=>`<span class="pill ${SC[st]||''}">${esc(t('st_'+st))}</span>`;
+async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
+ await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
+function setTab(v){showArch=v;listView()}
+
+// ===== Dashboard =====
+let DB=null,H={f:'',q:'',rel:'all'};
+const FIN=s=>s=='Approved'||s=='Rejected'||s=='Cancelled';
+const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Approved':4,'Rejected':4,'Cancelled':0};
+const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval'];
+const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
+async function loadAll(){
+ const [a,b,c]=await Promise.all([sb.from('charters').select('*').order('id',{ascending:false}),sb.from('charter_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('charter_audit').select('cr_id,action,at').like('action','status|%')]);
+ const all=a.data||[];
+ return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[]}}
+function enrich(){
+ const adm=me.role=='admin';DB.by={};
+ DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
+ DB.sg.forEach(s=>{if(DB.by[s.cr_id])DB.by[s.cr_id].sg.push(s)});
+ DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>s.user_id==me.id);
+  if(r.created_by==me.id)x.rel.push('created');
+  if(my.some(s=>s.stage=='reviewed'))x.rel.push('reviewer');
+  if(my.some(s=>s.stage=='approved'))x.rel.push('approver');
+  if(r.created_by==me.id&&st=='Draft')x.act='a_draft';
+  else if(r.created_by==me.id&&st=='Returned to PM')x.act='a_edit';
+  else if(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))x.act='a_review';
+  else if(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))x.act='a_approve';
+  else if(adm&&st=='Submitted')x.act='a_assignRev';
+  else if(adm&&st=='Reviewed')x.act='a_assignApp';
+  x.days=dsince(r.stage_at||r.created_at);
+  x.over=HOLD.includes(st)&&x.days>=3;
+ })}
+function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>users[s.user_id]?.full_name).filter(Boolean).join(', ');
+ if(st=='Draft'||st=='Returned to PM')return users[r.created_by]?.full_name||'';
+ if(st=='Submitted'||st=='Reviewed')return t('role_admin');
+ if(st=='PMO Review')return nm('reviewed');
+ if(st=='Awaiting Approval')return nm('approved');
+ return ''}
+function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
+function passF(x,f){const r=x.r,adm=me.role=='admin';
+ if(!f)return true;
+ if(f=='action')return !!x.act;
+ if(f=='mine')return (adm||r.created_by==me.id)&&!FIN(r.status);
+ if(f=='returned')return r.status=='Returned to PM'&&(adm||r.created_by==me.id);
+ if(f=='created')return x.rel.includes('created');
+ if(f=='done')return (r.status=='Approved'||r.status=='Rejected')&&x.rel.length>0;
+ if(f=='approved')return r.status=='Approved';
+ if(f=='rejected')return r.status=='Rejected';
+ if(f=='overdue')return x.over;
+ if(f.startsWith('st:'))return r.status==f.slice(3);
+ return true}
+const passQ=x=>{const r=x.r;if(H.q&&!`${r.code} ${r.data.pname||''}`.toLowerCase().includes(H.q.toLowerCase()))return false;return H.rel=='all'||x.rel.includes(H.rel)};
+const list=f=>DB.crs.map(r=>DB.by[r.id]).filter(x=>passF(x,f));
+const bars=rows=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(([l,n])=>`<div class="hb"><span>${esc(l)}</span><div><i style="width:${n/m*100}%"></i></div><b>${n}</b></div>`).join('')||'<div class="mut">—</div>'};
+async function homeView(){curView=homeView;editing=false;DB=await loadAll();enrich();drawHome()}
+function fLabel(f){if(!f)return'';if(f.startsWith('st:'))return t('st_'+f.slice(3));const m={created:'x_mineCreated',done:'x_mineDone',action:'c_action',mine:me.role=='admin'?'c_mineA':'c_mine',returned:'c_returned',approved:'c_approved',rejected:'c_rejected'};return m[f]?t(m[f]):''}
+function setF(f){const on=H.f!=f;H.f=on?f:'';drawHome();if(on){const e=$('lst');if(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');e.scrollIntoView({behavior:'smooth',block:'start'})}}}
+function drawList(){const rows=list(H.f).filter(passQ);$('hl').innerHTML=rows.map(x=>rowH(x,me.role=='admin')).join('')||`<div class="mut">${t('noReq')}</div>`}
+function drawHome(){
+ const adm=me.role=='admin';
+ const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
+ const acts=list('action');
+ app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}</div>
+ <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
+ <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
+ +(adm?adminBlock():'')
+ +`<div class="card" id="lst"><div class="top"><h2>${adm?t('allReq'):t('myReqs')}${H.f?' — '+esc(fLabel(H.f)):''}</h2>${H.f?`<button class="sm" onclick="setF(H.f)">${t('clear')} ✕</button>`:''}</div><div class="fg"><div><input id="hq" placeholder="${t('search')}" value="${esc(H.q)}"></div><div><select id="hr">${['all','created','reviewer','approver'].map(k=>`<option value="${k}" ${H.rel==k?'selected':''}>${t('rel')}: ${t('r_'+k)}</option>`).join('')}</select></div></div><div id="hl" style="margin-top:10px"></div></div>`;
+ $('hq').oninput=e=>{H.q=e.target.value;drawList()};
+ $('hr').onchange=e=>{H.rel=e.target.value;drawList()};
+ drawList()}
+const acc=(title,body,open)=>`<details class="card acc" ${open?'open':''}><summary>${title}</summary><div class="in">${body}</div></details>`;
+const expBtns=()=>`<div class="mut">${t('x_expNote')}</div><div class="row"><button class="p" id="xe" onclick="exportExcel()">📊 ${t('x_excel')}</button><button id="xb" onclick="exportBackup()">💾 ${t('x_backup')}</button></div>`;
+function adminBlock(){
+ const A=DB.crs,n=s=>A.filter(r=>r.status==s).length,over=list('overdue');
+ const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected','Cancelled'];
+ const ap=n('Approved'),rj=n('Rejected'),fn=ap+rj;
+ const lgT={};DB.lg.forEach(l=>{const k=l.cr_id+'|'+l.action.slice(7);(lgT[k]=lgT[k]||[]).push(new Date(l.at))});
+ const cyc=A.filter(r=>r.status=='Approved'&&lgT[r.id+'|Approved']).map(r=>(Math.max(...lgT[r.id+'|Approved'])-new Date(r.created_at))/864e5);
+ const avg=a=>a.length?(a.reduce((p,c)=>p+c,0)/a.length).toFixed(1):'—';
+ const WL={};const wu=u=>WL[u]=WL[u]||{p:0,d:[]};
+ DB.sg.forEach(s=>{const c=DB.by[s.cr_id];if(!c||s.stage=='created')return;const need=s.stage=='reviewed'?'PMO Review':'Awaiting Approval';
+  if(s.status=='pending'&&c.r.status==need)wu(s.user_id).p++;
+  if(s.status=='signed'&&s.signed_at){const st0=(lgT[s.cr_id+'|'+need]||[]).filter(d=>d<=new Date(s.signed_at));if(st0.length)wu(s.user_id).d.push((new Date(s.signed_at)-Math.max(...st0))/864e5)}});
+ const now=new Date(),ym=d=>d.getFullYear()*12+d.getMonth(),cm=ym(now);
+ const mc=k=>A.filter(r=>ym(new Date(r.created_at))==cm-k).length;
+ const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{month:'short'}),mc(k)]});
+ const pr=['strategic','operational'].map(p=>[t('pt_'+p),A.filter(r=>r.data.ptype==p).length]);
+ const dm={};A.forEach(r=>{const k=r.data.sector;if(k)dm[secL(k)]=(dm[secL(k)]||0)+1});
+ const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
+ return acc(t('pipe'),`<div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div>`,true)
+ +acc(`${t('overdue')} (${over.length})`,over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`,over.length>0)
+ +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
+ +acc(t('x_expTitle'),expBtns(),false)
+ +acc(t('workload'),`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div>`,false)
+ +acc(t('ch_month')+' / '+t('ch_type')+' / '+t('ch_sector'),`<h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_type')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_sector')}</h2>${bars(dp)}`,false)}
+
+// ===== Charters list / create / submit =====
+async function listView(){curView=listView;editing=false;
+ const {data}=await sb.from('charters').select('*').order('id',{ascending:false});
+ const adm=me.role=='admin',act=(data||[]).filter(r=>!r.archived),arc=(data||[]).filter(r=>r.archived),rows=adm&&showArch?arc:act;
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.data.pname||'—')}</b>${pillS(r.status)}</div><div class="mut"><span dir="ltr">${esc(r.code)} · ${esc(r.doc_no)}</span> · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
+async function newCR(){
+ const {data,error}=await sb.from('charters').insert({created_by:me.id,data:{pmname:me.full_name}}).select().single();
+ if(error)return msg(error.message);
+ await sb.from('charter_signatories').insert({cr_id:data.id,stage:'created',user_id:me.id});await lg(data.id,'created');openCR(data.id)}
+async function submitCR(){
+ await save(false);
+ const d=cr.data,miss=Object.values(REQ).flat().filter(k=>!String(d[k]==null?'':d[k]).trim());
+ const lab=k=>t('f_'+(k=='sdate'||k=='edate'?k:k));
+ if(miss.length)return msg(t('complete')+miss.map(lab).join(', '));
+ if(monthsBetween(d.sdate,d.edate)==null)return msg(t('badDates'));
+ const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
+ await setStatus('Submitted');openCR(cr.id)}
+
+// ===== Project charter: data model & form =====
+/* ---- قابلة للتعديل: أهداف المركز (عربي، إنجليزي) — غيّر النصوص هنا ---- */
+const GOALS=[['الهدف الأول','Goal 1'],['الهدف الثاني','Goal 2'],['الهدف الثالث','Goal 3'],['الهدف الرابع','Goal 4'],['الهدف الخامس','Goal 5'],['الهدف السادس','Goal 6'],['الهدف السابع','Goal 7']];
+const SECTORS=4,DEPTS=5;
+const ad=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
+const secL=s=>s?(lang=='ar'?'قطاع ':'Sector ')+ad(s):'';
+const depL=(s,p)=>p?(lang=='ar'?'الإدارة '+ad(p)+' للقطاع '+ad(s):'Department '+p+' of Sector '+s):'';
+const goalL=g=>{const x=GOALS[+g-1];return x?x[lang=='ar'?0:1]:''};
+const monthsBetween=(a,b)=>{if(!a||!b)return null;const n=(new Date(b)-new Date(a))/864e5;if(isNaN(n)||n<0)return null;return Math.round(n/30.4375*10)/10};
+const lvl=s=>s>=15?'high':s>=5?'med':'low';
+const score=r=>(+r.i&&+r.x)?(+r.i)*(+r.x):0;
+const riskHTML=(r,i)=>{const s=score(r);return `<span class="rk ${s?lvl(s):'none'}" id="rk_${i}">${s?ad(s)+' · '+t('lv_'+lvl(s)):'—'}</span>`};
+const fdate=v=>v?fdx(v).slice(0,10):'';
+const REQ={gen:['pname','pdesc','ptype','goal','purpose','sdate','edate','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs']};
+const TABKEYS={gen:['pname','pdesc','ptype','goal','gov','purpose','dur','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs'],stk:['stk_int','stk_ext','acts'],res:['reqs','team','agr'],rsk:['risks','assume','constr','appr']};
+const STAR=['pname','pdesc','ptype','goal','purpose','dur','owner','sector','dept','pmname','budget','nrisk','alt','impact','outputs'];
+const TABS=['gen','ctx','stk','res','rsk','flow'];
+const TOT=16;
+const COLS={
+ acts:[{c:'a',l:'a_act',area:1},{c:'d',l:'a_del',area:1},{c:'t',l:'a_time'}],
+ reqs:[{c:'r',l:'r_req',area:1},{c:'dp',l:'r_dept'},{c:'d',l:'r_det',area:1},{c:'n',l:'r_n',type:'number'},{c:'c',l:'r_cost',type:'number'}],
+ team:[{c:'j',l:'t_job'},{c:'n',l:'t_name'},{c:'e',l:'t_mail',type:'email'},{c:'m',l:'t_task',area:1}],
+ risks:[{c:'d',l:'k_desc',area:1},{c:'p',l:'k_when'},{c:'o',l:'k_owner'},{c:'i',l:'k_imp',sel:5},{c:'x',l:'k_prob',sel:5}]
+};
+const BLANK={acts:{a:'',d:'',t:''},reqs:{r:'',dp:'',d:'',n:'',c:''},team:{j:'',n:'',e:'',m:''},risks:{d:'',p:'',o:'',i:'',x:''},stk_int:'',stk_ext:'',agr:'',appr:''};
+let ftab='gen',ftabKey='';
+const COLL=76;
+function grow(x){if(!x.offsetParent)return;x.style.height='auto';const full=x.scrollHeight+2,foc=document.activeElement===x,h=foc?Math.max(full,COLL):Math.min(Math.max(full,46),COLL);x.style.height=h+'px';x.parentNode.classList.toggle('clamped',!foc&&full>COLL+2)}
+function fitRO(){document.querySelectorAll('.pn.on .ro').forEach(e=>e.classList.toggle('more',!e.classList.contains('open')&&e.scrollHeight>e.clientHeight+2))}
+function fit(){document.querySelectorAll('.pn.on textarea.ta').forEach(grow);fitRO()}
+function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==k));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('on',p.dataset.t==k));fit()}
+function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
+function updProg(){if(!editing||!cr)return;let m=0;
+ for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]==null?'':cr.data[x]).trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
+ const p=$('fpb');if(p)p.style.width=((TOT-m)/TOT*100)+'%';const l=$('fpt');if(l)l.textContent=(TOT-m)+'/'+TOT+' '+t('progress')}
+function durTxt(){const m=monthsBetween(cr.data.sdate,cr.data.edate);return m==null?'—':ad(m)+' '+t('monthsU')}
+function fillDept(){const s=document.querySelector('select[data-k=dept]');if(!s)return;const sc=cr.data.sector;
+ s.innerHTML='<option value=""></option>'+(sc?Array.from({length:DEPTS},(_,i)=>`<option value="${i+1}">${esc(depL(sc,i+1))}</option>`).join(''):'');s.value=cr.data.dept||'';s.disabled=!sc}
+async function openCR(id){
+ const [a,b,c]=await Promise.all([sb.from('charters').select('*').eq('id',id).single(),sb.from('charter_signatories').select('*').eq('cr_id',id).order('id'),sb.from('charter_audit').select('*').eq('cr_id',id).order('at',{ascending:false})]);
+ if(!a.data)return homeView();
+ cr=a.data;sigs=b.data;const logs=c.data||[],st=cr.status,arch=!!cr.archived;
+ const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
+ const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
+ curView=()=>openCR(id);editing=ed;
+ if(noteFor!==id){noteFor=id;noteMode=false}
+ const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
+ const canAdm=adm&&!fin&&!arch;
+ const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
+ const canApp=adm&&!arch&&['Reviewed','Awaiting Approval'].includes(st);
+ const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
+ const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
+ const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
+ const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
+ const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
+ const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
+ ['stk_int','stk_ext','agr','appr','acts','reqs','team','risks'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+ const opts=()=>Object.values(users);
+ const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
+ const AN=Array.isArray(d._anotes)?d._anotes:[];
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ let acts='',more='';
+ if(ed)acts+=`<button onclick="save()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
+ if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
+ if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
+ if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'apprBtn':'sign')}</button>`;
+ if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
+ if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
+ if(ed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
+ if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
+ const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
+ const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`;
+ const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
+ const s0=STEP[st];
+ const apprOnly=!adm&&cr.created_by!=me.id&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved')&&!sigs.some(s=>s.user_id==me.id&&s.stage!='approved');
+ const canNote=canRet&&!ed,NT=apprOnly?null:d._notes,nv0=k=>(NOTES[cr.id]||{})[k]||'',nHas=k=>nv0(k).trim()!=='';
+ const nbtn=k=>canNote&&noteMode?`<button class="nbtn ${nHas(k)?'has':''}" data-nb="${k}" onclick="toggleNb('${k}')">💬</button>`:'';
+ const nbox=k=>canNote&&noteMode?`<div class="nbox" id="nb_${k}" style="display:${nHas(k)?'block':'none'}"><textarea data-n="${k}" rows="2" placeholder="${t('notePh')}">${esc(nv0(k))}</textarea></div>`:'';
+ const ntx=k=>NT&&NT.items&&NT.items[k]?`<div class="nt ${ed?'':'old'}"><b>💬 ${t('noteTitle')} ${esc(NT.by)} · ${t('version')} ${NT.v}</b>${esc(NT.items[k])}</div>`:'';
+ const fld=(k,ctrl,cls,hint)=>`<div class="${cls||''}"><div class="lr"><label>${t('f_'+k)}${STAR.includes(k)?' <span class="rq">*</span>':''}</label>${nbtn(k)}</div>${hint?`<div class="mut" style="margin:-2px 0 6px">${hint}</div>`:''}${ctrl}${nbox(k)}${ntx(k)}</div>`;
+ const tf=k=>fld(k,tx(k));
+ const ncnt=k=>TABKEYS[k]?TABKEYS[k].filter(x=>NT&&NT.items&&NT.items[x]).length:0;
+ const nN=NT&&NT.items?Object.keys(NT.items).length:0;
+ const nbn=nN?`<div class="nt ${ed?'':'old'}" style="margin:0 0 10px"><b>${(st=='Returned to PM'?t('noteBannerRet'):t('noteBannerOld')).replace('{n}',nN).replace('{v}',NT.v)}</b></div>`:'';
+ const nbar=canNote?`<div class="nbar"><button class="${noteMode?'p':''}" onclick="toggleNoteMode()">💬 ${noteMode?t('noteModeOn'):t('noteMode')}</button>${noteMode?`<div class="mut">${t('noteHint')}</div>`:''}</div>`:'';
+ // --- controls
+ const sel=(k,list,blank)=>`<select data-k="${k}" ${dis}><option value="">${blank||''}</option>${list.map(([v,l])=>`<option value="${v}" ${String(d[k])==String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+ const inp=(k,type)=>`<input data-k="${k}" type="${type||'text'}" ${type=='number'?'inputmode="decimal" step="any" min="0"':''} value="${esc(d[k])}" ${dis}>`;
+ const cell=(a,i,col,v)=>{const at=`data-a="${a}" data-r="${i}" data-c="${col.c}"`;
+  if(col.sel)return `<select ${at} ${dis}><option value=""></option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${v==n?'selected':''}>${ad(n)}</option>`).join('')}</select>`;
+  if(col.area)return ed?`<div class="ta-w"><textarea class="ta" rows="1" ${at}>${esc(v)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(v)||'—'}</div>`;
+  return `<input ${at} type="${col.type||'text'}" ${col.type=='number'?'inputmode="decimal" step="any" min="0"':''} ${col.type=='email'?'dir="ltr"':''} value="${esc(v)}" ${dis}>`};
+ const rowsEd=a=>{const arr=d[a];return (arr.length?arr.map((r,i)=>`<div class="sh"><div class="fg">${COLS[a].map((col,j)=>`<div class="${col.area||j==0?'full':''}" ${j==0&&ed?'style="padding-inline-end:46px"':''}><label>${t(col.l)}</label>${cell(a,i,col,r[col.c])}</div>`).join('')}${a=='risks'?`<div class="full"><label>${t('k_score')}</label>${riskHTML(r,i)}</div>`:''}</div>${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addRow')}</button></div>`:'')};
+ const listEd=a=>{const arr=d[a];return (arr.length?arr.map((v,i)=>`<div class="lrow"><input data-a="${a}" data-r="${i}" value="${esc(v)}" ${dis}>${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addItem')}</button></div>`:'')};
+ const goalOpts=GOALS.map((g,i)=>[i+1,g[lang=='ar'?0:1]]);
+ const deptOpts=d.sector?Array.from({length:DEPTS},(_,i)=>[i+1,depL(d.sector,i+1)]):[];
+ const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
+ app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${t('charterOf')}${d.pname?' — '+esc(d.pname):''}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)} · ${t('version')} ${cr.version}</span></div>${pillS(st)}</div>
+ <div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s0?'on':''}"></i>`).join('')}</div>
+ <div class="dinfo"><div><span>${t('pcode')}</span><b dir="ltr">${esc(cr.code)}</b></div><div><span>${t('docNo')}</span><b dir="ltr">${esc(cr.doc_no)}</b></div><div><span>${t('docType')}</span><b>${t('docTypeV')}</b></div><div><span>${t('issue')}</span><b>${esc(issued)}</b></div></div>
+ ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
+ ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}${adm?`<div class="row"><button id="xw" onclick="exportWord()">📄 ${t('x_word')}</button></div>`:''}</div>
+ ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
+ ${nbn}${nbar}
+ <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${ncnt(k)?`<i class="nbd">💬${ncnt(k)}</i>`:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
+ <div class="card pn ${ftab=='gen'?'on':''}" data-t="gen"><div class="sec">${t('s_info')}</div><div class="fg">
+  ${fld('pname',inp('pname'),'full')}
+  ${fld('pdesc',tx('pdesc'),'full')}
+  ${fld('ptype',sel('ptype',[['strategic',t('pt_strategic')],['operational',t('pt_operational')]]))}
+  ${fld('goal',sel('goal',goalOpts))}
+  ${fld('gov',`<div class="gv">${sel('gov',[['yes',t('yes')],['no',t('no')]])}<input data-k="govtxt" id="govtxt" placeholder="${t('f_govtxt')}" value="${esc(d.govtxt)}" ${dis} style="${d.gov=='yes'?'':'display:none'}"></div>`,'full')}
+  ${fld('purpose',tx('purpose'),'full')}
+  ${fld('dur',`<div class="fg3"><div><label>${t('f_sdate')}</label><input data-k="sdate" type="date" value="${esc(d.sdate)}" ${dis}></div><div><label>${t('f_edate')}</label><input data-k="edate" type="date" value="${esc(d.edate)}" ${dis}></div><div><label>${t('f_months')}</label><div class="dur" id="dur">${durTxt()}</div></div></div>`,'full')}
+  ${fld('owner',inp('owner'))}
+  ${fld('pmname',inp('pmname'))}
+  ${fld('sector',sel('sector',Array.from({length:SECTORS},(_,i)=>[i+1,secL(i+1)])))}
+  ${fld('dept',`<select data-k="dept" ${dis||(d.sector?'':'disabled')}><option value=""></option>${deptOpts.map(([v,l])=>`<option value="${v}" ${String(d.dept)==String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select>`)}
+  ${fld('budget',inp('budget','number'),'full')}
+ </div>${pnav('','ctx')}</div>
+ <div class="card pn ${ftab=='ctx'?'on':''}" data-t="ctx"><div class="sec">${t('tab_ctx')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['nrisk','alt','impact','outputs'].map(tf).join('')}${pnav('gen','stk')}</div>
+ <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('s_stk')}</div>${fld('stk_int',listEd('stk_int'))}${fld('stk_ext',listEd('stk_ext'))}<div class="sec" style="margin-top:14px">${t('s_acts')}</div>${fld('acts',rowsEd('acts'))}${pnav('ctx','res')}</div>
+ <div class="card pn ${ftab=='res'?'on':''}" data-t="res"><div class="sec">${t('s_res')}</div>${fld('reqs',rowsEd('reqs'),'',t('reqs_hint'))}${fld('team',rowsEd('team'),'',t('team_hint'))}<div class="sec" style="margin-top:14px">${t('s_agr')}</div>${fld('agr',listEd('agr'))}${pnav('stk','rsk')}</div>
+ <div class="card pn ${ftab=='rsk'?'on':''}" data-t="rsk"><div class="sec">${t('s_rsk')}</div>${fld('risks',rowsEd('risks'),'',t('risks_hint'))}${tf('assume')}${tf('constr')}<div class="sec" style="margin-top:14px">${t('s_appr')}</div>${fld('appr',listEd('appr'))}${pnav('res','flow')}</div>
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div>${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('rsk','')}
+ <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
+ ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
+ updProg();fit()}
+document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
+ if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg();if(x.dataset.k=='sdate'||x.dataset.k=='edate'){const u=$('dur');if(u)u.textContent=durTxt()}}
+ if(x.dataset.a){const o=cr.data[x.dataset.a],i=+x.dataset.r;if(x.dataset.c){o[i][x.dataset.c]=x.value;if(x.dataset.a=='risks'){const b=$('rk_'+i);if(b)b.outerHTML=riskHTML(o[i],i)}}else o[i]=x.value}
+ if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}
+ if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;
+ if(x.dataset.k=='sector'){cr.data.sector=x.value;cr.data.dept='';fillDept()}
+ if(x.dataset.k=='gov'){const g=$('govtxt');if(g)g.style.display=x.value=='yes'?'':'none'}
+ if(x.dataset.a&&x.dataset.c=='i'||x.dataset.c=='x'){const b=$('rk_'+x.dataset.r);if(b&&cr.data.risks[+x.dataset.r])b.outerHTML=riskHTML(cr.data.risks[+x.dataset.r],+x.dataset.r)}
+ if(x.dataset.k)updProg()});
+document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))setTimeout(()=>grow(x),50)});
+window.addEventListener('resize',()=>{if(cr)fit()});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(cr&&curView)fit()});
+const addRow=a=>{cr.data[a].push(typeof BLANK[a]=='object'?{...BLANK[a]}:'');save(true)};
+const delRow=(a,i)=>{cr.data[a].splice(i,1);save(true)};
+async function save(q){const m=monthsBetween(cr.data.sdate,cr.data.edate);if(m!=null)cr.data.months=m;else delete cr.data.months;
+ const {error}=await sb.from('charters').update({data:cr.data}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
+
+function toggleNoteMode(){noteMode=!noteMode;if(noteMode)ftab='proj';openCR(cr.id)}
+function toggleNb(k){const b=$('nb_'+k);if(!b)return;const show=b.style.display=='none';b.style.display=show?'block':'none';if(show){const a=b.querySelector('textarea');if(a)a.focus()}}
+async function cancelCR(){if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
+async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.value;if(sigs.some(x=>x.stage==sg&&x.user_id==u))return msg(t('already'));
+ if(cr.created_by==me.id&&editing)await save(false);
+ await sb.from('charter_signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
+async function rmSig(id){await sb.from('charter_signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
+async function setStatus(s,extra={}){await sb.from('charters').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
+async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('charters').delete().eq('id',cr.id);if(error)return msg(error.message);homeView()}
+async function archiveCR(v){const {error}=await sb.from('charters').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
+async function sendReview(){
+ if(!sigs.some(s=>s.stage=='reviewed'))return msg(t('needRev'));
+ await setStatus('PMO Review');openCR(cr.id)}
+async function sendApproval(){
+ if(!sigs.some(s=>s.stage=='approved'))return msg(t('needApp'));
+ await setStatus('Awaiting Approval');openCR(cr.id)}
+async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
+ await sb.from('charter_signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
+ const nn=NOTES[cr.id]||{},items={};Object.keys(nn).forEach(k=>{const v=String(nn[k]||'').trim();if(v)items[k]=v});
+ const nd={...cr.data};delete nd._anotes;if(Object.keys(items).length)nd._notes={v:cr.version,by:me.full_name,at:new Date().toISOString(),items:items};else delete nd._notes;
+ await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)}
+async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
+
+// ---- signing ----
+function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'apprConfirm':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
+ const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
+function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
+$('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
+const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
+const pos=e=>{const r=$('cv').getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+const cv=$('cv');cv.onpointerdown=e=>{down=true;const p=pos(e);ctx.beginPath();ctx.moveTo(...p);cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke();drawn=true};cv.onpointerup=()=>down=false;
+$('file').onchange=function(){const f=this.files[0];if(!f)return;
+ if(!/^image\/(png|jpeg)$/.test(f.type))return msg(t('pngjpg'));if(f.size>1048576)return msg(t('big'));
+ const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
+async function confirmSign(){
+ let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
+ if(cr.created_by==me.id&&pend.stage=='created')await save(false);
+ await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
+ await lg(cr.id,'signed|'+pend.stage);
+ if(pend.stage=='approved'){const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('charters').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx}];await sb.from('charters').update({data:nd}).eq('id',cr.id);await lg(cr.id,'approvenote|'+tx)}}
+ const {data}=await sb.from('charter_signatories').select('*').eq('cr_id',cr.id);
+ const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
+ if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Reviewed');
+ else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved',{issued_at:new Date().toISOString()});
+ $('modal').classList.remove('on');openCR(cr.id)}
+
+// ===== Admin export: Word (single charter) / Excel + JSON backup (all charters) =====
+const DOCX_URL='https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js',LIBP={};
+function loadScript(u){return LIBP[u]||(LIBP[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>{delete LIBP[u];no(new Error('Could not load library'))};document.head.appendChild(s)}))}
+function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000)}
+const fdx=v=>{if(!v)return'';const d=new Date(v),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};
+const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())};
+const d2b=u=>{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a};
+const imgInfo=u=>new Promise(ok=>{const i=new Image();i.onload=()=>ok({w:i.naturalWidth||1,h:i.naturalHeight||1});i.onerror=()=>ok({w:3,h:1});i.src=u});
+async function fetchAll(tbl,cols){let o=0,out=[];for(;;){const {data,error}=await sb.from(tbl).select(cols).order('id').range(o,o+999);if(error)throw error;out=out.concat(data||[]);if(!data||data.length<1000)break;o+=1000}return out}
+async function busy(id,fn){const b=$(id),old=b?b.textContent:'';if(b){b.disabled=true;b.textContent=t('x_wait')}
+ try{await fn()}catch(e){msg(t('x_fail')+' '+(e&&e.message||e))}finally{if(b){b.disabled=false;b.textContent=old}}}
+
+// ---------- Word ----------
+function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
+ await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Arial',GRN='0A6B3D',RED='D1101D',LIGHT='E5F2EA',LINE='B9C7BE';
+ const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k]:[];
+ const AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
+ const runs=(tx,o={})=>String(tx==null||tx===''?'—':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||22,bold:!!o.b,italics:!!o.it,color:o.c}));
+ const P=(tx,o={})=>new D.Paragraph({bidirectional:rtl,alignment:o.al||al,spacing:{before:o.sb||0,after:o.sa==null?40:o.sa},keepNext:o.kn,pageBreakBefore:o.pb,children:runs(tx,o)});
+ const bd={style:D.BorderStyle.SINGLE,size:4,color:LINE},borders={top:bd,bottom:bd,left:bd,right:bd};
+ const C=(kids,o={})=>new D.TableCell({children:Array.isArray(kids)?kids:[kids],width:{size:o.w,type:D.WidthType.DXA},columnSpan:o.span,verticalAlign:o.v||D.VerticalAlign.TOP,borders,margins:{top:70,bottom:70,left:120,right:120},shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined});
+ const T=(rows,widths)=>new D.Table({rows,columnWidths:widths,width:{size:widths.reduce((x,y)=>x+y,0),type:D.WidthType.DXA},visuallyRightToLeft:rtl,layout:D.TableLayoutType.FIXED});
+ const R=(cells,hdr)=>new D.TableRow({children:cells,cantSplit:true,tableHeader:!!hdr});
+ const W=10200,gap=()=>new D.Paragraph({spacing:{after:100},children:[]});
+ const sec=(n,tx,pb)=>new D.Paragraph({bidirectional:rtl,alignment:al,keepNext:true,pageBreakBefore:!!pb,spacing:{before:pb?0:260,after:120},shading:{type:D.ShadingType.CLEAR,fill:GRN,color:'auto'},border:{[rtl?'right':'left']:{style:D.BorderStyle.SINGLE,size:36,color:RED,space:4}},children:runs(n+'. '+tx,{b:1,c:'FFFFFF',size:26})});
+ const lab=(x,w)=>C(P(x,{b:1,sa:0}),{w,fill:LIGHT});
+ const hdrRow=(labels,widths)=>R(labels.map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:20,sa:0}),{w:widths[i],fill:GRN})),1);
+ const listTbl=(arr,title)=>T([hdrRow([title],[W]),...(arr.length?arr:['']).map(v=>R([C(P(v,{sa:0}),{w:W})]))],[W]);
+ const kids=[];
+ // ---- page 1: title, header table, approval table
+ const logo=document.querySelector('.logo');
+ if(logo&&logo.src.startsWith('data:')){const li=await imgInfo(logo.src),h=62;kids.push(new D.Paragraph({alignment:AL.CENTER,spacing:{after:200},children:[new D.ImageRun({type:'png',data:d2b(logo.src),transformation:{width:Math.round(h*li.w/li.h),height:h}})]}))}
+ kids.push(P(t('charterOf')+(d.pname?' ('+d.pname+')':''),{al:AL.CENTER,b:1,c:GRN,size:44,sb:200,sa:300}));
+ const hw=[2550,2550,2550,2550];
+ kids.push(T([R([t('pcode'),t('docNo'),t('docType'),t('issue')].map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:21,al:AL.CENTER,sa:0}),{w:hw[i],fill:GRN})),1),R([cr.code,cr.doc_no,t('docTypeV'),cr.issued_at?fdate(cr.issued_at):'—'].map((x,i)=>C(P(x,{b:1,al:AL.CENTER,sa:0}),{w:hw[i],fill:'F7FAF8'})))],hw));
+ kids.push(P(t('apprBlock'),{al:AL.CENTER,b:1,c:GRN,size:30,sb:400,sa:120,kn:true}));
+ const sw=[3000,2800,2000,2400],srows=[hdrRow([t('thName'),t('thJob'),t('tDate'),t('x_sign')],sw)];
+ for(const sg of ['created','reviewed','approved']){const ss=sigs.filter(s=>s.stage==sg);if(!ss.length)continue;
+  srows.push(R([C(P(t('stg_'+sg),{b:1,c:GRN,sa:0}),{w:10200,span:4,fill:LIGHT})]));
+  for(const s of ss){const u=nm(s.user_id);let sc=[P('')];
+   if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
+   srows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||t('role_'+u.role),{sa:0,size:20}),{w:sw[1],v:D.VerticalAlign.CENTER}),C(P(s.status=='signed'?fdate(s.signed_at):'—',{sa:0,al:AL.CENTER}),{w:sw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sw[3],v:D.VerticalAlign.CENTER})]))}}
+ if(srows.length==1)srows.push(R(sw.map(w=>C(P(''),{w}))));
+ kids.push(T(srows,sw));
+ // ---- page 2: table of contents
+ const SEC=['s_info','s_stk','s_acts','s_res','s_agr','s_rsk','s_appr'];
+ kids.push(P(t('toc'),{al:AL.CENTER,b:1,c:GRN,size:36,pb:true,sa:300}));
+ SEC.forEach((k,i)=>kids.push(new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:160},border:{bottom:{style:D.BorderStyle.DOTTED,size:4,color:LINE,space:4}},children:runs((i+1)+'.  '+t(k),{size:26,b:1})})));
+ // ---- 1. information
+ kids.push(sec(1,t('s_info'),true));
+ const lw=[3100,7100],rows=[];const rw=(l,v)=>rows.push(R([lab(l,lw[0]),C(Array.isArray(v)?v:P(v,{sa:0}),{w:lw[1]})]));
+ rw(t('f_pdesc'),d.pdesc);rw(t('f_ptype'),d.ptype?t('pt_'+d.ptype):'');rw(t('f_goal'),goalL(d.goal));
+ rw(t('f_gov'),[P(d.gov=='yes'?t('yes'):d.gov=='no'?t('no'):'—',{sa:d.gov=='yes'?40:0,b:1}),...(d.gov=='yes'&&d.govtxt?[P(d.govtxt,{sa:0})]:[])]);
+ rw(t('f_purpose'),d.purpose);
+ const mo=monthsBetween(d.sdate,d.edate);
+ rw(t('dur'),[P(t('f_sdate')+': '+fdate(d.sdate),{sa:20}),P(t('f_edate')+': '+fdate(d.edate),{sa:20}),P(t('f_months')+': '+(mo==null?'—':ad(mo)),{sa:0,b:1})]);
+ rw(t('f_owner'),d.owner);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));rw(t('f_pmname'),d.pmname);
+ rw(t('f_budget'),d.budget===''||d.budget==null?'':Number(d.budget).toLocaleString('en-US')+' '+t('aed'));
+ rw(t('f_nrisk'),d.nrisk);rw(t('f_alt'),d.alt);rw(t('f_impact'),d.impact);rw(t('f_outputs'),d.outputs);
+ kids.push(T(rows,lw));
+ // ---- 2. stakeholders + 3. activities
+ kids.push(sec(2,t('s_stk'),true));
+ kids.push(listTbl(A('stk_int').filter(x=>String(x).trim()),t('f_stk_int')));kids.push(gap());
+ kids.push(listTbl(A('stk_ext').filter(x=>String(x).trim()),t('f_stk_ext')));
+ kids.push(sec(3,t('s_acts')));
+ const aw=[3400,3800,3000],ac=A('acts');
+ kids.push(T([hdrRow([t('a_act'),t('a_del'),t('a_time')],aw),...(ac.length?ac:[{a:'',d:'',t:''}]).map(r=>R([r.a,r.d,r.t].map((v,j)=>C(P(v,{sa:0}),{w:aw[j]}))))],aw));
+ // ---- 4. needs & team + 5. agreements
+ kids.push(sec(4,t('s_res'),true));
+ kids.push(P(t('reqs_hint'),{it:1,c:'6B6F76',sa:80,kn:true}));
+ const qw=[2400,1900,2900,1000,2000],rq=A('reqs');
+ kids.push(T([hdrRow([t('r_req'),t('r_dept'),t('r_det'),t('r_n'),t('r_cost')],qw),...(rq.length?rq:[{r:'',dp:'',d:'',n:'',c:''}]).map(r=>R([r.r,r.dp,r.d,r.n,r.c===''||r.c==null?'':Number(r.c).toLocaleString('en-US')].map((v,j)=>C(P(v,{sa:0}),{w:qw[j]}))))],qw));
+ kids.push(gap());kids.push(P(t('team_hint'),{it:1,c:'6B6F76',sa:80,kn:true}));
+ const tw=[2300,2300,2700,2900],tm=A('team');
+ kids.push(T([hdrRow([t('t_job'),t('t_name'),t('t_mail'),t('t_task')],tw),...(tm.length?tm:[{j:'',n:'',e:'',m:''}]).map(r=>R([r.j,r.n,r.e,r.m].map((v,j)=>C(P(v,{sa:0}),{w:tw[j]}))))],tw));
+ kids.push(sec(5,t('s_agr')));
+ kids.push(listTbl(A('agr').filter(x=>String(x).trim()),t('f_agr')));
+ // ---- 6. risks + 7. approvals
+ kids.push(sec(6,t('s_rsk'),true));
+ const kw=[500,2500,1500,1500,1100,1100,2000],rk=A('risks'),LV={low:['0A6B3D','FFFFFF'],med:['F2C200','1B1D1F'],high:['D1101D','FFFFFF']};
+ kids.push(T([hdrRow(['#',t('k_desc'),t('k_when'),t('k_owner'),t('k_imp'),t('k_prob'),t('k_score')],kw),...(rk.length?rk:[{d:'',p:'',o:'',i:'',x:''}]).map((r,i)=>{const s=score(r),lv=s?lvl(s):null;return R([rk.length?ad(i+1):'',r.d,r.p,r.o,r.i?ad(r.i):'',r.x?ad(r.x):''].map((v,j)=>C(P(v,{sa:0,al:j>=4||j==0?AL.CENTER:al}),{w:kw[j]})).concat([C(P(s?ad(s)+' · '+t('lv_'+lv):'—',{sa:0,b:1,al:AL.CENTER,c:lv?LV[lv][1]:undefined}),{w:kw[6],fill:lv?LV[lv][0]:undefined,v:D.VerticalAlign.CENTER})]))})],kw));
+ kids.push(gap());
+ kids.push(T([R([lab(t('f_assume'),W)]),R([C(P(d.assume,{sa:0}),{w:W})])],[W]));kids.push(gap());
+ kids.push(T([R([lab(t('f_constr'),W)]),R([C(P(d.constr,{sa:0}),{w:W})])],[W]));
+ kids.push(sec(7,t('s_appr')));
+ kids.push(listTbl(A('appr').filter(x=>String(x).trim()),t('f_appr')));
+ const foot=new D.Footer({children:[new D.Paragraph({alignment:AL.CENTER,bidirectional:rtl,children:[new D.TextRun({text:cr.doc_no+' · '+(d.pname||'')+' · ',font:FONT,size:16,color:'6B6F76',rightToLeft:rtl}),new D.TextRun({children:[D.PageNumber.CURRENT,' / ',D.PageNumber.TOTAL_PAGES],font:FONT,size:16,color:'6B6F76'})]})]});
+ const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:22,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
+ const blob=await D.Packer.toBlob(doc);dl(blob,cr.doc_no+'.docx')})}
+
+// ---------- Excel (hand-written .xlsx, no library) ----------
+const CRCT=(()=>{const a=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;a[n]=c>>>0}return a})();
+const crc32=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+function zipStore(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+ files.forEach(f=>{const nmb=enc.encode(f.name),data=enc.encode(f.text),crc=crc32(data),sz=data.length;
+  const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);lh.setUint32(14,crc,true);lh.setUint32(18,sz,true);lh.setUint32(22,sz,true);lh.setUint16(26,nmb.length,true);
+  const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(14,0x21,true);ch.setUint32(16,crc,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);ch.setUint16(28,nmb.length,true);ch.setUint32(42,off,true);
+  parts.push(new Uint8Array(lh.buffer),nmb,data);cen.push(new Uint8Array(ch.buffer),nmb);off+=30+nmb.length+sz});
+ const cs=cen.reduce((n,x)=>n+x.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const xe=s=>String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const colL=i=>{let s='';i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=(i-m-1)/26}return s};
+function sheetXml(rows,widths,rtl){const nc=Math.max(...rows.map(r=>r.length),1);
+ const sd=rows.map((r,ri)=>`<row r="${ri+1}"${ri==0?' ht="30" customHeight="1"':''}>`+r.map((v,ci)=>{const ref=colL(ci)+(ri+1),s=ri==0?1:2;
+  if(typeof v=='number'&&isFinite(v))return`<c r="${ref}" s="${s}"><v>${v}</v></c>`;
+  return`<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xe(v==null?'':String(v).slice(0,32000))}</t></is></c>`}).join('')+'</row>').join('');
+ return'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"'+(rtl?' rightToLeft="1"':'')+'><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>'+Array.from({length:nc},(_,i)=>`<col min="${i+1}" max="${i+1}" width="${(widths&&widths[i])||18}" customWidth="1"/>`).join('')+'</cols><sheetData>'+sd+'</sheetData><autoFilter ref="A1:'+colL(nc-1)+Math.max(rows.length,1)+'"/></worksheet>'}
+function makeXlsx(sheets,rtl){
+ const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='http://schemas.openxmlformats.org/spreadsheetml/2006/main',RN='http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+ const files=[{name:'[Content_Types].xml',text:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>'},
+ {name:'_rels/.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="'+RN+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+ {name:'xl/workbook.xml',text:H+`<workbook xmlns="${NS}" xmlns:r="${RN}"><sheets>`+sheets.map((s,i)=>`<sheet name="${xe(s.name.replace(/[\[\]:*?\/\\]/g,' ').slice(0,31))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>'},
+ {name:'xl/_rels/workbook.xml.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="${RN}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId${sheets.length+1}" Type="${RN}/styles" Target="styles.xml"/></Relationships>`},
+ {name:'xl/styles.xml',text:H+`<styleSheet xmlns="${NS}"><fonts count="2"><font><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0A6B3D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFCFD8D2"/></left><right style="thin"><color rgb="FFCFD8D2"/></right><top style="thin"><color rgb="FFCFD8D2"/></top><bottom style="thin"><color rgb="FFCFD8D2"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf><xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`},
+ ...sheets.map((s,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,text:sheetXml(s.rows,s.widths,rtl)}))];
+ return zipStore(files)}
+async function loadExportData(){
+ const [crs,sg,lg]=await Promise.all([fetchAll('charters','*'),fetchAll('charter_signatories','id,cr_id,stage,user_id,status,signed_at'),fetchAll('charter_audit','*')]);
+ return{crs,sg,lg}}
+function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
+ const fd=fdx;const {crs,sg,lg}=await loadExportData(),rtl=lang=='ar',nm=id=>(users[id]||{}).full_name||'',code={};crs.forEach(c=>code[c.id]=c.code);
+ const who=(id,stg)=>sg.filter(s=>s.cr_id==id&&s.stage==stg).map(s=>nm(s.user_id)+' ('+(s.status=='signed'?t('signedOn').replace('✔ ','')+' '+fd(s.signed_at):t('pending'))+')').join('\n');
+ const A=(c,k)=>Array.isArray((c.data||{})[k])?c.data[k]:[];
+ const r1=[[t('pcode'),t('docNo'),t('version'),t('x_status'),t('f_pname'),t('f_pdesc'),t('f_ptype'),t('f_goal'),t('f_gov'),t('f_govtxt'),t('f_purpose'),t('f_sdate'),t('f_edate'),t('f_months'),t('f_owner'),t('f_sector'),t('f_dept'),t('f_pmname'),t('f_budget'),t('f_nrisk'),t('f_alt'),t('f_impact'),t('f_outputs'),t('f_assume'),t('f_constr'),t('issue'),t('x_created'),t('createdCol'),t('x_updated'),t('x_archived'),t('latest'),t('stg_created'),t('stg_reviewed'),t('stg_approved'),t('apprNoteT'),t('noteTitle')]];
+ crs.forEach(c=>{const d=c.data||{},NI=d._notes&&d._notes.items||{},mo=monthsBetween(d.sdate,d.edate);
+  r1.push([c.code,c.doc_no,c.version,t('st_'+c.status),d.pname||'',d.pdesc||'',d.ptype?t('pt_'+d.ptype):'',goalL(d.goal),d.gov=='yes'?t('yes'):d.gov=='no'?t('no'):'',d.govtxt||'',d.purpose||'',d.sdate||'',d.edate||'',mo==null?'':mo,d.owner||'',secL(d.sector),depL(d.sector,d.dept),d.pmname||'',d.budget===''||d.budget==null?'':Number(d.budget),d.nrisk||'',d.alt||'',d.impact||'',d.outputs||'',d.assume||'',d.constr||'',c.issued_at?fdate(c.issued_at):'',fd(c.created_at),nm(c.created_by),fd(c.stage_at||c.created_at),c.archived?t('x_yes'):t('x_no'),c.comment||'',who(c.id,'created'),who(c.id,'reviewed'),who(c.id,'approved'),(Array.isArray(d._anotes)?d._anotes:[]).map(x=>x.by+': '+x.text).join('\n'),Object.keys(NI).map(k=>(t('f_'+k)||k)+': '+NI[k]).join('\n')])});
+ const r2=[[t('pcode'),t('x_type'),t('thName')]];crs.forEach(c=>{A(c,'stk_int').forEach(v=>r2.push([c.code,t('f_stk_int'),v]));A(c,'stk_ext').forEach(v=>r2.push([c.code,t('f_stk_ext'),v]))});
+ const r3=[[t('pcode'),t('a_act'),t('a_del'),t('a_time')]];crs.forEach(c=>A(c,'acts').forEach(r=>r3.push([c.code,r.a||'',r.d||'',r.t||''])));
+ const r4=[[t('pcode'),t('r_req'),t('r_dept'),t('r_det'),t('r_n'),t('r_cost')]];crs.forEach(c=>A(c,'reqs').forEach(r=>r4.push([c.code,r.r||'',r.dp||'',r.d||'',r.n===''||r.n==null?'':Number(r.n),r.c===''||r.c==null?'':Number(r.c)])));
+ const r5=[[t('pcode'),t('t_job'),t('t_name'),t('t_mail'),t('t_task')]];crs.forEach(c=>A(c,'team').forEach(r=>r5.push([c.code,r.j||'',r.n||'',r.e||'',r.m||''])));
+ const r6=[[t('pcode'),t('f_agr'),t('f_appr')]];crs.forEach(c=>{A(c,'agr').forEach(v=>r6.push([c.code,v,'']));A(c,'appr').forEach(v=>r6.push([c.code,'',v]))});
+ const r7=[[t('pcode'),t('k_desc'),t('k_when'),t('k_owner'),t('k_imp'),t('k_prob'),t('k_score'),t('x_level')]];crs.forEach(c=>A(c,'risks').forEach(r=>{const s=score(r);r7.push([c.code,r.d||'',r.p||'',r.o||'',r.i===''?'':Number(r.i),r.x===''?'':Number(r.x),s||'',s?t('lv_'+lvl(s)):''])}));
+ const r8=[[t('pcode'),t('x_stage'),t('thName'),t('thJob'),t('x_state'),t('x_signedAt')]];sg.forEach(s=>{const u=users[s.user_id]||{};r8.push([code[s.cr_id]||s.cr_id,t('stg_'+s.stage),u.full_name||'',u.job_title||'',s.status=='signed'?t('signedOn').replace('✔ ',''):t('pending'),s.signed_at?fd(s.signed_at):''])});
+ const r9=[[t('pcode'),t('x_date'),t('x_user'),t('x_action')]];lg.forEach(x=>r9.push([code[x.cr_id]||x.cr_id,fd(x.at),x.user_name||'',logT(x.action)]));
+ const blob=makeXlsx([{name:t('x_sh_req'),rows:r1,widths:[14,14,9,22,28,40,14,16,10,24,40,13,13,10,22,12,24,22,16,36,36,36,36,36,36,14,18,22,18,10,30,26,26,26,30,30]},{name:t('x_sh_stk'),rows:r2,widths:[14,36,40]},{name:t('s_acts'),rows:r3,widths:[14,34,40,24]},{name:t('s_res'),rows:r4,widths:[14,30,22,36,10,16]},{name:t('f_team'),rows:r5,widths:[14,22,24,28,40]},{name:t('s_agr')+' - '+t('s_appr'),rows:r6,widths:[14,40,40]},{name:t('f_risks'),rows:r7,widths:[14,40,24,22,10,10,10,12]},{name:t('x_sh_sig'),rows:r8,widths:[14,18,26,22,22,22]},{name:t('x_sh_log'),rows:r9,widths:[14,22,24,60]}],rtl);
+ dl(blob,'Charters-export-'+stamp()+'.xlsx')})}
+
+// ---------- JSON backup (everything, including signature images) ----------
+function exportBackup(){if(me.role!='admin')return;busy('xb',async()=>{
+ const [crs,sg,lg,pf]=await Promise.all([fetchAll('charters','*'),fetchAll('charter_signatories','*'),fetchAll('charter_audit','*'),fetchAll('profiles','*')]);
+ const blob=new Blob([JSON.stringify({exported_at:new Date().toISOString(),by:me.email||me.full_name,charters:crs,charter_signatories:sg,charter_audit:lg,profiles:pf},null,1)],{type:'application/json'});
+ dl(blob,'Charters-backup-'+stamp()+'.json')})}
+
+// ---- admin ----
+function adminView(){curView=adminView;editing=false;
+ app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('usersRoles')}</h2><div class="mut">${t('rolesNote')}</div></div>`+Object.values(users).map(u=>`<div class="card"><div class="top"><b>${esc(u.full_name)}</b><span class="pill">${t('role_'+u.role)}</span></div><div class="mut" dir="ltr" style="text-align:start">${esc(u.email)}</div><div class="fg"><div><label>${t('thJob')}</label><input id="j_${u.id}" value="${esc(u.job_title)}"></div><div><label>${t('thRole')}</label><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('role_'+r)}</option>`).join('')}</select></div></div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div></div>`).join('')}
+async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
+applyStatic();start();
+</script></body></html>
