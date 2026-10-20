@@ -63,6 +63,7 @@ details.acc>.in{padding:0 14px 14px}
 .tb .bd{background:var(--r);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px;display:none}
 .pn{display:none}.pn.on{display:block}
 .sec{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ch);margin:0 0 4px}.sec::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--r)}
+.opt{font-weight:400;color:var(--mut);font-size:11.5px;margin-inline-start:4px}.sec2{font-weight:800;color:var(--g);margin:6px 0 0}
 .pick{border:1px dashed var(--g);background:#f4faf6;border-radius:12px;padding:10px 12px;margin:0 0 12px}.pick select{width:100%;margin:6px 0}
 .sh{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:8px 0;background:#fcfbf8;position:relative}.sh>button{position:absolute;top:8px;inset-inline-end:8px}
 .sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
@@ -247,6 +248,10 @@ const W=[
 ["upload","Upload picture","رفع صورة"],
 ["clear","Clear","مسح"],
 ["confirm","Confirm signature","تأكيد التوقيع"],
+["pgFmt","{d}/{t} fields completed — required {rd}/{rt} · optional {od}/{ot}","{d}/{t} حقل مكتمل — الإلزامية {rd}/{rt} · الاختيارية {od}/{ot}"],
+["signSubmit","Sign and send for review","توقيع وإرسال للمراجعة"],
+["signSendApp","Sign and send for approval","توقيع وإرسال للاعتماد"],
+["signApprove","Sign and approve","توقيع واعتماد"],
 ["cancel","Cancel","إلغاء"],
 ["drawFirst","Please draw your signature.","يرجى رسم توقيعك."],
 ["uploadFirst","Please upload a picture.","يرجى رفع صورة."],
@@ -372,6 +377,10 @@ const msg=x=>alert(x);
 const F=["pname","pcode","by","prio","edate","sector","dept","sponsor","pmname"];
 const T=["desc","reason","scope","cost","sched","stake","chal"];
 let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
+const filled=v=>Array.isArray(v)?v.some(filled):(v&&typeof v=='object')?Object.values(v).some(filled):String(v==null?'':v).trim()!=='';
+const shF=x=>!!(x&&(x.n||x.i||x.c));
+const stripBlank=()=>{if(cr&&cr.data)Object.keys(cr.data).forEach(k=>{if(Array.isArray(cr.data[k]))cr.data[k]=cr.data[k].filter(filled)});if(cr&&Array.isArray(cr.stakeholders))cr.stakeholders=cr.stakeholders.filter(shF)};
+const pgText=(rd,rt,od,ot)=>t('pgFmt').replace('{d}',rd+od).replace('{t}',rt+ot).replace('{rd}',rd).replace('{rt}',rt).replace('{od}',od).replace('{ot}',ot);
 const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
@@ -562,7 +571,7 @@ function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classLi
 function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
 function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
  for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]||'').trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
- const p=$('fpb');if(p)p.style.width=((tot-m)/tot*100)+'%';const l=$('fpt');if(l)l.textContent=(tot-m)+'/'+tot+' '+t('progress')}
+ const od=(cr.stakeholders||[]).some(shF)?1:0;const p=$('fpb');if(p)p.style.width=((tot-m+od)/(tot+1)*100)+'%';const l=$('fpt');if(l)l.textContent=pgText(tot-m,tot,od,1)}
 async function openCR(id){
  const [a,b,c,e]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
@@ -571,13 +580,14 @@ async function openCR(id){
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
+ if(ed&&!(cr.stakeholders||[]).length)cr.stakeholders=[{n:'',t:'Internal',i:'',c:''}];
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
- const canApp=adm&&!arch&&['Reviewed','Awaiting Approval'].includes(st);
+ const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st);
  const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
- const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
+ const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
  const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
  const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
@@ -590,7 +600,7 @@ async function openCR(id){
  if(ed)acts+=`<button onclick="saveDraft()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
- if(mine)acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'apprBtn':'sign')}</button>`;
+ if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
@@ -679,11 +689,16 @@ async function submitCR(){
  await save(false);
  const miss=[...F,...T].filter(k=>!String(cr.data[k]||'').trim());
  if(miss.length)return msg(t('complete')+miss.map(k=>t('f_'+k)).join(', '));
- const cs=sigs.filter(s=>s.stage=='created');if(!cs.length||cs.some(s=>s.status!='signed'))return msg(t('creatorsSign'));
- await setStatus('Submitted');openCR(cr.id)}
+ stripBlank();await save(false);await openCR(cr.id);
+ await proceedSubmit()}
 async function sendReview(){
  if(!sigs.some(s=>s.stage=='reviewed'))return msg(t('needRev'));
  await setStatus('PMO Review');openCR(cr.id)}
+async function proceedSubmit(){
+ const mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
+ if(mine&&mine.status!='signed'){openSign(mine.id,'created',true);return}
+ if(sigs.filter(s=>s.stage=='created').some(s=>s.status!='signed'))return msg(t('creatorsSign'));
+ await setStatus('Submitted');openCR(cr.id)}
 async function sendApproval(){
  if(!sigs.some(s=>s.stage=='approved'))return msg(t('needApp'));
  await setStatus('Awaiting Approval');openCR(cr.id)}
@@ -695,7 +710,7 @@ async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
 async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
 
 // ---- signing ----
-function openSign(id,stage){pend={id,stage};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'apprConfirm':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
@@ -708,14 +723,16 @@ $('file').onchange=function(){const f=this.files[0];if(!f)return;
  const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
 async function confirmSign(){
  let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
+ if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
  await sb.from('signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
  await lg(cr.id,'signed|'+pend.stage);
  if(pend.stage=='approved'){const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('change_requests').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx}];await sb.from('change_requests').update({data:nd}).eq('id',cr.id);await lg(cr.id,'approvenote|'+tx)}}
  const {data}=await sb.from('signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
- if(cr.status=='PMO Review'&&all('reviewed'))await setStatus('Reviewed');
+ if(cr.status=='PMO Review'&&all('reviewed')){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}
  else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved');
+ else if(pend.submit&&pend.stage=='created'&&['Draft','Returned to PM'].includes(cr.status)){if(data.some(x=>x.stage=='created'&&x.status!='signed'))msg(t('creatorsSign'));else await setStatus('Submitted')}
  $('modal').classList.remove('on');openCR(cr.id)}
 
 // ===== Admin export: Word (single request) / Excel + JSON backup (all requests) =====
@@ -772,7 +789,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  kids.push(sec(3,t('impactTitle')));kids.push(block(['scope','cost','sched','stake']));
  // stakeholders
  kids.push(sec(4,t('stakeTitle')));
- const hw=[600,2600,1500,2800,2700],sh=cr.stakeholders||[];
+ const hw=[600,2600,1500,2800,2700],sh=(cr.stakeholders||[]).filter(shF);
  const hh=['#',t('thName'),t('thType'),t('thImpact'),t('thHow')];
  kids.push(T([R(hh.map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:19,sa:0}),{w:hw[i],fill:GRN})),1),...(sh.length?sh:[{n:'',t:'',i:'',c:''}]).map((x,i)=>R([String(sh.length?i+1:'—'),x.n,x.t?t(x.t):'',x.i,x.c].map((v,j)=>C(P(v,{sa:0,size:20}),{w:hw[j]}))))],hw));
  // attachments
@@ -834,7 +851,7 @@ function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
  const who=(id,stg)=>sg.filter(s=>s.cr_id==id&&s.stage==stg).map(s=>nm(s.user_id)+' ('+(s.status=='signed'?t('signedOn').replace('✔ ','')+' '+fd(s.signed_at):t('pending'))+')').join('\n');
  const r1=[[t('x_code'),t('version'),t('x_status'),...F2.map(k=>t('f_'+k)),...T2.map(k=>t('f_'+k)),t('x_created'),t('createdCol'),t('x_updated'),t('x_archived'),t('latest'),t('stg_created'),t('stg_reviewed'),t('stg_approved'),t('apprNoteT'),t('noteTitle')]];
  crs.forEach(c=>{const d=c.data||{},NI=d._notes&&d._notes.items||{};r1.push([c.code,c.version,t('st_'+c.status),...F2.map(k=>k=='prio'?pl(d[k]):(d[k]||'')),...T2.map(k=>d[k]||''),fd(c.created_at),nm(c.created_by),fd(c.stage_at||c.created_at),c.archived?t('x_yes'):t('x_no'),c.comment||'',who(c.id,'created'),who(c.id,'reviewed'),who(c.id,'approved'),(Array.isArray(d._anotes)?d._anotes:[]).map(x=>x.by+': '+x.text).join('\n'),Object.keys(NI).map(k=>(t('f_'+k)||k)+': '+NI[k]).join('\n')])});
- const r2=[[t('x_code'),t('thName'),t('thType'),t('thImpact'),t('thHow')]];crs.forEach(c=>(c.stakeholders||[]).forEach(x=>r2.push([c.code,x.n||'',x.t?t(x.t):'',x.i||'',x.c||''])));
+ const r2=[[t('x_code'),t('thName'),t('thType'),t('thImpact'),t('thHow')]];crs.forEach(c=>(c.stakeholders||[]).filter(shF).forEach(x=>r2.push([c.code,x.n||'',x.t?t(x.t):'',x.i||'',x.c||''])));
  const r3=[[t('x_code'),t('x_stage'),t('thName'),t('thJob'),t('x_state'),t('x_signedAt')]];sg.forEach(s=>{const u=users[s.user_id]||{};r3.push([code[s.cr_id]||s.cr_id,t('stg_'+s.stage),u.full_name||'',u.job_title||'',s.status=='signed'?t('signedOn').replace('✔ ',''):t('pending'),s.signed_at?fd(s.signed_at):''])});
  const r4=[[t('x_code'),t('attTitle'),'MB',t('x_user'),t('x_date')]];at.forEach(x=>r4.push([code[x.cr_id]||x.cr_id,x.title,Math.round((x.size||0)/1048576*100)/100,nm(x.uploaded_by),fd(x.created_at)]));
  const r5=[[t('x_code'),t('x_date'),t('x_user'),t('x_action')]];lg.forEach(x=>r5.push([code[x.cr_id]||x.cr_id,fd(x.at),x.user_name||'',logT(x.action)]));
