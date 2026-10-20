@@ -63,6 +63,7 @@ details.acc>.in{padding:0 14px 14px}
 .tb .bd{background:var(--r);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px;display:none}
 .pn{display:none}.pn.on{display:block}
 .sec{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;color:var(--ch);margin:0 0 4px}.sec::before{content:"";width:5px;height:18px;border-radius:3px;background:var(--r)}
+.pick{border:1px dashed var(--g);background:#f4faf6;border-radius:12px;padding:10px 12px;margin:0 0 12px}.pick select{width:100%;margin:6px 0}
 .sh{border:1px solid var(--line);border-radius:12px;padding:8px 12px 10px;margin:8px 0;background:#fcfbf8;position:relative}.sh>button{position:absolute;top:8px;inset-inline-end:8px}
 .sig{border:1px solid var(--line);border-inline-start:4px solid var(--ch);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fcfbf8}
 .sig.st1{border-inline-start-color:var(--am)}.sig.st2{border-inline-start-color:var(--g)}
@@ -169,6 +170,19 @@ const W=[
 ["noReq","No requests yet.","لا توجد طلبات بعد."],
 ["version","version","الإصدار"],
 ["latest","Latest comment:","آخر تعليق:"],
+["pickCh","Link to an approved project (charter)","ربط بمشروع معتمد (من ميثاق المشروع)"],
+["pickPh","— Select an approved project —","— اختر مشروعًا معتمدًا —"],
+["pickHint","Selecting a project fills the details below. You can edit everything.","باختيار المشروع تتعبأ البيانات تلقائيًا، ويمكنك تعديل أي خانة."],
+["pickNone","No approved charters yet (or the link SQL has not been run).","لا توجد مواثيق معتمدة بعد (أو لم يتم تشغيل ملف SQL الخاص بالربط)."],
+["pickRepl","Replace the stakeholders already entered with the charter's stakeholders?","استبدال أصحاب المصلحة المُدخلين بأصحاب المصلحة من الميثاق؟"],
+["chInfo","From the project charter","من ميثاق المشروع"],
+["f_ch_pdesc","Project description","وصف المشروع"],
+["f_ch_ptype","Project type","نوع المشروع"],
+["f_ch_goal","Link to center objective","الربط بأهداف المركز"],
+["f_ch_purpose","Project purpose","الهدف من المشروع"],
+["f_ch_sdate","Project start date","تاريخ بدء المشروع"],
+["f_ch_edate","Project end date","تاريخ انتهاء المشروع"],
+["f_ch_budget","Estimated budget","الموازنة التقديرية"],
 ["projDetails","Project details","تفاصيل المشروع"],
 ["f_pname","Project name","اسم المشروع"],
 ["f_pcode","Project code","رمز المشروع"],
@@ -522,7 +536,22 @@ async function newCR(){
  if(error)return msg(error.message);
  await sb.from('signatories').insert({cr_id:data.id,stage:'created',user_id:me.id});await lg(data.id,'created');openCR(data.id)}
 
-let ftab='proj',ftabKey='';
+let ftab='proj',ftabKey='',CHL=[];
+const CF=['ch_pdesc','ch_ptype','ch_goal','ch_purpose','ch_sdate','ch_edate','ch_budget'],CFA=['ch_pdesc','ch_purpose'];
+const CGOALS=[['الهدف الأول','Goal 1'],['الهدف الثاني','Goal 2'],['الهدف الثالث','Goal 3'],['الهدف الرابع','Goal 4'],['الهدف الخامس','Goal 5'],['الهدف السادس','Goal 6'],['الهدف السابع','Goal 7']];
+const cdig=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
+async function pickCharter(id){if(!id)return;const c=CHL.find(x=>String(x.id)==String(id));if(!c)return;const d=c.data||{};
+ const gl=g=>{const x=CGOALS[+g-1];return x?x[lang=='ar'?0:1]:''};
+ Object.assign(cr.data,{ch_id:c.id,pname:d.pname||'',pcode:c.code||'',sponsor:d.owner||'',pmname:d.pmname||cr.data.pmname||'',
+  sector:d.sector?(lang=='ar'?'قطاع ':'Sector ')+cdig(d.sector):'',
+  dept:d.dept&&d.sector?(lang=='ar'?'الإدارة '+cdig(d.dept)+' للقطاع '+cdig(d.sector):'Department '+d.dept+' of Sector '+d.sector):'',
+  ch_pdesc:d.pdesc||'',ch_ptype:d.ptype=='strategic'?(lang=='ar'?'استراتيجي':'Strategic'):d.ptype=='operational'?(lang=='ar'?'تشغيلي':'Operational'):'',
+  ch_goal:gl(d.goal),ch_purpose:d.purpose||'',ch_sdate:d.sdate||'',ch_edate:d.edate||'',ch_budget:d.budget==null?'':String(d.budget)});
+ const inc=(d.stk_int||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'Internal',i:'',c:''})),ext=(d.stk_ext||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'External',i:'',c:''})),nw=[...inc,...ext];
+ const has=(cr.stakeholders||[]).some(x=>(x.n||x.i||x.c));
+ if(nw.length&&(!has||confirm(t('pickRepl'))))cr.stakeholders=nw;
+ await save(true)}
+
 const TABS=['proj','chg','imp','stk','flow'];
 const REQ={proj:F,chg:['desc','reason','chal'],imp:['scope','cost','sched','stake']};
 const COLL=76;
@@ -537,6 +566,7 @@ function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
 async function openCR(id){
  const [a,b,c,e]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
+ try{const rr=await sb.rpc('approved_charters');CHL=rr.data||[]}catch(_){CHL=[]}
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data,st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
  const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
@@ -591,7 +621,7 @@ async function openCR(id){
  ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
  ${nbn}${nbar}
  <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${k=='flow'&&atts.length?' 📎'+atts.length:''}${ncnt(k)?`<i class="nbd">💬${ncnt(k)}</i>`:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
- <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div><div class="fg">${F.map(k=>fld(k,k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`,k=='pname'?'full':'')).join('')}</div>${pnav('','chg')}</div>
+ <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div>${ed?`<div class="pick"><label>${t('pickCh')}</label><select id="chpick" onchange="pickCharter(this.value)"><option value="">${t('pickPh')}</option>${CHL.map(c=>`<option value="${c.id}" ${String(d.ch_id)==String(c.id)?'selected':''}>${esc(c.code)} · ${esc((c.data||{}).pname||'')}</option>`).join('')}</select><div class="mut">${CHL.length?t('pickHint'):t('pickNone')}</div></div>`:''}<div class="fg">${F.map(k=>fld(k,k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`,k=='pname'?'full':'')).join('')}</div>${(ed||CF.some(k=>d[k]))?`<div class="sec" style="margin-top:14px">${t('chInfo')}</div><div class="fg">${CF.map(k=>`<div class="${CFA.includes(k)?'full':''}"><label>${t('f_'+k)}</label>${CFA.includes(k)?(ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`):`<input data-k="${k}" type="${k.endsWith('date')?'date':'text'}" ${k=='ch_budget'?'inputmode="decimal"':''} value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>`:''}${pnav('','chg')}</div>
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
@@ -599,7 +629,7 @@ async function openCR(id){
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
-document.addEventListener('input',e=>{const x=e.target;if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg()}if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value;if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}if(x.classList&&x.classList.contains('ta'))grow(x)});
+document.addEventListener('input',e=>{const x=e.target;if(x.dataset&&x.dataset.k=='ch_budget'){const v=x.value.replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'');if(v!==x.value)x.value=v}if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg()}if(x.dataset.i!==undefined)cr.stakeholders[x.dataset.i][x.dataset.s]=x.value;if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(x.dataset&&x.dataset.k)updProg()});
 document.addEventListener('focusin',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('focusout',e=>{const x=e.target;if(x.classList&&x.classList.contains('ta'))setTimeout(()=>grow(x),50)});
@@ -734,6 +764,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  const rest=['pcode','by','prio','edate','sector','dept','sponsor','pmname'];
  for(let i=0;i<rest.length;i+=2)pr.push(R([C(P(t('f_'+rest[i]),{b:1,sa:0}),{w:pw[0],fill:LIGHT}),C(P(pv(rest[i]),{sa:0}),{w:pw[1]}),C(P(t('f_'+rest[i+1]),{b:1,sa:0}),{w:pw[2],fill:LIGHT}),C(P(pv(rest[i+1]),{sa:0}),{w:pw[3]})]));
  kids.push(T(pr,pw));
+ if(CF.some(k=>d[k])){kids.push(P(t('chInfo'),{b:1,c:GRN,sb:120,sa:60}));const cr2=CF.map(k=>R([C(P(t('f_'+k),{b:1,sa:0}),{w:pw[0]+pw[1]-1500,fill:LIGHT}),C(P(d[k]||''),{w:pw[2]+pw[3]+1500})]));const cw=[pw[0]+pw[1]-1500,pw[2]+pw[3]+1500];kids.push(T(cr2,cw))}
  // text sections
  const NT=d._notes&&d._notes.items||{};
  const block=(keys)=>{const rows=[];keys.forEach(k=>{rows.push(R([C(P(t('f_'+k),{b:1,sa:0}),{w:W,fill:LIGHT})]));rows.push(R([C([P(d[k]),...(NT[k]?[P('💬 '+t('noteTitle')+' '+(d._notes.by||'')+': '+NT[k],{c:RED,b:1,sb:60,sa:0})]:[])],{w:W})]))});return T(rows,[W])};
@@ -799,7 +830,7 @@ async function loadExportData(){
 function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
  const fd=fdx;
  const {crs,sg,lg,at}=await loadExportData(),rtl=lang=='ar',nm=id=>(users[id]||{}).full_name||'',code={};crs.forEach(c=>code[c.id]=c.code);
- const F2=['pname','pcode','by','prio','edate','sector','dept','sponsor','pmname'],T2=['desc','reason','scope','cost','sched','stake','chal'];
+ const F2=['pname','pcode','by','prio','edate','sector','dept','sponsor','pmname',...CF],T2=['desc','reason','scope','cost','sched','stake','chal'];
  const who=(id,stg)=>sg.filter(s=>s.cr_id==id&&s.stage==stg).map(s=>nm(s.user_id)+' ('+(s.status=='signed'?t('signedOn').replace('✔ ','')+' '+fd(s.signed_at):t('pending'))+')').join('\n');
  const r1=[[t('x_code'),t('version'),t('x_status'),...F2.map(k=>t('f_'+k)),...T2.map(k=>t('f_'+k)),t('x_created'),t('createdCol'),t('x_updated'),t('x_archived'),t('latest'),t('stg_created'),t('stg_reviewed'),t('stg_approved'),t('apprNoteT'),t('noteTitle')]];
  crs.forEach(c=>{const d=c.data||{},NI=d._notes&&d._notes.items||{};r1.push([c.code,c.version,t('st_'+c.status),...F2.map(k=>k=='prio'?pl(d[k]):(d[k]||'')),...T2.map(k=>d[k]||''),fd(c.created_at),nm(c.created_by),fd(c.stage_at||c.created_at),c.archived?t('x_yes'):t('x_no'),c.comment||'',who(c.id,'created'),who(c.id,'reviewed'),who(c.id,'approved'),(Array.isArray(d._anotes)?d._anotes:[]).map(x=>x.by+': '+x.text).join('\n'),Object.keys(NI).map(k=>(t('f_'+k)||k)+': '+NI[k]).join('\n')])});
@@ -807,7 +838,7 @@ function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
  const r3=[[t('x_code'),t('x_stage'),t('thName'),t('thJob'),t('x_state'),t('x_signedAt')]];sg.forEach(s=>{const u=users[s.user_id]||{};r3.push([code[s.cr_id]||s.cr_id,t('stg_'+s.stage),u.full_name||'',u.job_title||'',s.status=='signed'?t('signedOn').replace('✔ ',''):t('pending'),s.signed_at?fd(s.signed_at):''])});
  const r4=[[t('x_code'),t('attTitle'),'MB',t('x_user'),t('x_date')]];at.forEach(x=>r4.push([code[x.cr_id]||x.cr_id,x.title,Math.round((x.size||0)/1048576*100)/100,nm(x.uploaded_by),fd(x.created_at)]));
  const r5=[[t('x_code'),t('x_date'),t('x_user'),t('x_action')]];lg.forEach(x=>r5.push([code[x.cr_id]||x.cr_id,fd(x.at),x.user_name||'',logT(x.action)]));
- const w1=[14,9,22,28,14,22,14,14,18,18,22,22,26,30,30,30,30,30,30,22,22,22,10,32,32,32,32,36,40];
+ const w1=[14,9,22,28,14,22,14,14,18,18,22,22,26,30,24,24,30,14,14,16,30,30,30,30,30,30,22,22,22,10,32,32,32,32,36,40];
  const blob=makeXlsx([{name:t('x_sh_req'),rows:r1,widths:w1},{name:t('x_sh_stk'),rows:r2,widths:[14,28,16,34,34]},{name:t('x_sh_sig'),rows:r3,widths:[14,18,26,22,22,22]},{name:t('x_sh_att'),rows:r4,widths:[14,40,10,24,22]},{name:t('x_sh_log'),rows:r5,widths:[14,22,24,60]}],rtl);
  dl(blob,'CR-export-'+stamp()+'.xlsx')})}
 
