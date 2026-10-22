@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>أرشيف المحذوفات</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--ch:#23272b;--fnt:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:var(--bg)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+main{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
+h2{margin:0 0 4px;font-size:17px}h2 small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+label{display:block;font-weight:700;font-size:13.5px;margin:10px 0 3px}
+input,select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0}
+button{font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;color:var(--ink)}
+button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var(--r);border-color:#f3b9be}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.mut{color:var(--mut);font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:430px){.g2{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:1px 10px;border-radius:99px;background:var(--g2);color:var(--g);font-size:12px;font-weight:700}
+#toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
+.lock{max-width:420px;margin:60px auto;text-align:center}
 
+.pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{padding-inline-end:44px}
+.it{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}.it .tp{display:flex;gap:8px;align-items:center;justify-content:space-between}.it b{overflow-wrap:anywhere}
+.pill.d{background:#fdecee;color:var(--r)}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.chips button.on{background:var(--g);border-color:var(--g);color:#fff}.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+<main id="app"></main><div id="toast"></div>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
+function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
+function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
+async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
+const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">👁</button>`;
+const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
+ saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
+ r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
+ newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
+ title:['أرشيف المحذوفات والمؤرشف','Deleted & archived'],search:['ابحث بالرمز أو اسم المشروع…','Search code or project name…'],
+ f_all:['الكل','All'],s_all:['المحذوف والمؤرشف','Deleted & archived'],s_del:['محذوف','Deleted'],s_arc:['مؤرشف','Archived'],
+ sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق مشروع','Project charter'],sv_closure:['تقرير ختامي','Closure report'],
+ by:['بواسطة','By'],reason:['السبب','Reason'],restore:['استرجاع','Restore'],purge:['حذف نهائي','Delete permanently'],open:['فتح الخدمة','Open service'],
+ none:['لا توجد عناصر.','No items.'],cf:['حذف نهائي لا يمكن التراجع عنه. هل أنت متأكد؟','This permanent deletion cannot be undone. Are you sure?'],restored:['تم الاسترجاع','Restored'],purged:['تم الحذف النهائي','Permanently deleted'],
+ total:['عنصر','items']
+};
+const SV={cr:{tbl:'change_requests',aud:'audit_log',page:'cr.html'},charter:{tbl:'charters',aud:'charter_audit',page:'charter.html'},closure:{tbl:'closure_reports',aud:'closure_audit',page:'closure.html'}};
+let ITEMS=[],US={},ME=null,FS='',FT='',Q='';
+async function load(){
+ if(!sb)return gate('needLogin');
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+ if(!p||p.role!='admin')return gate('adminOnly');ME=p;await reload()}
+async function reload(){
+ const pr=await sb.from('profiles').select('id,full_name');US={};(pr.data||[]).forEach(x=>US[x.id]=x.full_name);
+ ITEMS=[];
+ await Promise.all(Object.entries(SV).map(async([k,v])=>{try{const r=await sb.from(v.tbl).select('*').eq('archived',true);(r.data||[]).forEach(x=>ITEMS.push({svc:k,r:x,del:!!(x.data&&x.data._deleted)}))}catch(_){}}));
+ ITEMS.sort((a,b)=>new Date((b.r.data&&b.r.data._deleted&&b.r.data._deleted.at)||b.r.created_at||0)-new Date((a.r.data&&a.r.data._deleted&&a.r.data._deleted.at)||a.r.created_at||0));draw()}
+const fdt=d=>d?new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Dubai'}):'';
+const flt=()=>{const q=Q.trim().toLowerCase();return ITEMS.filter(x=>(!FT||x.svc==FT)&&(!FS||(FS=='del'?x.del:!x.del))&&(!q||((x.r.code||'')+' '+(x.r.data&&x.r.data.pname||'')).toLowerCase().includes(q)))};
+const chip=(cur,v,l,fn)=>`<button class="${cur==v?'on':''}" onclick="${fn}('${v}')">${l}</button>`;
+function setFS(v){FS=v;draw()}function setFT(v){FT=v;draw()}
+function draw(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+ const rows=flt();
+ $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="chips">${chip(FS,'',t('s_all'),'setFS')}${chip(FS,'del',t('s_del'),'setFS')}${chip(FS,'arc',t('s_arc'),'setFS')}</div><div class="chips">${chip(FT,'',t('f_all'),'setFT')}${Object.keys(SV).map(k=>chip(FT,k,t('sv_'+k),'setFT')).join('')}<span class="mut">${rows.length} ${t('total')}</span></div></div>
+ ${rows.map(x=>{const r=x.r,d=r.data||{},dl=d._deleted||null;return`<div class="it"><div class="tp"><b>${esc(d.pname||r.code)}</b><span class="pill ${x.del?'d':''}">${x.del?t('s_del'):t('s_arc')}</span></div><div class="mut" dir="auto">${esc(t('sv_'+x.svc))} · <span dir="ltr">${esc(r.code||'')}</span>${r.doc_no?' · <span dir="ltr">'+esc(r.doc_no)+'</span>':''}</div>${dl?`<div class="mut">${t('by')}: ${esc(dl.by||'')} · ${fdt(dl.at)}${dl.reason?'<br>'+t('reason')+': '+esc(dl.reason):''}</div>`:''}<div class="row" style="margin-top:6px"><button class="p" onclick="restore('${x.svc}',${r.id})">${t('restore')}</button><button onclick="location.href='${SV[x.svc].page}'">${t('open')}</button><button class="r" onclick="purge('${x.svc}',${r.id})">${t('purge')}</button></div></div>`}).join('')||`<div class="mut">${t('none')}</div>`}`;
+ $('q').oninput=e=>{Q=e.target.value;draw();const i=$('q');i.focus();i.setSelectionRange(Q.length,Q.length)}}
+const find=(svc,id)=>ITEMS.find(x=>x.svc==svc&&x.r.id==id);
+const restore=(svc,id)=>run(async()=>{const x=find(svc,id),v=SV[svc],d={...(x.r.data||{})},dl=d._deleted;delete d._deleted;
+ const o={archived:false,data:d};if(dl)o.status=dl.prev&&dl.prev!='Cancelled'?dl.prev:'Draft';
+ const {data:up,error}=await sb.from(v.tbl).update(o).eq('id',id).select('id');if(error)throw error;if(!up||!up.length)throw new Error('not allowed');
+ try{await sb.from(v.aud).insert({cr_id:id,user_name:ME.full_name,action:'restored'})}catch(_){}
+ await reload()},t('restored'));
+const purge=(svc,id)=>{if(!confirm(t('cf')))return;return run(async()=>{const v=SV[svc];const {error}=await sb.from(v.tbl).delete().eq('id',id);if(error)throw error;await reload()},t('purged'))};
+load();
+</script></body></html>
