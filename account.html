@@ -28,8 +28,8 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{padding-inline-end:44px}
 .av0{width:84px;height:84px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:32px;overflow:hidden;flex:none}.av0 img{width:100%;height:100%;object-fit:cover}
 .hd{display:flex;gap:14px;align-items:center}.tg{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.tg:last-of-type{border-bottom:0}.tg input{width:22px;height:22px;flex:none;accent-color:var(--g)}.tg span{flex:1}
-canvas{width:100%;height:140px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}.sigimg{max-height:80px;max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px}</style></head><body>
-<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+canvas{width:100%;height:140px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}.sigimg{max-height:80px;max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px}.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
@@ -45,7 +45,7 @@ function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=
 async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
 function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
 const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">👁</button>`;
-const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
+const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
  r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
  newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
