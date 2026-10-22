@@ -24,12 +24,13 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .pill{display:inline-block;padding:1px 10px;border-radius:99px;background:var(--g2);color:var(--g);font-size:12px;font-weight:700}
 #toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
 .lock{max-width:420px;margin:60px auto;text-align:center}
+
+.pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{padding-inline-end:44px}
 .ur{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff}
-.uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:36px;height:36px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden}.uh .av img{width:100%;height:100%;object-fit:cover}
 .uh .tx{flex:1;min-width:0}.uh .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uh .tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ub{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.ur.open .ub{display:block}.ur.open{border-color:var(--g)}
-.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}
-</style></head><body>
+.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}</style></head><body>
 <div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -44,14 +45,17 @@ function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';cle
 function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
 function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
 async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
+const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">👁</button>`;
 const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
  r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
- newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],show:['إظهار','Show'],
+ newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
  title:['إدارة المستخدمين','Manage users'],search:['ابحث بالاسم أو المسمى أو البريد…','Search name, job title or email…'],all:['كل الأدوار','All roles'],
  count:['مستخدم','users'],more:['عرض المزيد','Show more'],none:['لا توجد نتائج.','No results.'],
- newpw:['كلمة مرور جديدة للمستخدم','New password for the user'],setpw:['تعيين كلمة المرور','Set password'],pwdone:['تم تعيين كلمة المرور. أبلغ المستخدم بها.','Password set. Tell the user.'],pwshort:['٨ أحرف على الأقل.','At least 8 characters.'],
- na:['NA','NA'],det:['بيانات المستخدم','User details'],mailnote:['تغيير البريد هنا يغيّر بريد تسجيل الدخول مباشرة.','Changing the email here changes the sign-in email immediately.']
+ newpw2:['كلمة مرور جديدة للمستخدم','New password for the user'],setpw:['تعيين كلمة المرور','Set password'],pwdone:['تم تعيين كلمة المرور. أبلغ المستخدم بها.','Password set. Tell the user.'],pwshort:['٨ أحرف على الأقل.','At least 8 characters.'],
+ na:['NA','NA'],mailnote:['تغيير البريد هنا يغيّر بريد تسجيل الدخول مباشرة.','Changing the email here changes the sign-in email immediately.'],
+ add:['+ مستخدم جديد','+ New user'],addT:['إنشاء مستخدم جديد','Create a new user'],create:['إنشاء المستخدم','Create user'],created:['تم إنشاء المستخدم. أبلغه ببريده وكلمة المرور.','User created. Tell them the email and password.'],cancel:['إلغاء','Cancel']
 };
 let USERS=[],Q='',RF='',LIM=30,OPEN=null;
 async function load(){
@@ -59,22 +63,29 @@ async function load(){
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
  if(!p||p.role!='admin')return gate('adminOnly');
- const {data}=await sb.from('profiles').select('*').order('full_name');USERS=data||[];draw()}
+ await reload()}
+async function reload(){const {data}=await sb.from('profiles').select('*').order('full_name');USERS=data||[];draw()}
 const flt=()=>{const q=Q.trim().toLowerCase();return USERS.filter(u=>(!RF||u.role==RF)&&(!q||[u.full_name,u.job_title,u.email,t('r_'+u.role)].join(' ').toLowerCase().includes(q)))};
+const roleSel=(id,v)=>`<select id="${id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${v==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select>`;
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
- $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="row" style="margin-top:6px"><select id="rf" style="flex:1"><option value="">${t('all')}</option>${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${RF==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select><span class="mut" id="cnt"></span></div></div><div id="list"></div>`;
+ $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="row" style="margin-top:6px"><select id="rf" style="flex:1"><option value="">${t('all')}</option>${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${RF==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select><span class="mut" id="cnt"></span><button class="p" onclick="$('nu').classList.toggle('on')">${t('add')}</button></div></div>
+ <div class="card nu" id="nu"><h2>${t('addT')}</h2><div class="g2"><div><label>${t('name')}</label><input id="c_n"></div><div><label>${t('job')}</label><input id="c_j"></div><div><label>${t('email')}</label><input id="c_e" dir="ltr" type="email"></div><div><label>${t('role')}</label>${roleSel('c_r','pm')}</div></div><label>${t('newpw')}</label><div class="pwr"><input id="c_p" type="password" autocomplete="new-password">${eyeB('c_p')}</div><div class="mut">${t('pwhint')}</div><div class="row"><button class="p" onclick="createU()">${t('create')}</button><button onclick="$('nu').classList.remove('on')">${t('cancel')}</button></div></div>
+ <div id="list"></div>`;
  $('q').oninput=e=>{Q=e.target.value;LIM=30;drawList()};$('rf').onchange=e=>{RF=e.target.value;LIM=30;drawList()};drawList()}
 function drawList(){
  const rows=flt(),show=rows.slice(0,LIM);$('cnt').textContent=rows.length+' '+t('count');
- $('list').innerHTML=(show.map(u=>`<div class="ur ${OPEN==u.id?'open':''}" id="u_${u.id}"><div class="uh" onclick="tog('${u.id}')"><div class="av">${esc((u.full_name||'?').trim().charAt(0))}</div><div class="tx"><b>${esc(u.full_name||u.email)}</b><span>${esc(u.job_title||t('na'))} · ${esc(t('r_'+u.role))}</span></div></div>
-  <div class="ub"><div class="g2"><div><label>${t('name')}</label><input id="n_${u.id}" value="${esc(u.full_name)}"></div><div><label>${t('job')}</label><input id="j_${u.id}" value="${esc(u.job_title||'')}"></div><div><label>${t('email')}</label><input id="e_${u.id}" dir="ltr" value="${esc(u.email||'')}"></div><div><label>${t('role')}</label><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select></div></div>
+ $('list').innerHTML=(show.map(u=>`<div class="ur ${OPEN==u.id?'open':''}" id="u_${u.id}"><div class="uh" onclick="tog('${u.id}')"><div class="av">${u.avatar?`<img src="${u.avatar}">`:esc((u.full_name||'?').trim().charAt(0))}</div><div class="tx"><b>${esc(u.full_name||u.email)}</b><span>${esc(u.job_title||t('na'))} · ${esc(t('r_'+u.role))}</span></div></div>
+  <div class="ub"><div class="g2"><div><label>${t('name')}</label><input id="n_${u.id}" value="${esc(u.full_name)}"></div><div><label>${t('job')}</label><input id="j_${u.id}" value="${esc(u.job_title||'')}"></div><div><label>${t('email')}</label><input id="e_${u.id}" dir="ltr" value="${esc(u.email||'')}"></div><div><label>${t('role')}</label>${roleSel('r_'+u.id,u.role)}</div></div>
   <div class="mut" style="margin-top:4px">${t('mailnote')}</div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div>
-  <label>${t('newpw')}</label><input id="p_${u.id}" type="text" autocomplete="off" placeholder="${t('pwshort')}"><div class="row"><button onclick="setPw('${u.id}')">${t('setpw')}</button></div></div></div>`).join('')||`<div class="mut">${t('none')}</div>`)+(rows.length>LIM?`<div class="row" style="justify-content:center"><button onclick="LIM+=30;drawList()">${t('more')}</button></div>`:'')}
+  <label>${t('newpw2')}</label><div class="pwr"><input id="p_${u.id}" type="password" autocomplete="new-password" placeholder="${t('pwshort')}">${eyeB('p_'+u.id)}</div><div class="row"><button onclick="setPw('${u.id}')">${t('setpw')}</button></div></div></div>`).join('')||`<div class="mut">${t('none')}</div>`)+(rows.length>LIM?`<div class="row" style="justify-content:center"><button onclick="LIM+=30;drawList()">${t('more')}</button></div>`:'')}
 function tog(id){OPEN=OPEN==id?null:id;document.querySelectorAll('.ur').forEach(e=>e.classList.toggle('open',e.id=='u_'+OPEN))}
-const saveU=id=>run(async()=>{const n=$('n_'+id).value.trim(),j=$('j_'+id).value.trim(),e=$('e_'+id).value.trim().toLowerCase(),r=$('r_'+id).value;if(!n)throw new Error(t('name'));if(!/^\S+@\S+\.\S+$/.test(e))throw new Error(t('email'));
+const EM=/^\S+@\S+\.\S+$/;
+const saveU=id=>run(async()=>{const n=$('n_'+id).value.trim(),j=$('j_'+id).value.trim(),e=$('e_'+id).value.trim().toLowerCase(),r=$('r_'+id).value;if(!n)throw new Error(t('name'));if(!EM.test(e))throw new Error(t('email'));
  const {error}=await sb.rpc('admin_update_user',{uid:id,p_name:n,p_job:j,p_role:r,p_email:e});if(error)throw error;const u=USERS.find(x=>x.id==id);Object.assign(u,{full_name:n,job_title:j||null,email:e,role:r});drawList()});
 const setPw=id=>run(async()=>{const p=$('p_'+id).value;if(p.length<8)throw new Error(t('pwshort'));const {error}=await sb.rpc('admin_set_password',{uid:id,pw:p});if(error)throw error;$('p_'+id).value=''},t('pwdone'));
+const createU=()=>run(async()=>{const n=$('c_n').value.trim(),j=$('c_j').value.trim(),e=$('c_e').value.trim().toLowerCase(),r=$('c_r').value,p=$('c_p').value;if(!n)throw new Error(t('name'));if(!EM.test(e))throw new Error(t('email'));if(p.length<8)throw new Error(t('pwshort'));
+ const {error}=await sb.rpc('admin_create_user',{p_email:e,p_pw:p,p_name:n,p_job:j,p_role:r});if(error)throw error;Q='';await reload()},t('created'));
 load();
 </script></body></html>
