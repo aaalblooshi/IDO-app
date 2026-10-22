@@ -191,28 +191,29 @@ const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
-const mkStats=(tbl,stbl,page)=>async(me)=>{
-  const [a,b]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id)]);
-  if(a.error)throw a.error;if(b.error)throw b.error;
+const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
+  const [a,b,c]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]})]);
+  if(a.error)throw a.error;if(b.error)throw b.error;const dp=new Set((c&&c.data||[]).map(x=>x.cr_id));
   const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
   let created=0,action=0,done=0;const adm=me.role=='admin';
   (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
    if(mine)created++;
    if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
-   const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
+   const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}]};
-const STATS={cr:mkStats('change_requests','signatories','cr.html'),ch:mkStats('charters','charter_signatories','charter.html'),cl:mkStats('closure_reports','closure_signatories','closure.html')};
+const STATS={cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
  if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
  try{
   const {data:{session}}=await sb.auth.getSession();
-  if(!session){MINE={state:'login'};return drawMine()}
+  if(!session){MINE={state:'login'};try{localStorage.removeItem('hdrRole')}catch(e){}return drawMine()}
   const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   if(!me)throw new Error('no profile');
-  const panels=[];for(const s of sv){let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}panels.push({s,tiles})}
-  MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels};hdrBtns(me.role)
+  hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role)}catch(e){}
+  const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
+  MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error',msg:String(e&&e.message||e)}}
  drawMine()}
 function drawMine(){
@@ -227,7 +228,8 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="cr.html#me">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="cr.html#admin">🛠 ${a?'الإدارة':'Admin'}</a>`:'')}
+ h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'الإدارة':'Admin'}</a>`:'')}
+try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*').like('key','svc_%');applySvc.done=1;OFFSVC=(r.data||[]).filter(x=>x.value=='0').map(x=>x.key.slice(4)+'.html')}}catch(e){}
  OFFSVC.forEach(h=>{document.querySelectorAll('a[href="'+h+'"]').forEach(a=>{const c=a.closest('.pan')||a;c.style.display='none'})})}
