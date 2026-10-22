@@ -211,7 +211,7 @@ async function loadMine(){
   const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   if(!me)throw new Error('no profile');
   const panels=[];for(const s of sv){let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}panels.push({s,tiles})}
-  MINE={state:'ok',name:me.full_name||'',panels}
+  MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error'}}
  drawMine()}
 function drawMine(){
@@ -221,10 +221,14 @@ function drawMine(){
  else if(MINE.state=='error')body=`<div class="login">${T('mineErr')}</div>`;
  else if(MINE.state=='loading')body='<div class="sk"></div>';
  else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles?tiles.map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
- el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body;
+ el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body+(MINE.admin?`<div class="login" style="margin-top:10px"><a href="settings.html">⚙ ${lang=='ar'?'إعدادات الإدارة':'Admin settings'}</a></div>`:'');
  el.querySelectorAll('.tile b').forEach(b=>{const n=+b.dataset.n;if(matchMedia('(prefers-reduced-motion:reduce)').matches||MINE.shown){b.textContent=n;return}let st=performance.now();(function f(t){const p=Math.min(1,(t-st)/700);b.textContent=Math.round(n*p);if(p<1)requestAnimationFrame(f)})(st)});
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
+let OFFSVC=[];
+async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*').like('key','svc_%');applySvc.done=1;OFFSVC=(r.data||[]).filter(x=>x.value=='0').map(x=>x.key.slice(4)+'.html')}}catch(e){}
+ OFFSVC.forEach(h=>{document.querySelectorAll('a[href="'+h+'"]').forEach(a=>{const c=a.closest('.pan')||a;c.style.display='none'})})}
+new MutationObserver(()=>{if(OFFSVC.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
 const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
-draw();loadMine();
+draw();loadMine();applySvc();
 </script></body></html>
