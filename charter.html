@@ -83,6 +83,7 @@ details.acc>.in{padding:0 14px 14px}
 .pnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
 .modal{position:fixed;inset:0;background:rgba(20,22,24,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}.modal.on{display:flex}
 .box{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:420px;border-top:5px solid var(--g)}
+input[type=password]{padding-inline-end:44px}.pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}
 canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}
 .lcard{max-width:400px;margin:24px auto;border-top:5px solid var(--g)}
 @media(max-width:380px){.fg{grid-template-columns:1fr}.logo{height:38px}}
@@ -100,6 +101,7 @@ canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;to
 <div class="modal" id="modal"><div class="box"><h2 id="mt">Sign</h2>
 <div class="row" style="margin:0 0 8px"><button id="td" class="p">Draw</button><button id="tu">Upload picture</button></div>
 <div id="pd"><canvas id="cv"></canvas><div class="row"><button id="clb" onclick="clr()">Clear</button></div></div>
+<div class="row" style="margin:0 0 8px"><button id="sv" style="display:none" onclick="useSaved()">✍ <span id="svt"></span></button></div>
 <div id="pu" style="display:none"><input type="file" id="file" accept="image/png,image/jpeg"><img id="prev" style="max-height:90px;display:none;margin-top:6px"></div>
 <div id="anw" style="display:none;margin-top:10px"><textarea id="ant" rows="2" style="width:100%"></textarea></div>
 <div class="row"><button class="p" id="cfb" onclick="confirmSign()">Confirm signature</button><button id="cnb" onclick="$('modal').classList.remove('on')">Cancel</button></div>
@@ -161,7 +163,7 @@ const W=[
 ["typeSignup","Please type your email and a password of 6+ characters.","يرجى إدخال البريد الإلكتروني وكلمة مرور من 6 أحرف على الأقل."],
 ["accCreated","Account created. Click Sign in.","تم إنشاء الحساب. اضغط تسجيل الدخول."],
 ["barTitle","Change Requests","طلبات التغيير"],
-["home","Requests board","لوحة الطلبات"],
+["home","All services","كافة الخدمات"],
 ["requests","All requests","كل الطلبات"],
 ["admin","Admin","الإدارة"],
 ["myProfile","My profile","ملفي الشخصي"],
@@ -230,6 +232,8 @@ const W=[
 ["signedOn","✔ signed","✔ تم التوقيع"],
 ["add","Add","إضافة"],
 ["saveDraft","Save draft","حفظ المسودة"],
+["useSaved","Use my saved signature","استخدم توقيعي المحفوظ"],
+["delMoved","Moved to the deleted archive.","نُقل إلى أرشيف المحذوفات."],
 ["loadErr","Could not load your data. Sign out and sign in again.","تعذّر تحميل بياناتك. سجّل الخروج ثم ادخل من جديد."],
 ["delReq","Request deletion","طلب حذف"],
 ["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة الأدمن. أضف ملاحظات للأدمن (اختيارية)."],
@@ -269,7 +273,7 @@ const W=[
 ["returnPM","Return to requester","إعادة إلى مقدّم الطلب"],
 ["reject","Reject","رفض"],
 ["del","Delete request","حذف الطلب"],
-["confirmDel","Delete this request permanently?","هل تريد حذف هذا الطلب نهائياً؟"],
+["confirmDel","Move this to the deleted archive?","هل تريد نقل هذا النموذج إلى أرشيف المحذوفات؟"],
 ["archive","Archive","أرشفة"],
 ["restore","Restore from archive","استرجاع من الأرشيف"],
 ["tabActive","Active","النشطة"],
@@ -539,7 +543,7 @@ const W=[
 ["addRow", "+ Add row", "+ إضافة صف"],
 ["addItem", "+ Add item", "+ إضافة بند"],
 ["assignTo", "User who will complete the charter", "المستخدم الذي سيُكمل الميثاق"],
-["home", "Charters board", "لوحة المواثيق"]
+["home", "All services", "كافة الخدمات"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -556,6 +560,7 @@ const lg=(id,a)=>sb.from('charter_audit').insert({cr_id:id,user_name:me.full_nam
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
+ if(k=='deleted')return t('delMoved');
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
  if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
@@ -600,12 +605,13 @@ async function start(){
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
  homeView();
 }
+function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
 function loginView(){curView=loginView;editing=false;
  app.innerHTML=`<div class="card lcard"><h1>${t('appTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('tagline')}</div>
-<label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><input id="pw" type="password" dir="ltr">
+<label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><div class="pwr"><input id="pw" type="password" dir="ltr"><button type="button" class="eye" onclick="eyeT('pw',this)">👁</button></div>
 <div class="row"><button class="p" onclick="login()">${t('signIn')}</button><button onclick="signup()">${t('createAcc')}</button></div></div>`}
 async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return msg(t('typeBoth'));
- const {error}=await sb.auth.signInWithPassword({email:e,password:p});error?msg(error.message):start()}
+ const {error}=await sb.auth.signInWithPassword({email:e,password:p});if(error)return msg(error.message);location.href='./'}
 async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.length<6)return msg(t('typeSignup'));
  const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
  if(error)return msg(error.message);msg(t('accCreated'))}
@@ -945,7 +951,8 @@ async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.v
 async function rmSig(id){await sb.from('charter_signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
 async function setStatus(s,extra={}){await sb.from('charters').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
 let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;clearTimeout(AUTOT);AUTOT=setTimeout(()=>{if(editing&&cr)save(false)},2500)});
-async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('charters').delete().eq('id',cr.id);if(error)return msg(error.message);homeView()}
+async function softDel(id,data,prev,reason){const nd={...(data||{}),_deleted:{by:me.full_name,at:new Date().toISOString(),prev:prev,reason:reason||''}};return sb.from('charters').update({status:'Cancelled',archived:true,data:nd}).eq('id',id)}
+async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await softDel(cr.id,cr.data,cr.status,'');if(error)return msg(error.message);await lg(cr.id,'deleted');msg(t('delMoved'));homeView()}
 const SVC='charter';
 async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;
  let rows=[];try{const r=await sb.from('del_requests').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});rows=r.data||[]}catch(_){}
@@ -962,7 +969,7 @@ async function delSend(){const note=($('dl_q').value||'').trim();
  await lg(cr.id,'delreq');msg(t('delSent'));openCR(cr.id)}
 async function delDecide(id,ok){const dn=(($('dl_n')||{}).value||'').trim();
  const {error}=await sb.from('del_requests').update({status:ok?'approved':'rejected',decided_by:me.id,decided_at:new Date().toISOString(),decision_note:dn}).eq('id',id);if(error)return msg(error.message);
- if(ok){const u=await sb.from('charters').update({status:'Cancelled',archived:true}).eq('id',cr.id);if(u.error)return msg(u.error.message)}
+ if(ok){const u=await softDel(cr.id,cr.data,cr.status,dn);if(u.error)return msg(u.error.message)}
  await lg(cr.id,ok?'delok':'delno');
  if(ok){await listView();msg(t('delDone'))}else openCR(cr.id)}
 async function archiveCR(v){const {error}=await sb.from('charters').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
@@ -985,7 +992,8 @@ async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
 async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
 
 // ---- signing ----
-function openSign(id,stage,submit){pend={id,stage,submit:!!submit};tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
+function useSaved(){if(!me.signature_img)return;upImg=me.signature_img;$('prev').src=upImg;$('prev').style.display='block';tab('u')}
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
