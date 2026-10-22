@@ -161,7 +161,7 @@ const W=[
 ["typeSignup","Please type your email and a password of 6+ characters.","يرجى إدخال البريد الإلكتروني وكلمة مرور من 6 أحرف على الأقل."],
 ["accCreated","Account created. Click Sign in.","تم إنشاء الحساب. اضغط تسجيل الدخول."],
 ["barTitle","Change Requests","طلبات التغيير"],
-["home","Home","الرئيسية"],
+["home","Requests board","لوحة الطلبات"],
 ["requests","All requests","كل الطلبات"],
 ["admin","Admin","الإدارة"],
 ["myProfile","My profile","ملفي الشخصي"],
@@ -235,7 +235,11 @@ const W=[
 ["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة الأدمن. أضف ملاحظات للأدمن (اختيارية)."],
 ["delNote","Reason / notes for the admin","سبب الحذف / ملاحظات للأدمن"],
 ["delSend","Send deletion request","إرسال طلب الحذف"],
-["delSent","Deletion request sent to the admin.","تم إرسال طلب الحذف إلى الأدمن."],
+["delSent","Deletion request sent to the Institutional Development Office.","تم إرسال طلب الحذف إلى مكتب التطوير المؤسسي."],
+["delBadge","Deletion request","طلب حذف"],
+["a_delReq","Deletion request: decide","طلب حذف: اتخذ قرارًا"],
+["manageUsers","Manage users","إدارة المستخدمين"],
+["manageUsersH","Search users, edit their details, role, email and password.","ابحث عن المستخدمين وعدّل بياناتهم ودورهم وبريدهم وكلمة مرورهم."],
 ["delPending","Deletion request awaiting admin decision","طلب حذف بانتظار قرار الأدمن"],
 ["delRejected","Deletion request was rejected","تم رفض طلب الحذف"],
 ["delApprove","Approve deletion","الموافقة على الحذف"],
@@ -534,7 +538,8 @@ const W=[
 ["pasteGo", "Add rows", "إضافة الصفوف"],
 ["addRow", "+ Add row", "+ إضافة صف"],
 ["addItem", "+ Add item", "+ إضافة بند"],
-["assignTo", "User who will complete the charter", "المستخدم الذي سيُكمل الميثاق"]
+["assignTo", "User who will complete the charter", "المستخدم الذي سيُكمل الميثاق"],
+["home", "Charters board", "لوحة المواثيق"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
@@ -605,8 +610,11 @@ async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.le
  const {error}=await sb.auth.signUp({email:e,password:p,options:{data:{full_name:$('fn').value}}});
  if(error)return msg(error.message);msg(t('accCreated'))}
 const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
-const bar=()=>`<div class="nav"><button class="nv" onclick="location.href='./'">${lang=='ar'?'⬅ خدمات المكتب':'⬅ Office services'}</button>${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="editMe()">${t('myProfile')}</button><button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
+const bar=()=>`<div class="nav"><button class="nv" onclick="location.href='./'">${lang=='ar'?'⬅ الصفحة الرئيسية':'⬅ Home page'}</button>${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}<button class="nv" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;
 const SC={'Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
+function toPanel(cond){const p=document.querySelector('.pn.on'),tb=document.querySelector('.tabs');if(!p)return;const hh=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||90)+(tb?tb.offsetHeight:0),top=p.getBoundingClientRect().top;if(cond&&top>=hh)return;window.scrollTo({top:Math.max(0,top+window.scrollY-hh-6),behavior:'smooth'})}
+const delB=()=>`<span class="pill" style="background:#fdecee;color:#d1101d;border:1px solid #f3b9be;margin-inline-start:6px">🗑 ${t('delBadge')}</span>`;
+async function loadDelP(){try{const r=await sb.from('del_requests').select('cr_id').eq('svc',SVC).eq('status','pending');return new Set((r.data||[]).map(x=>x.cr_id))}catch(_){return new Set()}}
 const pillS=st=>`<span class="pill ${SC[st]||''}">${esc(t('st_'+st))}</span>`;
 async function editMe(){const n=prompt(t('yourName'),me.full_name);if(n===null)return;const j=prompt(t('yourJob'),me.job_title||'');if(j===null)return;
  await sb.from('profiles').update({full_name:n,job_title:j}).eq('id',me.id);start()}
@@ -619,9 +627,9 @@ const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed'
 const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval'];
 const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
 async function loadAll(){
- const [a,b,c]=await Promise.all([sb.from('charters').select('*').order('id',{ascending:false}),sb.from('charter_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('charter_audit').select('cr_id,action,at').like('action','status|%')]);
+ const [a,b,c,dp]=await Promise.all([sb.from('charters').select('*').order('id',{ascending:false}),sb.from('charter_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('charter_audit').select('cr_id,action,at').like('action','status|%'),loadDelP()]);
  const all=a.data||[];
- return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[]}}
+ return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[],dp}}
 function enrich(){
  const adm=me.role=='admin';DB.by={};
  DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
@@ -630,7 +638,9 @@ function enrich(){
   if(r.created_by==me.id)x.rel.push('created');
   if(my.some(s=>s.stage=='reviewed'))x.rel.push('reviewer');
   if(my.some(s=>s.stage=='approved'))x.rel.push('approver');
-  if(r.created_by==me.id&&st=='Draft')x.act='a_draft';
+  x.del=DB.dp&&DB.dp.has(r.id);
+  if(adm&&x.del)x.act='a_delReq';
+  else if(r.created_by==me.id&&st=='Draft')x.act='a_draft';
   else if(r.created_by==me.id&&st=='Returned to PM')x.act='a_edit';
   else if(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))x.act='a_review';
   else if(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))x.act='a_approve';
@@ -646,7 +656,7 @@ function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.s
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
 function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
- return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}${x.del?delB():''}</div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
 function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(!f)return true;
  if(f=='action')return !!x.act;
@@ -708,8 +718,9 @@ function adminBlock(){
 // ===== Charters list / create / submit =====
 async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('charters').select('*').order('id',{ascending:false});
+ const DP=await loadDelP();
  const adm=me.role=='admin',act=(data||[]).filter(r=>!r.archived),arc=(data||[]).filter(r=>r.archived),rows=adm&&showArch?arc:act;
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button onclick="draftBox()">📌 ${t('assignDraft')}</button></div><div class="pick" id="adr" style="display:none"><div class="mut">${t('assignHint')}</div><label>${t('assignTo')}</label><select id="ad_u"><option value="">${t('assignPick')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><label>${t('assignOr')}</label><input id="ad_n"><div class="row" style="margin-top:8px"><button class="p" onclick="adminDraft()">${t('assignGo')}</button><button onclick="draftBox()">${t('cancel')}</button></div></div>`:''}${adm?`<div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.data.pname||'—')}</b>${pillS(r.status)}</div><div class="mut"><span dir="ltr">${esc(r.code)} · ${esc(r.doc_no)}</span> · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button onclick="draftBox()">📌 ${t('assignDraft')}</button></div><div class="pick" id="adr" style="display:none"><div class="mut">${t('assignHint')}</div><label>${t('assignTo')}</label><select id="ad_u"><option value="">${t('assignPick')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><label>${t('assignOr')}</label><input id="ad_n"><div class="row" style="margin-top:8px"><button class="p" onclick="adminDraft()">${t('assignGo')}</button><button onclick="draftBox()">${t('cancel')}</button></div></div>`:''}${adm?`<div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.data.pname||'—')}</b>${pillS(r.status)}${DP.has(r.id)?delB():''}</div><div class="mut"><span dir="ltr">${esc(r.code)} · ${esc(r.doc_no)}</span> · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
 function draftBox(){const b=$('adr');if(b)b.style.display=b.style.display=='none'?'':'none'}
 async function goDraft(){await listView();draftBox();const e=$('adr');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})}
 async function adminDraft(){
@@ -765,8 +776,8 @@ const COLL=76;
 function grow(x){if(!x.offsetParent)return;x.style.height='auto';const full=x.scrollHeight+2,foc=document.activeElement===x,h=foc?Math.max(full,COLL):Math.min(Math.max(full,46),COLL);x.style.height=h+'px';x.parentNode.classList.toggle('clamped',!foc&&full>COLL+2)}
 function fitRO(){document.querySelectorAll('.pn.on .ro').forEach(e=>e.classList.toggle('more',!e.classList.contains('open')&&e.scrollHeight>e.clientHeight+2))}
 function fit(){document.querySelectorAll('.pn.on textarea.ta').forEach(grow);fitRO();drawDel()}
-function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==k));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('on',p.dataset.t==k));fit()}
-function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
+function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==k));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('on',p.dataset.t==k));fit();toPanel(1)}
+function goTab(k){showTab(k);toPanel()}
 function updProg(){if(!editing||!cr)return;let m=0;
  for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]==null?'':cr.data[x]).trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
  const od=OPTF.filter(k=>filled(cr.data[k])).length;const p=$('fpb');if(p)p.style.width=((TOT-m+od)/(TOT+OPTF.length)*100)+'%';const l=$('fpt');if(l)l.textContent=pgText(TOT-m,TOT,od,OPTF.length)}
@@ -941,6 +952,7 @@ async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;e
  const last=rows[0],pend=last&&last.status=='pending',adm=me.role=='admin',st=cr.status;
  const canReq=cr.created_by==me.id&&!cr.archived&&!pend&&!['Draft','Returned to PM','Cancelled'].includes(st);
  let h='';
+ if(pend){const pl=document.querySelector('.crh .top .pill');if(pl&&!document.querySelector('.crh .top .pill+.pill'))pl.insertAdjacentHTML('afterend',delB())}
  if(pend)h+=`<div class="sig"><b>🗑 ${t('delPending')}</b><div class="mut">${esc((users[last.requested_by]||{}).full_name||'')} · ${fd(last.requested_at)}</div><div>${esc(last.note||'NA')}</div>${adm?`<textarea id="dl_n" rows="2" placeholder="${t('delDecNote')}" style="width:100%;margin-top:8px;box-sizing:border-box"></textarea><div class="row"><button class="g" onclick="delDecide(${last.id},true)">${t('delApprove')}</button><button class="r" onclick="delDecide(${last.id},false)">${t('delReject')}</button></div>`:''}</div>`;
  else if(last&&last.status=='rejected'&&!cr.archived)h+=`<div class="sig"><b>🗑 ${t('delRejected')}</b>${last.decision_note?`<div>${esc(last.decision_note)}</div>`:''}</div>`;
  if(canReq)h+=`<div class="row"><button class="r" onclick="$('dl_box').style.display=''">🗑 ${t('delReq')}</button></div><div class="pick" id="dl_box" style="display:none"><div class="mut">${t('delHint')}</div><textarea id="dl_q" rows="3" placeholder="${t('delNote')}" style="width:100%;margin-top:6px;box-sizing:border-box"></textarea><div class="row" style="margin-top:8px"><button class="r" onclick="delSend()">${t('delSend')}</button></div></div>`;
@@ -1142,7 +1154,7 @@ function exportBackup(){if(me.role!='admin')return;busy('xb',async()=>{
 
 // ---- admin ----
 function adminView(){curView=adminView;editing=false;
- app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('usersRoles')}</h2><div class="mut">${t('rolesNote')}</div></div>`+Object.values(users).map(u=>`<div class="card"><div class="top"><b>${esc(u.full_name)}</b><span class="pill">${t('role_'+u.role)}</span></div><div class="mut" dir="ltr" style="text-align:start">${esc(u.email)}</div><div class="fg"><div><label>${t('thJob')}</label><input id="j_${u.id}" value="${esc(u.job_title)}"></div><div><label>${t('thRole')}</label><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('role_'+r)}</option>`).join('')}</select></div></div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div></div>`).join('')}
+ app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('manageUsers')}</h2><div class="mut">${t('manageUsersH')}</div><div class="row"><button class="p" onclick="location.href='users.html'">${t('manageUsers')} ←</button></div></div>`}
 async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
 applyStatic();start();
 </script></body></html>
