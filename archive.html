@@ -53,7 +53,8 @@ const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل
  sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق مشروع','Project charter'],sv_closure:['تقرير ختامي','Closure report'],
  by:['بواسطة','By'],reason:['السبب','Reason'],restore:['استرجاع','Restore'],purge:['حذف نهائي','Delete permanently'],open:['فتح الخدمة','Open service'],
  none:['لا توجد عناصر.','No items.'],cf:['حذف نهائي لا يمكن التراجع عنه. هل أنت متأكد؟','This permanent deletion cannot be undone. Are you sure?'],restored:['تم الاسترجاع','Restored'],purged:['تم الحذف النهائي','Permanently deleted'],
- total:['عنصر','items']
+ total:['عنصر','items'],xAll:['⬇ تصدير الأرشيف كاملًا (Excel)','⬇ Export full archive (Excel)'],xView:['⬇ تصدير المعروض (CSV)','⬇ Export shown (CSV)'],xJson:['نسخة كاملة (JSON)','Full backup (JSON)'],xBusy:['جارٍ التجهيز…','Preparing…'],xNo:['لا توجد عناصر للتصدير.','Nothing to export.'],
+ c_cls:['التصنيف','Classification'],c_svc:['الخدمة','Service'],c_code:['الرمز','Code'],c_doc:['رقم الوثيقة','Doc no.'],c_proj:['المشروع','Project'],c_st:['الحالة','Status'],c_arch:['حالة الأرشفة','Archive state'],c_by:['المنشئ','Created by'],c_at:['تاريخ الإنشاء','Created'],c_dby:['حذفه','Deleted by'],c_dat:['تاريخ الحذف','Deleted on'],c_rsn:['سبب الحذف','Reason']
 };
 const SV={cr:{tbl:'change_requests',aud:'audit_log',page:'cr.html'},charter:{tbl:'charters',aud:'charter_audit',page:'charter.html'},closure:{tbl:'closure_reports',aud:'closure_audit',page:'closure.html'}};
 let ITEMS=[],US={},ME=null,FS='',FT='',Q='';
@@ -75,7 +76,7 @@ function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  const rows=flt();
- $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="chips">${chip(FS,'',t('s_all'),'setFS')}${chip(FS,'del',t('s_del'),'setFS')}${chip(FS,'arc',t('s_arc'),'setFS')}</div><div class="chips">${chip(FT,'',t('f_all'),'setFT')}${Object.keys(SV).map(k=>chip(FT,k,t('sv_'+k),'setFT')).join('')}<span class="mut">${rows.length} ${t('total')}</span></div></div>
+ $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="chips">${chip(FS,'',t('s_all'),'setFS')}${chip(FS,'del',t('s_del'),'setFS')}${chip(FS,'arc',t('s_arc'),'setFS')}</div><div class="chips">${chip(FT,'',t('f_all'),'setFT')}${Object.keys(SV).map(k=>chip(FT,k,t('sv_'+k),'setFT')).join('')}<span class="mut">${rows.length} ${t('total')}</span></div><div class="chips"><button class="on" onclick="xAll()">${t('xAll')}</button><button onclick="xView()">${t('xView')}</button><button onclick="xJson()">${t('xJson')}</button></div></div>
  ${rows.map(x=>{const r=x.r,d=r.data||{},dl=d._deleted||null;return`<div class="it"><div class="tp"><b>${esc(d.pname||r.code)}</b><span class="pill ${x.del?'d':''}">${x.del?t('s_del'):t('s_arc')}</span></div><div class="mut" dir="auto">${esc(t('sv_'+x.svc))} · <span dir="ltr">${esc(r.code||'')}</span>${r.doc_no?' · <span dir="ltr">'+esc(r.doc_no)+'</span>':''}</div>${dl?`<div class="mut">${t('by')}: ${esc(dl.by||'')} · ${fdt(dl.at)}${dl.reason?'<br>'+t('reason')+': '+esc(dl.reason):''}</div>`:''}<div class="row" style="margin-top:6px"><button class="p" onclick="restore('${x.svc}',${r.id})">${t('restore')}</button><button onclick="location.href='${SV[x.svc].page}'">${t('open')}</button><button class="r" onclick="purge('${x.svc}',${r.id})">${t('purge')}</button></div></div>`}).join('')||`<div class="mut">${t('none')}</div>`}`;
  $('q').oninput=e=>{Q=e.target.value;draw();const i=$('q');i.focus();i.setSelectionRange(Q.length,Q.length)}}
 const find=(svc,id)=>ITEMS.find(x=>x.svc==svc&&x.r.id==id);
@@ -85,5 +86,20 @@ const restore=(svc,id)=>run(async()=>{const x=find(svc,id),v=SV[svc],d={...(x.r.
  try{await sb.from(v.aud).insert({cr_id:id,user_name:ME.full_name,action:'restored'})}catch(_){}
  await reload()},t('restored'));
 const purge=(svc,id)=>{if(!confirm(t('cf')))return;return run(async()=>{const v=SV[svc];const {error}=await sb.from(v.tbl).delete().eq('id',id);if(error)throw error;await reload()},t('purged'))};
+/* ---------- التصدير ---------- */
+const flat=x=>{const r=x.r,d=r.data||{},dl=d._deleted||{};return{[t('c_cls')]:t(x.del?'s_del':'s_arc'),[t('c_svc')]:t('sv_'+x.svc),[t('c_code')]:r.code||'',[t('c_doc')]:r.doc_no||'',[t('c_proj')]:d.pname||'',[t('c_st')]:r.status||'',[t('c_arch')]:t(x.del?'s_del':'s_arc'),[t('c_by')]:US[r.created_by]||'',[t('c_at')]:r.created_at?fdt(r.created_at):'',[t('c_dby')]:dl.by||'',[t('c_dat')]:dl.at?fdt(dl.at):'',[t('c_rsn')]:dl.reason||''}};
+function dl(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+const stamp=()=>new Date().toISOString().slice(0,10);
+function csv(rows){if(!rows.length)return'';const h=Object.keys(rows[0]),q=v=>'"'+String(v).replace(/"/g,'""')+'"';return '\ufeff'+[h.map(q).join(','),...rows.map(r=>h.map(k=>q(r[k])).join(','))].join('\r\n')}
+function xView(){const rows=flt().map(flat);if(!rows.length)return toast(t('xNo'));dl('archive-'+stamp()+'.csv',new Blob([csv(rows)],{type:'text/csv;charset=utf-8'}))}
+function xJson(){if(!ITEMS.length)return toast(t('xNo'));dl('archive-full-'+stamp()+'.json',new Blob([JSON.stringify(ITEMS.map(x=>({service:x.svc,deleted:x.del,record:x.r})),null,1)],{type:'application/json'}))}
+function loadX(){return window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function xAll(){if(!ITEMS.length)return toast(t('xNo'));toast(t('xBusy'));
+ try{await loadX();const wb=XLSX.utils.book_new(),add=(n,list)=>{if(!list.length)return;const ws=XLSX.utils.json_to_sheet(list.map(flat));ws['!cols']=Array(12).fill({wch:22});XLSX.utils.book_append_sheet(wb,ws,n.slice(0,31).replace(/[\\\/?*\[\]:]/g,' '))};
+  add(t('s_all'),ITEMS);add(t('s_del'),ITEMS.filter(x=>x.del));add(t('s_arc'),ITEMS.filter(x=>!x.del));
+  Object.keys(SV).forEach(k=>add(t('sv_'+k),ITEMS.filter(x=>x.svc==k)));
+  if(lang=='ar')wb.Workbook={Views:[{RTL:true}]};
+  XLSX.writeFile(wb,'archive-'+stamp()+'.xlsx')}
+ catch(e){const rows=ITEMS.map(flat);dl('archive-'+stamp()+'.csv',new Blob([csv(rows)],{type:'text/csv;charset=utf-8'}))}}
 load();
 </script></body></html>
