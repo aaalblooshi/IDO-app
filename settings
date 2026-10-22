@@ -1,1 +1,100 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>إعدادات الإدارة</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--ch:#23272b;--fnt:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:var(--bg)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+main{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
+h2{margin:0 0 4px;font-size:17px}h2 small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+label{display:block;font-weight:700;font-size:13.5px;margin:10px 0 3px}
+input,select,textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0}
+button{font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;color:var(--ink)}
+button.p{background:var(--g);border-color:var(--g);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.tg{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}.tg:last-of-type{border-bottom:0}
+.tg input{width:22px;height:22px;flex:none;accent-color:var(--g)}.tg span{flex:1}.tg small{display:block;color:var(--mut);font-size:12.5px}
+.mut{color:var(--mut);font-size:13px}
+.u{border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0}.u b{display:block}
+.u .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:430px){.u .g2{grid-template-columns:1fr}}
+.gl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+#toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
+.lock{max-width:420px;margin:60px auto;text-align:center}
+</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+<main id="app"></main><div id="toast"></div>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const D={
+ home:['الخدمات','Services'],title:['إعدادات الإدارة','Admin settings'],
+ needLogin:['سجّل الدخول أولًا من أي خدمة ثم ارجع لهذه الصفحة.','Sign in from any service first, then return here.'],
+ adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],
+ s_svc:['الخدمات','Services'],s_svc_h:['أوقف أو فعّل الخدمات في الصفحة الرئيسية.','Show or hide services on the home page.'],
+ sv_charter:['ميثاق المشروع','Project charter'],sv_cr:['طلبات التغيير','Change requests'],sv_closure:['التقرير الختامي','Closure report'],
+ s_att:['المرفقات','Attachments'],att_max:['الحد الأقصى لحجم الملف (ميغابايت)','Max file size (MB)'],att_h:['يُطبَّق على الميثاق وطلبات التغيير والتقرير الختامي.','Applies to charters, change requests and closure reports.'],
+ s_ev:['تنبيهات البريد','Email notifications'],s_ev_h:['اختر الأحداث التي يُرسل النظام بريدًا عنها.','Choose which events send email.'],
+ ev_submitted:['إرسال نموذج للمراجعة','Form sent for review'],ev_reviewerAssigned:['تحديد مراجع','Reviewer assigned'],ev_reviewDone:['اعتماد المراجعة','Review completed'],
+ ev_approverAssigned:['تحديد معتمِد','Approver assigned'],ev_approved:['الاعتماد النهائي','Final approval'],ev_draftAssigned:['توجيه مسودة لمستخدم','Draft assigned to a user'],
+ ev_deleteRequested:['طلب حذف (للأدمن)','Deletion request (to admin)'],ev_deleteApproved:['الموافقة على الحذف (للمستخدم)','Deletion approved (to user)'],ev_deleteRejected:['رفض الحذف (للمستخدم)','Deletion rejected (to user)'],
+ s_mail:['إعدادات البريد والموقع','Email & site settings'],s_mail_h:['يجب أن تطابق الكلمة السرية الكلمة الموجودة داخل سكربت Google.','The secret must match the one inside the Google script.'],
+ mail_url:['رابط سكربت البريد (Web app)','Mail script URL (web app)'],mail_secret:['الكلمة السرية','Secret'],site_url:['رابط الموقع (يظهر في الرسائل)','Site URL (shown in emails)'],
+ s_users:['المستخدمون والصلاحيات','Users & roles'],s_users_h:['غيّر دور المستخدم أو مسماه الوظيفي.','Change a user\'s role or job title.'],
+ role:['الدور','Role'],job:['المسمى الوظيفي','Job title'],r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
+ s_opt:['الخيارات المتاحة','Available options'],s_opt_h:['أهداف المركز الاستراتيجية في الميثاق (عربي / إنجليزي).','Strategic goals shown in the charter (Arabic / English).'],
+ goal:['الهدف','Goal'],save:['حفظ','Save'],saved:['تم الحفظ','Saved'],err:['تعذّر الحفظ: ','Could not save: '],show:['إظهار','Show'],
+ later:['ترتيب الصفحة والمؤشرات: قريبًا في الدفعة التالية.','Page order & indicators: coming in the next batch.']
+};
+const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
+const SV=['charter','cr','closure'],EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected'];
+const DEFGOALS=[['الهدف الأول','Goal 1'],['الهدف الثاني','Goal 2'],['الهدف الثالث','Goal 3'],['الهدف الرابع','Goal 4'],['الهدف الخامس','Goal 5'],['الهدف السادس','Goal 6'],['الهدف السابع','Goal 7']];
+let SET={},MAIL={},USERS=[],me=null;
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
+function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
+async function setS(k,v){const {error}=await sb.rpc('admin_set_setting',{k,v:String(v)});if(error)throw error}
+async function load(){
+ if(!sb)return gate('needLogin');
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+ if(!p||p.role!='admin')return gate('adminOnly');
+ me=p;
+ const [a,b,c]=await Promise.all([sb.from('app_settings').select('*'),sb.rpc('admin_get_mail'),sb.from('profiles').select('*').order('full_name')]);
+ SET={};(a.data||[]).forEach(x=>SET[x.key]=x.value);MAIL={};(b.data||[]).forEach(x=>MAIL[x.key]=x.value);USERS=c.data||[];draw()}
+function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+(lang=='ar'?'تسجيل الدخول':'Sign in')+'</button></div>'}
+function on(k,def){return (SET[k]==null?def:SET[k])!='0'}
+function draw(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+ let goals=DEFGOALS;try{const g=JSON.parse(SET.opt_goals||'null');if(Array.isArray(g)&&g.length)goals=g}catch(_){}
+ $('app').innerHTML=`
+ <div class="card"><h2>${t('s_svc')}<small>${t('s_svc_h')}</small></h2>${SV.map(s=>`<label class="tg"><input type="checkbox" id="sv_${s}" ${on('svc_'+s,'1')?'checked':''}><span>${t('sv_'+s)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveSvc()">${t('save')}</button></div></div>
+ <div class="card"><h2>${t('s_att')}<small>${t('att_h')}</small></h2><label>${t('att_max')}</label><input id="att" type="number" inputmode="decimal" min="1" max="50" value="${esc(SET.att_max_mb||10)}"><div class="row"><button class="p" onclick="saveAtt()">${t('save')}</button></div></div>
+ <div class="card"><h2>${t('s_ev')}<small>${t('s_ev_h')}</small></h2>${EV.map(e=>`<label class="tg"><input type="checkbox" id="ev_${e}" ${on('mail_ev_'+e,'1')?'checked':''}><span>${t('ev_'+e)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveEv()">${t('save')}</button></div></div>
+ <div class="card"><h2>${t('s_mail')}<small>${t('s_mail_h')}</small></h2>
+  <label>${t('mail_url')}</label><input id="m_url" dir="ltr" value="${esc(MAIL.mail_url||'')}">
+  <label>${t('mail_secret')}</label><input id="m_sec" dir="ltr" type="password" value="${esc(MAIL.mail_secret||'')}"><div class="row" style="margin-top:6px"><button onclick="const e=$('m_sec');e.type=e.type=='password'?'text':'password'">${t('show')}</button></div>
+  <label>${t('site_url')}</label><input id="m_site" dir="ltr" value="${esc(MAIL.site_url||'')}">
+  <div class="row"><button class="p" onclick="saveMail()">${t('save')}</button></div></div>
+ <div class="card"><h2>${t('s_users')}<small>${t('s_users_h')}</small></h2>${USERS.map(u=>`<div class="u"><b>${esc(u.full_name||u.email)}</b><span class="mut" dir="ltr">${esc(u.email||'')}</span><div class="g2"><div><label>${t('role')}</label><select id="ur_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select></div><div><label>${t('job')}</label><input id="uj_${u.id}" value="${esc(u.job_title||'')}"></div></div><div class="row"><button class="p" onclick="saveUser('${u.id}')">${t('save')}</button></div></div>`).join('')}</div>
+ <div class="card"><h2>${t('s_opt')}<small>${t('s_opt_h')}</small></h2>${goals.map((g,i)=>`<div class="gl"><div><label>${t('goal')} ${i+1} — AR</label><input id="ga_${i}" value="${esc(g[0])}"></div><div><label>${t('goal')} ${i+1} — EN</label><input id="ge_${i}" dir="ltr" value="${esc(g[1])}"></div></div>`).join('')}<div class="row"><button class="p" onclick="saveGoals(${goals.length})">${t('save')}</button></div></div>
+ <div class="mut" style="text-align:center">${t('later')}</div>`}
+async function run(fn){try{await fn();toast(t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+const saveSvc=()=>run(async()=>{for(const s of SV){const v=$('sv_'+s).checked?'1':'0';await setS('svc_'+s,v);SET['svc_'+s]=v}});
+const saveAtt=()=>run(async()=>{const v=+$('att').value;if(!(v>=1&&v<=50))throw new Error('1 - 50');await setS('att_max_mb',v);SET.att_max_mb=String(v)});
+const saveEv=()=>run(async()=>{for(const e of EV){const v=$('ev_'+e).checked?'1':'0';await setS('mail_ev_'+e,v);SET['mail_ev_'+e]=v}});
+const saveMail=()=>run(async()=>{const u=$('m_url').value.trim(),s=$('m_sec').value.trim(),w=$('m_site').value.trim();if(!u||!s||!w)throw new Error('*');await setS('mail_url',u);await setS('mail_secret',s);await setS('site_url',w);MAIL={mail_url:u,mail_secret:s,site_url:w}});
+const saveUser=id=>run(async()=>{const {error}=await sb.from('profiles').update({role:$('ur_'+id).value,job_title:$('uj_'+id).value.trim()}).eq('id',id);if(error)throw error});
+const saveGoals=n=>run(async()=>{const g=[];for(let i=0;i<n;i++){const a=$('ga_'+i).value.trim(),e=$('ge_'+i).value.trim();if(!a)throw new Error('AR '+(i+1));g.push([a,e||a])}await setS('opt_goals',JSON.stringify(g));SET.opt_goals=JSON.stringify(g)});
+load();
+</script></body></html>
