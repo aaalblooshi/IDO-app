@@ -36,6 +36,9 @@ button:active{transform:scale(.97)}
 .r{background:var(--r);color:#fff;border-color:transparent}
 .sm{padding:4px 11px;font-size:13px}
 .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.item .top{align-items:flex-start;flex-wrap:wrap}.item .top>b{flex:1 1 55%;min-width:0;overflow-wrap:anywhere;line-height:1.5}.item .mut{overflow-wrap:anywhere}
+.pls{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:100%}.pls .pill{white-space:normal;text-align:center}
+.crh .top{flex-wrap:wrap;align-items:flex-start}.crh .top h1{overflow-wrap:anywhere}.crh .pill{white-space:normal;text-align:center}
 .pill{background:var(--ch);color:#fff;border-radius:99px;padding:2px 11px;font-size:12px;font-weight:700;white-space:nowrap;display:inline-block}
 .pill.s-d{background:#8a8f96}.pill.s-ret{background:var(--am)}.pill.s-ok{background:var(--g)}.pill.s-no{background:var(--r)}.pill.act{background:var(--r)}
 .nav{display:flex;flex-wrap:nowrap;gap:6px;align-items:center;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;padding:2px 1px}.nav::-webkit-scrollbar{display:none}.nav>*{flex:0 0 auto}
@@ -155,7 +158,7 @@ const W=[
 ["typeSignup","Please type your email and a password of 6+ characters.","يرجى إدخال البريد الإلكتروني وكلمة مرور من 6 أحرف على الأقل."],
 ["accCreated","Account created. Click Sign in.","تم إنشاء الحساب. اضغط تسجيل الدخول."],
 ["barTitle","Change Requests","طلبات التغيير"],
-["home","All services","كافة الخدمات"],
+["home","Change requests","طلبات التغيير"],
 ["requests","All requests","كل الطلبات"],
 ["admin","Admin","الإدارة"],
 ["myProfile","My profile","ملفي الشخصي"],
@@ -224,6 +227,8 @@ const W=[
 ["signedOn","✔ signed","✔ تم التوقيع"],
 ["add","Add","إضافة"],
 ["saveDraft","Save draft","حفظ المسودة"],
+["noAccess","This service is not available for your role.","هذه الخدمة غير متاحة لدورك."],
+["goHome","Home page","الصفحة الرئيسية"],
 ["useSaved","Use my saved signature","استخدم توقيعي المحفوظ"],
 ["delMoved","Moved to the deleted archive.","نُقل إلى أرشيف المحذوفات."],
 ["loadErr","Could not load your data. Sign out and sign in again.","تعذّر تحميل بياناتك. سجّل الخروج ثم ادخل من جديد."],
@@ -404,7 +409,33 @@ const W=[
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
-const t=k=>D[lang][k]??D.en[k]??k;
+/* ===== configurable lists (sectors, departments, goals, types...) and roles ===== */
+let SET={},ROLES={},LST={};
+const adg=n=>String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]);
+const GA=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع'];
+const defLists=()=>({
+ sectors:[1,2,3,4].map(n=>['قطاع '+adg(n),'Sector '+n]),
+ depts:[1,2,3,4].map(s=>[1,2,3,4,5].map(p=>['الإدارة '+adg(p)+' للقطاع '+adg(s),'Department '+p+' of Sector '+s])),
+ goals:GA.map((a,i)=>['الهدف '+a,'Goal '+(i+1)]),
+ ptype:[['strategic','استراتيجي','Strategic'],['operational','تشغيلي','Operational']],
+ prio:[['Low','منخفضة','Low'],['Medium','متوسطة','Medium'],['High','عالية','High'],['Critical','حرجة','Critical']],
+ pstat:[['completed','مكتمل','Completed'],['cancelled','ملغى أو موقوف','Cancelled or stopped']]});
+function applyLists(){let u={};try{u=JSON.parse(SET.opt_lists||'{}')||{}}catch(_){}
+ if(!u.goals&&SET.opt_goals){try{const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length)u.goals=g}catch(_){}}
+ const d=defLists();LST={};for(const k in d)LST[k]=Array.isArray(u[k])&&u[k].length?u[k]:d[k];
+ while(LST.depts.length<LST.sectors.length)LST.depts.push([]);LST.depts.length=LST.sectors.length}
+applyLists();
+const pk=a=>lang=='ar'?a[0]:a[1];
+const secL=s=>s&&LST.sectors[s-1]?pk(LST.sectors[s-1]):'';
+const depL=(s,p)=>p=='na'?(lang=='ar'?'لا ينطبق':'Not applicable'):(p&&LST.depts[s-1]&&LST.depts[s-1][p-1]?pk(LST.depts[s-1][p-1]):'');
+const goalL=g=>{const x=LST.goals[+g-1];return x?pk(x):''};
+const LMAP={pt:'ptype',ps:'pstat',p:'prio'};
+const t=k=>{const m=/^(pt|ps|p)_(.+)$/.exec(k);if(m){const x=LST[LMAP[m[1]]].find(e=>e[0]==m[2]);if(x)return lang=='ar'?x[1]:x[2]}return D[lang][k]??D.en[k]??k};
+const rl=u=>{const r=ROLES[u.role_key||u.role];return r?(lang=='ar'?r.name_ar:r.name_en):t('role_'+u.role)};
+const myPerm=()=>{const r=ROLES[me.role_key||me.role];return r&&r.perms||{}};
+const canNew=()=>{if(me.role=='admin')return true;const p=myPerm();if(p.create&&p.create[SVC]!==undefined)return !!p.create[SVC];return me.role=='pm'};
+const svcOn=()=>{const p=myPerm();return !(p.svc&&p.svc[SVC]===false)};
+
 const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
 const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
@@ -448,9 +479,9 @@ async function toggleLang(){
  ids.forEach((i,j)=>{if($(i)&&v[j])$(i).value=v[j]})}
 
 // ===== App =====
-let SET={};const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
+const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
 async function loadSet(){SET={};try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
- try{if(SET.opt_goals){const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length){if(typeof GOALS!='undefined')GOALS.splice(0,GOALS.length,...g);if(typeof CGOALS!='undefined')CGOALS.splice(0,CGOALS.length,...g)}}}catch(_){}}
+ applyLists();ROLES={};try{const r=await sb.from('app_roles').select('*');(r.data||[]).forEach(x=>ROLES[x.key]=x)}catch(_){}}
 async function start(){
  curView=start;editing=false;
  if(!sb){app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('almost')}</p></div>`;return}
@@ -459,6 +490,7 @@ async function start(){
  const {data:ps,error:pe}=await sb.from('profiles').select('*');
  if(pe||!ps||!ps.find(p=>p.id==session.user.id)){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('loadErr')}</p><p dir="ltr" class="mut">${esc(pe?pe.message:'profile not found')}</p><button class="p" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;return}
  users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];await loadSet();
+ if(!svcOn()){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('noAccess')}</p><button class="p" onclick="location.href='./'">${t('goHome')}</button></div>`;return}
  if(location.hash=='#me'||(location.hash=='#admin'&&me.role=='admin')){const h=location.hash;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();if(h=='#admin')return adminView();return editMe()}
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
@@ -521,7 +553,7 @@ function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.s
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
 function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
- return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}${x.del?delB():''}</div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button>${rem&&['PMO Review','Awaiting Approval'].includes(r.status)?`<button class="sm" onclick="remind(${r.id})">${t('remindBtn')}</button>`:''}</div></div>`}
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${x.del?delB():''}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button>${rem&&['PMO Review','Awaiting Approval'].includes(r.status)?`<button class="sm" onclick="remind(${r.id})">${t('remindBtn')}</button>`:''}</div></div>`}
 function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(!f)return true;
  if(f=='action')return !!x.act;
@@ -545,7 +577,7 @@ function drawHome(){
  const adm=me.role=='admin';
  const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
  const acts=list('action');
- app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}${me.role=='admin'?`<button class="nw" onclick="goDraft()">📌 ${t('assignDraft')}</button>`:''}</div>
+ app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${rl(me)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${canNew()?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}${me.role=='admin'?`<button class="nw" onclick="goDraft()">📌 ${t('assignDraft')}</button>`:''}</div>
  <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
@@ -569,7 +601,7 @@ function adminBlock(){
  const now=new Date(),ym=d=>d.getFullYear()*12+d.getMonth(),cm=ym(now);
  const mc=k=>A.filter(r=>ym(new Date(r.created_at))==cm-k).length;
  const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{month:'short'}),mc(k)]});
- const pr=['Low','Medium','High','Critical'].map(p=>[t('p_'+p),A.filter(r=>r.data.prio==p).length]);
+ const pr=LST.prio.map(x=>x[0]).map(p=>[t('p_'+p),A.filter(r=>r.data.prio==p).length]);
  const dm={};A.forEach(r=>{const k=(r.data.dept||'').trim();if(k)dm[k]=(dm[k]||0)+1});
  const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
  const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
@@ -587,7 +619,7 @@ async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
  const DP=await loadDelP();
  const adm=me.role=='admin',act=data.filter(r=>!r.archived),arc=data.filter(r=>r.archived),rows=adm&&showArch?arc:act;
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button onclick="draftBox()">📌 ${t('assignDraft')}</button></div><div class="pick" id="adr" style="display:none"><div class="mut">${t('assignHint')}</div><label>${t('assignTo')}</label><select id="ad_u"><option value="">${t('assignPick')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><label>${t('assignOr')}</label><input id="ad_n"><div class="row" style="margin-top:8px"><button class="p" onclick="adminDraft()">${t('assignGo')}</button><button onclick="draftBox()">${t('cancel')}</button></div></div><div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}${DP.has(r.id)?delB():''}</div><div class="mut">${t('priority')}: ${esc(pl(r.data.prio))||'—'} · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${r.data._assigned&&r.status=='Draft'?' · 📌 '+t('assignedTag'):''}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${canNew()?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button onclick="draftBox()">📌 ${t('assignDraft')}</button></div><div class="pick" id="adr" style="display:none"><div class="mut">${t('assignHint')}</div><label>${t('assignTo')}</label><select id="ad_u"><option value="">${t('assignPick')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><label>${t('assignOr')}</label><input id="ad_n"><div class="row" style="margin-top:8px"><button class="p" onclick="adminDraft()">${t('assignGo')}</button><button onclick="draftBox()">${t('cancel')}</button></div></div><div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${DP.has(r.id)?delB():''}</span></div><div class="mut">${t('priority')}: ${esc(pl(r.data.prio))||'—'} · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${r.data._assigned&&r.status=='Draft'?' · 📌 '+t('assignedTag'):''}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
 function draftBox(){const b=$('adr');if(b)b.style.display=b.style.display=='none'?'':'none'}
 async function goDraft(){await listView();draftBox();const e=$('adr');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})}
 async function adminDraft(){
@@ -605,13 +637,11 @@ async function newCR(){
 
 let ftab='proj',ftabKey='',CHL=[];
 const CF=['ch_pdesc','ch_ptype','ch_goal','ch_purpose','ch_sdate','ch_edate','ch_budget'],CFA=['ch_pdesc','ch_purpose'];
-const CGOALS=[['الهدف الأول','Goal 1'],['الهدف الثاني','Goal 2'],['الهدف الثالث','Goal 3'],['الهدف الرابع','Goal 4'],['الهدف الخامس','Goal 5'],['الهدف السادس','Goal 6'],['الهدف السابع','Goal 7']];
 const cdig=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
 async function pickCharter(id){if(!id)return;const c=CHL.find(x=>String(x.id)==String(id));if(!c)return;const d=c.data||{};
- const gl=g=>{const x=CGOALS[+g-1];return x?x[lang=='ar'?0:1]:''};
  Object.assign(cr.data,{ch_id:c.id,pname:d.pname||'',pcode:c.code||'',sponsor:d.owner||'',pmname:d.pmname||cr.data.pmname||'',
-  sector:d.sector?(lang=='ar'?'قطاع ':'Sector ')+cdig(d.sector):'',
-  dept:d.dept=='na'?(lang=='ar'?'لا ينطبق':'Not applicable'):d.dept&&d.sector?(lang=='ar'?'الإدارة '+cdig(d.dept)+' للقطاع '+cdig(d.sector):'Department '+d.dept+' of Sector '+d.sector):'',
+  sector:secL(d.sector),
+  dept:depL(d.sector,d.dept),
   ch_pdesc:d.pdesc||'',ch_ptype:d.ptype=='strategic'?(lang=='ar'?'استراتيجي':'Strategic'):d.ptype=='operational'?(lang=='ar'?'تشغيلي':'Operational'):'',
   ch_goal:gl(d.goal),ch_purpose:d.purpose||'',ch_sdate:d.sdate||'',ch_edate:d.edate||'',ch_budget:d.budget==null?'':String(d.budget)});
  const inc=(d.stk_int||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'Internal',i:'',c:''})),ext=(d.stk_ext||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'External',i:'',c:''})),nw=[...inc,...ext];
@@ -653,7 +683,7 @@ async function openCR(id){
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'proj':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||t('role_'+u.role))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
  if(ed)acts+=`<button onclick="saveDraft()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
@@ -689,7 +719,7 @@ async function openCR(id){
  ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
  ${nbn}${nbar}
  <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${k=='flow'&&atts.length?' 📎'+atts.length:''}${ncnt(k)?`<i class="nbd">💬${ncnt(k)}</i>`:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
- <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div>${ed?`<div class="pick"><label>${t('pickCh')}</label><select id="chpick" onchange="pickCharter(this.value)"><option value="">${t('pickPh')}</option>${CHL.map(c=>`<option value="${c.id}" ${String(d.ch_id)==String(c.id)?'selected':''}>${esc(c.code)} · ${esc((c.data||{}).pname||'')}</option>`).join('')}</select><div class="mut">${CHL.length?t('pickHint'):t('pickNone')}</div></div>`:''}<div class="fg">${F.map(k=>fld(k,k=='prio'?`<select data-k="prio" ${dis}>${['','Low','Medium','High','Critical'].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`,k=='pname'?'full':'')).join('')}</div>${(ed||CF.some(k=>d[k]))?`<div class="sec" style="margin-top:14px">${t('chInfo')}</div><div class="fg">${CF.map(k=>`<div class="${CFA.includes(k)?'full':''}"><label>${t('f_'+k)}</label>${CFA.includes(k)?(ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`):`<input data-k="${k}" type="${k.endsWith('date')?'date':'text'}" ${k=='ch_budget'?'inputmode="decimal"':''} value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>`:''}${pnav('','chg')}</div>
+ <div class="card pn ${ftab=='proj'?'on':''}" data-t="proj"><div class="sec">${t('projDetails')}</div>${ed?`<div class="pick"><label>${t('pickCh')}</label><select id="chpick" onchange="pickCharter(this.value)"><option value="">${t('pickPh')}</option>${CHL.map(c=>`<option value="${c.id}" ${String(d.ch_id)==String(c.id)?'selected':''}>${esc(c.code)} · ${esc((c.data||{}).pname||'')}</option>`).join('')}</select><div class="mut">${CHL.length?t('pickHint'):t('pickNone')}</div></div>`:''}<div class="fg">${F.map(k=>fld(k,k=='prio'?`<select data-k="prio" ${dis}>${['',...LST.prio.map(x=>x[0])].map(o=>`<option value="${o}" ${d.prio==o?'selected':''}>${o?t('p_'+o):''}</option>`).join('')}</select>`:`<input data-k="${k}" type="${k=='edate'?'date':'text'}" value="${esc(d[k])}" ${dis}>`,k=='pname'?'full':'')).join('')}</div>${(ed||CF.some(k=>d[k]))?`<div class="sec" style="margin-top:14px">${t('chInfo')}</div><div class="fg">${CF.map(k=>`<div class="${CFA.includes(k)?'full':''}"><label>${t('f_'+k)}</label>${CFA.includes(k)?(ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'—'}</div>`):`<input data-k="${k}" type="${k.endsWith('date')?'date':'text'}" ${k=='ch_budget'?'inputmode="decimal"':''} value="${esc(d[k])}" ${dis}>`}</div>`).join('')}</div>`:''}${pnav('','chg')}</div>
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
@@ -884,7 +914,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
   if(!ss.length)rows.push(R([C(P(t('noOne'),{sa:0}),{w:W,span:4})]));
   for(const s of ss){const u=nm(s.user_id);let sc=[P('')];
    if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
-   rows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sgw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||t('role_'+u.role),{sa:0,size:19}),{w:sgw[1],v:D.VerticalAlign.CENTER}),C(P(s.status=='signed'?t('signedOn')+'\n'+fd(s.signed_at):t('pending'),{sa:0,size:19,c:s.status=='signed'?GRN:'B7791F',b:1}),{w:sgw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sgw[3],v:D.VerticalAlign.CENTER})]))}
+   rows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sgw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||rl(u),{sa:0,size:19}),{w:sgw[1],v:D.VerticalAlign.CENTER}),C(P(s.status=='signed'?t('signedOn')+'\n'+fd(s.signed_at):t('pending'),{sa:0,size:19,c:s.status=='signed'?GRN:'B7791F',b:1}),{w:sgw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sgw[3],v:D.VerticalAlign.CENTER})]))}
   if(sg=='approved')AN.forEach(x=>rows.push(R([C(P('💬 '+t('apprNoteT')+': '+x.by+(x.at?' · '+fd(x.at):'')+'\n'+x.text,{sa:0,c:GRN,b:1}),{w:W,span:4})])));
   kids.push(T(rows,sgw));kids.push(gap())}
  // audit log
