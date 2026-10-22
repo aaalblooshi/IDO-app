@@ -1114,7 +1114,7 @@ async function openCR(id){
  const s0=STEP[st];
  const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
  if(!Array.isArray(d.tasks))d.tasks=[];
- PL.ed=PL.ed||null;PL.canEdit=ed;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
+ PL.ed=PL.ed||null;PL.canEdit=ed||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'));PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
  if(adm&&!arch){try{const q=await sb.from('plans').select('code,data').order('id',{ascending:false}).limit(300);PL.crs=q.data||[]}catch(_){PL.crs=[]}}
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
@@ -1195,7 +1195,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  let h='';
  if(!d.levels&&PL.canEdit){h=onboard()}
  else{
-  h=toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button></div>`:'')+legend()+sheetH()+impH()}
+  h=(!PL.canEdit&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button></div>`:'')+legend()+sheetH()+impH()}
  el.innerHTML=h;
  if(PL.view=='gantt'&&$('gx')){bindGantt(sc)}
  if(PL.focus){const f=document.querySelector(`.pr[data-id="${PL.focus}"] input[data-pk=n]`);PL.focus=null;if(f&&PL.view=='list')f.focus({preventScroll:false})}
