@@ -27,8 +27,8 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}
 .gl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
 #toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
 .lock{max-width:420px;margin:60px auto;text-align:center}
-</style></head><body>
-<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
@@ -37,7 +37,7 @@ let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
-const D={
+const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],
  home:['الخدمات','Services'],title:['إعدادات الإدارة','Admin settings'],
  needLogin:['سجّل الدخول أولًا من أي خدمة ثم ارجع لهذه الصفحة.','Sign in from any service first, then return here.'],
  adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],
@@ -170,8 +170,8 @@ function drawHome(){const el=$('home');if(!el)return;if(!HC)initHome();
  <h2 style="margin-top:12px;font-size:15px">${t('h_axes')}</h2>${hrows(HC.axes,'HC.axes',k=>t('ax_'+k))}
  <h2 style="margin-top:12px;font-size:15px">${t('h_svcs')}</h2>${AXI.filter(a=>a.s.length).map(a=>`<div class="mut" style="margin-top:6px">${t('ax_'+a.id)}</div>`+hrows(HC.svc[a.id],'HC.svc.'+a.id,svName)).join('')}
  <h2 style="margin-top:12px;font-size:15px">${t('h_tiles')}</h2>${hrows(HC.tiles,'HC.tiles',k=>t('t_'+k))}`}
-const saveHome=()=>run(async()=>{const on=l=>l.filter(x=>x.on).map(x=>x.k);const svc={};AXI.forEach(a=>svc[a.id]=on(HC.svc[a.id]));
- const c={mine:HC.mine?1:0,order:HC.first?'mine':'axes',axes:on(HC.axes),tiles:on(HC.tiles),svc};const j=JSON.stringify(c);await setS('home_cfg',j);SET.home_cfg=j});
+const saveHome=()=>run(async()=>{const on=l=>l.filter(x=>x.on).map(x=>x.k),off=l=>l.filter(x=>!x.on).map(x=>x.k);const svc={},svcOff={};AXI.forEach(a=>{svc[a.id]=on(HC.svc[a.id]);svcOff[a.id]=off(HC.svc[a.id])});
+ const c={mine:HC.mine?1:0,order:HC.first?'mine':'axes',axes:on(HC.axes),axesOff:off(HC.axes),tiles:on(HC.tiles),tilesOff:off(HC.tiles),svc,svcOff};const j=JSON.stringify(c);await setS('home_cfg',j);SET.home_cfg=j});
 const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=null;drawHome()});
 load();
 </script></body></html>
