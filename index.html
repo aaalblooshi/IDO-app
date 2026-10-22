@@ -228,7 +228,7 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'الإدارة':'Admin'}</a>`:'')}
+ h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'الإدارة':'Admin'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*').like('key','svc_%');applySvc.done=1;OFFSVC=(r.data||[]).filter(x=>x.value=='0').map(x=>x.key.slice(4)+'.html')}}catch(e){}
