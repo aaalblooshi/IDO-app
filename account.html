@@ -69,22 +69,24 @@ async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');sess=session;
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+ try{const {data:rr}=await sb.from('app_roles').select('*').eq('key',p.role_key||p.role).maybeSingle();RROW=rr}catch(_){}
  if(!p)return gate('needLogin');me=p;
  const em=(session.user.email||'').toLowerCase();
  if(em&&(p.email||'').toLowerCase()!==em){try{await sb.from('profiles').update({email:em}).eq('id',p.id);me.email=em}catch(_){}}
  draw()}
+let RROW=null;const rname=()=>RROW?(lang=='ar'?RROW.name_ar:RROW.name_en):t('r_'+me.role);
 const fdt=d=>d?new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Dubai'}):'—';
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  if(!me)return;const off=me.mail_off||[];
  $('app').innerHTML=`
- <div class="card"><div class="hd"><div class="av0">${me.avatar?`<img src="${me.avatar}">`:esc((me.full_name||'?').trim().charAt(0))}</div><div><b>${esc(me.full_name)}</b><div class="mut">${esc(me.job_title||'NA')} · ${esc(t('r_'+me.role))}</div>
+ <div class="card"><div class="hd"><div class="av0">${me.avatar?`<img src="${me.avatar}">`:esc((me.full_name||'?').trim().charAt(0))}</div><div><b>${esc(me.full_name)}</b><div class="mut">${esc(me.job_title||'NA')} · ${esc(rname())}</div>
   <div class="row" style="margin-top:6px"><button onclick="$('ph').click()">${t('choose')}</button>${me.avatar?`<button class="r" onclick="rmPhoto()">${t('rmphoto')}</button>`:''}</div><input id="ph" type="file" accept="image/*" style="display:none" onchange="setPhoto(this)"></div></div></div>
  <div class="card"><h2>${t('s_prof')}<small>${t('s_prof_h')}</small></h2>
   <div class="g2"><div><label>${t('name')}</label><input id="a_n" value="${esc(me.full_name)}"></div><div><label>${t('job')}</label><input id="a_j" placeholder="${t('jobph')}" value="${esc(me.job_title||'')}"></div></div>
   <div class="mut" style="margin-top:4px">${t('jobnote')}</div>
-  <div class="g2"><div><label>${t('email')}</label><input dir="ltr" value="${esc(me.email||sess.user.email||'')}" disabled></div><div><label>${t('role')}</label><input value="${esc(t('r_'+me.role))}" disabled></div></div>
+  <div class="g2"><div><label>${t('email')}</label><input dir="ltr" value="${esc(me.email||sess.user.email||'')}" disabled></div><div><label>${t('role')}</label><input value="${esc(rname())}" disabled></div></div>
   <div class="row"><button class="p" onclick="saveProf()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_sig')}<small>${t('s_sig_h')}</small></h2>${me.signature_img?`<img class="sigimg" src="${me.signature_img}">`:`<div class="mut">${t('nosig')}</div>`}<canvas id="cv" style="margin-top:8px"></canvas><div class="row"><button onclick="clr()">${t('clear')}</button><button class="p" onclick="saveSig()">${t('savesig')}</button>${me.signature_img?`<button class="r" onclick="rmSig()">${t('rmsig')}</button>`:''}</div></div>
  <div class="card"><h2>${t('s_notif')}<small>${t('s_notif_h')}</small></h2>${EV.filter(e=>e!='deleteRequested'||me.role=='admin').map(e=>`<label class="tg"><input type="checkbox" id="ev_${e}" ${off.includes(e)?'':'checked'}><span>${t('ev_'+e)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveNotif()">${t('save')}</button></div></div>
