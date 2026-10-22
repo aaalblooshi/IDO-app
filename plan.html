@@ -88,10 +88,14 @@ details.acc>.in{padding:0 14px 14px}
 .pnav{display:flex;justify-content:space-between;gap:8px;margin-top:14px}
 .modal{position:fixed;inset:0;background:rgba(20,22,24,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:50}.modal.on{display:flex}
 .box{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:420px;border-top:5px solid var(--g)}
-input[type=password]{padding-inline-end:44px}.pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}
+input[type=password]{direction:ltr;text-align:left;padding-right:48px!important;padding-left:12px!important}.pwr{position:relative}.eye{position:absolute;right:6px;left:auto;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}
 canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}
 .lcard{max-width:400px;margin:24px auto;border-top:5px solid var(--g)}
 @media(max-width:380px){.fg{grid-template-columns:1fr}.logo{height:38px}}
+
+.pkb{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-height:42px;text-align:start;border:1px solid var(--line,#d9d4c7);background:#fff;border-radius:12px;padding:8px 12px;font:inherit;cursor:pointer;color:inherit}.pkb:disabled{opacity:.6;cursor:default}.pkb span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pkb::after{content:"⌕";color:#6b6f76;font-size:16px}.pkb.em span{color:#8a8f96}
+.pkov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:flex-end;justify-content:center}.pkbx{background:#fff;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;padding:12px}@media(min-width:700px){.pkov{align-items:center}.pkbx{border-radius:18px}}
+.pkbx input{width:100%;margin-bottom:8px}.pkl{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}.pki{display:block;width:100%;text-align:start;border:0;border-bottom:1px solid #eee;background:#fff;padding:11px 8px;font:inherit;cursor:pointer}.pki:hover,.pki.on{background:#f2faf5}.pki.on{font-weight:800}.pkn{padding:8px;color:#6b6f76;font-size:13px}
 .dinfo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.dinfo div{background:#f7faf8;border:1px solid var(--line);border-radius:10px;padding:6px 9px;min-width:0}.dinfo span{display:block;font-size:11.5px;color:var(--mut)}.dinfo b{display:block;font-size:13.5px;overflow-wrap:anywhere}
 @media(max-width:560px){.dinfo{grid-template-columns:repeat(2,1fr)}}
 .gv{display:grid;grid-template-columns:130px 1fr;gap:8px}@media(max-width:420px){.gv{grid-template-columns:1fr}}
@@ -124,11 +128,11 @@ details.ck{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:
 }
 .gtb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 .gx{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:72vh;position:relative}.gin{position:relative}
-.ghd{display:flex;position:sticky;top:0;z-index:6;background:#fff;border-bottom:1px solid var(--line)}
+.ghd{display:flex;position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid var(--line)}
 .glh{position:sticky;left:0;z-index:7;background:var(--ch);color:#fff;display:flex;align-items:center;gap:6px;padding:0 8px;font-weight:700;font-size:12.5px;flex:none}
 .gth{position:relative;flex:none;background:#fbfaf6}.gmr,.gdr{position:relative;height:23px}.gm{position:absolute;top:0;height:23px;border-inline-start:1px solid var(--line);font-size:11.5px;font-weight:700;padding:2px 4px;white-space:nowrap;overflow:hidden;color:var(--ink)}
 .gd{position:absolute;top:0;height:23px;text-align:center;font-size:10.5px;color:var(--mut);line-height:23px;border-inline-start:1px solid #eee;overflow:hidden}.gd.of{background:#f0eee8}.gd.wk{text-align:start;padding-inline-start:2px}
-.gbd{display:flex;position:relative}.gl{position:sticky;left:0;z-index:4;background:#fff;flex:none;border-right:1px solid var(--line)}
+.gbd{display:flex;position:relative}.gl{position:sticky;left:0;z-index:7;background:#fff;flex:none;border-right:1px solid var(--line)}
 .grl{display:flex;align-items:center;gap:6px;padding:0 8px;border-bottom:1px solid #eee;font-size:13px;cursor:pointer;overflow:hidden;white-space:nowrap}.grl.sum{font-weight:800;background:#f6f8f6}.grl.sel{background:#e5f2ea}
 .grl .wb{font-weight:800;font-size:12px;min-width:30px;color:var(--mut)}.grl .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}.grl .gs,.grl .ge{width:76px;font-size:11.5px;color:var(--mut);direction:ltr;flex:none}.grl .gw{width:90px;overflow:hidden;text-overflow:ellipsis;font-size:12px;flex:none}.grl .gp{width:38px;font-size:12px;flex:none}
 .glh .gs,.glh .ge{width:76px}.glh .gw{width:90px}.glh .gp{width:38px}.glh .wb{min-width:30px}.glh .nm{flex:1}
@@ -149,6 +153,31 @@ details.ck{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:
 .shb{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px 22px}@media(min-width:700px){.shov{align-items:center}.shb{border-radius:18px}}
 .shb .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}.shb label{display:block;font-weight:700;font-size:13.5px;margin:10px 0 3px}.shb input,.shb select,.shb textarea{width:100%}.shb .tg2{display:flex;gap:8px;align-items:center}.shb .tg2 input{width:auto}
 .xlt{border-collapse:collapse;font-size:12px;min-width:640px}.xlt td,.xlt th{border:1px solid var(--line);padding:3px 6px;white-space:nowrap}.xlt th{background:#efede6;text-align:center}.xlt tr.xh td{background:var(--g);color:#fff;font-weight:700}.xlr{padding-inline-start:18px;font-size:13px;color:var(--mut)}
+
+/* levels: distinct colours */
+.pr.d0,.grl.d0{--lc:#1d4e89}.pr.d1,.grl.d1{--lc:#d98200}.pr.d2,.grl.d2{--lc:#7b3fa0}
+.pr{border-inline-start:6px solid var(--lc,#1d4e89)}
+.pr .wb,.grl .wb{background:var(--lc);color:#fff!important;border-radius:6px;padding:2px 7px;text-align:center;display:inline-block;min-width:34px}
+.pr.ph{border-inline-start:6px solid transparent}.pr.ph .wb{background:none}
+.bar.lv0{background:#1d4e89}.bar.lv1{background:#d98200}.bar.lv2{background:#7b3fa0}
+.bar.sum.lv0{background:#1d4e89}.bar.sum.lv1{background:#d98200}.bar.sum.lv2{background:#7b3fa0}
+.bar.sum.lv0::before{border-top-color:#1d4e89;border-left-color:#1d4e89}.bar.sum.lv0::after{border-top-color:#1d4e89;border-right-color:#1d4e89}
+.bar.sum.lv1::before{border-top-color:#d98200;border-left-color:#d98200}.bar.sum.lv1::after{border-top-color:#d98200;border-right-color:#d98200}
+.bar.sum.lv2::before{border-top-color:#7b3fa0;border-left-color:#7b3fa0}.bar.sum.lv2::after{border-top-color:#7b3fa0;border-right-color:#7b3fa0}
+.bar.ms.lv0 i{background:#1d4e89}.bar.ms.lv1 i{background:#d98200}.bar.ms.lv2 i{background:#7b3fa0}
+.bar.crit{box-shadow:0 0 0 2px var(--r),0 1px 2px rgba(0,0,0,.25)}.bar.ms.crit{box-shadow:none}.bar.ms.crit i{outline:2px solid var(--r)}
+.lb.l0{background:#1d4e89}.lb.l1{background:#d98200}.lb.l2{background:#7b3fa0}.lb.crit{background:#fff;border:2px solid var(--r);box-sizing:border-box}.lb.hol{background:rgba(209,16,29,.25)}
+.bar.lsrc{outline:3px solid #0a6b3d;outline-offset:2px}
+.lmb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#e8f5ee;border:1px solid #0a6b3d;border-radius:12px;padding:8px 12px;margin-bottom:8px;font-weight:700}
+.gtb .seg button.on,.gtb button.p{background:var(--g);color:#fff}
+.gwrap.gfs{position:fixed;inset:0;z-index:70;background:#fff;padding:10px;display:flex;flex-direction:column}.gwrap.gfs .gx{flex:1;max-height:none}
+/* add-activity bar */
+.ra{flex-direction:column;gap:8px;background:#f2faf5;border-radius:10px;padding:8px}.ral{display:flex;flex-direction:column;gap:6px}.lvr{display:flex;gap:6px;flex-wrap:wrap}
+.lvb{border:2px solid var(--c,#999)!important;background:#fff!important;font-weight:700}.lvb.lv0{--c:#1d4e89}.lvb.lv1{--c:#d98200}.lvb.lv2{--c:#7b3fa0}.lvb.cur{background:var(--c)!important;color:#fff!important}.lvb small{font-weight:600}
+.ral2{display:flex;gap:6px;flex-wrap:wrap}
+.rdy{margin-top:14px;border:2px dashed var(--line);border-radius:14px;padding:10px 12px}.rdy.ok{border-color:#0a6b3d;background:#f2faf5}
+.rnote{background:#fff8e1;border:1px solid #f0c75e;border-radius:12px;padding:10px;margin-bottom:10px}.rnote textarea{width:100%;margin-top:6px}.rnote.ro{margin:8px 0 0}.rnb{margin-inline-start:4px}
+.gbd .gt{z-index:1}
 </style></head><body>
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><div class="hgrp"><a class="hbtn" id="hacc" href="account.html" hidden></a><button class="hbtn" id="lb" onclick="toggleLang()">العربية</button><button class="hbtn" id="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})" hidden></button></div></div><div class="ttl" id="ttl"></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <div id="app"></div>
@@ -669,7 +698,8 @@ const W=[
 ["pl_lgLate", "Late", "متأخر"],
 ["pl_lgMs", "Milestone", "معلَم"],
 ["pl_lgBase", "Approved baseline", "الخط الأساسي المعتمد"],
-["pl_lgOff", "Weekend / holiday", "عطلة"],
+["pl_lgOff", "Weekend", "نهاية الأسبوع"],
+["pl_lgHol", "Official holiday", "إجازة رسمية"],
 ["pl_depHelp", "Arrows show dependencies: the activity at the arrow's tip waits for the one it starts from. Red arrows are the critical path: any delay there delays the project.", "الأسهم تعرض الترابط: النشاط عند رأس السهم ينتظر النشاط الذي يخرج منه السهم. الأسهم الحمراء هي المسار الحرج: أي تأخير فيها يؤخر المشروع."],
 ["pl_ob1", "How many levels does your plan need?", "كم مستوى تحتاج خطتك؟"],
 ["pl_ob1h", "Pick the structure that fits the project. You can change it later.", "اختر الهيكل المناسب للمشروع، ويمكنك تغييره لاحقًا."],
@@ -748,6 +778,38 @@ const W=[
 ["pl_xAppend", "Add to current plan", "إضافة إلى الخطة الحالية"],
 ["pl_xApply", "Import", "استيراد"],
 ["pl_xDone", "{n} activities imported", "تم استيراد {n} نشاط"],
+["pl_linkMode", "Link mode", "وضع الربط"],
+["pl_lmPick1", "Tap the FIRST activity (the one that comes before)", "اضغط على النشاط الأول (الذي يسبق)"],
+["pl_lmPick2", "Now tap the activity that starts after «{x}»", "الآن اضغط على النشاط الذي يبدأ بعد «{x}»"],
+["pl_lmDone", "Done", "تم"],
+["pl_unlinkAsk", "These two are already linked. Remove the link?", "النشاطان مرتبطان بالفعل. هل تريد إزالة الربط؟"],
+["pl_linkPrev", "Starts after the previous one", "يبدأ بعد السابق"],
+["pl_linkAll", "Link all in sequence", "ربط الكل بالتسلسل"],
+["pl_linkAllAsk", "Link every activity to start after the one before it? Existing links of unlinked activities only will be added.", "ربط كل نشاط ليبدأ بعد النشاط الذي قبله؟ سيتم ربط الأنشطة غير المرتبطة فقط."],
+["pl_linked", "Linked", "تم الربط"],
+["pl_noPrev", "There is no previous activity", "لا يوجد نشاط سابق"],
+["pl_lvLbl", "Level", "المستوى"],
+["pl_addAt", "Add an activity at:", "أضف نشاطًا في:"],
+["pl_asSub", "under this one", "فرعي لهذا النشاط"],
+["pl_lvHint", "Level 1 = main activity. Pick the level you want, it is added right after the related activity.", "المستوى ١ = نشاط رئيسي. اختر المستوى المطلوب ويُضاف النشاط مباشرة بعد النشاط المرتبط."],
+["pl_up", "Up", "أعلى"],
+["pl_down", "Down", "أسفل"],
+["pl_lower", "Lower a level", "إنزال مستوى"],
+["pl_raise", "Raise a level", "رفع مستوى"],
+["pl_selHint", "Tap an activity to add, move or link it.", "اضغط على أي نشاط لإضافة نشاط أو تحريكه أو ربطه."],
+["pl_rowSize", "Row size", "حجم الصفوف"],
+["pl_rs_s", "Small", "صغير"],
+["pl_rs_m", "Medium", "متوسط"],
+["pl_rs_l", "Large", "كبير"],
+["pl_fs", "Full screen", "ملء الشاشة"],
+["pl_fsx", "Close", "إغلاق"],
+["pl_fit", "Fit", "ملاءمة"],
+["pl_revNote", "Reviewer note", "ملاحظة المراجع"],
+["pl_revGen", "General review notes", "ملاحظات عامة من المراجع"],
+["pl_revGenPh", "Write your general notes on the plan here…", "اكتب ملاحظاتك العامة على الخطة هنا…"],
+["pl_revNoteSave", "Save note", "حفظ الملاحظة"],
+["pl_ready", "The plan is complete and ready.", "الخطة مكتملة وجاهزة."],
+["pl_durD", "Duration (working days)", "المدة (أيام عمل)"],
 ["home", "Project plans", "خطط المشاريع"],
 ["appTitle", "Project Plan", "خطة المشروع"]
 ];
@@ -1080,7 +1142,7 @@ async function openCR(id){
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
+ const ed=!arch&&(cr.created_by==me.id||adm)&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
@@ -1096,7 +1158,7 @@ async function openCR(id){
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(PL.key!==key){PL.key=key;PL.sel=null;PL.ed=null;PL.xl=false;PL.imp=null}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
  if(ed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
@@ -1114,7 +1176,7 @@ async function openCR(id){
  const s0=STEP[st];
  const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
  if(!Array.isArray(d.tasks))d.tasks=[];
- PL.ed=PL.ed||null;PL.canEdit=ed||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'));PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
+ PL.ed=PL.ed||null;PL.canEdit=ed||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'));PL.rev=canRev;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
  if(adm&&!arch){try{const q=await sb.from('plans').select('code,data').order('id',{ascending:false}).limit(300);PL.crs=q.data||[]}catch(_){PL.crs=[]}}
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
@@ -1142,7 +1204,7 @@ const strip=ts=>ts.map(x=>{const o={...x};delete o._d;return o});
 async function save(q){if(!cr)return;norm();rollup();const dd={...cr.data};dd.tasks=strip(cr.data.tasks||[]);
  const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
-let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk))save(false)},700)}
+let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
 async function revisePlan(){if(!confirm(t('pl_reviseAsk')))return;const {error}=await sb.rpc('pl_revise',{pid:cr.id});if(error)return msg(error.message);ftab='plan';await openCR(cr.id);msg(t('pl_revised'))}
 async function setCrLink(){const v=($('crl').value||'').trim();const {error}=await sb.rpc('pl_set_crlink',{pid:cr.id,lnk:v});if(error)return msg(error.message);cr.cr_link=v||null;msg(t('saved'))}
 document.addEventListener('input',e=>{const x=e.target;if(!cr||!x.dataset)return;onPlanInput(x)});
@@ -1195,7 +1257,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  let h='';
  if(!d.levels&&PL.canEdit){h=onboard()}
  else{
-  h=(!PL.canEdit&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button></div>`:'')+legend()+sheetH()+impH()}
+  h=rnoteH()+(PL.canEdit&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!PL.canEdit&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')+(PL.canEdit&&T().length?`<div class="rdy ${issues().some(i=>i.e)?'':'ok'}">${issues().some(i=>i.e)?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')+legend()+sheetH()+impH()}
  el.innerHTML=h;
  if(PL.view=='gantt'&&$('gx')){bindGantt(sc)}
  if(PL.focus){const f=document.querySelector(`.pr[data-id="${PL.focus}"] input[data-pk=n]`);PL.focus=null;if(f&&PL.view=='list')f.focus({preventScroll:false})}
@@ -1206,7 +1268,7 @@ function toolbar(){const d=cr.data,n=d.tasks.length,ed=PL.canEdit;
  <div class="seg"><button onclick="collAll(true)" title="${t('pl_collapse')}">⊟</button><button onclick="collAll(false)" title="${t('pl_expand')}">⊞</button></div>
  <div class="seg"><button class="${PL.adv?'on':''}" onclick="togAdv()" title="${t('pl_advH')}">${PL.adv?t('pl_advOn'):t('pl_advOff')}</button></div>
  <div class="seg"><button onclick="xlExport()">📤 Excel</button>${ed&&d.levels?`<button onclick="lvlChange()">${t('pl_levels')}: ${ad(d.levels)}</button>`:''}</div></div>`}
-function legend(){if(!cr.data.tasks.length)return '';return `<details class="mut" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">${t('pl_legend')}</summary><div class="lg"><span><i class="lb"></i>${t('pl_lgTask')}</span><span><i class="lb sum"></i>${t('pl_lgSum')}</span><span><i class="lb crit"></i>${t('pl_lgCrit')}</span><span><i class="lb late"></i>${t('pl_lgLate')}</span><span><i class="lb ms"></i>${t('pl_lgMs')}</span><span><i class="lb base"></i>${t('pl_lgBase')}</span><span><i class="lb nw"></i>${t('pl_lgOff')}</span></div><div>${t('pl_depHelp')}</div></details>`}
+function legend(){if(!cr.data.tasks.length)return '';return `<details class="mut" style="margin-top:10px"><summary style="cursor:pointer;font-weight:700">${t('pl_legend')}</summary><div class="lg"><span><i class="lb"></i>${t('pl_lgTask')}</span><span><i class="lb sum"></i>${t('pl_lgSum')}</span><span><i class="lb crit"></i>${t('pl_lgCrit')}</span><span><i class="lb ms"></i>${t('pl_lgMs')}</span><span><i class="lb base"></i>${t('pl_lgBase')}</span><span><i class="lb nw"></i>${t('pl_lgOff')}</span><span><i class="lb hol"></i>${t('pl_lgHol')}</span><span><i class="lb l0"></i>${t('pl_lvLbl')} ${ad(1)}</span><span><i class="lb l1"></i>${t('pl_lvLbl')} ${ad(2)}</span><span><i class="lb l2"></i>${t('pl_lvLbl')} ${ad(3)}</span></div><div>${t('pl_depHelp')}</div></details>`}
 // ---------- onboarding ----------
 function onboard(){const lv=(n,names)=>`<button class="lvc" onclick="setLevels(${n})"><b>${ad(n)} ${n==1?t('pl_lvl1'):t('pl_lvlN')}</b><div class="tree">${names.map(([d,x])=>`<div style="padding-inline-start:${d*16}px">${d?'↳ ':'■ '}${x}</div>`).join('')}</div></button>`;
  return `<div class="sec">${t('pl_ob1')}</div><div class="mut">${t('pl_ob1h')}</div><div class="lvs">${lv(1,[[0,t('pl_ex1')],[0,t('pl_ex2')]])}${lv(2,[[0,t('pl_ex1')],[1,t('pl_ex1a')],[1,t('pl_ex1b')]])}${lv(3,[[0,t('pl_ex1')],[1,t('pl_ex1a')],[2,t('pl_ex1a1')],[2,t('pl_ex1a2')]])}</div>`}
@@ -1262,8 +1324,8 @@ function tableH(){const ts=T();if(!ts.length&&!PL.canEdit)return `<div class="mu
  const hd=`<div class="pr ph"><div>#</div><div>${t('pl_name')}</div><div>${t('pl_start')}</div><div>${t('pl_end')}</div><div>${t('pl_dur')}</div><div>${t('pl_who')}</div><div>${t('pl_after')}</div>${trk?`<div>${t('pl_astart')}</div><div>${t('pl_aend')}</div><div>${t('pl_pct')}</div>`:''}<div></div></div>`;
  return `<div class="ptab ${trk?'trk':''}">${hd}${visible().map(x=>rowH2(x)).join('')}</div>`}
 function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,sel=PL.sel==x.id,dis=ed?'':'disabled',adv=PL.adv;
- const afterCtl=!leaf?'<span class="mut">—</span>':(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
- const whoCtl=`<select data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select>`;
+ const afterCtl=!leaf?'<span class="mut">—</span>':(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select class="srch" data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
+ const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select>`;
  const crit=CP.crit.has(x.id);
  return `<div class="pr d${m.d} ${sel?'sel':''} ${leaf?'':'sum'} ${crit?'crit':''}" data-id="${x.id}" onclick="rowClick(event,'${x.id}')">
   <div class="c-w" data-l="#">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span></div>
@@ -1274,9 +1336,21 @@ function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,s
   <div class="c-a" data-l="${t('pl_who')}">${whoCtl}</div>
   <div class="c-p" data-l="${t('pl_after')}">${afterCtl}</div>
   ${trk?`<div class="c-as" data-l="${t('pl_astart')}"><input type="date" data-pk="as" value="${esc(x.as)}" ${leaf?'':'disabled'}></div><div class="c-ae" data-l="${t('pl_aend')}"><input type="date" data-pk="ae" value="${esc(x.ae)}" ${leaf?'':'disabled'}></div><div class="c-pc" data-l="${t('pl_pct')}"><input data-pk="pc" inputmode="numeric" value="${x.pc||0}" ${leaf?'':'disabled'}></div>`:''}
-  <div class="c-x"><button class="sm" onclick="event.stopPropagation();openSheet('${x.id}')">✎</button></div>
+  <div class="c-x"><button class="sm" onclick="event.stopPropagation();openSheet('${x.id}')">✎</button>${x.rn?'<span class="rnb" title="'+esc(x.rn)+'">💬</span>':''}</div>
   ${sel&&ed?rowActs(x):''}</div>`}
-function rowActs(x){const m=M[x.id];const md=maxDepth();return `<div class="ra" onclick="event.stopPropagation()"><button onclick="addTask('${x.p||''}','${x.id}')">+ ${t('pl_addSame')}</button>${m.d<md?`<button onclick="addTask('${x.id}')">+ ${t('pl_addSub')}</button>`:''}<button onclick="moveTask('${x.id}',-1)">▲</button><button onclick="moveTask('${x.id}',1)">▼</button>${md>0?`<button onclick="indentTask('${x.id}')">⇥</button><button onclick="outdentTask('${x.id}')">⇤</button>`:''}<button class="r" onclick="delTask('${x.id}')">🗑</button></div>`}
+function rowActs(x){const m=M[x.id],md=maxDepth();
+ const chain=[];let c=x;while(c){chain.unshift(c);c=M[c.id].par}
+ const lv=[];for(let k=1;k<=Math.min(md+1,m.d+2);k++){
+  const sub=k==m.d+2,cur=k==m.d+1;
+  lv.push(`<button class="lvb lv${k-1} ${cur?'cur':''}" onclick="addAtLevel('${x.id}',${k})" title="${esc(sub?x.n||'':chain[k-1]?chain[k-1].n||'':'')}">＋ ${t('pl_lvLbl')} ${ad(k)}${sub?` <small>(${t('pl_asSub')})</small>`:''}</button>`)}
+ const leaf=!m.kids.length;
+ return `<div class="ra" onclick="event.stopPropagation()"><div class="ral"><b>${t('pl_addAt')}</b><div class="lvr">${lv.join('')}</div><div class="mut" style="font-size:12px">${t('pl_lvHint')}</div></div>
+ <div class="ral2"><button onclick="moveTask('${x.id}',-1)">▲ ${t('pl_up')}</button><button onclick="moveTask('${x.id}',1)">▼ ${t('pl_down')}</button>${md>0?`<button onclick="indentTask('${x.id}')">⇥ ${t('pl_lower')}</button><button onclick="outdentTask('${x.id}')">⇤ ${t('pl_raise')}</button>`:''}${leaf?`<button onclick="linkPrev('${x.id}')">🔗 ${t('pl_linkPrev')}</button>`:''}<button class="r" onclick="delTask('${x.id}')">🗑 ${t('pl_del')}</button></div></div>`}
+function addAtLevel(id,k){const x=byId(id),m=M[id];if(k==m.d+2)return addTask(id);const chain=[];let c=x;while(c){chain.unshift(c);c=M[c.id].par}const a=chain[k-1]||x;addTask(a.p||'',a.id)}
+function prevLeaf(id){const ls=T().filter(isLeaf),i=ls.findIndex(z=>z.id==id);return i>0?ls[i-1]:null}
+function linkPrev(id){const p=prevLeaf(id);if(!p)return msg(t('pl_noPrev'));const x=byId(id);if(reaches(p.id,x.id,succMap())||reaches(x.id,p.id,succMap())&&false)return msg(t('pl_cycle'));
+ mut(()=>{x.dep=[{t:p.id,y:'FS',l:0}];propagate();rollup()},true);msg(t('pl_linked'))}
+function linkAll(){if(!confirm(t('pl_linkAllAsk')))return;mut(()=>{const ls=T().filter(isLeaf);for(let i=1;i<ls.length;i++){if((ls[i].dep||[]).length)continue;if(reaches(ls[i-1].id,ls[i].id,succMap()))continue;ls[i].dep=[{t:ls[i-1].id,y:'FS',l:0}]}propagate();rollup()},true);msg(t('pl_linked'))}
 function rowClick(ev,id){const tg=ev.target.tagName;if(tg=='INPUT'||tg=='SELECT'||tg=='BUTTON'||tg=='OPTION'){if(PL.sel!=id){PL.sel=id;const el=document.querySelector(`.pr[data-id="${id}"]`);document.querySelectorAll('.pr.sel').forEach(r=>{r.classList.remove('sel');const a=r.querySelector('.ra');if(a)a.remove()});if(el&&PL.canEdit){el.classList.add('sel');el.insertAdjacentHTML('beforeend',rowActs(byId(id)))}}return}setSel(id)}
 // ---------- inputs ----------
 function onPlanInput(x){if(!x.dataset.pk)return;const row=x.closest('.pr');if(!row)return;const t0=byId(row.dataset.id);if(!t0)return;const k=x.dataset.pk;
@@ -1295,17 +1369,22 @@ function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest(
  else if(k=='after1'){const old=t0.dep||[];if(!x.value)t0.dep=[];else{if(reaches(t0.id,x.value,succMap())){msg(t('pl_cycle'));renderPlan();return}t0.dep=[{t:x.value,y:'FS',l:0}]}afterDates(t0)}
 }
 function afterDates(t0){norm();rollup();propagate();rollup();renderPlan();pSave()}
+
+function rnoteH(){const d=cr.data;if(PL.rev)return `<div class="rnote"><b>📝 ${t('pl_revGen')}</b><textarea id="rn_g" rows="3" placeholder="${t('pl_revGenPh')}">${esc(d.rnote||'')}</textarea><div class="row" style="margin-top:6px"><button class="sm p" onclick="saveRnote()">${t('pl_revNoteSave')}</button></div></div>`;
+ return d.rnote?`<div class="rnote ro"><b>📝 ${t('pl_revGen')}</b><div style="white-space:pre-wrap">${esc(d.rnote)}</div></div>`:''}
+async function saveRnote(){cr.data.rnote=($('rn_g')||{}).value||'';await save(false);msg(t('saved'))}
 // ===== Gantt =====
-const RH=38,HH=46;
+let RH=38;const HH=46,SHOW_LATE=false;
 let GZ={dw:12,lo:0,hi:0,W:0,LW:150,rows:[],idx:{}};
 function gRange(){let lo=1e12,hi=-1e12;const add=v=>{const n=dn(v);if(!isNaN(n)){if(n<lo)lo=n;if(n>hi)hi=n}};
- T().forEach(x=>{add(x.s);add(x.e);add(x.as);add(x.ae)});(cr.data._base||[]).forEach(x=>{add(x.s);add(x.e)});add(cr.data.sdate);add(cr.data.edate);
+ T().forEach(x=>{add(x.s);add(x.e);add(x.as);add(x.ae)});(cr.data._base||[]).forEach(x=>{add(x.s);add(x.e)});
+ if(lo>hi){add(cr.data.sdate);add(cr.data.edate)}
  if(lo>hi){lo=todayN();hi=lo+30}
- const t0=todayN();if(PL.trk||PL.st=='Approved'){if(t0>=lo-60&&t0<=hi+60){if(t0<lo)lo=t0;if(t0>hi)hi=t0}}
- lo-=(lo-4)%7>=0?3:3;hi+=6;return[lo,hi]}
-function ganttH(){const rows=visible();if(!rows.length)return `<div class="mut">${t('pl_empty')}</div>`;
+ const t0=todayN();if(PL.trk&&t0>=lo-30&&t0<=hi+30){if(t0<lo)lo=t0;if(t0>hi)hi=t0}
+ lo-=2;hi+=6;return[lo,hi]}
+function ganttH(){RH=PL.rh||38;const rows=visible();if(!rows.length)return `<div class="mut">${t('pl_empty')}</div>`;
  const [lo,hi]=gRange(),span=hi-lo+1,wide=window.innerWidth>=900,LW=wide?(PL.trk?600:500):150;
- let dw;const z=PL.zoom;if(z=='day')dw=30;else if(z=='week')dw=12;else if(z=='month')dw=4.2;else{const av=Math.max(260,Math.min(window.innerWidth,1200)-LW-40);dw=Math.max(9,Math.min(30,av/span))}
+ let dw;const z=PL.zoom;if(z=='day')dw=30;else if(z=='week')dw=12;else if(z=='month')dw=4.2;else if(z=='custom')dw=PL.dwc||12;else{const av=Math.max(260,Math.min(window.innerWidth,1200)-LW-40);dw=Math.max(6,Math.min(30,av/span))}
  GZ={dw,lo,hi,W:Math.ceil(span*dw),LW,rows,idx:{}};rows.forEach((x,i)=>GZ.idx[x.id]=i);
  const H=rows.length*RH,loc=lang=='ar'?'ar-AE':'en-GB';
  // header
@@ -1318,16 +1397,16 @@ function ganttH(){const rows=visible();if(!rows.length)return `<div class="mut">
  const t0=todayN();const today=(t0>=lo&&t0<=hi)?`<div class="gtd" style="left:${(t0-lo+.5)*dw}px"></div>`:'';
  const base={};(cr.data._base||[]).forEach(b=>base[b.id]=b);
  let bars='';rows.forEach((x,i)=>{const m=M[x.id],a=dn(x.s),b=dn(x.e);if(isNaN(a)||isNaN(b))return;const leaf=!m.kids.length,top=i*RH;
-  const crit=CP.crit.has(x.id),late=leaf&&!x.ms&&(+x.pc||0)<100&&t0>b&&PL.st=='Approved';
+  const crit=CP.crit.has(x.id),late=SHOW_LATE&&leaf&&!x.ms&&(+x.pc||0)<100&&t0>b&&PL.st=='Approved',TB=(RH-22)/2,TM=(RH-20)/2,TS=(RH-10)/2,TL=(RH-16)/2,lv=m.d>2?2:m.d,ls=PL.ls==x.id?' lsrc':'';
   const bs=base[x.id];
-  if(bs&&!isNaN(dn(bs.s))&&!isNaN(dn(bs.e))&&(bs.s!=x.s||bs.e!=x.e))bars+=`<div class="bbase" style="left:${(dn(bs.s)-lo)*dw}px;width:${(dn(bs.e)-dn(bs.s)+1)*dw}px;top:${top+RH-8}px"></div>`;
-  const as=dn(x.as);if(!isNaN(as)&&leaf){const ae=isNaN(dn(x.ae))?t0:dn(x.ae);bars+=`<div class="bact" style="left:${(as-lo)*dw}px;width:${Math.max(dw,(ae-as+1)*dw)}px;top:${top+RH-8}px"></div>`}
+  if(bs&&!isNaN(dn(bs.s))&&!isNaN(dn(bs.e))&&(bs.s!=x.s||bs.e!=x.e))bars+=`<div class="bbase" style="left:${(dn(bs.s)-lo)*dw}px;width:${(dn(bs.e)-dn(bs.s)+1)*dw}px;top:${top+RH-6}px"></div>`;
+  const as=dn(x.as);if(!isNaN(as)&&leaf){const ae=isNaN(dn(x.ae))?t0:dn(x.ae);bars+=`<div class="bact" style="left:${(as-lo)*dw}px;width:${Math.max(dw,(ae-as+1)*dw)}px;top:${top+RH-6}px"></div>`}
   const nm=esc(x.n||'');
-  if(x.ms&&leaf){bars+=`<div class="bar ms ${crit?'crit':''}" data-id="${x.id}" style="left:${(a-lo+.5)*dw-10}px;top:${top+9}px"><i></i>${PL.adv&&PL.canEdit?'<span class="lk"></span>':''}</div><div class="blb" style="left:${(a-lo+.5)*dw+14}px;top:${top+10}px">${nm}</div>`;return}
+  if(x.ms&&leaf){bars+=`<div class="bar ms lv${lv} ${crit?'crit':''}${ls}" data-id="${x.id}" style="left:${(a-lo+.5)*dw-10}px;top:${top+TM}px"><i></i>${PL.adv&&PL.canEdit?'<span class="lk"></span>':''}</div><div class="blb" style="left:${(a-lo+.5)*dw+14}px;top:${top+TL}px">${nm}</div>`;return}
   const w=(b-a+1)*dw;
-  if(!leaf){bars+=`<div class="bar sum" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+11}px"><div class="bp" style="width:${x.pc||0}%"></div></div><div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+8}px">${nm}</div>`;return}
+  if(!leaf){bars+=`<div class="bar sum lv${lv}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TS}px"><div class="bp" style="width:${x.pc||0}%"></div></div><div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`;return}
   const inside=w>=90;
-  bars+=`<div class="bar ${crit?'crit':''} ${late?'late':''} ${PL.canEdit?'ed':''}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+8}px"><div class="bp" style="width:${x.pc||0}%"></div>${inside?`<span class="bt">${nm}</span>`:''}${PL.canEdit?'<span class="bl"></span><span class="br"></span>':''}${PL.canEdit&&PL.adv?'<span class="lk"></span>':''}</div>${inside?'':`<div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+10}px">${nm}</div>`}`});
+  bars+=`<div class="bar lv${lv} ${crit?'crit':''} ${late?'late':''} ${PL.canEdit&&!PL.lm?'ed':''}${ls}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TB}px"><div class="bp" style="width:${x.pc||0}%"></div>${inside?`<span class="bt">${nm}</span>`:''}${PL.canEdit&&!PL.lm?'<span class="bl"></span><span class="br"></span>':''}${PL.canEdit&&PL.adv?'<span class="lk"></span>':''}</div>${inside?'':`<div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`}`});
  // arrows
  let ar='',cnt=0;rows.forEach((x,i)=>{(x.dep||[]).forEach(e=>{if(cnt++>600)return;const j=GZ.idx[e.t];if(j==null)return;const p=byId(e.t);if(!p)return;const ps=dn(p.s),pe=dn(p.e),ss=dn(x.s),se=dn(x.e);if([ps,pe,ss,se].some(isNaN))return;
    const y1=j*RH+RH/2,y2=i*RH+RH/2,y=e.y||'FS';const out=(y=='FS'||y=='FF')?1:-1,inn=(y=='FS'||y=='SS')?1:-1;
@@ -1337,19 +1416,36 @@ function ganttH(){const rows=visible();if(!rows.length)return `<div class="mut">
    else{const ym=y2>y1?y1+RH/2:y2<y1?y1-RH/2:y1+RH/2;pts=[[x1,y1],[s1,y1],[s1,ym],[s2,ym],[s2,y2],[x2,y2]]}
    const c=CP.crit.has(e.t)&&CP.crit.has(x.id);
    ar+=`<path d="M${pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')}" class="${c?'ac':''}" marker-end="url(#${c?'ahr':'ah'})"/>`})});
- const lab=rows.map(x=>{const m=M[x.id];return `<div class="grl d${m.d} ${m.kids.length?'sum':''} ${PL.sel==x.id?'sel':''}" data-id="${x.id}" style="height:${RH}px">${m.kids.length?`<button class="cl" data-tc="${x.id}">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span><span class="nm">${esc(x.n||'—')}</span>${wide?`<span class="gs">${esc(x.s)}</span><span class="ge">${esc(x.e)}</span><span class="gw">${esc(whoName(x))}</span>${PL.trk?`<span class="gp">${x.pc||0}%</span>`:''}`:''}</div>`}).join('');
- return `<div class="gtb"><span class="mut">${t('pl_zoom')}:</span><div class="seg">${['auto','day','week','month'].map(z=>`<button class="${PL.zoom==z?'on':''}" onclick="setZoom('${z}')">${t('pl_z_'+z)}</button>`).join('')}</div><button class="sm" onclick="gToday()">${t('pl_today')}</button>${PL.canEdit?`<span class="mut" style="font-size:12px">${t('pl_dragH')}</span>`:''}</div>
+ const lab=rows.map(x=>{const m=M[x.id];return `<div class="grl d${m.d} ${m.kids.length?'sum':''} ${PL.sel==x.id?'sel':''}" data-id="${x.id}" style="height:${RH}px">${m.kids.length?`<button class="cl" data-tc="${x.id}">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span><span class="nm">${esc(x.n||'—')}${x.rn?' 💬':''}</span>${wide?`<span class="gs">${esc(x.s)}</span><span class="ge">${esc(x.e)}</span><span class="gw">${esc(whoName(x))}</span>${PL.trk?`<span class="gp">${x.pc||0}%</span>`:''}`:''}</div>`}).join('');
+ const lmName=PL.ls&&byId(PL.ls)?((M[PL.ls].w)+' '+(byId(PL.ls).n||'')).trim():'';
+ const tbH=`<div class="gtb"><div class="seg">${[['auto',t('pl_fit')],['day',t('pl_z_day')],['week',t('pl_z_week')],['month',t('pl_z_month')]].map(([z,l])=>`<button class="${PL.zoom==z?'on':''}" onclick="setZoom('${z}')">${l}</button>`).join('')}<button onclick="zoomStep(0.8)" title="−">−</button><button onclick="zoomStep(1.25)" title="+">＋</button></div>
+ <div class="seg"><span class="mut" style="padding:0 6px;align-self:center;font-size:12px">${t('pl_rowSize')}</span>${[[28,'pl_rs_s'],[38,'pl_rs_m'],[54,'pl_rs_l']].map(([v,k])=>`<button class="${RH==v?'on':''}" onclick="setRH(${v})">${t(k)}</button>`).join('')}</div>
+ <button class="sm" onclick="gToday()">${t('pl_today')}</button><button class="sm" onclick="togFS()">${PL.gfs?'✕ '+t('pl_fsx'):'⛶ '+t('pl_fs')}</button>
+ ${PL.canEdit?`<button class="sm ${PL.lm?'p':''}" onclick="togLM()">🔗 ${t('pl_linkMode')}</button>`:''}</div>
+ ${PL.lm?`<div class="lmb">🔗 ${PL.ls?t('pl_lmPick2').replace('{x}',esc(lmName)):t('pl_lmPick1')}<button class="sm" onclick="togLM()">✓ ${t('pl_lmDone')}</button></div>`:(PL.canEdit?`<div class="mut" style="font-size:12px;margin-bottom:6px">${t('pl_dragH')}</div>`:'')}`;
+ return `<div class="gwrap ${PL.gfs?'gfs':''}">`+tbH+`
  <div class="gx" id="gx" dir="ltr"><div class="gin" style="width:${LW+GZ.W}px">
   <div class="ghd" style="height:${HH}px"><div class="glh" style="width:${LW}px">${wide?`<span class="wb">#</span><span class="nm">${t('pl_name')}</span><span class="gs">${t('pl_start')}</span><span class="ge">${t('pl_end')}</span><span class="gw">${t('pl_who')}</span>${PL.trk?`<span class="gp">%</span>`:''}`:`<span class="wb">#</span><span class="nm">${t('pl_name')}</span>`}</div><div class="gth" style="width:${GZ.W}px"><div class="gmr">${mh}</div><div class="gdr">${sh}</div></div></div>
   <div class="gbd" style="height:${H}px"><div class="gl" style="width:${LW}px">${lab}</div>
-   <div class="gt" id="gt" style="width:${GZ.W}px;height:${H}px;background-size:${dw>=14?dw+'px 100%,':''}100% ${RH}px">${bg}${today}<svg class="gsv" width="${GZ.W}" height="${H}"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#6b6f76"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d1101d"/></marker></defs>${ar}</svg>${bars}<svg class="gtmp" id="gtmp" width="${GZ.W}" height="${H}"></svg></div></div></div></div>`}
+   <div class="gt" id="gt" style="width:${GZ.W}px;height:${H}px;background-size:${dw>=14?dw+'px 100%,':''}100% ${RH}px">${bg}${today}<svg class="gsv" width="${GZ.W}" height="${H}"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#6b6f76"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d1101d"/></marker></defs>${ar}</svg>${bars}<svg class="gtmp" id="gtmp" width="${GZ.W}" height="${H}"></svg></div></div></div></div></div>`}
+function zoomStep(f){PL.zoom='custom';PL.dwc=Math.max(2,Math.min(60,(GZ.dw||12)*f));renderPlan()}
+function setRH(v){PL.rh=v;renderPlan()}
+function togFS(){PL.gfs=!PL.gfs;document.body.style.overflow=PL.gfs?'hidden':'';renderPlan()}
+function togLM(){PL.lm=!PL.lm;PL.ls=null;renderPlan()}
+function linkPick(id){const x=byId(id);if(!x)return;if(!isLeaf(x)){return msg(t('pl_leafOnly'))}
+ if(!PL.ls){PL.ls=id;return renderPlan()}
+ if(PL.ls==id){PL.ls=null;return renderPlan()}
+ const f=PL.ls;PL.ls=null;
+ if((x.dep||[]).some(e=>e.t==f)){if(confirm(t('pl_unlinkAsk'))){snap();x.dep=x.dep.filter(e=>e.t!=f);norm();rollup();pSave()}return renderPlan()}
+ linkTasks(f,id)}
 function gToday(){const gx=$('gx');if(!gx)return;const t0=todayN();gx.scrollLeft=Math.max(0,(t0-GZ.lo)*GZ.dw-60)}
 let GD=null;
 function bindGantt(sc){const gx=$('gx');if(!gx)return;
- if(sc){gx.scrollLeft=sc.x;gx.scrollTop=sc.y}else{const t0=todayN();gx.scrollLeft=(t0>=GZ.lo&&t0<=GZ.hi)?Math.max(0,(t0-GZ.lo)*GZ.dw-80):0}
+ if(sc){gx.scrollLeft=sc.x;gx.scrollTop=sc.y}else{const t0=todayN();gx.scrollLeft=(PL.trk&&t0>=GZ.lo&&t0<=GZ.hi)?Math.max(0,(t0-GZ.lo)*GZ.dw-80):0}
  gx.querySelectorAll('.bar').forEach(b=>b.addEventListener('pointerdown',ev=>barDown(ev,b)));
- gx.querySelectorAll('.grl').forEach(r=>r.addEventListener('click',ev=>{const tc=ev.target.closest('[data-tc]');if(tc){togColl(tc.dataset.tc);return}openSheet(r.dataset.id)}))}
+ gx.querySelectorAll('.grl').forEach(r=>r.addEventListener('click',ev=>{const tc=ev.target.closest('[data-tc]');if(tc){togColl(tc.dataset.tc);return}if(PL.lm&&PL.canEdit){linkPick(r.dataset.id);return}openSheet(r.dataset.id)}))}
 function barDown(ev,b){if(ev.button>0)return;const id=b.dataset.id,x=byId(id);if(!x)return;const m=M[id],leaf=!m.kids.length;
+ if(PL.lm&&PL.canEdit){ev.preventDefault();linkPick(id);return}
  let mode='move';if(ev.target.classList.contains('bl'))mode='l';else if(ev.target.classList.contains('br'))mode='r';else if(ev.target.classList.contains('lk'))mode='link';
  const can=PL.canEdit;if(!can){return}
  if(!leaf&&mode!='move')return;
@@ -1381,27 +1477,31 @@ function linkTasks(from,to){const f=byId(from),tt=byId(to);if(!f||!tt||!isLeaf(f
 function openSheet(id){PL.ed=id;const x=byId(id);PL.shDeps=x?JSON.parse(JSON.stringify(x.dep||[])):[];renderPlan();const s=$('shbox');if(s)s.scrollIntoView({block:'nearest'})}
 function closeSheet(){PL.ed=null;renderPlan()}
 function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const m=M[x.id],leaf=!m.kids.length,ed=PL.canEdit,trk=PL.trk,dis=ed?'':'disabled',adv=PL.adv;
- const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input type="hidden" id="sd_l${i}" value="${e.l||0}">`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
+ const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select class="srch" id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input type="hidden" id="sd_l${i}" value="${e.l||0}">`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
  return `<div class="shov" onclick="if(event.target==this)closeSheet()"><div class="shb" id="shbox"><div class="top"><b>${m.w} · ${t('pl_task')}</b><button class="sm" onclick="closeSheet()">✕</button></div>
  <label>${t('pl_name')}</label><input id="sh_n" value="${esc(x.n)}" ${dis}>
- ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><div class="mut" id="sh_d" style="margin-top:4px"></div>
+ ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><label>${t('pl_durD')}</label><input id="sh_du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${dis} style="max-width:140px"><div class="mut" id="sh_d" style="margin-top:4px"></div>
  <label class="tg2"><input type="checkbox" id="sh_ms" ${x.ms?'checked':''} ${dis}> ${t('pl_ms')}</label>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
- <label>${t('pl_who')}</label><select id="sh_w" ${dis}>${userOpts(x.w)}</select><input id="sh_wn" placeholder="${t('pl_whoOther')}" value="${esc(x.w?'':x.wn||'')}" ${dis} style="margin-top:4px">
+ <label>${t('pl_who')}</label><select class="srch" id="sh_w" ${dis}>${userOpts(x.w)}</select><input id="sh_wn" placeholder="${t('pl_whoOther')}" value="${esc(x.w?'':x.wn||'')}" ${dis} style="margin-top:4px">
  ${leaf?`<label>${t('pl_after')}</label><div class="mut" style="margin:-2px 0 4px">${t('pl_afterH')}</div>${preds}${ed&&(adv||!(PL.shDeps||[]).length)?`<button class="sm" onclick="shAdd()">+ ${t('pl_addPred')}</button>`:''}`:''}
  ${trk&&leaf?`<div class="sec" style="margin-top:12px">${t('pl_track')}</div><div class="g2"><div><label>${t('pl_astart')}</label><input id="sh_as" type="date" value="${esc(x.as)}"></div><div><label>${t('pl_aend')}</label><input id="sh_ae" type="date" value="${esc(x.ae)}"></div></div><label>${t('pl_pct')} (0-100)</label><input id="sh_pc" inputmode="numeric" value="${x.pc||0}">`:''}
  <label>${t('pl_note')}</label><textarea id="sh_nt" rows="2" ${dis}>${esc(x.nt||'')}</textarea>
- <div class="row" style="margin-top:12px">${(ed||trk)?`<button class="p" onclick="shSave()">${t('save')}</button>`:''}${ed&&M[x.id].d<maxDepth()?`<button onclick="shSub()">+ ${t('pl_addSub')}</button>`:''}${ed?`<button class="r" onclick="PL.ed=null;delTask('${x.id}')">🗑 ${t('pl_del')}</button>`:''}<button onclick="closeSheet()">${t('cancel')}</button></div></div></div>`}
+ ${PL.rev?`<label>💬 ${t('pl_revNote')}</label><textarea id="sh_rn" rows="2">${esc(x.rn||'')}</textarea>`:(x.rn?`<div class="rnote ro"><b>💬 ${t('pl_revNote')}</b><div style="white-space:pre-wrap">${esc(x.rn)}</div></div>`:'')}
+ <div class="row" style="margin-top:12px">${(ed||trk||PL.rev)?`<button class="p" onclick="shSave()">${t('save')}</button>`:''}${ed&&M[x.id].d<maxDepth()?`<button onclick="shSub()">+ ${t('pl_addSub')}</button>`:''}${ed?`<button class="r" onclick="PL.ed=null;delTask('${x.id}')">🗑 ${t('pl_del')}</button>`:''}<button onclick="closeSheet()">${t('cancel')}</button></div></div></div>`}
 function shAdd(){shRead();(PL.shDeps=PL.shDeps||[]).push({t:'',y:'FS',l:0});renderPlan()}
 function shDel(i){shRead();PL.shDeps.splice(i,1);renderPlan()}
 function shRead(){(PL.shDeps||[]).forEach((e,i)=>{const a=$('sd_t'+i);if(a){e.t=a.value;e.y=$('sd_y'+i).value;e.l=+String($('sd_l'+i).value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0}})}
 function shSub(){const id=PL.ed;shSave(true);PL.ed=null;addTask(id)}
-function shSave(keep){const x=byId(PL.ed);if(!x)return;const ed=PL.canEdit,trk=PL.trk,leaf=isLeaf(x);snap();
+function shSave(keep){norm();const x=byId(PL.ed);if(!x)return;const ed=PL.canEdit,trk=PL.trk,leaf=isLeaf(x);snap();
+ if(PL.rev&&$('sh_rn'))x.rn=$('sh_rn').value.trim();
  if(ed){x.n=$('sh_n').value.trim();const w=$('sh_w').value,wn=$('sh_wn').value.trim();x.w=w;x.wn=w?'':wn;x.nt=$('sh_nt').value;
   if(leaf){const s=$('sh_s').value,e=$('sh_e').value;x.ms=$('sh_ms').checked?1:0;if(x.ms){x.s=s?ds(nextWork(dn(s))):'';x.e=x.s}else{x.s=s?ds(nextWork(dn(s))):'';x.e=e?ds(prevWork(dn(e))):x.e;if(x.s&&x.e&&dn(x.e)<dn(x.s))x.e=x.s}
    shRead();const deps=(PL.shDeps||[]).filter(e=>e.t);const ok=[];for(const e of deps){if(reaches(x.id,e.t,succMap())){msg(t('pl_cycle'));continue}if(!ok.some(q=>q.t==e.t))ok.push(e)}x.dep=ok}}
  if(trk&&leaf){x.as=$('sh_as').value;x.ae=$('sh_ae').value;x.pc=Math.max(0,Math.min(100,+String($('sh_pc').value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0));if(x.ae&&x.pc<100)x.pc=100}
  if(!keep)PL.ed=null;norm();rollup();propagate();rollup();renderPlan();pSave()}
-document.addEventListener('input',e=>{const x=e.target;if(x.id=='sh_s'||x.id=='sh_e'){const a=dn($('sh_s').value),b=dn($('sh_e').value),o=$('sh_d');if(o)o.textContent=(isNaN(a)||isNaN(b)||b<a)?'':t('pl_dur')+': '+ad(wdays(a,b))+' '+t('pl_days')}});
+document.addEventListener('input',e=>{const x=e.target;
+ if(x.id=='sh_s'||x.id=='sh_e'){const a=dn($('sh_s').value),b=dn($('sh_e').value),u=$('sh_du');if(u)u.value=(isNaN(a)||isNaN(b)||b<a)?'':wdays(a,b)}
+ if(x.id=='sh_du'){const du=Math.max(1,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0);let a=dn($('sh_s').value);if(!du)return;if(isNaN(a)){const b=dn(cr.data.sdate);a=nextWork(isNaN(b)?todayN():b);$('sh_s').value=ds(a)}a=nextWork(a);$('sh_s').value=ds(a);$('sh_e').value=ds(addWork(a,du-1))}});
 // ===== Excel / paste import & export =====
 const XL_AR=['رقم WBS','اسم النشاط','تاريخ البداية','تاريخ النهاية','المكلّف','يسبقه','ملاحظات','البداية الفعلية','النهاية الفعلية','نسبة الإنجاز %'];
 const XL_EN=['WBS no.','Activity name','Start date','End date','Assigned to','Predecessors','Notes','Actual start','Actual end','Progress %'];
@@ -1534,12 +1634,25 @@ async function drawFollow(){if(!cr)return;const d0=$('delbox');if(!d0)return;let
  box.innerHTML=`<div class="sig"><b>👁 ${T2('المتابعون','Followers')}</b><div class="mut" style="margin:2px 0 6px">${T2('يرون النموذج للعرض فقط، ويصلهم من التنبيهات ما تحدده.','They can view this form (read-only) and receive the alerts you choose.')}</div>
  ${FW.map(f=>{const u=users[f.user_id]||{};return `<div class="fwr"><div class="fn"><b>${esc(u.full_name||'—')}</b><div class="mut">${esc(u.job_title||'')} · ${sm(f)}</div></div>${can?`<button class="sm" onclick="fwEdit(${f.id})">🔔</button><button class="sm" onclick="fwDel(${f.id})">✕</button>`:''}
  <div class="fwe" id="fwe_${f.id}"><label><input type="checkbox" id="fwa_${f.id}" ${f.events==null?'checked':''} onchange="document.querySelectorAll('.fwc_${f.id}').forEach(c=>c.checked=this.checked)"> <b>${T2('كل التنبيهات','All alerts')}</b></label>${FWEV.map(([k,ar,en])=>`<label><input type="checkbox" class="fwc_${f.id}" value="${k}" ${f.events==null||f.events.includes(k)?'checked':''}> ${a?ar:en}</label>`).join('')}<div class="row"><button class="p sm" onclick="fwSave(${f.id})">${t('save')||'حفظ'}</button></div></div></div>`}).join('')||`<div class="mut">${T2('لا يوجد متابعون.','No followers.')}</div>`}
- ${can?`<div class="row" style="margin-top:8px"><select id="fw_u" style="flex:1;width:auto"><option value="">${T2('إضافة متابع…','Add a follower…')}</option>${Object.values(users).filter(u=>!have.has(u.id)&&u.id!=cr.created_by).sort((x,y)=>(x.full_name||'').localeCompare(y.full_name||'')).map(u=>`<option value="${u.id}">${esc(u.full_name)}</option>`).join('')}</select><button onclick="fwAdd()">${T2('إضافة','Add')}</button></div>`:''}</div>`}
+ ${can?`<div class="row" style="margin-top:8px"><select class="srch" id="fw_u" style="flex:1;width:auto"><option value="">${T2('إضافة متابع…','Add a follower…')}</option>${Object.values(users).filter(u=>!have.has(u.id)&&u.id!=cr.created_by).sort((x,y)=>(x.full_name||'').localeCompare(y.full_name||'')).map(u=>`<option value="${u.id}">${esc(u.full_name)}</option>`).join('')}</select><button onclick="fwAdd()">${T2('إضافة','Add')}</button></div>`:''}</div>`}
 function fwEdit(id){const e=$('fwe_'+id);if(e)e.classList.toggle('on')}
 async function fwAdd(){const u=$('fw_u').value;if(!u)return;const {error}=await sb.from('followers').insert({svc:SVC,cr_id:cr.id,user_id:u});if(error)return msg(error.message);drawFollow()}
 async function fwDel(id){const {error}=await sb.from('followers').delete().eq('id',id);if(error)return msg(error.message);drawFollow()}
 async function fwSave(id){const all=$('fwa_'+id).checked,ev=[...document.querySelectorAll('.fwc_'+id)].filter(c=>c.checked).map(c=>c.value);
  const {error}=await sb.from('followers').update({events:all||ev.length==FWEV.length?null:ev}).eq('id',id);if(error)return msg(error.message);drawFollow()}
+// ---- searchable dropdowns: any <select class="srch"> becomes a search box ----
+const pkNorm=x=>String(x||'').toLowerCase().replace(/[ً-ٰٟ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+function pkLbl(sel){const o=sel.options[sel.selectedIndex];return o&&o.value!==''?o.text:''}
+function pkEnh(){document.querySelectorAll('select.srch:not([data-e])').forEach(sel=>{sel.dataset.e=1;sel.style.display='none';const b=document.createElement('button');b.type='button';b.className='pkb';b.disabled=sel.disabled;sel._b=b;pkSet(sel);b.onclick=e=>{e.stopPropagation();pkOpen(sel)};sel.after(b)})}
+function pkSet(sel){const b=sel._b;if(!b)return;const l=pkLbl(sel),ph=(sel.options[0]&&sel.options[0].value===''&&sel.options[0].text)||(typeof lang!='undefined'&&lang=='ar'?'اختر…':'Select…');b.className='pkb'+(l?'':' em');b.innerHTML='<span>'+esc(l||ph)+'</span>'}
+function pkOpen(sel){const ar=typeof lang!='undefined'&&lang=='ar';const all=[...sel.options].map(o=>({v:o.value,t:o.text,n:pkNorm(o.text)}));
+ const ov=document.createElement('div');ov.className='pkov';ov.innerHTML=`<div class="pkbx"><input type="search" id="pkq" autocomplete="off" placeholder="${ar?'ابحث بالاسم…':'Search…'}"><div class="pkl" id="pkl"></div></div>`;document.body.appendChild(ov);
+ const cl=()=>ov.remove();ov.onclick=e=>{if(e.target==ov)cl()};
+ const draw=()=>{const q=pkNorm($('pkq').value).split(/\s+/).filter(Boolean);let m=all.filter(o=>q.every(w=>o.n.includes(w)));const tot=m.length;m=m.slice(0,60);
+  $('pkl').innerHTML=m.map((o,i)=>`<button type="button" class="pki ${o.v===sel.value?'on':''}" data-i="${all.indexOf(o)}">${o.v===''?`<span class="mut">— ${esc(o.t||(ar?'بدون':'None'))} —</span>`:esc(o.t)}</button>`).join('')+(tot>60?`<div class="pkn">${ar?'يوجد '+tot+' نتيجة، اكتب أكثر لتضييق البحث.':tot+' results, type more to narrow.'}</div>`:'')+(!tot?`<div class="pkn">${ar?'لا نتائج':'No results'}</div>`:'')};
+ ov.addEventListener('click',e=>{const b=e.target.closest('.pki');if(!b)return;const o=all[+b.dataset.i];sel.value=o.v;pkSet(sel);cl();sel.dispatchEvent(new Event('change',{bubbles:true}))});
+ $('pkq').addEventListener('input',draw);$('pkq').addEventListener('keydown',e=>{if(e.key=='Escape')cl();if(e.key=='Enter'){const f=ov.querySelector('.pki');if(f)f.click()}});draw();setTimeout(()=>$('pkq').focus(),50)}
+try{new MutationObserver(()=>{clearTimeout(pkEnh.t);pkEnh.t=setTimeout(pkEnh,30)}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
 async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;drawFollow();
  let rows=[];try{const r=await sb.from('del_requests').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});rows=r.data||[]}catch(_){}
  const last=rows[0],pend=last&&last.status=='pending',adm=me.role=='admin',st=cr.status;
