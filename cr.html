@@ -222,6 +222,31 @@ const W=[
 ["signedOn","✔ signed","✔ تم التوقيع"],
 ["add","Add","إضافة"],
 ["saveDraft","Save draft","حفظ المسودة"],
+["delReq","Request deletion","طلب حذف"],
+["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة الأدمن. أضف ملاحظات للأدمن (اختيارية)."],
+["delNote","Reason / notes for the admin","سبب الحذف / ملاحظات للأدمن"],
+["delSend","Send deletion request","إرسال طلب الحذف"],
+["delSent","Deletion request sent to the admin.","تم إرسال طلب الحذف إلى الأدمن."],
+["delPending","Deletion request awaiting admin decision","طلب حذف بانتظار قرار الأدمن"],
+["delRejected","Deletion request was rejected","تم رفض طلب الحذف"],
+["delApprove","Approve deletion","الموافقة على الحذف"],
+["delReject","Reject deletion","رفض الحذف"],
+["delDecNote","Notes for the requester (optional)","ملاحظات للمستخدم (اختيارية)"],
+["delDone","Deletion approved. The form was cancelled and moved to the archive.","تمت الموافقة على الحذف، وأُلغي النموذج ونُقل إلى الأرشيف."],
+["l_delreq","requested deletion","قدّم طلب حذف"],
+["l_delok","deletion approved","وافق على الحذف"],
+["l_delno","deletion rejected","رفض الحذف"],
+["assignDraft","Draft for a user","مسودة لمستخدم"],
+["assignTo","User who will complete the request","المستخدم الذي سيُكمل الطلب"],
+["assignPick","— Select user —","— اختر المستخدم —"],
+["assignOr","Project name","اسم المشروع"],
+["assignGo","Create and send draft","إنشاء المسودة وتوجيهها"],
+["assignHint","The draft contains only the project name. It is sent to the selected user to complete and submit.","تحتوي المسودة على اسم المشروع فقط، وتُوجَّه للمستخدم المختار ليُكملها ويقدّمها."],
+["assignNeedUser","Select the user.","اختر المستخدم."],
+["assignNeedName","Type the project name.","اكتب اسم المشروع."],
+["assignDone","Draft created and sent to the user.","تم إنشاء المسودة وتوجيهها للمستخدم."],
+["assignedTag","Assigned draft","مسودة موجّهة"],
+["saveFail","Could not save: you may no longer have permission to edit this form. Reload the page and try again.","تعذّر الحفظ: ربما لم تعد لديك صلاحية تعديل هذا النموذج. أعد تحميل الصفحة وحاول مجددًا."],
 ["submit","Submit request","تقديم الطلب"],
 ["sendRev","Send for review","إرسال للمراجعة"],
 ["sendApp","Send for approval","إرسال للاعتماد"],
@@ -351,7 +376,7 @@ const W=[
 ["attAdd","+ Add attachment","+ إضافة مرفق"],
 ["attUp","Uploading…","جارٍ الرفع…"],
 ["attNone","No attachments.","لا توجد مرفقات."],
-["attBig","File is larger than 10 MB.","حجم الملف أكبر من 10 ميغابايت."],
+["attBig","File is larger than the allowed size.","حجم الملف أكبر من الحجم المسموح."],
 ["attNeedFile","Please choose a file first.","يرجى اختيار ملف أولاً."],
 ["attDel","Remove this attachment?","هل تريد إزالة هذا المرفق؟"],
 ["l_attached","Attachment added","تمت إضافة مرفق"],
@@ -384,6 +409,7 @@ const pgText=(rd,rt,od,ot)=>t('pgFmt').replace('{d}',rd+od).replace('{t}',rt+ot)
 const lg=(id,a)=>sb.from('audit_log').insert({cr_id:id,user_name:me.full_name,action:a});
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
+ if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
  if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
@@ -412,13 +438,16 @@ async function toggleLang(){
  ids.forEach((i,j)=>{if($(i)&&v[j])$(i).value=v[j]})}
 
 // ===== App =====
+let SET={};const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
+async function loadSet(){SET={};try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
+ try{if(SET.opt_goals){const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length){if(typeof GOALS!='undefined')GOALS.splice(0,GOALS.length,...g);if(typeof CGOALS!='undefined')CGOALS.splice(0,CGOALS.length,...g)}}}catch(_){}}
 async function start(){
  curView=start;editing=false;
  if(!sb){app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('almost')}</p></div>`;return}
  const {data:{session}}=await sb.auth.getSession();
  if(!session)return loginView();
  const {data:ps}=await sb.from('profiles').select('*');
- users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];
+ users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];await loadSet();
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
  homeView();
@@ -498,7 +527,7 @@ function drawHome(){
  const adm=me.role=='admin';
  const cards=[['action','c_action'],['mine',adm?'c_mineA':'c_mine'],['returned','c_returned'],['approved','c_approved'],['rejected','c_rejected']];
  const acts=list('action');
- app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}</div>
+ app.innerHTML=bar()+`<div class="hero hr2"><div><h2>${t('hello')} ${esc(me.full_name)}</h2><div class="mut">${t('role_'+me.role)}${me.job_title?' · '+esc(me.job_title):''}</div></div>${['pm','admin'].includes(me.role)?`<button class="nw" onclick="newCR()">${t('newReq')}</button>`:''}${me.role=='admin'?`<button class="nw" onclick="goDraft()">📌 ${t('assignDraft')}</button>`:''}</div>
  <div class="card"><div class="kp">${cards.map(([f,l])=>{const n=list(f).length;return `<div class="k ${H.f==f?'on':''} ${f=='action'&&n?'hot':''}" onclick="setF('${f}')"><b>${n}</b>${t(l)}</div>`}).join('')}</div></div>
  <div class="card"><h2>${t('actTitle')}</h2>${acts.map(x=>rowH(x,false)).join('')||`<div class="mut">${t('noAction')}</div>`}</div>`
  +(adm?adminBlock():'')
@@ -539,7 +568,17 @@ async function remind(id){const {data,error}=await sb.rpc('remind_now',{cid:id})
 async function listView(){curView=listView;editing=false;
  const {data}=await sb.from('change_requests').select('*').order('id',{ascending:false});
  const adm=me.role=='admin',act=data.filter(r=>!r.archived),arc=data.filter(r=>r.archived),rows=adm&&showArch?arc:act;
- app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="mut">${t('priority')}: ${esc(pl(r.data.prio))||'—'} · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
+ app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('allReq')}</h2>${['pm','admin'].includes(me.role)?`<button class="p" onclick="newCR()">${t('newReq')}</button>`:''}</div>${adm?`<div class="row" style="margin:0 0 10px"><button onclick="draftBox()">📌 ${t('assignDraft')}</button></div><div class="pick" id="adr" style="display:none"><div class="mut">${t('assignHint')}</div><label>${t('assignTo')}</label><select id="ad_u"><option value="">${t('assignPick')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${t('role_'+u.role)})</option>`).join('')}</select><label>${t('assignOr')}</label><input id="ad_n"><div class="row" style="margin-top:8px"><button class="p" onclick="adminDraft()">${t('assignGo')}</button><button onclick="draftBox()">${t('cancel')}</button></div></div><div class="row" style="margin:0 0 10px"><button class="${showArch?'':'p'}" onclick="setTab(false)">${t('tabActive')} (${act.length})</button><button class="${showArch?'p':''}" onclick="setTab(true)">${t('tabArch')} (${arc.length})</button></div>`:''}${rows.map(r=>`<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b>${pillS(r.status)}</div><div class="mut">${t('priority')}: ${esc(pl(r.data.prio))||'—'} · ${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${r.data._assigned&&r.status=='Draft'?' · 📌 '+t('assignedTag'):''}</div><div class="row" style="margin-top:6px"><button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`).join('')||`<div class="mut">${t('noReq')}</div>`}</div>`}
+function draftBox(){const b=$('adr');if(b)b.style.display=b.style.display=='none'?'':'none'}
+async function goDraft(){await listView();draftBox();const e=$('adr');if(e)e.scrollIntoView({behavior:'smooth',block:'center'})}
+async function adminDraft(){
+ if(me.role!='admin')return;const uid=$('ad_u').value,nm=$('ad_n').value.trim();
+ if(!uid)return msg(t('assignNeedUser'));if(!nm)return msg(t('assignNeedName'));const u=users[uid]||{};
+ const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:uid,data:{pname:nm,by:u.full_name||'',pmname:u.full_name||'',_assigned:me.full_name},stakeholders:[]}).select().single();
+ if(error)return msg(error.message);
+ await sb.from('signatories').insert({cr_id:data.id,stage:'created',user_id:uid});
+ await lg(data.id,'assigned|'+(u.full_name||'')+'|created');
+ await listView();msg(t('assignDone'))}
 async function newCR(){
  const {data,error}=await sb.from('change_requests').insert({code:'CR-'+String(Date.now()).slice(-6),created_by:me.id,data:{by:me.full_name,pmname:me.full_name},stakeholders:[]}).select().single();
  if(error)return msg(error.message);
@@ -553,7 +592,7 @@ async function pickCharter(id){if(!id)return;const c=CHL.find(x=>String(x.id)==S
  const gl=g=>{const x=CGOALS[+g-1];return x?x[lang=='ar'?0:1]:''};
  Object.assign(cr.data,{ch_id:c.id,pname:d.pname||'',pcode:c.code||'',sponsor:d.owner||'',pmname:d.pmname||cr.data.pmname||'',
   sector:d.sector?(lang=='ar'?'قطاع ':'Sector ')+cdig(d.sector):'',
-  dept:d.dept&&d.sector?(lang=='ar'?'الإدارة '+cdig(d.dept)+' للقطاع '+cdig(d.sector):'Department '+d.dept+' of Sector '+d.sector):'',
+  dept:d.dept=='na'?(lang=='ar'?'لا ينطبق':'Not applicable'):d.dept&&d.sector?(lang=='ar'?'الإدارة '+cdig(d.dept)+' للقطاع '+cdig(d.sector):'Department '+d.dept+' of Sector '+d.sector):'',
   ch_pdesc:d.pdesc||'',ch_ptype:d.ptype=='strategic'?(lang=='ar'?'استراتيجي':'Strategic'):d.ptype=='operational'?(lang=='ar'?'تشغيلي':'Operational'):'',
   ch_goal:gl(d.goal),ch_purpose:d.purpose||'',ch_sdate:d.sdate||'',ch_edate:d.edate||'',ch_budget:d.budget==null?'':String(d.budget)});
  const inc=(d.stk_int||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'Internal',i:'',c:''})),ext=(d.stk_ext||[]).filter(x=>String(x).trim()).map(x=>({n:x,t:'External',i:'',c:''})),nw=[...inc,...ext];
@@ -566,7 +605,7 @@ const REQ={proj:F,chg:['desc','reason','chal'],imp:['scope','cost','sched','stak
 const COLL=76;
 function grow(x){if(!x.offsetParent)return;x.style.height='auto';const full=x.scrollHeight+2,foc=document.activeElement===x,h=foc?Math.max(full,COLL):Math.min(Math.max(full,46),COLL);x.style.height=h+'px';x.parentNode.classList.toggle('clamped',!foc&&full>COLL+2)}
 function fitRO(){document.querySelectorAll('.pn.on .ro').forEach(e=>e.classList.toggle('more',!e.classList.contains('open')&&e.scrollHeight>e.clientHeight+2))}
-function fit(){document.querySelectorAll('.pn.on textarea.ta').forEach(grow);fitRO()}
+function fit(){document.querySelectorAll('.pn.on textarea.ta').forEach(grow);fitRO();drawDel()}
 function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classList.toggle('on',b.dataset.t==k));document.querySelectorAll('.pn').forEach(p=>p.classList.toggle('on',p.dataset.t==k));fit()}
 function goTab(k){showTab(k);const e=document.querySelector('.tabs');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})}
 function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
@@ -635,7 +674,7 @@ async function openCR(id){
  <div class="card pn ${ftab=='chg'?'on':''}" data-t="chg"><div class="sec">${t('changeDetails')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['desc','reason','chal'].map(tf).join('')}${pnav('proj','imp')}</div>
  <div class="card pn ${ftab=='imp'?'on':''}" data-t="imp"><div class="sec">${t('impactTitle')}</div>${['scope','cost','sched','stake'].map(tf).join('')}${pnav('chg','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('stakeTitle')}</div><div class="mut">${t('stakeNote')}</div>${cr.stakeholders.map((x,i)=>`<div class="sh"><div class="fg"><div class="full" style="padding-inline-end:46px"><label>${t('thName')}</label><input data-i="${i}" data-s="n" value="${esc(x.n)}" ${dis}></div><div><label>${t('thType')}</label><select data-i="${i}" data-s="t" ${dis}><option value="Internal" ${x.t=='Internal'?'selected':''}>${t('Internal')}</option><option value="External" ${x.t=='External'?'selected':''}>${t('External')}</option></select></div><div><label>${t('thImpact')}</label><input data-i="${i}" data-s="i" value="${esc(x.i)}" ${dis}></div><div class="full"><label>${t('thHow')}</label><input data-i="${i}" data-s="c" value="${esc(x.c)}" ${dis}></div></div>${ed?`<button class="sm" onclick="delSh(${i})">✕</button>`:''}</div>`).join('')}${ed?`<div class="row"><button onclick="addSh()">${t('addStake')}</button></div>`:''}${pnav('imp','flow')}</div>
- <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('stk','')}
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('stk','')}
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
@@ -655,11 +694,11 @@ async function uploadAtt(f,title){
  if(ins.error){await sb.storage.from('attachments').remove([path]);throw ins.error}
  await lg(cr.id,'attached|'+title)}
 async function addAtt(){
- const f=$('at_f').files[0];if(!f)return msg(t('attNeedFile'));if(f.size>10485760)return msg(t('attBig'));
+ const f=$('at_f').files[0];if(!f)return msg(t('attNeedFile'));if(f.size>ATTMAX())return msg(t('attBig'));
  const title=$('at_t').value.trim()||f.name,b=$('at_b');b.disabled=true;b.textContent=t('attUp');
  try{await save(false);await uploadAtt(f,title);openCR(cr.id)}
  catch(err){b.disabled=false;b.textContent=t('attAdd');msg(err.message||String(err))}}
-async function flushAtt(){const fi=$('at_f'),f=fi&&fi.files[0];if(!f)return;if(f.size>10485760)throw new Error(t('attBig'));
+async function flushAtt(){const fi=$('at_f'),f=fi&&fi.files[0];if(!f)return;if(f.size>ATTMAX())throw new Error(t('attBig'));
  const title=($('at_t').value.trim())||f.name;fi.value='';$('at_t').value='';await uploadAtt(f,title)}
 async function saveDraft(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
 function toggleNoteMode(){noteMode=!noteMode;if(noteMode)ftab='proj';openCR(cr.id)}
@@ -676,13 +715,32 @@ async function delAtt(id){const a=atts.find(x=>x.id==id);if(!a||!confirm(t('attD
  await lg(cr.id,'attremoved|'+a.title);if(editing)await save(false);openCR(cr.id)}
 const addSh=()=>{cr.stakeholders.push({n:'',t:'Internal',i:'',c:''});save(true)};
 const delSh=i=>{cr.stakeholders.splice(i,1);save(true)};
-async function save(q){const {error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id);if(error)return msg(error.message);if(q!==false)await openCR(cr.id)}
+async function save(q){const {data:r,error}=await sb.from('change_requests').update({data:cr.data,stakeholders:cr.stakeholders}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
 async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.value;if(sigs.some(x=>x.stage==sg&&x.user_id==u))return msg(t('already'));
  if(cr.created_by==me.id&&editing)await save(false);
  await sb.from('signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
 async function rmSig(id){await sb.from('signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
 async function setStatus(s,extra={}){await sb.from('change_requests').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s)}
+let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;clearTimeout(AUTOT);AUTOT=setTimeout(()=>{if(editing&&cr)save(false)},2500)});
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await sb.from('change_requests').delete().eq('id',cr.id);if(error)return msg(error.message);homeView()}
+const SVC='cr';
+async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;
+ let rows=[];try{const r=await sb.from('del_requests').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});rows=r.data||[]}catch(_){}
+ const last=rows[0],pend=last&&last.status=='pending',adm=me.role=='admin',st=cr.status;
+ const canReq=cr.created_by==me.id&&!cr.archived&&!pend&&!['Draft','Returned to PM','Cancelled'].includes(st);
+ let h='';
+ if(pend)h+=`<div class="sig"><b>🗑 ${t('delPending')}</b><div class="mut">${esc((users[last.requested_by]||{}).full_name||'')} · ${fd(last.requested_at)}</div><div>${esc(last.note||'NA')}</div>${adm?`<textarea id="dl_n" rows="2" placeholder="${t('delDecNote')}" style="width:100%;margin-top:8px;box-sizing:border-box"></textarea><div class="row"><button class="g" onclick="delDecide(${last.id},true)">${t('delApprove')}</button><button class="r" onclick="delDecide(${last.id},false)">${t('delReject')}</button></div>`:''}</div>`;
+ else if(last&&last.status=='rejected'&&!cr.archived)h+=`<div class="sig"><b>🗑 ${t('delRejected')}</b>${last.decision_note?`<div>${esc(last.decision_note)}</div>`:''}</div>`;
+ if(canReq)h+=`<div class="row"><button class="r" onclick="$('dl_box').style.display=''">🗑 ${t('delReq')}</button></div><div class="pick" id="dl_box" style="display:none"><div class="mut">${t('delHint')}</div><textarea id="dl_q" rows="3" placeholder="${t('delNote')}" style="width:100%;margin-top:6px;box-sizing:border-box"></textarea><div class="row" style="margin-top:8px"><button class="r" onclick="delSend()">${t('delSend')}</button></div></div>`;
+ el.innerHTML=h}
+async function delSend(){const note=($('dl_q').value||'').trim();
+ const {error}=await sb.from('del_requests').insert({svc:SVC,cr_id:cr.id,note:note||'NA',requested_by:me.id});if(error)return msg(error.message);
+ await lg(cr.id,'delreq');msg(t('delSent'));openCR(cr.id)}
+async function delDecide(id,ok){const dn=(($('dl_n')||{}).value||'').trim();
+ const {error}=await sb.from('del_requests').update({status:ok?'approved':'rejected',decided_by:me.id,decided_at:new Date().toISOString(),decision_note:dn}).eq('id',id);if(error)return msg(error.message);
+ if(ok){const u=await sb.from('change_requests').update({status:'Cancelled',archived:true}).eq('id',cr.id);if(u.error)return msg(u.error.message)}
+ await lg(cr.id,ok?'delok':'delno');
+ if(ok){await listView();msg(t('delDone'))}else openCR(cr.id)}
 async function archiveCR(v){const {error}=await sb.from('change_requests').update({archived:v}).eq('id',cr.id);if(error)return msg(error.message);await lg(cr.id,v?'archived':'restored');showArch=false;listView()}
 async function submitCR(){
  try{await flushAtt()}catch(err){return msg(err.message||String(err))}
