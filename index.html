@@ -92,7 +92,20 @@ mark{background:#fff0a8;border-radius:4px;padding:0 2px}
 @media(max-width:520px){.hero{padding:22px 16px 18px}.axh{padding:13px 14px}.grid{padding:2px 12px 14px}.ico{width:44px;height:44px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.axis{opacity:1;transform:none}}
 .hb{display:inline-block;margin-inline-end:6px;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap}#hx{display:flex;flex-wrap:wrap;gap:0}.hin{flex-wrap:wrap}
-</style></head><body>
+
+/* ---- لوحتي: تصميم مضغوط ---- */
+.mine{padding:12px 12px 10px;border-radius:16px;margin-bottom:12px}
+.mh{margin-bottom:8px}.mh h2{font-size:16px}.mh small{font-size:12px}
+.pan{padding:8px 10px 10px;margin-bottom:8px;border-radius:12px;border-width:1px}
+.ph{margin-bottom:7px;gap:8px}.ph .ico{width:28px;height:28px;border-radius:9px}.ph .ico svg{width:15px;height:15px}.ph b{font-size:13.5px}.ph .go{width:16px;height:16px}
+.tl{grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:6px}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px;min-height:56px;border-width:1px;border-top-width:3px;border-radius:10px}
+.tile b{font-size:20px;line-height:1.1}.tile span{font-size:11.5px;line-height:1.25;margin-top:2px}
+.tile:hover,.tile:focus-visible{transform:none;box-shadow:0 3px 8px rgba(35,39,43,.12)}
+.cust{display:inline-flex;align-items:center;gap:6px;border:1px dashed var(--line);background:#fff;border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;color:var(--mut);cursor:pointer;margin-top:6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}.ovb{background:#fff;width:100%;max-width:520px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px 22px}@media(min-width:700px){.ov{align-items:center}.ovb{border-radius:18px}}
+.ovb h3{margin:12px 0 4px;font-size:15px}.ovr{display:flex;gap:6px;align-items:center;padding:4px 0}.ovr label{flex:1;display:flex;gap:8px;align-items:center;font-weight:600}.ovr input{width:20px;height:20px;accent-color:var(--g)}.ovr button,.ovb .bt{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-weight:700;cursor:pointer}.ovb .bt.p{background:var(--g);border-color:var(--g);color:#fff}
+.ovr button{width:34px!important;height:30px!important;min-height:0!important;padding:0!important;font-size:12px!important;flex:none}.ovb .mh{display:flex;justify-content:space-between;align-items:flex-start}.ovb .mh .bt{width:34px;height:30px;padding:0}</style></head><body>
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><span id="hx"></span><button id="lb" onclick="toggleLang()">English</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <main>
  <section class="hero"><h1 id="ttl"></h1><p id="sub"></p><div class="stats" id="stats"></div></section>
@@ -170,7 +183,7 @@ function draw(){
  const all=AXES.reduce((n,a)=>n+a.services.length,0),live=AXES.reduce((n,a)=>n+a.services.filter(s=>s.status=='live').length,0);
  $('stats').innerHTML=[[AXES.length,'axes'],[all,'services'],[live,'avail']].map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b><span>${T(k)}</span></div>`).join('');
  document.querySelectorAll('.stat b').forEach(b=>counter(b,+b.dataset.n));
- $('chips').innerHTML=[['all',T('all')],...AXES.map(a=>[a.id,L(a.title)])].map(([id,t])=>`<button class="chip ${flt==id?'on':''}" data-f="${id}">${esc(t)}</button>`).join('');
+ $('chips').innerHTML=[['all',T('all')],...AXES.map(a=>[a.id,L(a.title)])].map(([id,t])=>`<button class="chip ${flt==id?'on':''}" data-f="${id}">${esc(t)}</button>`).join('')+(ME0?`<button class="cust" onclick="custOpen()">⚙ ${lang=='ar'?'تخصيص':'Customize'}</button>`:'');
  const k=norm(qs.trim());let shown=0;
  const html=AXES.filter(a=>flt=='all'||flt==a.id).map((a,i)=>{
   const sv=a.services.filter(s=>!k||norm(L(s.title)+' '+L(s.desc)+' '+L(a.title)).includes(k));
@@ -214,19 +227,44 @@ async function loadMine(){
   const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   if(!me)throw new Error('no profile');
   try{const {data:rr}=await sb.from('app_roles').select('perms').eq('key',me.role_key||me.role).maybeSingle();const sv0=((rr||{}).perms||{}).svc||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false&&me.role!='admin').map(k=>({cr:'cr',charter:'charter',closure:'closure'}[k]+'.html'));applySvc()}catch(e){}
+  ME0=me;try{USRCFG=me.home_cfg?JSON.parse(me.home_cfg):null}catch(e){USRCFG=null}setCfg();if(USRCFG)applyCfg();
   hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role)}catch(e){}
   const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
   MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error',msg:String(e&&e.message||e)}}
  drawMine()}
-const tileList=ts=>{const o=CFG.tiles;if(!Array.isArray(o))return ts.filter(t=>t.k!='del'||t.n);return o.map(k=>ts.find(t=>t.k==k)).filter(Boolean)};
+const ALLTILES=['created','action','done','del'];
+const ordL=(all,sel,off)=>{off=off||[];if(Array.isArray(sel))return[...sel.filter(x=>all.includes(x)),...all.filter(x=>!sel.includes(x)&&!off.includes(x))];return all.filter(x=>!off.includes(x))};
+const tileList=ts=>{const c=CFG;if(!Array.isArray(c.tiles))return ts.filter(t=>t.k!='del'||t.n);return ordL(ALLTILES,c.tiles,c.tilesOff).map(k=>ts.find(t=>t.k==k)).filter(Boolean)};
 function applyCfg(){
  let ax=ORIG.map(a=>({...a,services:a.services.slice()}));
- if(Array.isArray(CFG.axes))ax=CFG.axes.map(id=>ax.find(a=>a.id==id)).filter(Boolean);
- if(CFG.svc)ax.forEach(a=>{const o=CFG.svc[a.id];if(Array.isArray(o))a.services=o.map(h=>a.services.find(s=>s.href==h)).filter(Boolean)});
+ const ids=ordL(ax.map(a=>a.id),CFG.axes,CFG.axesOff);ax=ids.map(id=>ax.find(a=>a.id==id));
+ ax.forEach(a=>{const o=(CFG.svc||{})[a.id],off=(CFG.svcOff||{})[a.id],all=a.services.map(s=>s.href);if(o||off)a.services=ordL(all,o,off).map(h=>a.services.find(s=>s.href==h))});
  AXES.length=0;AXES.push(...ax);
  const m=$('mine'),x=$('axes');if(m&&x){if(CFG.order=='axes')x.after(m);else x.before(m);m.style.display=CFG.mine===0?'none':''}
  draw();if(MINE&&MINE.state=='ok')drawMine()}
+// ---- تخصيص المستخدم لصفحته ----
+let ADMCFG={},USRCFG=null,CUST=null,ME0=null;
+function setCfg(){CFG=USRCFG||ADMCFG||{}}
+function custOpen(){const c=CFG||{};const mk=(all,sel,off)=>ordL(all,sel,off).map(k=>({k,on:true})).concat(all.filter(k=>!ordL(all,sel,off).includes(k)).map(k=>({k,on:false})));
+ CUST={mine:c.mine!==0,first:c.order!='axes',axes:mk(ORIG.map(a=>a.id),c.axes,c.axesOff),tiles:mk(ALLTILES,c.tiles||ALLTILES,c.tilesOff),svc:{}};ORIG.forEach(a=>CUST.svc[a.id]=mk(a.services.map(s=>s.href),(c.svc||{})[a.id],(c.svcOff||{})[a.id]));custDraw()}
+const lab=(k,kind)=>{if(kind=='ax'){const a=ORIG.find(x=>x.id==k);return a?L(a.title):k}if(kind=='tl')return T('t_'+k);for(const a of ORIG){const s=a.services.find(x=>x.href==k);if(s)return L(s.title)}return k};
+function custRows(list,path,kind){return list.map((x,i)=>`<div class="ovr"><label><input type="checkbox" ${x.on?'checked':''} onchange="${path}[${i}].on=this.checked"><span>${esc(lab(x.k,kind))}</span></label><button onclick="custMv('${path}',${i},-1)">▲</button><button onclick="custMv('${path}',${i},1)">▼</button></div>`).join('')}
+function custMv(p,i,d){const a=Function('CUST','return '+p)(CUST),j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];custDraw()}
+function custDraw(){let o=$('cov');if(!o){o=document.createElement('div');o.id='cov';o.className='ov';o.onclick=e=>{if(e.target==o)custClose()};document.body.appendChild(o)}const a=lang=='ar';
+ o.innerHTML=`<div class="ovb"><div class="mh"><div><h2>${a?'تخصيص صفحتي':'Customize my page'}</h2><small>${a?'يظهر هذا الترتيب لك أنت فقط.':'This layout is for you only.'}</small></div><button class="bt" onclick="custClose()">✕</button></div>
+ <div class="ovr"><label><input type="checkbox" ${CUST.mine?'checked':''} onchange="CUST.mine=this.checked"><span>${a?'إظهار «لوحتي»':'Show "My dashboard"'}</span></label></div>
+ <div class="ovr"><label><input type="checkbox" ${CUST.first?'checked':''} onchange="CUST.first=this.checked"><span>${a?'«لوحتي» قبل المحاور':'Dashboard before axes'}</span></label></div>
+ <h3>${a?'المحاور':'Axes'}</h3>${custRows(CUST.axes,'CUST.axes','ax')}
+ ${ORIG.filter(x=>x.services.length).map(x=>`<h3>${esc(L(x.title))}</h3>`+custRows(CUST.svc[x.id],'CUST.svc.'+x.id,'sv')).join('')}
+ <h3>${a?'مؤشرات لوحتي':'Dashboard indicators'}</h3>${custRows(CUST.tiles,'CUST.tiles','tl')}
+ <div class="row" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="bt p" onclick="custSave()">${a?'حفظ':'Save'}</button><button class="bt" onclick="custReset()">${a?'استرجاع الافتراضي':'Reset to default'}</button></div></div>`}
+function custClose(){const o=$('cov');if(o)o.remove()}
+async function custSave(){const on=l=>l.filter(x=>x.on).map(x=>x.k),off=l=>l.filter(x=>!x.on).map(x=>x.k);const svc={},svcOff={};ORIG.forEach(a=>{svc[a.id]=on(CUST.svc[a.id]);svcOff[a.id]=off(CUST.svc[a.id])});
+ const c={mine:CUST.mine?1:0,order:CUST.first?'mine':'axes',axes:on(CUST.axes),axesOff:off(CUST.axes),tiles:on(CUST.tiles),tilesOff:off(CUST.tiles),svc,svcOff};
+ await saveUsr(JSON.stringify(c),c)}
+async function custReset(){await saveUsr(null,null)}
+async function saveUsr(j,c){try{const {error}=await sb.from('profiles').update({home_cfg:j}).eq('id',ME0.id);if(error)throw error;USRCFG=c;setCfg();custClose();applyCfg()}catch(e){alert((lang=='ar'?'تعذّر الحفظ (شغّل ملف التحديث الأخير): ':'Could not save (run the latest SQL update): ')+(e.message||e))}}
 function drawMine(){
  const el=$('mine');if(!MINE||MINE.state=='none'){el.hidden=true;return}el.hidden=false;
  let body;
@@ -239,11 +277,11 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')}
+ h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 let ROLEOFF=[];
-async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*');applySvc.done=1;const rows=r.data||[];OFFSVC=rows.filter(x=>x.key.startsWith('svc_')&&x.value=='0').map(x=>x.key.slice(4)+'.html');try{CFG=JSON.parse((rows.find(x=>x.key=='home_cfg')||{}).value||'{}')||{}}catch(e){CFG={}};if(Object.keys(CFG).length)applyCfg()}}catch(e){}
+async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*');applySvc.done=1;const rows=r.data||[];OFFSVC=rows.filter(x=>x.key.startsWith('svc_')&&x.value=='0').map(x=>x.key.slice(4)+'.html');try{ADMCFG=JSON.parse((rows.find(x=>x.key=='home_cfg')||{}).value||'{}')||{}}catch(e){ADMCFG={}};setCfg();if(Object.keys(CFG).length)applyCfg()}}catch(e){}
  OFFSVC.concat(ROLEOFF).forEach(h=>{document.querySelectorAll('a[href="'+h+'"]').forEach(a=>{const c=a.closest('.pan')||a;c.style.display='none'})})}
 new MutationObserver(()=>{if(OFFSVC.length||ROLEOFF.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
 const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
