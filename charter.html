@@ -230,6 +230,7 @@ const W=[
 ["signedOn","✔ signed","✔ تم التوقيع"],
 ["add","Add","إضافة"],
 ["saveDraft","Save draft","حفظ المسودة"],
+["loadErr","Could not load your data. Sign out and sign in again.","تعذّر تحميل بياناتك. سجّل الخروج ثم ادخل من جديد."],
 ["delReq","Request deletion","طلب حذف"],
 ["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة الأدمن. أضف ملاحظات للأدمن (اختيارية)."],
 ["delNote","Reason / notes for the admin","سبب الحذف / ملاحظات للأدمن"],
@@ -586,8 +587,10 @@ async function start(){
  if(!sb){app.innerHTML=`<div class="card" style="max-width:420px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('almost')}</p></div>`;return}
  const {data:{session}}=await sb.auth.getSession();
  if(!session)return loginView();
- const {data:ps}=await sb.from('profiles').select('*');
+ const {data:ps,error:pe}=await sb.from('profiles').select('*');
+ if(pe||!ps||!ps.find(p=>p.id==session.user.id)){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('loadErr')}</p><p dir="ltr" class="mut">${esc(pe?pe.message:'profile not found')}</p><button class="p" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;return}
  users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];await loadSet();
+ if(location.hash=='#me'||(location.hash=='#admin'&&me.role=='admin')){const h=location.hash;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();if(h=='#admin')return adminView();return editMe()}
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
  homeView();
