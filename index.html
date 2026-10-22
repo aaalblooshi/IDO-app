@@ -127,6 +127,7 @@ const AXES=[
   desc:{ar:'التخطيط الاستراتيجي ومتابعة الأداء',en:'Strategic planning and performance follow-up'},
   services:[]}
 ];
+const ORIG=AXES.map(a=>({...a,services:a.services.slice()}));let CFG={};
 const UI={
  title:{ar:'خدمات مكتب التطوير المؤسسي',en:'Institutional Development Office Services'},
  sub:{ar:'بوابة موحّدة لخدمات المكتب. اختر المحور ثم الخدمة التي تحتاجها.',en:'One gateway to the office services. Pick an axis, then the service you need.'},
@@ -137,7 +138,7 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
@@ -201,7 +202,7 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
    if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
    const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
    if(act)action++});
-  return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}]};
+  return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
 const STATS={cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
@@ -211,29 +212,39 @@ async function loadMine(){
   if(!session){MINE={state:'login'};try{localStorage.removeItem('hdrRole')}catch(e){}return drawMine()}
   const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
   if(!me)throw new Error('no profile');
+  try{const {data:rr}=await sb.from('app_roles').select('perms').eq('key',me.role_key||me.role).maybeSingle();const sv0=((rr||{}).perms||{}).svc||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false&&me.role!='admin').map(k=>({cr:'cr',charter:'charter',closure:'closure'}[k]+'.html'));applySvc()}catch(e){}
   hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role)}catch(e){}
   const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
   MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error',msg:String(e&&e.message||e)}}
  drawMine()}
+const tileList=ts=>{const o=CFG.tiles;if(!Array.isArray(o))return ts.filter(t=>t.k!='del'||t.n);return o.map(k=>ts.find(t=>t.k==k)).filter(Boolean)};
+function applyCfg(){
+ let ax=ORIG.map(a=>({...a,services:a.services.slice()}));
+ if(Array.isArray(CFG.axes))ax=CFG.axes.map(id=>ax.find(a=>a.id==id)).filter(Boolean);
+ if(CFG.svc)ax.forEach(a=>{const o=CFG.svc[a.id];if(Array.isArray(o))a.services=o.map(h=>a.services.find(s=>s.href==h)).filter(Boolean)});
+ AXES.length=0;AXES.push(...ax);
+ const m=$('mine'),x=$('axes');if(m&&x){if(CFG.order=='axes')x.after(m);else x.before(m);m.style.display=CFG.mine===0?'none':''}
+ draw();if(MINE&&MINE.state=='ok')drawMine()}
 function drawMine(){
  const el=$('mine');if(!MINE||MINE.state=='none'){el.hidden=true;return}el.hidden=false;
  let body;
  if(MINE.state=='login')body=`<div class="login"><span>${T('needLogin')}</span><a href="cr.html">${T('signIn')}</a></div>`;
  else if(MINE.state=='error')body=`<div class="login" style="flex-direction:column;align-items:flex-start"><span>${T('mineErr')}</span><small dir="ltr" style="color:#6b6f76">${esc(MINE.msg||'')}</small><button onclick="sb.auth.signOut().then(()=>location.reload())">${lang=='ar'?'تسجيل الخروج وإعادة المحاولة':'Sign out and retry'}</button></div>`;
  else if(MINE.state=='loading')body='<div class="sk"></div>';
- else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles?tiles.map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
+ else body=MINE.panels.map(({s,tiles})=>`<div class="pan" style="--ac:#0a6b3d"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a><div class="tl">${tiles?tileList(tiles).map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
  el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body;
  el.querySelectorAll('.tile b').forEach(b=>{const n=+b.dataset.n;if(matchMedia('(prefers-reduced-motion:reduce)').matches||MINE.shown){b.textContent=n;return}let st=performance.now();(function f(t){const p=Math.min(1,(t-st)/700);b.textContent=Math.round(n*p);if(p<1)requestAnimationFrame(f)})(st)});
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'الإدارة':'Admin'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')}
+ h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
-async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*').like('key','svc_%');applySvc.done=1;OFFSVC=(r.data||[]).filter(x=>x.value=='0').map(x=>x.key.slice(4)+'.html')}}catch(e){}
- OFFSVC.forEach(h=>{document.querySelectorAll('a[href="'+h+'"]').forEach(a=>{const c=a.closest('.pan')||a;c.style.display='none'})})}
-new MutationObserver(()=>{if(OFFSVC.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
+let ROLEOFF=[];
+async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_settings').select('*');applySvc.done=1;const rows=r.data||[];OFFSVC=rows.filter(x=>x.key.startsWith('svc_')&&x.value=='0').map(x=>x.key.slice(4)+'.html');try{CFG=JSON.parse((rows.find(x=>x.key=='home_cfg')||{}).value||'{}')||{}}catch(e){CFG={}};if(Object.keys(CFG).length)applyCfg()}}catch(e){}
+ OFFSVC.concat(ROLEOFF).forEach(h=>{document.querySelectorAll('a[href="'+h+'"]').forEach(a=>{const c=a.closest('.pan')||a;c.style.display='none'})})}
+new MutationObserver(()=>{if(OFFSVC.length||ROLEOFF.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
 const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
 draw();loadMine();applySvc();
 </script></body></html>
