@@ -50,13 +50,13 @@ const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل
  newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
  title:['أرشيف المحذوفات والمؤرشف','Deleted & archived'],search:['ابحث بالرمز أو اسم المشروع…','Search code or project name…'],
  f_all:['الكل','All'],s_all:['المحذوف والمؤرشف','Deleted & archived'],s_del:['محذوف','Deleted'],s_arc:['مؤرشف','Archived'],
- sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق مشروع','Project charter'],sv_closure:['تقرير ختامي','Closure report'],
+ sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق مشروع','Project charter'],sv_closure:['تقرير ختامي','Closure report'],sv_plan:['خطة مشروع','Project plan'],
  by:['بواسطة','By'],reason:['السبب','Reason'],restore:['استرجاع','Restore'],purge:['حذف نهائي','Delete permanently'],open:['فتح الخدمة','Open service'],
  none:['لا توجد عناصر.','No items.'],cf:['حذف نهائي لا يمكن التراجع عنه. هل أنت متأكد؟','This permanent deletion cannot be undone. Are you sure?'],restored:['تم الاسترجاع','Restored'],purged:['تم الحذف النهائي','Permanently deleted'],
  total:['عنصر','items'],xAll:['⬇ تصدير الأرشيف كاملًا (Excel)','⬇ Export full archive (Excel)'],xView:['⬇ تصدير المعروض (CSV)','⬇ Export shown (CSV)'],xJson:['نسخة كاملة (JSON)','Full backup (JSON)'],xBusy:['جارٍ التجهيز…','Preparing…'],xNo:['لا توجد عناصر للتصدير.','Nothing to export.'],
  c_cls:['التصنيف','Classification'],c_svc:['الخدمة','Service'],c_code:['الرمز','Code'],c_doc:['رقم الوثيقة','Doc no.'],c_proj:['المشروع','Project'],c_st:['الحالة','Status'],c_arch:['حالة الأرشفة','Archive state'],c_by:['المنشئ','Created by'],c_at:['تاريخ الإنشاء','Created'],c_dby:['حذفه','Deleted by'],c_dat:['تاريخ الحذف','Deleted on'],c_rsn:['سبب الحذف','Reason']
 };
-const SV={cr:{tbl:'change_requests',aud:'audit_log',page:'cr.html'},charter:{tbl:'charters',aud:'charter_audit',page:'charter.html'},closure:{tbl:'closure_reports',aud:'closure_audit',page:'closure.html'}};
+const SV={cr:{tbl:'change_requests',aud:'audit_log',page:'cr.html'},charter:{tbl:'charters',aud:'charter_audit',page:'charter.html'},closure:{tbl:'closure_reports',aud:'closure_audit',page:'closure.html'},plan:{tbl:'plans',aud:'plan_audit',page:'plan.html'}};
 let ITEMS=[],US={},ME=null,FS='',FT='',Q='';
 async function load(){
  if(!sb)return gate('needLogin');
