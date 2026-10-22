@@ -25,7 +25,10 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 #toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
 .lock{max-width:420px;margin:60px auto;text-align:center}
 
-</style></head><body>
+.pwr{position:relative}.eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{padding-inline-end:44px}
+.av0{width:84px;height:84px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:32px;overflow:hidden;flex:none}.av0 img{width:100%;height:100%;object-fit:cover}
+.hd{display:flex;gap:14px;align-items:center}.tg{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.tg:last-of-type{border-bottom:0}.tg input{width:22px;height:22px;flex:none;accent-color:var(--g)}.tg span{flex:1}
+canvas{width:100%;height:140px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}.sigimg{max-height:80px;max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px}</style></head><body>
 <div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -40,19 +43,28 @@ function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';cle
 function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
 function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
 async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
+const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">👁</button>`;
 const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
  r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
- newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],show:['إظهار','Show'],
+ newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
  title:['حسابي','My account'],s_prof:['بياناتي','My details'],s_prof_h:['هذه البيانات تظهر في النماذج والتواقيع.','These details appear in forms and signatures.'],
  jobph:['مثال: مدير مشروع','e.g. Project manager'],jobnote:['إن تركته فارغًا يظهر NA في النماذج، ويمكنك تعديله داخل كل نموذج.','If empty, forms show NA and you can edit it inside each form.'],
  s_mail:['تغيير البريد الإلكتروني','Change email'],s_mail_h:['سيصل رابط تأكيد إلى البريد الجديد، ولا يتغير البريد قبل التأكيد.','A confirmation link is sent to the new address; the email changes only after you confirm.'],
  newmail:['البريد الجديد','New email'],sendlink:['إرسال رابط التأكيد','Send confirmation link'],mailsent:['أُرسل رابط التأكيد إلى البريد الجديد.','Confirmation link sent to the new email.'],
  s_pw:['تغيير كلمة المرور','Change password'],confirm:['تأكيد كلمة المرور','Confirm password'],pwmis:['كلمتا المرور غير متطابقتين.','Passwords do not match.'],pwshort:['كلمة المرور أقصر من ٨ أحرف.','Password is shorter than 8 characters.'],pwdone:['تم تغيير كلمة المرور.','Password changed.'],changepw:['تغيير كلمة المرور','Change password'],
- s_pref:['التفضيلات','Preferences'],lang:['لغة الواجهة','Interface language'],ar:['العربية','Arabic'],en:['English','English'],
- signout:['تسجيل الخروج','Sign out']
+ s_pref:['التفضيلات','Preferences'],lang:['لغة الواجهة','Interface language'],ar:['العربية','Arabic'],en:['English','English'],signout:['تسجيل الخروج','Sign out'],
+ photo:['الصورة الشخصية','Profile photo'],choose:['اختيار صورة','Choose photo'],rmphoto:['إزالة الصورة','Remove photo'],
+ s_sig:['توقيعي المحفوظ','My saved signature'],s_sig_h:['يُستخدم بضغطة واحدة عند التوقيع أو الاعتماد في النماذج.','Used with one tap when signing or approving forms.'],
+ clear:['مسح','Clear'],savesig:['حفظ التوقيع','Save signature'],rmsig:['حذف التوقيع المحفوظ','Remove saved signature'],drawfirst:['ارسم توقيعك أولًا.','Draw your signature first.'],nosig:['لا يوجد توقيع محفوظ.','No saved signature.'],
+ s_notif:['تنبيهات البريد','Email notifications'],s_notif_h:['أوقف التنبيهات التي لا تريد أن تصلك. (التذكيرات لا يمكن إيقافها)','Turn off events you do not want by email. (Reminders cannot be turned off.)'],
+ ev_submitted:['إرسال نموذج للمراجعة','Form sent for review'],ev_reviewerAssigned:['تحديدي مراجعًا','I am assigned as reviewer'],ev_reviewDone:['اعتماد المراجعة','Review completed'],ev_approverAssigned:['تحديدي معتمِدًا','I am assigned as approver'],ev_approved:['الاعتماد النهائي','Final approval'],ev_draftAssigned:['توجيه مسودة لي','A draft is assigned to me'],
+ ev_deleteRequested:['طلبات الحذف الجديدة (للأدمن)','New deletion requests (admin)'],ev_deleteApproved:['الموافقة على طلب حذفي','My deletion request approved'],ev_deleteRejected:['رفض طلب حذفي','My deletion request rejected'],
+ s_info:['معلومات الحساب','Account info'],lastin:['آخر تسجيل دخول','Last sign-in'],joined:['تاريخ إنشاء الحساب','Account created'],bigimg:['الصورة كبيرة أو غير مدعومة.','Image is too large or unsupported.']
 };
-let me=null,sess=null;
+const EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected'];
+let me=null,sess=null,cvx=null,drawn=false,down=false;
 async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');sess=session;
@@ -61,22 +73,40 @@ async function load(){
  const em=(session.user.email||'').toLowerCase();
  if(em&&(p.email||'').toLowerCase()!==em){try{await sb.from('profiles').update({email:em}).eq('id',p.id);me.email=em}catch(_){}}
  draw()}
+const fdt=d=>d?new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Dubai'}):'—';
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
- if(!me)return;
+ if(!me)return;const off=me.mail_off||[];
  $('app').innerHTML=`
+ <div class="card"><div class="hd"><div class="av0">${me.avatar?`<img src="${me.avatar}">`:esc((me.full_name||'?').trim().charAt(0))}</div><div><b>${esc(me.full_name)}</b><div class="mut">${esc(me.job_title||'NA')} · ${esc(t('r_'+me.role))}</div>
+  <div class="row" style="margin-top:6px"><button onclick="$('ph').click()">${t('choose')}</button>${me.avatar?`<button class="r" onclick="rmPhoto()">${t('rmphoto')}</button>`:''}</div><input id="ph" type="file" accept="image/*" style="display:none" onchange="setPhoto(this)"></div></div></div>
  <div class="card"><h2>${t('s_prof')}<small>${t('s_prof_h')}</small></h2>
   <div class="g2"><div><label>${t('name')}</label><input id="a_n" value="${esc(me.full_name)}"></div><div><label>${t('job')}</label><input id="a_j" placeholder="${t('jobph')}" value="${esc(me.job_title||'')}"></div></div>
   <div class="mut" style="margin-top:4px">${t('jobnote')}</div>
   <div class="g2"><div><label>${t('email')}</label><input dir="ltr" value="${esc(me.email||sess.user.email||'')}" disabled></div><div><label>${t('role')}</label><input value="${esc(t('r_'+me.role))}" disabled></div></div>
   <div class="row"><button class="p" onclick="saveProf()">${t('save')}</button></div></div>
+ <div class="card"><h2>${t('s_sig')}<small>${t('s_sig_h')}</small></h2>${me.signature_img?`<img class="sigimg" src="${me.signature_img}">`:`<div class="mut">${t('nosig')}</div>`}<canvas id="cv" style="margin-top:8px"></canvas><div class="row"><button onclick="clr()">${t('clear')}</button><button class="p" onclick="saveSig()">${t('savesig')}</button>${me.signature_img?`<button class="r" onclick="rmSig()">${t('rmsig')}</button>`:''}</div></div>
+ <div class="card"><h2>${t('s_notif')}<small>${t('s_notif_h')}</small></h2>${EV.filter(e=>e!='deleteRequested'||me.role=='admin').map(e=>`<label class="tg"><input type="checkbox" id="ev_${e}" ${off.includes(e)?'':'checked'}><span>${t('ev_'+e)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveNotif()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_mail')}<small>${t('s_mail_h')}</small></h2><label>${t('newmail')}</label><input id="a_e" dir="ltr" type="email" autocomplete="email"><div class="row"><button class="p" onclick="saveMail()">${t('sendlink')}</button></div></div>
- <div class="card"><h2>${t('s_pw')}<small>${t('pwhint')}</small></h2><label>${t('newpw')}</label><input id="a_p1" type="password" autocomplete="new-password"><label>${t('confirm')}</label><input id="a_p2" type="password" autocomplete="new-password"><div class="row"><button onclick="const a=$('a_p1'),b=$('a_p2'),y=a.type=='password'?'text':'password';a.type=y;b.type=y">${t('show')}</button><button class="p" onclick="savePw()">${t('changepw')}</button></div></div>
+ <div class="card"><h2>${t('s_pw')}<small>${t('pwhint')}</small></h2><label>${t('newpw')}</label><div class="pwr"><input id="a_p1" type="password" autocomplete="new-password">${eyeB('a_p1')}</div><label>${t('confirm')}</label><div class="pwr"><input id="a_p2" type="password" autocomplete="new-password">${eyeB('a_p2')}</div><div class="row"><button class="p" onclick="savePw()">${t('changepw')}</button></div></div>
  <div class="card"><h2>${t('s_pref')}</h2><label>${t('lang')}</label><select id="a_l" onchange="lang=this.value;try{localStorage.setItem('lang',lang)}catch(_){}draw()"><option value="ar" ${lang=='ar'?'selected':''}>${t('ar')}</option><option value="en" ${lang=='en'?'selected':''}>${t('en')}</option></select></div>
- <div class="row" style="justify-content:center"><button class="r" onclick="sb.auth.signOut().then(()=>location.href='./')">${t('signout')}</button></div>`}
-const saveProf=()=>run(async()=>{const n=$('a_n').value.trim();if(!n)throw new Error(t('name'));const j=$('a_j').value.trim();const {error}=await sb.from('profiles').update({full_name:n,job_title:j||null}).eq('id',me.id);if(error)throw error;me.full_name=n;me.job_title=j||null});
+ <div class="card"><h2>${t('s_info')}</h2><div class="mut">${t('lastin')}: ${fdt(sess.user.last_sign_in_at)}</div><div class="mut">${t('joined')}: ${fdt(sess.user.created_at)}</div></div>
+ <div class="row" style="justify-content:center"><button class="r" onclick="sb.auth.signOut().then(()=>location.href='./')">${t('signout')}</button></div>`;
+ initCv()}
+function initCv(){const c=$('cv');if(!c)return;c.width=c.offsetWidth;c.height=c.offsetHeight;cvx=c.getContext('2d');cvx.lineWidth=2.2;cvx.lineCap='round';cvx.strokeStyle='#111';drawn=false;
+ const pos=e=>{const r=c.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+ c.onpointerdown=e=>{down=true;const p=pos(e);cvx.beginPath();cvx.moveTo(...p);c.setPointerCapture(e.pointerId)};
+ c.onpointermove=e=>{if(!down)return;const p=pos(e);cvx.lineTo(...p);cvx.stroke();drawn=true};c.onpointerup=()=>down=false}
+const clr=()=>{const c=$('cv');cvx.clearRect(0,0,c.width,c.height);drawn=false};
+async function upd(o){const {error}=await sb.from('profiles').update(o).eq('id',me.id);if(error)throw error;Object.assign(me,o)}
+const saveProf=()=>run(async()=>{const n=$('a_n').value.trim();if(!n)throw new Error(t('name'));const j=$('a_j').value.trim();await upd({full_name:n,job_title:j||null});draw()});
+const saveSig=()=>run(async()=>{if(!drawn)throw new Error(t('drawfirst'));await upd({signature_img:$('cv').toDataURL('image/png')});draw()});
+const rmSig=()=>run(async()=>{await upd({signature_img:null});draw()});
+const saveNotif=()=>run(async()=>{const off=EV.filter(e=>$('ev_'+e)&&!$('ev_'+e).checked);const keep=(me.mail_off||[]).filter(e=>!$('ev_'+e));await upd({mail_off:[...off,...keep]})});
+const rmPhoto=()=>run(async()=>{await upd({avatar:null});draw()});
+function setPhoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>run(async()=>{const s=160,c=document.createElement('canvas');c.width=c.height=s;const m=Math.min(im.width,im.height),x=(im.width-m)/2,y=(im.height-m)/2;c.getContext('2d').drawImage(im,x,y,m,m,0,0,s,s);await upd({avatar:c.toDataURL('image/jpeg',.82)});draw()});im.onerror=()=>toast(t('bigimg'));im.src=r.result};r.readAsDataURL(f)}
 const saveMail=()=>run(async()=>{const e=$('a_e').value.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(e))throw new Error(t('email'));const {error}=await sb.auth.updateUser({email:e});if(error)throw error;$('a_e').value=''},t('mailsent'));
-const savePw=()=>run(async()=>{const a=$('a_p1').value,b=$('a_p2').value;if(a.length<8)throw new Error(t('pwshort'));if(a!==b)throw new Error(t('pwmis'));const {error}=await sb.auth.updateUser({password:a});if(error)throw error;$('a_p1').value='';$('a_p2').value=''},t('pwdone'));
+const savePw=()=>run(async()=>{const a1=$('a_p1').value,b1=$('a_p2').value;if(a1.length<8)throw new Error(t('pwshort'));if(a1!==b1)throw new Error(t('pwmis'));const {error}=await sb.auth.updateUser({password:a1});if(error)throw error;$('a_p1').value='';$('a_p2').value=''},t('pwdone'));
 load();
 </script></body></html>
