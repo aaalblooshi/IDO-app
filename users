@@ -1,1 +1,80 @@
-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>إدارة المستخدمين</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--ch:#23272b;--fnt:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:var(--bg)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+main{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
+h2{margin:0 0 4px;font-size:17px}h2 small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+label{display:block;font-weight:700;font-size:13.5px;margin:10px 0 3px}
+input,select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0}
+button{font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;color:var(--ink)}
+button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var(--r);border-color:#f3b9be}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.mut{color:var(--mut);font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:430px){.g2{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:1px 10px;border-radius:99px;background:var(--g2);color:var(--g);font-size:12px;font-weight:700}
+#toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
+.lock{max-width:420px;margin:60px auto;text-align:center}
+.ur{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff}
+.uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:36px;height:36px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}
+.uh .tx{flex:1;min-width:0}.uh .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uh .tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ub{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.ur.open .ub{display:block}.ur.open{border-color:var(--g)}
+.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}
+</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+<main id="app"></main><div id="toast"></div>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
+function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
+function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
+async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
+ saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
+ r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
+ newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],show:['إظهار','Show'],
+ title:['إدارة المستخدمين','Manage users'],search:['ابحث بالاسم أو المسمى أو البريد…','Search name, job title or email…'],all:['كل الأدوار','All roles'],
+ count:['مستخدم','users'],more:['عرض المزيد','Show more'],none:['لا توجد نتائج.','No results.'],
+ newpw:['كلمة مرور جديدة للمستخدم','New password for the user'],setpw:['تعيين كلمة المرور','Set password'],pwdone:['تم تعيين كلمة المرور. أبلغ المستخدم بها.','Password set. Tell the user.'],pwshort:['٨ أحرف على الأقل.','At least 8 characters.'],
+ na:['NA','NA'],det:['بيانات المستخدم','User details'],mailnote:['تغيير البريد هنا يغيّر بريد تسجيل الدخول مباشرة.','Changing the email here changes the sign-in email immediately.']
+};
+let USERS=[],Q='',RF='',LIM=30,OPEN=null;
+async function load(){
+ if(!sb)return gate('needLogin');
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+ if(!p||p.role!='admin')return gate('adminOnly');
+ const {data}=await sb.from('profiles').select('*').order('full_name');USERS=data||[];draw()}
+const flt=()=>{const q=Q.trim().toLowerCase();return USERS.filter(u=>(!RF||u.role==RF)&&(!q||[u.full_name,u.job_title,u.email,t('r_'+u.role)].join(' ').toLowerCase().includes(q)))};
+function draw(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+ $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="row" style="margin-top:6px"><select id="rf" style="flex:1"><option value="">${t('all')}</option>${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${RF==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select><span class="mut" id="cnt"></span></div></div><div id="list"></div>`;
+ $('q').oninput=e=>{Q=e.target.value;LIM=30;drawList()};$('rf').onchange=e=>{RF=e.target.value;LIM=30;drawList()};drawList()}
+function drawList(){
+ const rows=flt(),show=rows.slice(0,LIM);$('cnt').textContent=rows.length+' '+t('count');
+ $('list').innerHTML=(show.map(u=>`<div class="ur ${OPEN==u.id?'open':''}" id="u_${u.id}"><div class="uh" onclick="tog('${u.id}')"><div class="av">${esc((u.full_name||'?').trim().charAt(0))}</div><div class="tx"><b>${esc(u.full_name||u.email)}</b><span>${esc(u.job_title||t('na'))} · ${esc(t('r_'+u.role))}</span></div></div>
+  <div class="ub"><div class="g2"><div><label>${t('name')}</label><input id="n_${u.id}" value="${esc(u.full_name)}"></div><div><label>${t('job')}</label><input id="j_${u.id}" value="${esc(u.job_title||'')}"></div><div><label>${t('email')}</label><input id="e_${u.id}" dir="ltr" value="${esc(u.email||'')}"></div><div><label>${t('role')}</label><select id="r_${u.id}">${['pm','pmo','sponsor','admin'].map(r=>`<option value="${r}" ${u.role==r?'selected':''}>${t('r_'+r)}</option>`).join('')}</select></div></div>
+  <div class="mut" style="margin-top:4px">${t('mailnote')}</div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div>
+  <label>${t('newpw')}</label><input id="p_${u.id}" type="text" autocomplete="off" placeholder="${t('pwshort')}"><div class="row"><button onclick="setPw('${u.id}')">${t('setpw')}</button></div></div></div>`).join('')||`<div class="mut">${t('none')}</div>`)+(rows.length>LIM?`<div class="row" style="justify-content:center"><button onclick="LIM+=30;drawList()">${t('more')}</button></div>`:'')}
+function tog(id){OPEN=OPEN==id?null:id;document.querySelectorAll('.ur').forEach(e=>e.classList.toggle('open',e.id=='u_'+OPEN))}
+const saveU=id=>run(async()=>{const n=$('n_'+id).value.trim(),j=$('j_'+id).value.trim(),e=$('e_'+id).value.trim().toLowerCase(),r=$('r_'+id).value;if(!n)throw new Error(t('name'));if(!/^\S+@\S+\.\S+$/.test(e))throw new Error(t('email'));
+ const {error}=await sb.rpc('admin_update_user',{uid:id,p_name:n,p_job:j,p_role:r,p_email:e});if(error)throw error;const u=USERS.find(x=>x.id==id);Object.assign(u,{full_name:n,job_title:j||null,email:e,role:r});drawList()});
+const setPw=id=>run(async()=>{const p=$('p_'+id).value;if(p.length<8)throw new Error(t('pwshort'));const {error}=await sb.rpc('admin_set_password',{uid:id,pw:p});if(error)throw error;$('p_'+id).value=''},t('pwdone'));
+load();
+</script></body></html>
