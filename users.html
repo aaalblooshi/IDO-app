@@ -30,8 +30,8 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden}.uh .av img{width:100%;height:100%;object-fit:cover}
 .uh .tx{flex:1;min-width:0}.uh .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uh .tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ub{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.ur.open .ub{display:block}.ur.open{border-color:var(--g)}
-.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}</style></head><body>
-<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><button id="lb" onclick="toggleLang()">EN</button></div>
+.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
@@ -47,7 +47,7 @@ function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=
 async function run(fn,ok){try{await fn();toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
 function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
 const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">👁</button>`;
-const D={home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
+const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
  r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
  newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
