@@ -59,9 +59,9 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  title:['المشاريع','Projects'],search:['ابحث باسم المشروع أو رمزه…','Search project name or code…'],saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],
  tAct:['النشطة','Active'],tArc:['المؤرشفة','Archived'],tHid:['المخفية','Hidden'],allSec:['كل القطاعات','All sectors'],allFold:['كل المجلدات','All folders'],allYr:['كل السنوات','All years'],
  charter:['ميثاق المشروع','Charter'],plan:['خطة المشروع','Plan'],cr:['طلبات التغيير','Change requests'],closure:['التقرير الختامي','Closure report'],
- notyet:['لم يبدأ','Not started'],none:['لا توجد مشاريع.','No projects.'],count:['مشروع','projects'],
+ n_charter:['لم يتم تقديم الميثاق','Charter not submitted'],n_plan:['لم يتم رفع الخطة','Plan not uploaded'],n_cr:['لا توجد طلبات تغيير','No change requests'],n_closure:['لم يتم رفع التقرير الختامي','Closure report not uploaded'],none:['لا توجد مشاريع.','No projects.'],count:['مشروع','projects'],
  strategic:['استراتيجي','Strategic'],operational:['تشغيلي','Operational'],pm:['مدير المشروع','PM'],
- manage:['⚙ إدارة المشروع (للأدمن)','⚙ Manage project (admin)'],hide:['إخفاء المشروع من الصفحة','Hide project from the page'],weight:['وزن المشروع (اتركه فارغًا للافتراضي)','Project weight (empty = default)'],
+ manage:['⚙ مكتب التطوير المؤسسي','⚙ Institutional Development Office'],hide:['إخفاء المشروع من الصفحة','Hide project from the page'],weight:['وزن المشروع (اتركه فارغًا للافتراضي)','Project weight (empty = default)'],
  wsave:['حفظ الإعداد','Save'],arch:['أرشفة المشروع بكل طلباته','Archive project with all its requests'],folder:['اسم مجلد الأرشيف (اختياري)','Archive folder name (optional)'],
  restore:['استرجاع المشروع من الأرشيف','Restore project from archive'],archAsk:['سيتم أرشفة الميثاق والخطة وكل طلبات التغيير والتقرير الختامي لهذا المشروع. متابعة؟','The charter, plan, all change requests and the closure report of this project will be archived. Continue?'],
  gT:['صلاحيات خاصة على هذا المشروع','Special access on this project'],gUser:['اكتب اسم المستخدم…','Type a user name…'],gView:['عرض فقط','View only'],gEdit:['عرض وتعديل','View & edit'],gAdd:['إضافة','Add'],gDel:['إزالة','Remove'],
@@ -115,7 +115,7 @@ function flt(){const q=Q.trim().toLowerCase();
   return !q||((p.ch.pn||'')+' '+p.code+' '+(p.ch.doc_no||'')).toLowerCase().includes(q)})}
 const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 function box(key,arr,pick){
- if(!arr.length)return `<div class="sv"><h4>${t(key)}</h4><span class="na">${t('notyet')}</span></div>`;
+ if(!arr.length)return `<div class="sv"><h4>${t(key)}</h4><span class="na">${t('n_'+key)}</span></div>`;
  const rows=arr.slice().sort((a,b)=>b.id-a.id),shown=rows.slice(0,3);
  return `<div class="sv"><h4>${t(key)}</h4>${shown.map(r=>`<a href="${SVP[key]}#o=${r.id}"><span dir="ltr">${esc(r.code||'')}</span>${r.version>1?` <small>(${t('vers')}${r.version})</small>`:''}<br><span class="${stC(r.status)}">● ${esc(stT(r.status))}</span></a>`).join('<hr style="border:0;border-top:1px dashed #e4dfd4;margin:5px 0">')}${rows.length>3?`<div class="mut">${t('more')} ${rows.length-3}</div>`:''}</div>`}
 function card(p){const c=p.ch,cf=CFG[p.code]||{},arc=isArc(p),hid=isHid(p),o=OPEN==p.code;
@@ -165,4 +165,23 @@ function draw(){
  drawList()}
 function drawList(){const r=flt();$('cnt').textContent=r.length+' '+t('count');$('list').innerHTML=r.length?r.map(card).join(''):`<div class="card mut">${t('none')}</div>`}
 load();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
