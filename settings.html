@@ -42,7 +42,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  needLogin:['سجّل الدخول أولًا من أي خدمة ثم ارجع لهذه الصفحة.','Sign in from any service first, then return here.'],
  adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],
  s_svc:['الخدمات','Services'],s_svc_h:['أوقف أو فعّل الخدمات في الصفحة الرئيسية.','Show or hide services on the home page.'],
- sv_charter:['ميثاق المشروع','Project charter'],sv_plan:['خطط المشاريع','Project plans'],sv_cr:['طلبات التغيير','Change requests'],sv_closure:['التقرير الختامي','Closure report'],
+ sv_tasks:['مهامي','My tasks'],sv_charter:['ميثاق المشروع','Project charter'],sv_plan:['خطط المشاريع','Project plans'],sv_cr:['طلبات التغيير','Change requests'],sv_closure:['التقرير الختامي','Closure report'],
  s_att:['المرفقات','Attachments'],att_max:['الحد الأقصى لحجم الملف (ميغابايت)','Max file size (MB)'],att_h:['يُطبَّق على الميثاق وطلبات التغيير والتقرير الختامي.','Applies to charters, change requests and closure reports.'],
  s_ev:['تنبيهات البريد','Email notifications'],s_ev_h:['اختر الأحداث التي يُرسل النظام بريدًا عنها.','Choose which events send email.'],
  ev_submitted:['إرسال نموذج للمراجعة','Form sent for review'],ev_reviewerAssigned:['تحديد مراجع','Reviewer assigned'],ev_reviewDone:['اعتماد المراجعة','Review completed'],
@@ -65,7 +65,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  ax_projects:['إدارة المشاريع','Project Management'],ax_quality:['إدارة الجودة والوثائق','Quality & Documents'],ax_strategy:['إدارة الاستراتيجية','Strategy Management'],noSv:['لا خدمات','No services']
 };
 const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
-const SV=['charter','plan','cr','closure'],EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected','approverRejected'];
+const SV=['tasks','charter','plan','cr','closure'],EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected','approverRejected'];
 const DEFGOALS=[['الهدف الأول','Goal 1'],['الهدف الثاني','Goal 2'],['الهدف الثالث','Goal 3'],['الهدف الرابع','Goal 4'],['الهدف الخامس','Goal 5'],['الهدف السادس','Goal 6'],['الهدف السابع','Goal 7']];
 let SET={},MAIL={},USERS=[],me=null;
 function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2600)}
@@ -162,7 +162,7 @@ function calWk(i,on){const s=new Set(CAL.off);on?s.add(i):s.delete(i);CAL.off=[.
 const saveCal=()=>run(async()=>{if(CAL.off.length>=7)throw new Error('7');const hol=CAL.hol.filter(h=>h.d).map(h=>{const o={d:h.d,n:h.n.trim()};if(h.d2&&h.d2>=h.d)o.d2=h.d2;return o});
  const wk=CAL.off.length?CAL.off.join(','):'-';await setS('wk_off',wk);SET.wk_off=wk;const j=JSON.stringify(hol);await setS('holidays',j);SET.holidays=j});
 /* ---------- ترتيب الصفحة الرئيسية والمؤشرات ---------- */
-const AXI=[{id:'projects',s:[['charter.html','sv_charter'],['plan.html','sv_plan'],['cr.html','sv_cr'],['closure.html','sv_closure']]},{id:'quality',s:[]},{id:'strategy',s:[]}];
+const AXI=[{id:'projects',s:[['tasks.html','sv_tasks'],['charter.html','sv_charter'],['plan.html','sv_plan'],['cr.html','sv_cr'],['closure.html','sv_closure']]},{id:'quality',s:[]},{id:'strategy',s:[]}];
 const TILES=['created','action','done','del'];
 let HC=null;
 function initHome(){let c={};try{c=JSON.parse(SET.home_cfg||'{}')||{}}catch(_){}
