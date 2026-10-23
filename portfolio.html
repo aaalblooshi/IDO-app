@@ -1,1 +1,274 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#23272b">
+<title>محفظة المشاريع</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1b1d1f;--mut:#6b6f76;--line:#e4dfd4;--bg:#f4f2ec;--card:#fff;--g:#0a6b3d;--g2:#e5f2ea;--r:#d1101d;--ch:#23272b;--fnt:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:var(--bg)}
+.top{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:8px 14px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.top b{font-size:16px}
+main{max-width:760px;margin:0 auto;padding:14px 14px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 14px}
+h2{margin:0 0 4px;font-size:17px}h2 small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+label{display:block;font-weight:700;font-size:13.5px;margin:10px 0 3px}
+input,select{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0}
+button{font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;color:var(--ink)}
+button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var(--r);border-color:#f3b9be}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+.mut{color:var(--mut);font-size:13px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:430px){.g2{grid-template-columns:1fr}}
+.pill{display:inline-block;padding:1px 10px;border-radius:99px;background:var(--g2);color:var(--g);font-size:12px;font-weight:700}
+#toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--ch);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:9;text-align:center}
+.lock{max-width:420px;margin:60px auto;text-align:center}
 
+.pwr{position:relative}.eye{position:absolute;right:6px;left:auto;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{direction:ltr;text-align:left;padding-right:48px!important;padding-left:12px!important}
+.it{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}.it .tp{display:flex;gap:8px;align-items:center;justify-content:space-between}.it b{overflow-wrap:anywhere}
+.pill.d{background:#fdecee;color:var(--r)}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.chips button.on{background:var(--g);border-color:var(--g);color:#fff}.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.hgrp{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;min-width:0}@media(max-width:480px){.hgrp .hbtn{padding:6px 9px;font-size:12.5px}}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}:root{--g:#3D96C7;--g2:#e6f2f9;--gold:#B39A6B;--gry:#949594}
+.top{border-bottom:3px solid var(--gold)}
+.pj{border:1px solid var(--line);border-radius:14px;margin:10px 0;background:#fff;overflow:hidden}
+.pj.hid{opacity:.6}.pj.arc{background:#f3f2ee}
+.ph{padding:12px 14px;display:flex;gap:10px;justify-content:space-between;align-items:flex-start}
+.ph b{overflow-wrap:anywhere;font-size:15.5px}
+.bd{display:inline-block;padding:1px 10px;border-radius:99px;font-size:12px;font-weight:700;margin-inline-end:4px;background:#eee;color:#555}
+.bd.s{background:#f3ecdc;color:#7a6740}.bd.o{background:#e6f2f9;color:#2a6a90}
+.st{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:0 14px 12px}@media(min-width:620px){.st{grid-template-columns:repeat(4,1fr)}}
+.sv{border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13px;min-width:0;background:#fbfaf6}
+.sv h4{margin:0 0 2px;font-size:12.5px;color:var(--mut);font-weight:700}
+.sv a{color:var(--ink);text-decoration:none;display:block;overflow-wrap:anywhere}.sv .na{color:#aaa}
+.sv .ok{color:#1c7a45}.sv .wa{color:#a8761a}.sv .bad{color:var(--r)}
+.adm{border-top:1px dashed var(--line);padding:10px 14px;background:#faf8f2}
+.adm summary{cursor:pointer;font-weight:700;color:#7a6740}
+.gr{display:flex;gap:8px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:6px 0;background:#fff;font-size:13.5px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}.tabs button.on{background:var(--g);border-color:var(--g);color:#fff}
+.ck{display:flex;gap:10px;flex-wrap:wrap}.ck label{display:flex;gap:5px;align-items:center;margin:4px 0;font-weight:600}.ck input{width:auto}
+
+.top{border-bottom:3px solid #B39A6B}
+.kp{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}@media(min-width:620px){.kp{grid-template-columns:repeat(4,1fr)}}
+.kp div{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fbfaf6}.kp b{display:block;font-size:22px;direction:ltr;text-align:start}.kp span{font-size:12.5px;color:var(--mut)}
+.bar{height:10px;border-radius:9px;background:#e9e6dd;position:relative;overflow:hidden;margin:4px 0}.bar i{position:absolute;inset-block:0;inset-inline-start:0;background:#3D96C7;border-radius:9px}.bar u{position:absolute;inset-block:-2px;width:2px;background:#B39A6B;text-decoration:none}
+.bad{color:#d1101d}.ok{color:#1c7a45}.wa{color:#a8761a}
+.num{direction:ltr;unicode-bidi:isolate;display:inline-block}
+.tk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}.tk.dn{opacity:.65}.tk.lt{border-color:#f3b9be;background:#fff8f8}
+.tk b{overflow-wrap:anywhere}.pb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pb button{padding:4px 12px;font-size:13px}
+.wide{max-width:1200px!important}
+@media print{.top,.sb,.noprint,#toast{display:none!important}body{background:#fff}main{max-width:none;padding:0}.pgb{page-break-before:always}.card{border:0;padding:0}}
+</style></head><body>
+<div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button></span></div>
+<main id="app" class="wide"></main><div id="toast"></div>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const D={hacc:['👤 حسابي','👤 My account'],home:['الصفحة الرئيسية','Home page'],title:['محفظة المشاريع','Project portfolio'],
+ needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Please sign in first, then come back.'],signin:['تسجيل الدخول','Sign in'],
+ saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],noacc:['هذه الصفحة غير متاحة لحسابك.','This page is not available for your account.'],
+ strategic:['استراتيجي','Strategic'],operational:['تشغيلي','Operational'],loading:['جارٍ التحميل…','Loading…']};
+const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
+function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
+function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
+async function run(fn,ok){try{await fn();if(ok!==false)toast(ok||t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+/* ---- pmlib: dates & progress ---- */
+const DAY=864e5;
+const dn=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/DAY):null};
+const ds=n=>{const d=new Date(n*DAY);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')};
+const fd=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''};
+const todayN=()=>{const f=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date());return dn(f)};
+const TODAY=todayN();
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const pct=x=>Math.round(x)+'%';
+/* analyze: tasks -> tree with expected/actual progress (0..100) */
+function analyze(tasks,wmode,now){
+ now=now==null?TODAY:now;tasks=tasks||[];
+ const by={},kids={};tasks.forEach(x=>{by[x.id]=x;(kids[x.p||'']=kids[x.p||'']||[]).push(x)});
+ const out={};
+ const rec=x=>{const k=kids[x.id]||[];let a=0,ex=0,s=dn(x.s),e=dn(x.e),late=0,n=0,done=0;
+  if(!k.length){
+   const du=s!=null&&e!=null?Math.max(1,e-s+1):1;
+   ex=x.ms?(e!=null&&now>=e?100:0):(s==null?0:clamp((now-s+1)/du*100,0,100));
+   a=clamp(+x.pc||0,0,100);n=1;done=a>=100?1:0;
+   late=(e!=null&&now>e&&a<100)?now-e:0;
+   out[x.id]={a,ex,s,e,late,n,done,leaf:1,lateN:late?1:0,as:x.as||'',ae:x.ae||''};return out[x.id]}
+  const rs=k.map(rec);let ws=k.map(c=>wmode=='cu'&&+c.wn>0?+c.wn:1);
+  if(wmode=='cu'&&!k.some(c=>+c.wn>0))ws=k.map(()=>1);
+  const W=ws.reduce((p,q)=>p+q,0)||1;
+  rs.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;late+=r.lateN});
+  const ss=rs.map(r=>r.s).filter(v=>v!=null),ee=rs.map(r=>r.e).filter(v=>v!=null);
+  out[x.id]={a,ex,s:ss.length?Math.min(...ss):s,e:ee.length?Math.max(...ee):e,late:0,n,done,leaf:0,lateN:late};
+  out[x.id].late=out[x.id].lateN?Math.max(0,...rs.map(r=>r.late)):0;return out[x.id]};
+ const roots=(kids['']||[]).map(rec);
+ const ws=(kids['']||[]).map(c=>wmode=='cu'&&+c.wn>0?+c.wn:1),W=ws.reduce((p,q)=>p+q,0)||1;
+ let a=0,ex=0,n=0,done=0,lateN=0,s=null,e=null;
+ roots.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;lateN+=r.lateN;if(r.s!=null)s=s==null?r.s:Math.min(s,r.s);if(r.e!=null)e=e==null?r.e:Math.max(e,r.e)});
+ return {t:out,kids,a,ex,n,done,lateN,s,e,gap:ex-a}}
+const health=(gap,lateN)=>lateN>0&&gap>=15?'bad':(gap>=8||lateN>0)?'wa':'ok';
+const hCol={ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'};
+const pbar=(a,ex)=>`<div class="bar"><i style="width:${clamp(a,0,100)}%"></i><u style="inset-inline-start:${clamp(ex,0,100)}%"></u></div>`;
+const mon0=n=>{const d=new Date(n*DAY).getUTCDay();return n-((d+6)%7)};
+function icsEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
+let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
+const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
+async function boot(){
+ if(!sb)return gate('needLogin');
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate('needLogin');
+ ME=p;ADM=p.role=='admin';
+ try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
+ try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
+ await start()}
+Object.assign(D,{
+ title:['محفظة المشاريع','Project portfolio'],tSum:['الملخص التنفيذي','Executive summary'],tTree:['المحفظة','Portfolio'],tGantt:['المخطط الزمني','Gantt'],tRep:['التقارير','Reports'],
+ allSec:['كل القطاعات','All sectors'],allP:['كل المشاريع','All projects'],allU:['كل المكلّفين','All assignees'],
+ kP:['مشاريع معتمدة','Approved projects'],kA:['الإنجاز الفعلي','Actual progress'],kE:['المخطط حتى اليوم','Planned to date'],kL:['مهام متأخرة','Late tasks'],
+ sec:['القطاع','Sector'],pj:['المشاريع','Projects'],act:['الفعلي','Actual'],exp:['المخطط','Planned'],gap:['الفارق','Gap'],late:['متأخرة','Late'],
+ legend:['الشريط الأزرق = الفعلي، الخط الذهبي = المخطط حتى اليوم','Blue = actual, gold line = planned to date'],
+ h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs attention'],h_bad:['متأخر','Delayed'],
+ none:['لا توجد مشاريع معتمدة ضمن نطاقك.','No approved projects in your scope.'],noacc:['هذه الصفحة لمكتب التطوير المؤسسي ومن مُنح نطاق اطّلاع.','This page is for the Institutional Development Office and users with a viewing scope.'],
+ expAll:['فتح الكل','Expand all'],colAll:['طي الكل','Collapse all'],zi:['تكبير','Zoom in'],zo:['تصغير','Zoom out'],
+ task:['المهمة','Task'],who:['المكلّف','Assignee'],dates:['الفترة','Period'],prog:['الإنجاز','Progress'],pm:['مدير المشروع','PM'],
+ rScope:['النطاق','Scope'],rFrom:['من','From'],rTo:['إلى','To'],rPlan:['إرفاق تفاصيل الخطة في الصفحة الثانية','Attach plan details on page 2'],rGen:['إنشاء التقرير','Generate report'],rPrint:['🖨 طباعة / حفظ PDF','🖨 Print / save PDF'],
+ rTitle:['تقرير متابعة المشاريع','Project follow-up report'],rGen2:['أُعدّ بتاريخ','Prepared on'],rDone:['مهام أُنجزت في الفترة','Tasks finished in period'],rCR:['طلبات التغيير في الفترة','Change requests in period'],rNoCR:['لا توجد طلبات تغيير في الفترة.','No change requests in the period.'],
+ rDet:['تفاصيل الخطط','Plan details'],rAllS:['كل المشاريع ضمن الصلاحية','All projects in scope'],rBySec:['قطاع: ','Sector: '],rByP:['مشروع: ','Project: '],rGrp:['مجموعة','Group'],
+ st:['الحالة','Status'],cnt:['مشروع','projects'],ms:['مرحلة','Milestone'],lateD:['يوم تأخير','d late']});
+let PL=[],CFG={},CRS=[],WR=2,WS={},TAB='sum',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null;
+const LC=['#B39A6B','#949594','#3D96C7','#7a6740','#2a6a90'];
+async function start(){
+ if(!(ADM||ME.view_scope))return gate('noacc');
+ const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
+ const [pl,cf,cr,ss]=await Promise.all([
+  q('plans','id,code,status,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks',r=>r.eq('status','Approved').eq('archived',false)),
+  q('project_cfg','*'),
+  q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
+  q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector']))]);
+ CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
+ ss.forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
+ const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||p.id>best[k].id)best[k]=p});
+ PL=Object.values(best).filter(p=>!(CFG[p.pc||p.code]||{}).hidden).map(p=>{const k=p.pc||p.code,an=analyze(p.tasks||[],p.wm),c=CFG[k]||{};
+  return {k,id:p.id,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+ PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
+ draw()}
+const wavg=(arr,f)=>{const W=arr.reduce((s,p)=>s+p.w,0);return W?arr.reduce((s,p)=>s+f(p)*p.w,0)/W:0};
+function agg(list){const secs=[...new Set(list.map(p=>p.sc))].sort((a,b)=>a-b);
+ const rows=secs.map(s=>{const L=list.filter(p=>p.sc==s);return {sc:s,L,a:wavg(L,p=>p.a),ex:wavg(L,p=>p.ex),late:L.reduce((q,p)=>q+p.lateN,0),sw:+(WS[s]!=null?WS[s]:1)||0}});
+ const W=rows.reduce((q,r)=>q+r.sw,0)||1;
+ return {rows,a:rows.reduce((q,r)=>q+r.a*r.sw,0)/W,ex:rows.reduce((q,r)=>q+r.ex*r.sw,0)/W,late:rows.reduce((q,r)=>q+r.late,0),n:list.length}}
+const scoped=()=>PL.filter(p=>(!FS||p.sc==FS)&&(!FP||p.k==FP));
+const hl=(gap,l)=>health(gap,l);
+const dot=h=>`<span style="color:${hCol[h]}">●</span>`;
+function draw(){
+ document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
+ if(!ME)return;
+ if(!(ADM||ME.view_scope))return gate('noacc');
+ const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
+ const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
+ $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${['sum','tree','gantt','rep'].map(tab).join('')}</div>
+ <div class="row" style="margin-top:0"><select id="fs" style="flex:1"><option value="">${t('allSec')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select>
+ <select id="fp" style="flex:2"><option value="">${t('allP')}</option>${PL.filter(p=>!FS||p.sc==FS).map(p=>`<option value="${esc(p.k)}" ${FP==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><div id="body"></div>`;
+ $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
+ if(!PL.length){$('body').innerHTML=`<div class="card mut">${t('none')}</div>`;return}
+ ({sum:vSum,tree:vTree,gantt:vGantt,rep:vRep})[TAB]()}
+/* ---- executive summary ---- */
+function vSum(){const L=scoped(),A=agg(L),h=hl(A.ex-A.a,A.late);
+ $('body').innerHTML=`<div class="card"><div class="kp"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b class="${h}">${pct(A.a)}</b><span>${t('kA')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b class="${A.late?'bad':'ok'}">${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}<div class="mut">${t('legend')}</div></div>
+ ${A.rows.map(r=>{const g=hl(r.ex-r.a,r.late);return `<div class="card"><div class="tp" style="display:flex;justify-content:space-between;gap:8px"><b>${dot(g)} ${esc(secN(r.sc))}</b><span class="mut"><span class="num">${r.L.length}</span> ${t('cnt')} · ${t('h_'+g)}</span></div>
+ <div class="mut">${t('act')} <b class="num">${pct(r.a)}</b> · ${t('exp')} <span class="num">${pct(r.ex)}</span> · ${t('late')} <b class="num ${r.late?'bad':''}">${r.late}</b></div>${pbar(r.a,r.ex)}
+ ${r.L.map(p=>{const q=hl(p.gap,p.lateN);return `<div style="padding:6px 0;border-top:1px dashed var(--line)"><a href="#" onclick="FP='${esc(p.k)}';FS='${p.sc}';TAB='tree';EXP.add('p:${esc(p.k)}');draw();return false" style="color:inherit;text-decoration:none">${dot(q)} <b>${esc(p.name)}</b></a> <span class="mut"><span class="num">${pct(p.a)}</span> / <span class="num">${pct(p.ex)}</span>${p.lateN?` · <span class="bad num">${p.lateN}</span> ${t('late')}`:''}</span>${pbar(p.a,p.ex)}</div>`}).join('')}</div>`}).join('')}`}
+/* ---- portfolio tree ---- */
+const tg=k=>{EXP.has(k)?EXP.delete(k):EXP.add(k);vTree()};
+function trow(task,an,lv,pk,kids){const a=an.t[task.id]||{a:0,ex:0,late:0},k='t:'+pk+':'+task.id,has=(kids[task.id]||[]).length,op=EXP.has(k),g=hl(a.ex-a.a,a.late?1:0);
+ let h=`<div class="pr" style="padding-inline-start:${lv*16}px"><span class="tgl" onclick="${has?`tg('${k}')`:''}">${has?(op?'▾':'▸'):'·'}</span> ${dot(a.late?'bad':a.ex-a.a>=8?'wa':'ok')} <span class="nm" ${has?`onclick="tg('${k}')"`:''}>${task.ms?'◆ ':''}${esc(task.n)}</span>
+ <span class="mut mt"> ${task.w&&UN[task.w]?esc(UN[task.w])+' · ':''}<span class="num">${fd(task.s)}${task.e&&task.e!=task.s?' → '+fd(task.e):''}</span></span> <b class="num">${pct(a.a)}</b>${a.late?` <span class="bad num">${a.late} ${t('lateD')}</span>`:''}</div>`;
+ if(has&&op)h+=(kids[task.id]).map(c=>trow(c,an,lv+1,pk,kids)).join('');return h}
+function vTree(){const L=scoped(),A=agg(L);
+ const body=A.rows.map(r=>{const sk='s:'+r.sc,so=!EXP.has('x'+sk),g=hl(r.ex-r.a,r.late);
+  return `<div class="card"><div class="tp sh" onclick="EXP.has('x${sk}')?EXP.delete('x${sk}'):EXP.add('x${sk}');vTree()">${so?'▾':'▸'} ${dot(g)} <b>${esc(secN(r.sc))}</b> <span class="mut"><span class="num">${pct(r.a)}</span> / <span class="num">${pct(r.ex)}</span> · <span class="num">${r.L.length}</span> ${t('cnt')}</span></div>
+  ${so?r.L.map(p=>{const pk='p:'+p.k,po=EXP.has(pk),q=hl(p.gap,p.lateN);return `<div class="pjr"><div class="pr ph2" onclick="tg('${esc(pk)}')"><span class="tgl">${po?'▾':'▸'}</span> ${dot(q)} <b>${esc(p.name)}</b> <span class="mut"><span class="num">${esc(p.k)}</span>${p.pm?' · '+esc(p.pm):''}</span> <b class="num">${pct(p.a)}</b> <span class="mut num">/ ${pct(p.ex)}</span>${p.lateN?` <span class="bad num">${p.lateN} ${t('late')}</span>`:''}</div>${pbar(p.a,p.ex)}
+   ${po?(p.an.kids['']||[]).map(c=>trow(c,p.an,1,p.k,p.an.kids)).join(''):''}</div>`}).join(''):''}</div>`}).join('');
+ $('body').innerHTML=`<div class="row" style="margin:0 0 8px"><button onclick="expAll(1)">${t('expAll')}</button><button onclick="expAll(0)">${t('colAll')}</button><span class="mut">${t('legend')}</span></div>${body}
+ <style>.pr{padding-block:5px;border-top:1px dashed var(--line);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}.tgl{cursor:pointer;width:16px;display:inline-block;color:var(--mut)}.nm{cursor:pointer;font-weight:600;overflow-wrap:anywhere}.ph2{cursor:pointer;border-top:0}.sh{cursor:pointer;display:flex;gap:6px;align-items:center;flex-wrap:wrap}.pjr{margin:8px 0;padding:6px 8px;border:1px solid var(--line);border-radius:12px}</style>`}
+function expAll(o){EXP=new Set();if(o){scoped().forEach(p=>{EXP.add('p:'+p.k);p.tasks.forEach(x=>EXP.add('t:'+p.k+':'+x.id))})}vTree()}
+/* ---- gantt ---- */
+function vGantt(){const L=scoped(),us=new Map();L.forEach(p=>p.tasks.forEach(x=>{if(x.w)us.set(x.w,UN[x.w]||x.w)}));
+ let rows=[];
+ L.forEach(p=>{const kids=p.an.kids,pk='g:'+p.k,open=FP||FU||EXP.has(pk);
+  const a=p.an;let items=[];
+  if(FU){p.tasks.filter(x=>x.w==FU&&!(kids[x.id]||[]).length).forEach(x=>items.push({x,lv:1}))}
+  else if(open){const walk=(pid,lv)=>(kids[pid]||[]).forEach(x=>{items.push({x,lv});if((kids[x.id]||[]).length&&(EXP.has('gt:'+p.k+':'+x.id)||FP))walk(x.id,lv+1)});walk('',1)}
+  if(FU&&!items.length)return;
+  rows.push({proj:p,s:a.s,e:a.e,a:p.a,ex:p.ex,n:p.name,pk,open});
+  items.forEach(it=>{const r=p.an.t[it.x.id]||{};rows.push({x:it.x,lv:it.lv,s:r.s,e:r.e,a:r.a,ex:r.ex,late:r.late,n:it.x.n,leaf:r.leaf,tk:'gt:'+p.k+':'+it.x.id,k:p.k})})});
+ const ss=rows.map(r=>r.s).filter(v=>v!=null),ee=rows.map(r=>r.e).filter(v=>v!=null);
+ const ctrl=`<div class="row noprint" style="margin:0 0 8px"><select id="fu" style="flex:1"><option value="">${t('allU')}</option>${[...us].sort((a,b)=>String(a[1]).localeCompare(b[1],'ar')).map(([i,n])=>`<option value="${esc(i)}" ${FU==i?'selected':''}>${esc(n)}</option>`).join('')}</select><button onclick="PXD=Math.min(24,PXD*1.4);vGantt()">＋ ${t('zi')}</button><button onclick="PXD=Math.max(.8,PXD/1.4);vGantt()">－ ${t('zo')}</button></div>`;
+ if(!ss.length){$('body').innerHTML=ctrl+`<div class="card mut">${t('none')}</div>`;bindU();return}
+ const m0=Math.min(...ss,TODAY)-3,m1=Math.max(...ee,TODAY)+3;if(!PXD)PXD=clamp(Math.max(700,Math.min(innerWidth-260,1100))/(m1-m0+1),1.2,12);const W=Math.round((m1-m0+1)*PXD),LW=230,RH=30;
+ let hd='',gl='';const d0=new Date(m0*DAY);let y=d0.getUTCFullYear(),mo=d0.getUTCMonth();
+ for(;;){const st=Date.UTC(y,mo,1)/DAY;if(st>m1)break;const nx=Date.UTC(y,mo+1,1)/DAY,x=Math.round((Math.max(st,m0)-m0)*PXD),w=Math.round((Math.min(nx-1,m1)-Math.max(st,m0)+1)*PXD);
+  hd+=`<div class="gm" style="left:${x}px;width:${w}px">${String(mo+1).padStart(2,'0')}/${y}</div>`;gl+=`<div class="gv" style="left:${x}px"></div>`;mo++;if(mo>11){mo=0;y++}}
+ const tx=Math.round((TODAY-m0)*PXD);
+ const bars=rows.map((r,i)=>{if(r.s==null||r.e==null)return '';const x=Math.round((r.s-m0)*PXD),w=Math.max(r.proj||(r.x&&r.x.ms)?6:4,Math.round((r.e-r.s+1)*PXD));
+  const col=r.proj?'#23272b':(r.x.ms?LC[2]:LC[Math.min(4,(r.lv||1)-1)]),late=r.late||(r.proj&&r.proj.lateN);
+  if(r.x&&r.x.ms)return `<div class="gd" style="left:${x+w/2-7}px;top:${i*RH+8}px;background:${late?'#d1101d':col}" title="${esc(r.n)}"></div>`;
+  return `<div class="gb ${late?'lt':''}" style="left:${x}px;width:${w}px;top:${i*RH+7}px;background:${col}22;border-color:${col}" title="${esc(r.n)} — ${pct(r.a)}"><i style="width:${clamp(r.a,0,100)}%;background:${col}"></i></div><div class="gp" style="left:${x}px;top:${i*RH+22}px;width:${Math.round(w*clamp(r.ex,0,100)/100)}px"></div>`}).join('');
+ const labs=rows.map((r,i)=>{if(r.proj)return `<div class="gl pj" style="height:${RH}px" onclick="${FP||FU?'':`tg2('${r.pk}')`}"><span class="tgl">${FP||FU?'':(r.open?'▾':'▸')}</span><b title="${esc(r.n)}">${esc(r.n)}</b></div>`;
+  const has=(r.proj?0:(scoped().find(p=>p.k==r.k).an.kids[r.x.id]||[]).length);
+  return `<div class="gl" style="height:${RH}px;padding-inline-start:${8+(r.lv-1)*12}px" title="${esc(r.n)}${r.x.w&&UN[r.x.w]?' — '+esc(UN[r.x.w]):''}"><span class="tgl" onclick="${has&&!FP?`tg2('${r.tk}')`:''}">${has&&!FP?(EXP.has(r.tk)?'▾':'▸'):''}</span><span>${esc(r.n)}</span></div>`}).join('');
+ $('body').innerHTML=ctrl+`<div class="card" style="padding:0;overflow:hidden"><div class="gwrap" dir="ltr"><div class="gl0" style="width:${LW}px"><div class="gh0" style="height:26px"></div>${labs}</div>
+ <div class="gcan" style="width:${W}px;height:${rows.length*RH+26}px"><div class="gh" style="width:${W}px">${hd}</div><div class="gg" style="top:26px">${gl}</div><div class="gt" style="left:${tx}px;top:0;height:${rows.length*RH+26}px"></div><div style="position:absolute;inset:26px 0 0 0">${bars}</div></div></div></div>
+ <div class="mut">${t('legend')}</div>
+ <style>.gwrap{display:flex;overflow-x:auto;direction:ltr}.gl0{position:sticky;left:0;z-index:3;background:#fff;border-right:1px solid var(--line);flex:none}.gl{display:flex;gap:4px;align-items:center;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #f0ede4;direction:auto;padding-inline-end:6px}.gl.pj{background:#f7f5ee;cursor:pointer}.gcan{position:relative;flex:none}.gh{position:absolute;top:0;height:26px;border-bottom:1px solid var(--line);background:#faf8f2}.gm{position:absolute;top:0;height:26px;border-left:1px solid var(--line);font-size:11.5px;padding:3px 5px;color:var(--mut);overflow:hidden}.gg{position:absolute;bottom:0;left:0;right:0}.gv{position:absolute;top:0;bottom:0;border-left:1px solid #f0ede4}.gt{position:absolute;width:2px;background:#d1101d;z-index:2}.gb{position:absolute;height:14px;border:1px solid;border-radius:5px;overflow:hidden}.gb.lt{box-shadow:0 0 0 2px #d1101d55}.gb i{position:absolute;inset-block:0;left:0}.gp{position:absolute;height:3px;background:#B39A6B}.gd{position:absolute;width:14px;height:14px;transform:rotate(45deg)}.tgl{width:14px;display:inline-block;flex:none;cursor:pointer;color:var(--mut)}</style>`;
+ bindU()}
+const bindU=()=>{const e=$('fu');if(e)e.onchange=ev=>{FU=ev.target.value;vGantt()}};
+function tg2(k){EXP.has(k)?EXP.delete(k):EXP.add(k);vGantt()}
+/* ---- reports ---- */
+function vRep(){const d1=ds(TODAY),d0=d1.slice(0,8)+'01';
+ $('body').innerHTML=`<div class="card noprint"><div class="g2"><div><label>${t('rFrom')}</label><input type="date" id="rf" value="${RP?RP.f:d0}"></div><div><label>${t('rTo')}</label><input type="date" id="rt" value="${RP?RP.t:d1}"></div></div>
+ <label class="ck"><span style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" id="rpl" ${RP&&RP.pl?'checked':''}> ${t('rPlan')}</span></label>
+ <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${RP?`<button onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
+ if(RP)showRep()}
+function genRep(){RP={f:$('rf').value,t:$('rt').value,pl:$('rpl').checked};showRep()}
+function showRep(){const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t),scope=FP?t('rByP')+((L[0]||{}).name||''):FS?t('rBySec')+secN(FS):t('rAllS');
+ const inP=(s)=>{const n=dn(s);return n!=null&&n>=f&&n<=e};
+ const doneIn=p=>p.tasks.filter(x=>inP(x.ae)).length;
+ const crs=CRS.filter(c=>L.some(p=>p.k==c.pc)&&c.created_at&&(()=>{const n=dn(String(c.created_at).slice(0,10));return n>=f&&n<=e})());
+ const crBy={};crs.forEach(c=>crBy[c.status]=(crBy[c.status]||0)+1);
+ const rowsP=L.map(p=>{const g=hl(p.gap,p.lateN);return `<tr><td>${esc(p.name)}<br><small dir="ltr">${esc(p.k)}</small></td><td>${esc(secN(p.sc))}</td><td>${esc(p.pm||'')}</td><td class="n">${pct(p.ex)}</td><td class="n"><b>${pct(p.a)}</b></td><td class="n">${p.gap>0?'-':'+'}${Math.abs(Math.round(p.gap))}</td><td class="n">${doneIn(p)}</td><td class="n">${p.lateN}</td><td style="color:${hCol[g]}">● ${t('h_'+g)}</td></tr>`}).join('');
+ const sec=A.rows.length>1?`<h3>${t('sec')}</h3><table class="rt"><tr><th>${t('sec')}</th><th>${t('pj')}</th><th>${t('exp')}</th><th>${t('act')}</th><th>${t('late')}</th></tr>${A.rows.map(r=>`<tr><td>${esc(secN(r.sc))}</td><td class="n">${r.L.length}</td><td class="n">${pct(r.ex)}</td><td class="n"><b>${pct(r.a)}</b></td><td class="n">${r.late}</td></tr>`).join('')}</table>`:'';
+ let det='';
+ if(RP.pl)det=L.map(p=>{const walk=(pid,lv)=>(p.an.kids[pid]||[]).map(x=>{const a=p.an.t[x.id]||{};return `<tr><td style="padding-inline-start:${6+(lv-1)*14}px">${x.ms?'◆ ':''}${(p.an.kids[x.id]||[]).length?'<b>'+esc(x.n)+'</b>':esc(x.n)}</td><td>${esc(UN[x.w]||'')}</td><td class="n">${fd(x.s)}</td><td class="n">${fd(x.e)}</td><td class="n">${pct(a.a||0)}</td><td class="n">${a.late?a.late:''}</td></tr>`+walk(x.id,lv+1)}).join('');
+  return `<h3>${esc(p.name)} <small dir="ltr">${esc(p.k)}</small></h3><table class="rt"><tr><th>${t('task')}</th><th>${t('who')}</th><th>${lang=='ar'?'البداية':'Start'}</th><th>${lang=='ar'?'النهاية':'End'}</th><th>${t('prog')}</th><th>${t('lateD')}</th></tr>${walk('',1)}</table>`}).join('');
+ $('rep').innerHTML=`<div class="card rp"><h2 style="font-size:20px">${t('rTitle')}<small>${esc(scope)} · <span class="num">${fd(RP.f)}</span> → <span class="num">${fd(RP.t)}</span> · ${t('rGen2')} <span class="num">${fd(ds(TODAY))}</span></small></h2>
+ <div class="kp" style="margin:10px 0"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b>${pct(A.a)}</b><span>${t('kA')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b>${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}
+ ${sec}<h3>${t('pj')}</h3><div style="overflow-x:auto"><table class="rt"><tr><th>${t('pj')}</th><th>${t('sec')}</th><th>${t('pm')}</th><th>${t('exp')}</th><th>${t('act')}</th><th>${t('gap')}</th><th>${t('rDone')}</th><th>${t('late')}</th><th>${t('st')}</th></tr>${rowsP}</table></div>
+ <h3>${t('rCR')}</h3>${crs.length?`<p>${Object.entries(crBy).map(([k,v])=>esc(k)+': <b class="num">'+v+'</b>').join(' · ')}</p><ul>${crs.map(c=>`<li><span dir="ltr">${esc(c.code)}</span> — ${esc(c.ti||'')}</li>`).join('')}</ul>`:`<p class="mut">${t('rNoCR')}</p>`}
+ ${RP.pl?`<div class="pgb"><h2>${t('rDet')}</h2>${det}</div>`:''}</div>
+ <style>.rt{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 14px}.rt th,.rt td{border:1px solid #ddd5c3;padding:4px 7px;text-align:start;vertical-align:top}.rt th{background:#f3ecdc}.rt td.n{direction:ltr;text-align:center;white-space:nowrap}.rp h3{margin:16px 0 4px;font-size:15px}</style>`}
+boot();
+
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
