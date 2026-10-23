@@ -30,7 +30,7 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden}.uh .av img{width:100%;height:100%;object-fit:cover}
 .uh .tx{flex:1;min-width:0}.uh .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uh .tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ub{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.ur.open .ub{display:block}.ur.open{border-color:var(--g)}
-.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}.rr{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff;padding:10px 12px}.rr .rh{display:flex;gap:8px;align-items:center;justify-content:space-between}.rr .rh b{overflow-wrap:anywhere}.ck{display:flex;gap:8px;align-items:center;font-weight:600;margin:6px 0;font-size:14px}.ck input{width:auto}.tb{width:100%;border-collapse:collapse;font-size:13.5px}.tb th,.tb td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}.tb th:first-child,.tb td:first-child{text-align:start}.tb select{padding:5px 6px}.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}.rr{border:1px solid var(--line);border-radius:12px;margin:8px 0;background:#fff;padding:10px 12px}.rr .rh{display:flex;gap:8px;align-items:center;justify-content:space-between}.rr .rh b{overflow-wrap:anywhere}.ck{display:flex;gap:8px;align-items:center;font-weight:600;margin:6px 0;font-size:14px}.ck input{width:auto}.tb{width:100%;border-collapse:collapse;font-size:13.5px}.tb th,.tb td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:center}.tb th:first-child,.tb td:first-child{text-align:start}.tb select{padding:5px 6px}.hgrp{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;min-width:0}@media(max-width:480px){.hgrp .hbtn{padding:6px 9px;font-size:12.5px}}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
 <div class="top"><button onclick="location.href='users.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -52,7 +52,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  base:['الصنف الأساسي','Base class'],baseh:['يحدد السلوك الأساسي في سير العمل (أدمن / مراجعة / مدير مشروع / راعٍ).','Sets core workflow behaviour.'],
  b_pm:['مدير مشروع','Project Manager'],b_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],b_sponsor:['راعي المشروع','Sponsor'],b_admin:['أدمن','Admin'],
  perm:['الصلاحيات حسب الخدمة','Permissions per service'],svc:['الخدمة','Service'],show:['إظهار','Show'],crt:['إنشاء','Create'],view:['مستوى العرض','View level'],own:['ما يخصّه فقط','Own only'],all:['الكل','Everything'],
- s_cr:['طلبات التغيير','Change requests'],s_plan:['خطة المشروع','Project plan'],s_charter:['مواثيق المشاريع','Project charters'],s_closure:['التقارير الختامية','Closure reports'],
+ s_cr:['طلبات التغيير','Change requests'],s_plan:['خطط المشاريع','Project plans'],s_charter:['مواثيق المشاريع','Project charters'],s_closure:['التقارير الختامية','Closure reports'],
  nt:['التنبيهات البريدية لهذا الدور','Email alerts for this role'],nth:['ألغِ التأشير لإيقاف هذا التنبيه عن كل مستخدمي الدور.','Untick to stop that alert for all users of this role.'],
  ev_submitted:['إرسال نموذج للمراجعة','Form sent for review'],ev_reviewerAssigned:['تحديد مراجع','Reviewer assigned'],ev_reviewDone:['اعتماد المراجعة','Review completed'],ev_approverAssigned:['تحديد معتمِد','Approver assigned'],ev_approved:['الاعتماد النهائي','Final approval'],ev_draftAssigned:['توجيه مسودة لمستخدم','Draft assigned'],ev_deleteRequested:['طلب حذف','Deletion request'],ev_deleteApproved:['الموافقة على الحذف','Deletion approved'],ev_deleteRejected:['رفض الحذف','Deletion rejected'],
  sys:['دور أساسي (لا يُحذف)','Built-in (cannot be deleted)'],users:['مستخدم','users'],used:['لا يمكن حذف دور مستخدم لدى مستخدمين.','Cannot delete a role that has users.'],ask:['حذف هذا الدور؟','Delete this role?'],badkey:['المعرّف غير صالح','Invalid key'],noname:['أدخل الاسم بالعربي والإنجليزي','Enter both names'],
@@ -102,4 +102,42 @@ const saveR=(isNew,k)=>run(async()=>{
  OPEN=null;await reload()});
 const delR=k=>{if(CNT[k])return toast(t('used'));if(!confirm(t('ask')))return;run(async()=>{const {error}=await sb.rpc('admin_delete_role',{p_key:k});if(error)throw error;OPEN=null;await reload()})};
 load();
-</script></body></html>
+</script><script>/*navfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';if(f=='index.html'||f=='')return;
+ function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function build(){
+  if(document.getElementById('gnav'))return;var ar=lg()=='ar';
+  var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['projects.html','📁',ar?'المشاريع':'Projects','projects']];
+  if(ls('hdrRole')=='admin'||ls('hdrScope')=='1')items.push(['portfolio.html','📊',ar?'المحفظة':'Portfolio','portfolio']);
+  var n=document.createElement('nav');n.id='gnav';
+  var h='';
+  if(history.length>1&&document.referrer&&document.referrer.indexOf(location.origin)==0)h+='<a href="#" id="gback" class="gb"><i>↩</i><span>'+(ar?'رجوع':'Back')+'</span></a>';
+  items.forEach(function(i){h+='<a href="'+i[0]+'" class="gb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
+  n.innerHTML=h;document.body.appendChild(n);
+  var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
+  var s=document.createElement('style');s.textContent='#gnav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:space-around;background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:4px 4px calc(4px + env(safe-area-inset-bottom));direction:'+(ar?'rtl':'ltr')+'}#gnav .gb{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;text-decoration:none;color:#6b6f76;font:700 11px/1.3 Cairo,system-ui,sans-serif;padding:3px 2px;border-radius:10px;min-width:0}#gnav .gb i{font-style:normal;font-size:19px;line-height:1.2}#gnav .gb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body{padding-bottom:64px!important}@media print{#gnav{display:none}}';document.head.appendChild(s)}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
