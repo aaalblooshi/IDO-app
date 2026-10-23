@@ -28,7 +28,7 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .pwr{position:relative}.eye{position:absolute;right:6px;left:auto;top:50%;transform:translateY(-50%);border:0!important;background:none!important;font-size:19px;padding:4px 8px!important;line-height:1}input[type=password]{direction:ltr;text-align:left;padding-right:48px!important;padding-left:12px!important}
 .av0{width:84px;height:84px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:32px;overflow:hidden;flex:none}.av0 img{width:100%;height:100%;object-fit:cover}
 .hd{display:flex;gap:14px;align-items:center}.tg{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}.tg:last-of-type{border-bottom:0}.tg input{width:22px;height:22px;flex:none;accent-color:var(--g)}.tg span{flex:1}
-canvas{width:100%;height:140px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}.sigimg{max-height:80px;max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px}.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+canvas{width:100%;height:140px;border:1.5px dashed #bdb8aa;border-radius:12px;touch-action:none;display:block;background:#fcfbf8}.sigimg{max-height:80px;max-width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:4px}.hgrp{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;min-width:0}@media(max-width:480px){.hgrp .hbtn{padding:6px 9px;font-size:12.5px}}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
 <div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -48,12 +48,12 @@ const eyeB=id=>`<button type="button" class="eye" onclick="eyeT('${id}',this)">�
 const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],home:['الصفحة الرئيسية','Home page'],needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return here.'],adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],name:['الاسم','Name'],job:['المسمى الوظيفي','Job title'],email:['البريد الإلكتروني','Email'],role:['الدور','Role'],
  r_pm:['مدير مشروع','Project Manager'],r_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],r_sponsor:['راعي المشروع','Sponsor'],r_admin:['مسؤول النظام','Admin'],
- newpw:['كلمة المرور الجديدة','New password'],pwhint:['٨ أحرف على الأقل.','At least 8 characters.'],
+ newpw:['كلمة المرور الجديدة','New password'],pwhint:['8 أحرف على الأقل.','At least 8 characters.'],
  title:['حسابي','My account'],s_prof:['بياناتي','My details'],s_prof_h:['هذه البيانات تظهر في النماذج والتواقيع.','These details appear in forms and signatures.'],
  jobph:['مثال: مدير مشروع','e.g. Project manager'],jobnote:['إن تركته فارغًا يظهر NA في النماذج، ويمكنك تعديله داخل كل نموذج.','If empty, forms show NA and you can edit it inside each form.'],
  s_mail:['تغيير البريد الإلكتروني','Change email'],s_mail_h:['سيصل رابط تأكيد إلى البريد الجديد، ولا يتغير البريد قبل التأكيد.','A confirmation link is sent to the new address; the email changes only after you confirm.'],
  newmail:['البريد الجديد','New email'],sendlink:['إرسال رابط التأكيد','Send confirmation link'],mailsent:['أُرسل رابط التأكيد إلى البريد الجديد.','Confirmation link sent to the new email.'],
- s_pw:['تغيير كلمة المرور','Change password'],confirm:['تأكيد كلمة المرور','Confirm password'],pwmis:['كلمتا المرور غير متطابقتين.','Passwords do not match.'],pwshort:['كلمة المرور أقصر من ٨ أحرف.','Password is shorter than 8 characters.'],pwdone:['تم تغيير كلمة المرور.','Password changed.'],changepw:['تغيير كلمة المرور','Change password'],
+ s_pw:['تغيير كلمة المرور','Change password'],confirm:['تأكيد كلمة المرور','Confirm password'],pwmis:['كلمتا المرور غير متطابقتين.','Passwords do not match.'],pwshort:['كلمة المرور أقصر من 8 أحرف.','Password is shorter than 8 characters.'],pwdone:['تم تغيير كلمة المرور.','Password changed.'],changepw:['تغيير كلمة المرور','Change password'],
  s_pref:['التفضيلات','Preferences'],lang:['لغة الواجهة','Interface language'],ar:['العربية','Arabic'],en:['English','English'],signout:['تسجيل الخروج','Sign out'],
  photo:['الصورة الشخصية','Profile photo'],choose:['اختيار صورة','Choose photo'],rmphoto:['إزالة الصورة','Remove photo'],
  s_sig:['توقيعي المحفوظ','My saved signature'],s_sig_h:['يُستخدم بضغطة واحدة عند التوقيع أو الاعتماد في النماذج.','Used with one tap when signing or approving forms.'],
@@ -73,9 +73,15 @@ async function load(){
  if(!p)return gate('needLogin');me=p;
  const em=(session.user.email||'').toLowerCase();
  if(em&&(p.email||'').toLowerCase()!==em){try{await sb.from('profiles').update({email:em}).eq('id',p.id);me.email=em}catch(_){}}
+ try{const {data:sv}=await sb.from('app_settings').select('value').eq('key','proxy_on').maybeSingle();PXON=sv&&sv.value=='1'}catch(_){}
+ if(PXON){try{const {data:us}=await sb.from('profiles').select('id,full_name').order('full_name');PXU=(us||[]).filter(u=>u.id!=me.id)}catch(_){}}
  draw()}
+let PXON=false,PXU=[];
+D.s_px=['الإنابة في التوقيع','Signing on my behalf'];D.s_px_h=['اختر من ينوب عنك في توقيع ما يصلك من نماذج. تُسجَّل الإنابة في سجل كل نموذج.','Choose who may sign on your behalf. Proxy signing is recorded on each form.'];D.px_to=['النائب','Deputy'];D.px_none=['بدون إنابة','No proxy'];D.px_until=['حتى تاريخ (اختياري)','Until (optional)'];D.px_save=['حفظ الإنابة','Save proxy'];
+const pxCard=()=>PXON?`<div class="card"><h2>${t('s_px')}<small>${t('s_px_h')}</small></h2><label>${t('px_to')}</label><select id="px_to"><option value="">${t('px_none')}</option>${PXU.map(u=>`<option value="${u.id}" ${me.proxy_to==u.id?'selected':''}>${esc(u.full_name)}</option>`).join('')}</select><label>${t('px_until')}</label><input id="px_un" type="date" value="${esc(me.proxy_until||'')}"><div class="row"><button class="p" onclick="savePx()">${t('px_save')}</button></div></div>`:'';
+const savePx=()=>run(async()=>{await upd({proxy_to:$('px_to').value||null,proxy_until:$('px_un').value||null})});
 let RROW=null;const rname=()=>RROW?(lang=='ar'?RROW.name_ar:RROW.name_en):t('r_'+me.role);
-const fdt=d=>d?new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Dubai'}):'—';
+const fdt=d=>d?new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'Asia/Dubai'}):'—';
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
@@ -89,6 +95,7 @@ function draw(){
   <div class="g2"><div><label>${t('email')}</label><input dir="ltr" value="${esc(me.email||sess.user.email||'')}" disabled></div><div><label>${t('role')}</label><input value="${esc(rname())}" disabled></div></div>
   <div class="row"><button class="p" onclick="saveProf()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_sig')}<small>${t('s_sig_h')}</small></h2>${me.signature_img?`<img class="sigimg" src="${me.signature_img}">`:`<div class="mut">${t('nosig')}</div>`}<canvas id="cv" style="margin-top:8px"></canvas><div class="row"><button onclick="clr()">${t('clear')}</button><button class="p" onclick="saveSig()">${t('savesig')}</button>${me.signature_img?`<button class="r" onclick="rmSig()">${t('rmsig')}</button>`:''}</div></div>
+ ${pxCard()}
  <div class="card"><h2>${t('s_notif')}<small>${t('s_notif_h')}</small></h2>${EV.filter(e=>e!='deleteRequested'||me.role=='admin').map(e=>`<label class="tg"><input type="checkbox" id="ev_${e}" ${off.includes(e)?'':'checked'}><span>${t('ev_'+e)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveNotif()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_mail')}<small>${t('s_mail_h')}</small></h2><label>${t('newmail')}</label><input id="a_e" dir="ltr" type="email" autocomplete="email"><div class="row"><button class="p" onclick="saveMail()">${t('sendlink')}</button></div></div>
  <div class="card"><h2>${t('s_pw')}<small>${t('pwhint')}</small></h2><label>${t('newpw')}</label><div class="pwr"><input id="a_p1" type="password" autocomplete="new-password">${eyeB('a_p1')}</div><label>${t('confirm')}</label><div class="pwr"><input id="a_p2" type="password" autocomplete="new-password">${eyeB('a_p2')}</div><div class="row"><button class="p" onclick="savePw()">${t('changepw')}</button></div></div>
@@ -111,4 +118,23 @@ function setPhoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
 const saveMail=()=>run(async()=>{const e=$('a_e').value.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(e))throw new Error(t('email'));const {error}=await sb.auth.updateUser({email:e});if(error)throw error;$('a_e').value=''},t('mailsent'));
 const savePw=()=>run(async()=>{const a1=$('a_p1').value,b1=$('a_p2').value;if(a1.length<8)throw new Error(t('pwshort'));if(a1!==b1)throw new Error(t('pwmis'));const {error}=await sb.auth.updateUser({password:a1});if(error)throw error;$('a_p1').value='';$('a_p2').value=''},t('pwdone'));
 load();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
