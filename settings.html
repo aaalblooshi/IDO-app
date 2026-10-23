@@ -61,7 +61,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  ar:['عربي','Arabic'],en:['إنجليزي','English'],addi:['+ إضافة عنصر','+ Add item'],lock:['🔒 له منطق في النظام','🔒 used by system logic'],sector:['القطاع','Sector'],resetL:['استرجاع القوائم الافتراضية','Reset lists to defaults'],askR:['استرجاع القوائم الافتراضية؟','Reset lists to defaults?'],keep1:['يجب أن تبقى قائمة واحدة على الأقل.','At least one item must stay.'],
  s_home:['ترتيب الصفحة الرئيسية والمؤشرات','Home page order & indicators'],s_home_h:['اختر ما يظهر وبأي ترتيب. التغيير يسري على كل المستخدمين.','Choose what shows and in what order. Applies to all users.'],
  h_mine:['إظهار «لوحتي»','Show "My dashboard"'],h_first:['«لوحتي» تأتي قبل المحاور','Dashboard comes before axes'],h_axes:['المحاور','Axes'],h_svcs:['الخدمات داخل المحور','Services inside the axis'],h_tiles:['مؤشرات «لوحتي»','"My dashboard" indicators'],
- t_created:['أنشأتُها','Created by me'],t_action:['بانتظار إجرائي','Awaiting my action'],t_done:['تم البتّ فيها','Decided'],t_del:['طلبات الحذف (للأدمن)','Delete requests (admin)'],resetH:['استرجاع الترتيب الافتراضي','Reset to default order'],
+ t_created:['أنشأتُها','Created by me'],t_action:['بانتظار إجرائي','Awaiting my action'],t_done:['صدر بشأنها قرار','Decided'],t_del:['طلبات الحذف (للأدمن)','Delete requests (admin)'],resetH:['استرجاع الترتيب الافتراضي','Reset to default order'],
  ax_projects:['إدارة المشاريع','Project Management'],ax_quality:['إدارة الجودة والوثائق','Quality & Documents'],ax_strategy:['إدارة الاستراتيجية','Strategy Management'],noSv:['لا خدمات','No services']
 };
 const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
@@ -95,6 +95,7 @@ function draw(){
   <label>${t('site_url')}</label><input id="m_site" dir="ltr" value="${esc(MAIL.site_url||'')}">
   <div class="row"><button class="p" onclick="saveMail()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_users')}<small>${t('s_users_h')}</small></h2><div class="row"><button class="p" onclick="location.href='users.html'">${t('s_users')} ←</button></div></div>
+ <div class="card"><h2>${t('s_pxs')}<small>${t('s_pxs_h')}</small></h2><label class="tg"><input type="checkbox" id="px_on" ${SET.proxy_on=='1'?'checked':''}><span>${t('px_on')}</span></label><div class="row"><button class="p" onclick="savePxs()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_wt')}<small>${t('s_wt_h')}</small></h2><label>${t('w_ratio')}</label><input id="w_ratio" type="number" inputmode="decimal" min="0.1" step="0.1" value="${esc(SET.w_ratio||2)}" style="max-width:140px"><label>${t('w_sec')}</label><div id="w_secs">${wsec().map((x,i)=>`<div class="row" style="margin:4px 0"><span style="flex:1">${esc(x)}</span><input class="wsx" type="number" inputmode="decimal" min="0" step="0.1" value="${wget(i)}" style="width:110px"></div>`).join('')}</div><div class="mut" style="margin-top:6px">${t('w_note')}</div><div class="row"><button class="p" onclick="saveWt()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_cal')}<small>${t('s_cal_h')}</small></h2><div id="cal"></div><div class="row"><button class="p" onclick="saveCal()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_lists')}<small>${t('s_lists_h')}</small></h2><div id="lists"></div><div class="row"><button class="p" onclick="saveLists()">${t('save')}</button><button class="r" onclick="resetLists()">${t('resetL')}</button></div></div>
@@ -106,13 +107,15 @@ D.s_wt=['الأوزان','Weights'];D.s_wt_h=['تُستخدم في حساب إن
 const wsec=()=>{let L=null;try{L=JSON.parse(SET.opt_lists||'{}')}catch(_){}const a=L&&Array.isArray(L.sectors)&&L.sectors.length?L.sectors:[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]);return a.map(x=>lang=='ar'?x[0]:x[1])};
 const wget=i=>{let a=[];try{a=JSON.parse(SET.w_sector||'[]')}catch(_){}return a[i]==null?1:a[i]};
 const saveWt=()=>run(async()=>{const r=+$('w_ratio').value;if(!(r>0))throw new Error(t('w_ratio'));const a=[...document.querySelectorAll('.wsx')].map(x=>{const v=+x.value;if(!(v>=0))throw new Error(t('w_sec'));return v});await setS('w_ratio',r);await setS('w_sector',JSON.stringify(a));SET.w_ratio=String(r);SET.w_sector=JSON.stringify(a)});
+D.s_pxs=['الإنابة في التوقيع','Proxy signing'];D.s_pxs_h=['عند التفعيل يستطيع كل مستخدم تحديد نائب عنه من صفحة «حسابي».','When enabled, each user can choose a deputy from “My account”.'];D.px_on=['تفعيل التوقيع بالإنابة','Enable proxy signing'];
+const savePxs=()=>run(async()=>{const v=$('px_on').checked?'1':'0';await setS('proxy_on',v);SET.proxy_on=v});
 const saveAtt=()=>run(async()=>{const v=+$('att').value;if(!(v>=1&&v<=50))throw new Error('1 - 50');await setS('att_max_mb',v);SET.att_max_mb=String(v)});
 const saveEv=()=>run(async()=>{for(const e of EV){const v=$('ev_'+e).checked?'1':'0';await setS('mail_ev_'+e,v);SET['mail_ev_'+e]=v}});
 const saveMail=()=>run(async()=>{const u=$('m_url').value.trim(),s=$('m_sec').value.trim(),w=$('m_site').value.trim();if(!u||!s||!w)throw new Error('*');await setS('mail_url',u);await setS('mail_secret',s);await setS('site_url',w);MAIL={mail_url:u,mail_secret:s,site_url:w}});
 const saveUser=id=>run(async()=>{const {error}=await sb.from('profiles').update({role:$('ur_'+id).value,job_title:$('uj_'+id).value.trim()}).eq('id',id);if(error)throw error});
 
 /* ---------- القوائم المنسدلة ---------- */
-const adg=n=>String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]);
+const adg=n=>String(n).replace(/\d/g,c=>'0123456789'[c]);
 const GA=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع'];
 const DEFL=()=>({sectors:[1,2,3,4].map(n=>['قطاع '+adg(n),'Sector '+n]),depts:[1,2,3,4].map(s=>[1,2,3,4,5].map(p=>['الإدارة '+adg(p)+' للقطاع '+adg(s),'Department '+p+' of Sector '+s])),goals:GA.map((a,i)=>['الهدف '+a,'Goal '+(i+1)]),
  ptype:[['strategic','استراتيجي','Strategic'],['operational','تشغيلي','Operational']],prio:[['Low','منخفضة','Low'],['Medium','متوسطة','Medium'],['High','عالية','High'],['Critical','حرجة','Critical']],pstat:[['completed','مكتمل','Completed'],['cancelled','ملغى أو موقوف','Cancelled or stopped']]});
@@ -179,4 +182,23 @@ const saveHome=()=>run(async()=>{const on=l=>l.filter(x=>x.on).map(x=>x.k),off=l
  const c={mine:HC.mine?1:0,order:HC.first?'mine':'axes',axes:on(HC.axes),axesOff:off(HC.axes),tiles:on(HC.tiles),tilesOff:off(HC.tiles),svc,svcOff};const j=JSON.stringify(c);await setS('home_cfg',j);SET.home_cfg=j});
 const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=null;drawHome()});
 load();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
