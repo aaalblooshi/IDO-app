@@ -31,6 +31,7 @@ main{max-width:1000px;margin:0 auto;padding:16px 14px 40px}
 .mine{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:16px;box-shadow:0 1px 2px rgba(35,39,43,.04),0 8px 24px rgba(35,39,43,.06)}
 .mh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .mh h2{margin:0;font-size:18px;font-weight:800}.mh small{color:var(--mut);font-size:13px}
+.fab{position:fixed;inset-inline-end:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:30;display:none;align-items:center;gap:6px;background:#23272b;color:#fff;text-decoration:none;font-weight:700;padding:11px 16px;border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.3);border:2px solid #B39A6B}.fab b{background:#3D96C7;border-radius:99px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;font-size:12.5px;padding:0 6px}.fab b.lt{background:#d1101d}
 .pan{border:1.5px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fff}
 .pan:last-child{margin-bottom:0}
 .ph{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:inherit;text-decoration:none}
@@ -127,6 +128,7 @@ const AXES=[
   title:{ar:'إدارة المشاريع',en:'Project Management'},
   desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
   services:[
+   {icon:'check',status:'live',href:'tasks.html',stats:'tk',title:{ar:'مهامي',en:'My tasks'},desc:{ar:'مهامك في خطط المشاريع: التنفيذ والإنجاز والمرفقات والمتابعة.',en:'Your tasks in project plans: execution, progress, attachments and follow-up.'}},
    {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'المشاريع (ميثاق المشروع)',en:'Projects (Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
    {icon:'file',status:'live',href:'plan.html',stats:'pl',title:{ar:'خطط المشاريع',en:'Project Plans'},desc:{ar:'بناء خطة المشروع بأنشطة ومهام ومخطط جانت تفاعلي مع المراجعة والاعتماد.',en:'Build the project plan with activities, tasks and an interactive Gantt chart, with review and approval.'}},
    {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'طلبات التغيير',en:'Change Requests'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
@@ -152,6 +154,7 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
+ t_tkl:{ar:'متأخرة',en:'Late'},t_tkt:{ar:'تنتهي اليوم',en:'Due today'},t_tko:{ar:'مفتوحة',en:'Open'},tkFab:{ar:'مهامي',en:'My tasks'},
  t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'صدر بشأنها قرار',en:'Decided'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
@@ -217,7 +220,17 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
    const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
-const STATS={cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
+const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=r.data}catch(_){return[]}
+ const dn=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
+ const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0;
+ (data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));
+  T.forEach(x=>{if(par.has(x.id)||(+x.pc||0)>=100)return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
+   open++;const e=dn(x.e);if(e!=null&&e<td)late++;else if(e==td)today++})});
+ window.TKC={late,today,open};tkFab();
+ return[{k:'tkl',n:late,c:'#d1101d',href:'tasks.html',hot:true},{k:'tkt',n:today,c:'#a8761a',href:'tasks.html'},{k:'tko',n:open,c:'#23272b',href:'tasks.html'}]};
+function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
+ const n=c.late+c.today;a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
+const STATS={tk:tkLoad,cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
  if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
@@ -235,7 +248,7 @@ async function loadMine(){
  drawMine()}
 const ALLTILES=['created','action','done','del'];
 const ordL=(all,sel,off)=>{off=off||[];if(Array.isArray(sel))return[...sel.filter(x=>all.includes(x)),...all.filter(x=>!sel.includes(x)&&!off.includes(x))];return all.filter(x=>!off.includes(x))};
-const tileList=ts=>{const c=CFG;if(!Array.isArray(c.tiles))return ts.filter(t=>t.k!='del'||t.n);return ordL(ALLTILES,c.tiles,c.tilesOff).map(k=>ts.find(t=>t.k==k)).filter(Boolean)};
+const tileList=ts=>{if(ts.length&&String(ts[0].k).startsWith('tk'))return ts;const c=CFG;if(!Array.isArray(c.tiles))return ts.filter(t=>t.k!='del'||t.n);return ordL(ALLTILES,c.tiles,c.tilesOff).map(k=>ts.find(t=>t.k==k)).filter(Boolean)};
 function applyCfg(){
  let ax=ORIG.map(a=>({...a,services:a.services.slice()}));
  const ids=ordL(ax.map(a=>a.id),CFG.axes,CFG.axesOff);ax=ids.map(id=>ax.find(a=>a.id==id));
@@ -277,7 +290,7 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="tasks.html">✅ ${a?'مهامي':'My tasks'}</a><a class="hb" href="inbox.html">🔔 ${a?'الإشعارات':'Notifications'}</a><a class="hb" href="projects.html">📁 ${a?'المشاريع':'Projects'}</a>`+((role=='admin'||(ME0&&ME0.view_scope))?`<a class="hb" href="portfolio.html">📊 ${a?'المحفظة':'Portfolio'}</a>`:'')+`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
+ h.innerHTML=`<a class="hb" href="inbox.html">🔔 ${a?'الإشعارات':'Notifications'}</a><a class="hb" href="projects.html">📁 ${a?'المشاريع':'Projects'}</a>`+((role=='admin'||(ME0&&ME0.view_scope))?`<a class="hb" href="portfolio.html">📊 ${a?'المحفظة':'Portfolio'}</a>`:'')+`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 let ROLEOFF=[];
