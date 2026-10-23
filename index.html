@@ -154,8 +154,8 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_tkl:{ar:'متأخرة',en:'Late'},t_tkt:{ar:'تنتهي اليوم',en:'Due today'},t_tko:{ar:'مفتوحة',en:'Open'},tkFab:{ar:'مهامي',en:'My tasks'},
- t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'صدر بشأنها قرار',en:'Decided'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
+ t_tkl:{ar:'متأخرة',en:'Late'},t_tkt:{ar:'موعد إنجازها اليوم',en:'Due today'},t_tko:{ar:'المتبقية',en:'Remaining'},t_tkd:{ar:'المنجزة',en:'Completed'},tkFab:{ar:'مهامي',en:'My tasks'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'منتهية الإجراءات',en:'Finalised'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
@@ -222,12 +222,12 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
 const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=r.data}catch(_){return[]}
  const dn=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
- const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0;
+ const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0,done=0;
  (data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));
-  T.forEach(x=>{if(par.has(x.id)||(+x.pc||0)>=100)return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
+  T.forEach(x=>{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;if((+x.pc||0)>=100){done++;return}
    open++;const e=dn(x.e);if(e!=null&&e<td)late++;else if(e==td)today++})});
- window.TKC={late,today,open};tkFab();
- return[{k:'tkl',n:late,c:'#d1101d',href:'tasks.html',hot:true},{k:'tkt',n:today,c:'#a8761a',href:'tasks.html'},{k:'tko',n:open,c:'#23272b',href:'tasks.html'}]};
+ window.TKC={late,today,open,done};tkFab();
+ return[{k:'tkl',n:late,c:'#d1101d',href:'tasks.html',hot:true},{k:'tkt',n:today,c:'#a8761a',href:'tasks.html'},{k:'tko',n:open,c:'#23272b',href:'tasks.html'},{k:'tkd',n:done,c:'#1c7a45',href:'tasks.html'}]};
 function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
  const n=c.late+c.today;a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
 const STATS={tk:tkLoad,cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
@@ -241,7 +241,7 @@ async function loadMine(){
   if(!me)throw new Error('no profile');
   try{const {data:rr}=await sb.from('app_roles').select('perms').eq('key',me.role_key||me.role).maybeSingle();const sv0=((rr||{}).perms||{}).svc||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false&&me.role!='admin').map(k=>({cr:'cr',charter:'charter',closure:'closure'}[k]+'.html'));applySvc()}catch(e){}
   ME0=me;try{USRCFG=me.home_cfg?JSON.parse(me.home_cfg):null}catch(e){USRCFG=null}setCfg();if(USRCFG)applyCfg();
-  hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role)}catch(e){}
+  hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role);localStorage.setItem('hdrScope',me.view_scope?'1':'0')}catch(e){}
   const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
   MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error',msg:String(e&&e.message||e)}}
@@ -299,7 +299,26 @@ async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_
 new MutationObserver(()=>{if(OFFSVC.length||ROLEOFF.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
 const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
 draw();loadMine();applySvc();
-</script><script>/*fmtfix*/
+</script><script>/*navfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';if(f=='index.html'||f=='')return;
+ function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function build(){
+  if(document.getElementById('gnav'))return;var ar=lg()=='ar';
+  var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['projects.html','📁',ar?'المشاريع':'Projects','projects']];
+  if(ls('hdrRole')=='admin'||ls('hdrScope')=='1')items.push(['portfolio.html','📊',ar?'المحفظة':'Portfolio','portfolio']);
+  var n=document.createElement('nav');n.id='gnav';
+  var h='';
+  if(history.length>1&&document.referrer&&document.referrer.indexOf(location.origin)==0)h+='<a href="#" id="gback" class="gb"><i>↩</i><span>'+(ar?'رجوع':'Back')+'</span></a>';
+  items.forEach(function(i){h+='<a href="'+i[0]+'" class="gb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
+  n.innerHTML=h;document.body.appendChild(n);
+  var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
+  var s=document.createElement('style');s.textContent='#gnav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:space-around;background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:4px 4px calc(4px + env(safe-area-inset-bottom));direction:'+(ar?'rtl':'ltr')+'}#gnav .gb{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;text-decoration:none;color:#6b6f76;font:700 11px/1.3 Cairo,system-ui,sans-serif;padding:3px 2px;border-radius:10px;min-width:0}#gnav .gb i{font-style:normal;font-size:19px;line-height:1.2}#gnav .gb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body{padding-bottom:64px!important}@media print{#gnav{display:none}}';document.head.appendChild(s)}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*fmtfix*/
 (function(){
  var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
  var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
