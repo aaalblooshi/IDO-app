@@ -54,7 +54,17 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .num{direction:ltr;unicode-bidi:isolate;display:inline-block}
 .tk{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0;background:#fff}.tk.dn{opacity:.65}.tk.lt{border-color:#f3b9be;background:#fff8f8}
 .tk b{overflow-wrap:anywhere}.pb{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pb button{padding:4px 12px;font-size:13px}
-.wide{max-width:1200px!important}
+.tkp .sb{position:static!important}.wide{max-width:1200px!important}
+
+.sov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:flex-end;justify-content:center}
+.sbx{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px 22px;-webkit-overflow-scrolling:touch}
+.sbx h3{margin:0 0 2px;font-size:17px;overflow-wrap:anywhere}.sbx textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:70px}
+.chp{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:700;background:#eee;color:#555;margin-inline-end:4px;white-space:nowrap}
+.chp.r{background:#fdecee;color:#d1101d}.chp.o{background:#fbf0d9;color:#8a5a00}.chp.g{background:#e5f2ea;color:#1c7a45}.chp.b{background:#e6f2f9;color:#2a6a90}
+.tl{margin-inline-start:0}.nd{padding:5px 0;border-top:1px dashed var(--line)}.nd .h{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.wb{border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:6px 0;background:#fff}.wb.l0{background:#f7f5ee;border-color:#B39A6B}.wb .wk{margin-inline-start:14px}
+.ut{position:fixed;inset-inline:14px;bottom:18px;background:#23272b;color:#fff;padding:10px 14px;border-radius:12px;z-index:99;display:flex;gap:10px;align-items:center;justify-content:space-between}.ut button{padding:3px 14px}
+.gwrap{display:flex;overflow-x:auto;direction:ltr}.gl0{position:sticky;left:0;z-index:3;background:#fff;border-right:1px solid var(--line);flex:none}.gl{display:flex;gap:4px;align-items:center;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-bottom:1px solid #f0ede4;direction:auto;padding-inline-end:6px}.gl.pj{background:#f7f5ee}.gcan{position:relative;flex:none}.gh{position:absolute;top:0;height:26px;border-bottom:1px solid var(--line);background:#faf8f2}.gm{position:absolute;top:0;height:26px;border-left:1px solid var(--line);font-size:11.5px;padding:3px 5px;color:var(--mut);overflow:hidden}.gv{position:absolute;top:0;bottom:0;border-left:1px solid #f0ede4}.gt{position:absolute;width:2px;background:#d1101d;z-index:2}.gb{position:absolute;height:14px;border:1px solid;border-radius:5px;overflow:hidden;cursor:pointer}.gb.lt{box-shadow:0 0 0 2px #d1101d55}.gb i{position:absolute;inset-block:0;left:0}.gp{position:absolute;height:3px;background:#B39A6B}.gd{position:absolute;width:14px;height:14px;transform:rotate(45deg);cursor:pointer}
 @media print{.top,.sb,.noprint,#toast{display:none!important}body{background:#fff}main{max-width:none;padding:0}.pgb{page-break-before:always}.card{border:0;padding:0}}
 </style></head><body>
 <div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button></span></div>
@@ -111,6 +121,10 @@ function analyze(tasks,wmode,now){
 const health=(gap,lateN)=>lateN>0&&gap>=15?'bad':(gap>=8||lateN>0)?'wa':'ok';
 const hCol={ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'};
 const pbar=(a,ex)=>`<div class="bar"><i style="width:${clamp(a,0,100)}%"></i><u style="inset-inline-start:${clamp(ex,0,100)}%"></u></div>`;
+const PLU={task:['مهمة','مهمتان','مهام','مهمة','task','tasks'],project:['مشروع','مشروعان','مشاريع','مشروعًا','project','projects'],day:['يوم','يومان','أيام','يومًا','day','days']};
+function plr(n,k){const a=PLU[k];n=+n||0;if(lang!='ar')return '<span class="num">'+n+'</span> '+(n==1?a[4]:a[5]);
+ if(n==1)return a[0];if(n==2)return a[1];return '<span class="num">'+n+'</span> '+(n>=3&&n<=10||n==0?a[2]:a[3])}
+const wdn=n=>new Date(n*DAY).toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{weekday:'short',timeZone:'UTC'});
 const mon0=n=>{const d=new Date(n*DAY).getUTCDay();return n-((d+6)%7)};
 function icsEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;').replace(/,/g,'\\,').replace(/\n/g,'\\n')}
 let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
@@ -124,63 +138,301 @@ async function boot(){
  try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
  await start()}
 Object.assign(D,{
- title:['مهامي','My tasks'],search:['ابحث في مهامي…','Search my tasks…'],allP:['كل المشاريع','All projects'],
- tToday:['اليوم','Today'],tWeek:['هذا الأسبوع','This week'],tMonth:['هذا الشهر','This month'],tLate:['متأخرة','Late'],tAll:['الكل','All'],tDone:['منجزة','Done'],
- none:['لا توجد مهام في هذا التبويب.','No tasks in this tab.'],noany:['لا توجد مهام مسندة إليك في خطط معتمدة.','No tasks are assigned to you in approved plans.'],
- plan:['الفترة','Period'],prog:['الإنجاز','Progress'],lateD:['متأخرة','late by'],days:['يوم','days'],done:['✓ أنجزتها','✓ Done'],undo:['تراجع','Undo'],
- ics:['📅 تصدير إلى التقويم','📅 Export to calendar'],icsH:['يُنشئ ملفًا يفتح في تقويم الجوال مع تذكير قبل الموعد بيوم.','Creates a file that opens in your phone calendar with a 1-day reminder.'],
- ms:['مرحلة','Milestone'],set:['حدّد','Set'],started:['بدأت في','Started'],finished:['اكتملت في','Finished'],cnt:['مهمة','tasks'],
- hint:['اضغط على نسبة الإنجاز لتحديثها. عند 100% تُسجَّل مهمتك منجزة وتظهر للمشرفين فورًا.','Tap a percentage to update it. At 100% the task is marked done for supervisors.']});
-let ALL=[],TAB='week',Q='',FP='',LAST=null;
-async function start(){await reload()}
+ title:['مهامي','My tasks'],search:['ابحث في المهام…','Search tasks…'],allP:['كل المشاريع','All projects'],allS:['كل القطاعات','All sectors'],allU:['كل المكلّفين','All assignees'],
+ mMe:['مهامي','My tasks'],mTeam:['مهام الفريق','Team tasks'],
+ vList:['قائمة','List'],vProj:['حسب المشروع','By project'],vGantt:['مخطط زمني','Timeline'],
+ tOpen:['المفتوحة','Open'],tLate:['متأخرة','Late'],tToday:['اليوم','Today'],tWeek:['هذا الأسبوع','This week'],tMonth:['هذا الشهر','This month'],tDone:['منجزة','Done'],tAll:['الكل','All'],
+ none:['لا توجد مهام هنا.','No tasks here.'],noany:['لا توجد مهام مسندة إليك في خطط معتمدة.','No tasks are assigned to you in approved plans.'],
+ plan:['الفترة','Period'],prog:['الإنجاز','Progress'],done:['✓ أنجزتها','✓ Done'],undo:['تراجع','Undo'],open:['فتح','Open'],
+ ics:['📅 تصدير إلى التقويم','📅 Export to calendar'],icsH:['ملف يُفتح في تقويم الهاتف مع تذكير قبل الموعد بيوم.','A file that opens in your phone calendar with a 1-day reminder.'],
+ csv:['⬇ تصدير Excel','⬇ Export Excel'],cust:['⚙ تخصيص العرض','⚙ Customize'],
+ c_sum:['الملخص','Summary'],c_pts:['أهم النقاط','Key points'],c_prio:['الأولوية','Priority'],c_deps:['الترابط بين المهام','Task links'],c_wkd:['أسماء الأيام','Weekday names'],c_wbs:['عرض هيكل العمل بالبطاقات (في «حسب المشروع»)','Show WBS as cards (in “By project”)'],c_cmp:['عرض مضغوط','Compact'],
+ g_late:['متأخرة','Late'],g_today:['تنتهي اليوم','Due today'],g_week:['تنتهي هذا الأسبوع','Due this week'],g_open:['مفتوحة','Open'],g_prog:['إنجازي','My progress'],
+ k1:['مهام متأخرة','late tasks'],k2:['تنتهي اليوم','due today'],k3:['بانتظار مهام سابقة','waiting on earlier tasks'],k4:['تعطّل مهامّ غيرها','holding up other tasks'],k5:['أقرب موعد','Next due'],
+ p_hi:['أولوية عالية','High priority'],p_md:['أولوية متوسطة','Medium priority'],p_lo:['عادية','Normal'],
+ rLate:['متأخرة','late by'],rDone:['اكتملت','Done'],rToday:['تنتهي اليوم','Due today'],rTom:['تنتهي غدًا','Due tomorrow'],rIn:['تنتهي بعد','Due in'],rStart:['تبدأ بعد','Starts in'],rNo:['بلا موعد','No dates'],
+ blocked:['بانتظار','Waiting for'],blocks:['تعطّل','Holds up'],grp:['مجموعة','Group'],ms:['مرحلة','Milestone'],
+ pStat:['الحالة','Status'],pdone:['منجزة','Done'],
+ sh_pred:['المهام السابقة','Predecessors'],sh_succ:['المهام اللاحقة','Successors'],sh_prog:['نسبة الإنجاز','Progress %'],sh_as:['تاريخ البدء الفعلي','Actual start'],sh_ae:['تاريخ الانتهاء الفعلي','Actual finish'],
+ sh_today:['اليوم','Today'],sh_asPlan:['بدأت حسب المخطط','Started as planned'],sh_doneAsPlan:['اكتملت حسب المخطط','Finished as planned'],sh_nt:['ملاحظات على المهمة','Task notes'],sh_att:['المرفقات','Attachments'],sh_hist:['سجل التحديثات','Update history'],
+ sh_save:['حفظ','Save'],sh_close:['إغلاق','Close'],sh_last:['آخر تحديث','Last update'],sh_ro:['للاطّلاع فقط — لا تملك صلاحية تعديل هذه المهمة.','View only — you cannot edit this task.'],
+ sh_f:['اختر ملفًا','Choose a file'],sh_ft:['عنوان المرفق (اختياري)','Attachment title (optional)'],sh_up:['إرفاق','Attach'],sh_noatt:['لا مرفقات.','No attachments.'],sh_nohist:['لا يوجد سجل بعد.','No history yet.'],sh_del:['حذف','Delete'],
+ e_fut:['لا يمكن تسجيل تاريخ في المستقبل.','A future date cannot be recorded.'],e_ord:['تاريخ الانتهاء قبل تاريخ البدء.','Finish date is before start date.'],e_pc:['أدخل نسبة بين 0 و100.','Enter a percentage from 0 to 100.'],e_big:['حجم الملف أكبر من 10 م.ب.','File is larger than 10 MB.'],
+ saved2:['تم تسجيل الإنجاز','Progress recorded'],upd:['تم التحديث','Updated'],
+ viewPlan:['عرض الخطة','View plan'],viewGantt:['المخطط الزمني','Timeline'],
+ closeAll:['اكتملت جميع مهام هذا المشروع','All tasks of this project are complete'],startCl:['ابدأ التقرير الختامي','Start the closure report'],openCl:['فتح التقرير الختامي','Open the closure report'],
+ gGrp:['تجميع حسب','Group by'],gProj:['المشروع','Project'],gSec:['القطاع','Sector'],gUser:['المكلّف','Assignee'],gCtr:['المركز كله','Whole centre'],
+ stAll:['كل الحالات','All statuses'],unas:['غير مسندة','Unassigned'],tTot:['إجمالي المهام','Total tasks'],tDn:['منجزة','Done'],tPj:['المشاريع','Projects'],avg:['متوسط الإنجاز','Avg. progress'],more:['عرض المزيد','Show more'],
+ h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs attention'],h_bad:['متأخر','Delayed'],
+ legend:['الشريط الأزرق = الفعلي، الخط الذهبي = المخطط حتى اليوم','Blue = actual, gold line = planned to date'],zi:['تكبير','Zoom in'],zo:['تصغير','Zoom out'],
+ who:['المكلّف','Assignee'],c_sec:['القطاع','Sector'],c_proj:['المشروع','Project'],c_task:['النشاط','Task'],c_ps:['بداية مخططة','Planned start'],c_pe:['نهاية مخططة','Planned end'],c_as:['بداية فعلية','Actual start'],c_ae:['نهاية فعلية','Actual end'],c_late:['أيام التأخير','Days late'],c_nt:['ملاحظات','Notes']});
+const CFD={sum:1,pts:1,prio:1,deps:1,wkd:1,wbs:0,cmp:0};
+let CFG={...CFD};try{CFG={...CFD,...JSON.parse(localStorage.getItem('tk_cfg')||'{}')}}catch(_){}
+const saveCfg=()=>{try{localStorage.setItem('tk_cfg',JSON.stringify(CFG))}catch(_){}};
+let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',Q='',FP='',FS='',FU='',FST='',GRP='project',LAST=null,SHOWN=40,CUST=false,PXD=0,COL=new Set(),GOPEN=new Set();
+const TEAM=()=>ADM||!!(ME&&ME.view_scope);
+const dayP=n=>plr(n,'day');document.body.classList.add('tkp');
+async function start(){if(!TEAM())MODE='me';await reload()}
+function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
+function mkProject(p){
+ const tasks=p.tasks||[],m={};tasks.forEach(x=>m[x.id]=x);
+ const an=analyze(tasks,p.wm),kids=an.kids;
+ const pr={pid:p.id,pcode:p.pcode||p.code||'',pname:p.pname||p.code||'',sc:+p.sc||0,pt:p.pt,pm:p.pm||'',cb:p.cb,wm:p.wm,tasks,m,an,kids};
+ pr.rs=tasks.map(x=>{const a=an.t[x.id]||{a:0,ex:0,late:0,leaf:1},ch=(kids[x.id]||[]);
+  const path=[];let c=x,g=0;while(c&&c.p&&m[c.p]&&g++<10){c=m[c.p];path.unshift(c.n)}
+  const mine=ownerChain(m,x);
+  const preds=(x.dep||[]).map(d=>({x:m[d.t],y:d.y||'FS',l:+d.l||0})).filter(d=>d.x);
+  const r={pr,x,id:x.id,a,leaf:!ch.length,path,mine,edit:ADM||pr.cb==ME.id||mine,preds,s:dn(x.s),e:dn(x.e),pc:a.a,own:x.w||''};
+  r.pcr=Math.round(+x.pc||0);return r});
+ const byId={};pr.rs.forEach(r=>byId[r.id]=r);pr.byId=byId;
+ pr.rs.forEach(r=>{r.succ=0;});
+ pr.rs.forEach(r=>r.preds.forEach(d=>{const q=byId[d.x.id];if(q&&r.a.a<100)q.succ++}));
+ pr.rs.forEach(r=>{r.waits=r.preds.filter(d=>{const q=byId[d.x.id];return q&&q.a.a<100});r.blocked=r.a.a<100&&r.waits.length>0});
+ return pr}
 async function reload(){
- const {data,error}=await sb.rpc('my_plans');if(error){$('app').innerHTML='<div class="card mut">'+esc(error.message)+'</div>';return}
- ALL=[];(data||[]).forEach(p=>{const pr=analyze(p.tasks,p.wmode),par=new Set((p.tasks||[]).map(x=>x.p).filter(Boolean));
-  const path=x=>{const o=[];let c=x,g=0;const m={};(p.tasks||[]).forEach(z=>m[z.id]=z);while(c&&c.p&&m[c.p]&&g++<8){c=m[c.p];o.unshift(c.n)}return o.join(' ‹ ')};
-  (p.tasks||[]).forEach(x=>{if(x.w!=ME.id)return;const a=pr.t[x.id]||{};ALL.push({pid:p.id,pcode:p.pcode||p.code,pname:p.pname||p.code,x,s:dn(x.s),e:dn(x.e),pc:+x.pc||0,parent:par.has(x.id),path:path(x)})})});
+ let rows=[];
+ if(MODE=='me'){const {data,error}=await sb.rpc('my_plans');if(error){$('app').innerHTML='<div class="card mut">'+esc(error.message)+'</div>';return}
+  rows=(data||[]).map(p=>({id:p.id,code:p.code,pcode:p.pcode,pname:p.pname,sc:p.sector,pt:p.ptype,wm:p.wmode,pm:p.pm,cb:p.created_by,tasks:p.tasks}))}
+ else{const [pl,cf]=await Promise.all([
+   sb.from('plans').select('id,code,created_by,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks').eq('status','Approved').eq('archived',false).then(r=>r.data||[],()=>[]),
+   sb.from('project_cfg').select('*').then(r=>r.data||[],()=>[])]);
+  const hid={};cf.forEach(c=>{if(c.hidden)hid[c.pcode]=1});
+  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(hid[k]&&!ADM)return;if(!best[k]||p.id>best[k].id)best[k]=p});
+  rows=Object.values(best).map(p=>({id:p.id,code:p.code,pcode:p.pc||p.code,pname:p.pn,sc:p.sc,pt:p.pt,wm:p.wm,pm:p.pm,cb:p.created_by,tasks:p.tasks||[]}))}
+ try{const {data}=await sb.from('closure_reports').select('id,status,archived,pc:data->>pcode');CLS={};(data||[]).filter(c=>!c.archived).forEach(c=>{if(c.pc&&(!CLS[c.pc]||c.id>CLS[c.pc].id))CLS[c.pc]=c})}catch(_){CLS={}}
+ PR=rows.map(mkProject).sort((a,b)=>a.pname.localeCompare(b.pname,'ar'));
+ ALLR=[];PR.forEach(p=>p.rs.forEach(r=>ALLR.push(r)));
  draw()}
-function flt(){const q=Q.trim().toLowerCase(),now=TODAY,w0=mon0(now),w1=w0+6;
- const d=new Date(now*DAY),m0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1)/DAY,m1=Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)/DAY;
- const ov=(r,a,b)=>r.s!=null&&r.e!=null&&r.s<=b&&r.e>=a;
- return ALL.filter(r=>{
-  if(FP&&r.pcode!=FP)return false;
-  if(q&&!((r.x.n||'')+' '+r.pname+' '+r.pcode).toLowerCase().includes(q))return false;
-  const dn_=r.pc>=100,late=!dn_&&r.e!=null&&now>r.e;
-  switch(TAB){case'today':return !dn_&&ov(r,now,now);case'week':return !dn_&&(ov(r,w0,w1));case'month':return !dn_&&ov(r,m0,m1);case'late':return late;case'done':return dn_;default:return true}})
- .sort((a,b)=>(a.e==null)-(b.e==null)||a.e-b.e)}
-function cnt(k){const s=TAB;TAB=k;const n=flt().length;TAB=s;return n}
+/* ---- helpers ---- */
+const isDone=r=>r.a.a>=100;
+const lateD=r=>(!isDone(r)&&r.e!=null&&TODAY>r.e)?TODAY-r.e:0;
+function prio(r){if(isDone(r))return 0;const l=lateD(r),due=r.e==null?999:r.e-TODAY;
+ if(l>0||due<=2||(r.succ>0&&due<=7))return 3;if(due<=7)return 2;return 1}
+function relT(r){if(isDone(r))return `<span class="ok">${t('rDone')}${r.x.ae?' '+dtx(dn(r.x.ae)):''}</span>`;
+ if(r.e==null)return t('rNo');const l=lateD(r);
+ if(l>0)return `<b class="bad">${t('rLate')} ${dayP(l)}</b>`;
+ if(r.s!=null&&r.s>TODAY){const d=r.s-TODAY;return `<span class="mut">${t('rStart')} ${dayP(d)}</span>`}
+ const d=r.e-TODAY;if(d==0)return `<b class="wa">${t('rToday')}</b>`;if(d==1)return `<b class="wa">${t('rTom')}</b>`;return `<span>${t('rIn')} ${dayP(d)}</span>`}
+const dtx=n=>n==null?'':(CFG.wkd?wdn(n)+' ':'')+'<span class="num">'+fd(ds(n))+'</span>';
+function prChip(r){if(!CFG.prio||isDone(r))return '';const p=prio(r);return p==3?`<span class="chp r">${t('p_hi')}</span>`:p==2?`<span class="chp o">${t('p_md')}</span>`:''}
+function depChips(r){if(!CFG.deps||isDone(r))return '';let h='';
+ if(r.blocked)h+=`<span class="chp o" title="${esc(r.waits.map(d=>d.x.n).join('، '))}">🔒 ${t('blocked')}: ${esc(r.waits[0].x.n.slice(0,28))}${r.waits.length>1?' +'+(r.waits.length-1):''}</span>`;
+ if(r.succ>0)h+=`<span class="chp b">⛓ ${t('blocks')} ${plr(r.succ,'task')}</span>`;return h}
+const pathS=r=>r.path.length?esc(r.path.join(' ‹ ')):'';
+function healthOf(a){return health(a.gap!=null?a.gap:0,a.lateN||0)}
+
+/* ---- filtering ---- */
+function scope(){ // rows visible in the current mode/filters
+ const q=Q.trim().toLowerCase();
+ return ALLR.filter(r=>{
+  if(MODE=='me'&&!r.mine)return false;
+  if(FP&&r.pr.pcode!=FP)return false;
+  if(MODE=='team'){if(FS&&r.pr.sc!=FS)return false;if(FU){if(FU=='-'){if(r.own)return false}else if(r.own!=FU)return false}}
+  if(q&&!((r.x.n||'')+' '+r.pr.pname+' '+r.pr.pcode+' '+(UN[r.own]||'')).toLowerCase().includes(q))return false;
+  return true})}
+const leaves=rs=>rs.filter(r=>r.leaf);
+function tabF(r){const w0=mon0(TODAY),w1=w0+6,d=new Date(TODAY*DAY),m0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),1)/DAY,m1=Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)/DAY;
+ const ov=(a,b)=>r.s!=null&&r.e!=null&&r.s<=b&&r.e>=a,dn_=isDone(r);
+ switch(TAB){case'open':return !dn_;case'late':return lateD(r)>0;case'today':return !dn_&&ov(TODAY,TODAY);case'week':return !dn_&&ov(w0,w1);case'month':return !dn_&&ov(m0,m1);case'done':return dn_;default:return true}}
+const cntTab=k=>{const s=TAB;TAB=k;const n=leaves(scope()).filter(tabF).length;TAB=s;return n};
+const sortP=(a,b)=>prio(b)-prio(a)||(a.e==null)-(b.e==null)||a.e-b.e;
+/* ---- shell ---- */
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
  if(!ME)return;
- if(!ALL.length){$('app').innerHTML=`<div class="card mut">${t('noany')}</div>`;return}
- const ps=[...new Map(ALL.map(r=>[r.pcode,r.pname])).entries()];
- const tab=k=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';draw()">${t('t'+k[0].toUpperCase()+k.slice(1))} <span class="num">${cnt(k)}</span></button>`;
- $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="tabs" style="margin-top:8px">${['today','week','month','late','all','done'].map(tab).join('')}</div>
- <div class="row" style="margin-top:0"><select id="fp" style="flex:1"><option value="">${t('allP')}</option>${ps.map(([c,n])=>`<option value="${esc(c)}" ${FP==c?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="noprint" onclick="icsOut()">${t('ics')}</button></div><div class="mut">${t('icsH')}</div></div>
- <div class="mut" id="cn" style="margin:6px 0"></div><div id="list"></div><div class="mut" style="margin-top:14px">${t('hint')}</div>`;
- $('q').oninput=e=>{Q=e.target.value;list()};$('fp').onchange=e=>{FP=e.target.value;draw()};list()}
-function list(){const r=flt();$('cn').innerHTML=`<span class="num">${r.length}</span> ${t('cnt')}`;
- $('list').innerHTML=r.length?r.map(row).join(''):`<div class="card mut">${t('none')}</div>`}
-function row(r){const x=r.x,done=r.pc>=100,late=!done&&r.e!=null&&TODAY>r.e,k=r.pid+'|'+x.id;
- const steps=[0,25,50,75].filter(v=>v!=r.pc);
- return `<div class="tk ${done?'dn':''} ${late?'lt':''}"><div class="mut">${esc(r.pname)} <span dir="ltr">${esc(r.pcode||'')}</span>${r.path?' · '+esc(r.path):''}</div>
- <b>${x.ms?'◆ ':''}${esc(x.n)}</b>${r.parent?` <span class="pill">${lang=='ar'?'مجموعة':'Group'}</span>`:''}
- <div class="mut">${t('plan')}: <span class="num">${fd(x.s)}</span> → <span class="num">${fd(x.e)}</span>${late?` · <span class="bad">${t('lateD')} <span class="num">${TODAY-r.e}</span> ${t('days')}</span>`:''}${x.as?` · ${t('started')} <span class="num">${fd(x.as)}</span>`:''}${x.ae?` · ${t('finished')} <span class="num">${fd(x.ae)}</span>`:''}</div>
- <div class="mut">${t('prog')}: <b class="num ${late?'bad':''}">${r.pc}%</b></div>${pbar(r.pc,0)}
- ${r.parent?'':`<div class="pb">${done?`<button onclick="setP('${k}',0)">${t('undo')}</button>`:`<button class="p" onclick="setP('${k}',100)">${t('done')}</button>`}${done?'':steps.map(v=>`<button onclick="setP('${k}',${v})"><span class="num">${v}%</span></button>`).join('')}</div>`}</div>`}
-const setP=(k,v)=>run(async()=>{const [pid,tid]=k.split('|'),r=ALL.find(z=>z.pid==pid&&z.x.id==tid);if(!r)return;
- const now=ds(TODAY);let as=r.x.as||'',ae=r.x.ae||'';
- if(v>0&&!as)as=now;if(v>=100)ae=now;else ae='';if(v==0)as='';
- const {error}=await sb.rpc('set_task_progress',{pid:+pid,tid,p_pc:v,p_as:as,p_ae:ae});if(error)throw error;
- LAST={pid,tid,pc:r.pc,as:r.x.as||'',ae:r.x.ae||''};
- Object.assign(r.x,{pc:v,as,ae});r.pc=v;draw()},v>=100?(lang=='ar'?'أحسنت، سُجّلت المهمة منجزة':'Done — task recorded'):null);
-function icsOut(){const r=flt().filter(z=>z.s!=null&&z.e!=null);if(!r.length)return toast(t('none'));
- const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//IDO//Tasks//AR','CALSCALE:GREGORIAN','METHOD:PUBLISH'],st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
- const dd=n=>ds(n).replace(/-/g,'');
- r.forEach(z=>{L.push('BEGIN:VEVENT','UID:'+z.pid+'-'+z.x.id+'@ido','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+dd(z.s),'DTEND;VALUE=DATE:'+dd(z.e+1),'SUMMARY:'+icsEsc((z.x.ms?'◆ ':'')+z.x.n),'DESCRIPTION:'+icsEsc(z.pname+' ('+(z.pcode||'')+')'),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(z.x.n),'TRIGGER:-P1D','END:VALARM','END:VEVENT')});
- L.push('END:VCALENDAR');const b=new Blob([L.join('\r\n')],{type:'text/calendar;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='my-tasks.ics';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+ const ps=[...new Map(PR.filter(p=>MODE=='team'?(!FS||p.sc==FS):1).map(p=>[p.pcode,p.pname])).entries()];
+ const secs=[...new Set(PR.map(p=>p.sc))].filter(Boolean).sort((a,b)=>a-b);
+ const us=[...new Set(ALLR.map(r=>r.own).filter(Boolean))];
+ const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
+ const tabs=MODE=='me'&&VIEW=='list'?['open','late','today','week','month','done','all'].map(k=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t('t'+k[0].toUpperCase()+k.slice(1))+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
+ $('app').innerHTML=`<div class="sb noprint">
+  ${TEAM()?`<div class="tabs">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team',"setMode('team')",t('mTeam'))}</div>`:''}
+  <input id="q" placeholder="${t('search')}" value="${esc(Q)}">
+  <div class="tabs" style="margin-top:8px">${['list','proj','gantt'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
+  ${tabs?`<div class="tabs">${tabs}</div>`:''}
+  <div class="row" style="margin-top:0"><select id="fp" style="flex:2"><option value="">${t('allP')}</option>${ps.map(([c,n])=>`<option value="${esc(c)}" ${FP==c?'selected':''}>${esc(n)}</option>`).join('')}</select>
+  ${MODE=='team'?`<select id="fs" style="flex:1"><option value="">${t('allS')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select><select id="fu" style="flex:1"><option value="">${t('allU')}</option><option value="-" ${FU=='-'?'selected':''}>${t('unas')}</option>${us.map(u=>`<option value="${esc(u)}" ${FU==u?'selected':''}>${esc(UN[u]||u)}</option>`).join('')}</select>
+  <select id="fst" style="flex:1"><option value="">${t('stAll')}</option>${['open','late','done'].map(k=>`<option value="${k}" ${FST==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select>`:''}</div>
+  <div class="row" style="margin-top:6px">${MODE=='me'?`<button onclick="icsOut()">${t('ics')}</button>`:''}<button onclick="csvOut()">${t('csv')}</button><button onclick="CUST=!CUST;draw()">${t('cust')}</button></div>
+  ${CUST?`<div class="card" style="margin-top:8px">${['sum','pts','prio','deps','wkd','wbs','cmp'].map(k=>`<label class="tg" style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" style="width:auto" ${CFG[k]?'checked':''} onchange="CFG.${k}=this.checked?1:0;saveCfg();draw()"> ${t('c_'+k)}</label>`).join('')}</div>`:''}
+ </div><div id="body"></div>`;
+ $('q').oninput=e=>{Q=e.target.value;SHOWN=40;body()};$('fp').onchange=e=>{FP=e.target.value;SHOWN=40;draw()};
+ ['fs','fu','fst'].forEach(i=>{const e=$(i);if(e)e.onchange=ev=>{({fs:()=>{FS=ev.target.value;FP=''},fu:()=>FU=ev.target.value,fst:()=>FST=ev.target.value})[i]();SHOWN=40;draw()}});
+ if(MODE=='me'&&!ALLR.some(r=>r.mine)){$('body').innerHTML=`<div class="card mut">${t('noany')}</div>`;return}
+ body()}
+function setMode(m){MODE=m;FP=FS=FU=FST='';SHOWN=40;reload()}
+function body(){const el=$('body');if(!el)return;
+ const rs=scope(),lv=leaves(rs);
+ let h=CFG.sum?summary(lv):'';
+ h+=VIEW=='list'?vList(rs):VIEW=='proj'?vProj(rs):vGantt(rs);
+ el.innerHTML=h}
+/* ---- summary ---- */
+function summary(lv){
+ const open=lv.filter(r=>!isDone(r)),late=open.filter(r=>lateD(r)>0),td=open.filter(r=>r.e==TODAY),w0=mon0(TODAY),wk=open.filter(r=>r.e!=null&&r.e>=TODAY&&r.e<=w0+6);
+ const avg=lv.length?lv.reduce((s,r)=>s+r.a.a,0)/lv.length:0,blk=open.filter(r=>r.blocked),hold=open.filter(r=>r.succ>0);
+ const nxt=open.filter(r=>r.e!=null&&r.e>=TODAY).sort((a,b)=>a.e-b.e)[0];
+ let kp='';
+ if(CFG.pts){const L=[];
+  if(late.length){const w=late.slice().sort((a,b)=>lateD(b)-lateD(a))[0];L.push(`<div>⚠ <b class="bad">${plr(late.length,'task')}</b> ${t('k1').replace(/^مهام |^late /,'')} — ${esc(w.x.n)} (${t('rLate')} ${dayP(lateD(w))})</div>`)}
+  if(td.length)L.push(`<div>📅 <b>${plr(td.length,'task')}</b> ${t('k2')}: ${esc(td.slice(0,2).map(r=>r.x.n).join('، '))}</div>`);
+  if(blk.length)L.push(`<div>🔒 <b>${plr(blk.length,'task')}</b> ${t('k3')}</div>`);
+  if(hold.length&&MODE=='me')L.push(`<div>⛓ <b>${plr(hold.length,'task')}</b> ${t('k4')}</div>`);
+  if(nxt)L.push(`<div>⏭ ${t('k5')}: ${esc(nxt.x.n)} — ${dtx(nxt.e)}</div>`);
+  kp=L.length?`<div class="mut" style="margin-top:10px;line-height:2">${L.join('')}</div>`:''}
+ const team=MODE=='team';
+ return `<div class="card"><div class="kp"><div><b>${pct(avg)}</b><span>${team?t('avg'):t('g_prog')}</span></div><div><b class="${late.length?'bad':'ok'}">${late.length}</b><span>${t('g_late')}</span></div><div><b>${td.length}</b><span>${t('g_today')}</span></div><div><b>${wk.length}</b><span>${t('g_week')}</span></div></div>${pbar(avg,0)}
+ <div class="mut"><span class="num">${open.length}</span> ${t('g_open')} · <span class="num">${lv.length-open.length}</span> ${t('pdone')} · ${plr(lv.length,'task')}</div>${kp}</div>`}
+/* ---- list view ---- */
+function card(r){const done=isDone(r),late=lateD(r)>0,x=r.x,k=r.pr.pid+'|'+x.id,pc=r.pcr;
+ const cmp=CFG.cmp;
+ return `<div class="tk ${done?'dn':''} ${late?'lt':''}"><div class="mut" onclick="openSheet('${k}')" style="cursor:pointer">${esc(r.pr.pname)}${pathS(r)?' · '+pathS(r):''}</div>
+ <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${x.ms?'◆ ':''}${esc(x.n)}</b></div>
+ <div style="margin:3px 0">${prChip(r)}${depChips(r)}${MODE=='team'&&r.own?`<span class="chp">${esc(UN[r.own]||'')}</span>`:''}${MODE=='team'&&!r.own?`<span class="chp o">${t('unas')}</span>`:''}</div>
+ <div class="mut">${relT(r)} · ${dtx(r.s)} → ${dtx(r.e)}</div>
+ ${cmp?'':`<div class="mut">${t('prog')}: <b class="num ${late?'bad':''}">${pct(r.a.a)}</b>${x.tn?' · 📝':''}</div>`}${pbar(r.a.a,r.a.ex)}
+ ${r.edit?`<div class="pb">${done?`<button onclick="setP('${k}',0)">${t('undo')}</button>`:`<button class="p" onclick="quick('${k}')">${t('done')}</button>`}<button onclick="openSheet('${k}')">${t('open')}</button></div>`:`<div class="pb"><button onclick="openSheet('${k}')">${t('open')}</button></div>`}</div>`}
+function vList(rs){let lv=leaves(rs);
+ if(MODE=='team'){lv=lv.filter(r=>!FST||(FST=='open'?!isDone(r):FST=='late'?lateD(r)>0:isDone(r)));
+  return teamView(lv)}
+ lv=lv.filter(tabF).sort(sortP);
+ return `<div class="mut" style="margin:6px 0">${plr(lv.length,'task')}</div>${lv.slice(0,SHOWN).map(card).join('')||`<div class="card mut">${t('none')}</div>`}${lv.length>SHOWN?`<div class="row"><button onclick="SHOWN+=40;body()">${t('more')}</button></div>`:''}`}
+/* ---- team view: grouped summary + tasks ---- */
+function teamView(lv){
+ const g={};
+ lv.forEach(r=>{const k=GRP=='project'?r.pr.pcode:GRP=='sector'?String(r.pr.sc):GRP=='user'?(r.own||'-'):'all';
+  const nm=GRP=='project'?r.pr.pname:GRP=='sector'?(secN(r.pr.sc)||'—'):GRP=='user'?(r.own?UN[r.own]||r.own:t('unas')):t('gCtr');
+  (g[k]=g[k]||{k,nm,L:[],P:new Set()}).L.push(r);g[k].P.add(r.pr.pcode)});
+ const gs=Object.values(g).sort((a,b)=>a.nm.localeCompare(b.nm,'ar'));
+ const sel=`<div class="row" style="margin:0 0 8px"><span class="mut">${t('gGrp')}</span>${['project','sector','user','center'].map(k=>`<button class="${GRP==k?'p':''}" onclick="GRP='${k}';body()">${t('g'+({project:'Proj',sector:'Sec',user:'User',center:'Ctr'})[k])}</button>`).join('')}</div>`;
+ const rows=gs.map(x=>{const o=x.L.filter(r=>!isDone(r)),l=o.filter(r=>lateD(r)>0),a=x.L.reduce((s,r)=>s+r.a.a,0)/x.L.length,ex=x.L.reduce((s,r)=>s+r.a.ex,0)/x.L.length,h=health(ex-a,l.length),open=COL.has(x.k);
+  return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="COL.has('${esc(x.k)}')?COL.delete('${esc(x.k)}'):COL.add('${esc(x.k)}');body()"><b><span style="color:${hCol[h]}">●</span> ${open?'▾':'▸'} ${esc(x.nm)}</b><span class="mut">${t('h_'+h)}</span></div>
+  <div class="mut">${plr(x.P.size,'project')} · ${plr(x.L.length,'task')} · ${t('pdone')} <b class="num">${x.L.length-o.length}</b> · ${t('g_late')} <b class="num ${l.length?'bad':''}">${l.length}</b> · <b class="num">${pct(a)}</b></div>${pbar(a,ex)}
+  ${open?x.L.slice().sort(sortP).slice(0,60).map(card).join(''):''}</div>`}).join('');
+ return sel+(rows||`<div class="card mut">${t('none')}</div>`)}
+/* ---- project view ---- */
+function vProj(rs){
+ const ids=new Set();rs.forEach(r=>{ids.add(r.id);let c=r,g=0;while(c&&c.x.p&&g++<10){c=c.pr.byId[c.x.p];if(c)ids.add(c.id)}});
+ const prs=PR.filter(p=>rs.some(r=>r.pr==p));
+ if(!prs.length)return `<div class="card mut">${t('none')}</div>`;
+ return prs.map(p=>{const vis=p.rs.filter(r=>ids.has(r.id)&&(MODE=='team'?(!FST||FST=='open'&&!isDone(r)||FST=='late'&&lateD(r)>0||FST=='done'&&isDone(r)):1)),
+  a=p.an,h=health(a.gap,a.lateN),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone);
+  const concerned=ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||!!ME.view_scope;
+  const tree=CFG.wbs?wbsH(p,vis,''):(p.kids['']||[]).map(x=>nodeH(p,x,vis,0)).join('');
+  return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(p.pname)}</b><span style="color:${hCol[h]}">● <span class="mut">${t('h_'+h)}</span></span></div>
+  <div class="mut"><span dir="ltr">${esc(p.pcode)}</span>${p.pm?' · '+esc(p.pm):''}${p.sc?' · '+esc(secN(p.sc)):''} · ${t('prog')} <b class="num">${pct(a.a)}</b> / <span class="num">${pct(a.ex)}</span>${a.lateN?` · <b class="bad num">${a.lateN}</b> ${t('g_late')}`:''}</div>${pbar(a.a,a.ex)}
+  <div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a><button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
+  ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}
+  ${tree}</div>`}).join('')}
+function rowH(p,r,vis){const x=r.x,done=isDone(r),late=lateD(r)>0,k=p.pid+'|'+x.id;
+ return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b style="${r.leaf?'':'font-weight:700'}">${x.ms?'◆ ':''}${esc(x.n)}</b>${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?prChip(r)+depChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
+ <div class="mut">${r.leaf?relT(r)+' · ':''}${dtx(r.s)} → ${dtx(r.e)} · <b class="num ${late?'bad':''}">${pct(r.a.a)}</b>${r.own?' · '+esc(UN[r.own]||''):''}${x.tn?' · 📝':''}</div>${pbar(r.a.a,r.a.ex)}`}
+function nodeH(p,x,vis,lv){const r=p.byId[x.id];if(!r||!vis.includes(r))return '';const ch=(p.kids[x.id]||[]).map(c=>nodeH(p,c,vis,lv+1)).join('');
+ return `<div class="nd" style="padding-inline-start:${lv*14}px">${rowH(p,r,vis)}</div>${ch}`}
+function wbsH(p,vis,pid){const L=(p.kids[pid]||[]).map(x=>p.byId[x.id]).filter(r=>r&&vis.includes(r));
+ return L.map(r=>`<div class="wb ${r.leaf?'':'l0'}">${rowH(p,r,vis)}${r.leaf?'':`<div class="wk">${wbsH(p,vis,r.id)}</div>`}</div>`).join('')}
+/* ---- gantt ---- */
+function vGantt(rs){
+ const ids=new Set();rs.forEach(r=>ids.add(r.id));
+ const prs=PR.filter(p=>rs.some(r=>r.pr==p&&r.leaf));
+ const rows=[];prs.forEach(p=>{rows.push({proj:p,s:p.an.s,e:p.an.e,a:p.an.a,ex:p.an.ex,n:p.pname,late:p.an.lateN});
+  const L=p.rs.filter(r=>r.leaf&&ids.has(r.id)&&(MODE=='me'||!FST||(FST=='open'?!isDone(r):FST=='late'?lateD(r)>0:isDone(r)))).sort((a,b)=>(a.s==null)-(b.s==null)||a.s-b.s);
+  L.forEach(r=>rows.push({r,s:r.s,e:r.e,a:r.a.a,ex:r.a.ex,n:r.x.n,late:lateD(r),ms:r.x.ms,k:p.pid+'|'+r.id}))});
+ const ss=rows.map(r=>r.s).filter(v=>v!=null),ee=rows.map(r=>r.e).filter(v=>v!=null);
+ if(!ss.length)return `<div class="card mut">${t('none')}</div>`;
+ const m0=Math.min(...ss,TODAY)-3,m1=Math.max(...ee,TODAY)+3;if(!PXD)PXD=clamp(Math.max(600,Math.min(innerWidth-240,1000))/(m1-m0+1),1.2,12);
+ const W=Math.round((m1-m0+1)*PXD),LW=Math.min(200,Math.round(innerWidth*.45)),RH=30;
+ let hd='',gl='';const d0=new Date(m0*DAY);let y=d0.getUTCFullYear(),mo=d0.getUTCMonth();
+ for(;;){const st=Date.UTC(y,mo,1)/DAY;if(st>m1)break;const nx=Date.UTC(y,mo+1,1)/DAY,x=Math.round((Math.max(st,m0)-m0)*PXD),w=Math.round((Math.min(nx-1,m1)-Math.max(st,m0)+1)*PXD);
+  hd+=`<div class="gm" style="left:${x}px;width:${w}px">${String(mo+1).padStart(2,'0')}/${y}</div>`;gl+=`<div class="gv" style="left:${x}px"></div>`;mo++;if(mo>11){mo=0;y++}}
+ const tx=Math.round((TODAY-m0)*PXD);
+ const bars=rows.map((r,i)=>{if(r.s==null||r.e==null)return '';const x=Math.round((r.s-m0)*PXD),w=Math.max(r.ms||r.proj?6:4,Math.round((r.e-r.s+1)*PXD)),col=r.proj?'#23272b':'#3D96C7',lt=r.late;
+  const oc=r.k?`onclick="openSheet('${r.k}')"`:'';
+  if(r.ms)return `<div class="gd" ${oc} style="left:${x+w/2-7}px;top:${i*RH+8}px;background:${lt?'#d1101d':col}"></div>`;
+  return `<div class="gb ${lt?'lt':''}" ${oc} style="left:${x}px;width:${w}px;top:${i*RH+7}px;background:${col}22;border-color:${col}"><i style="width:${clamp(r.a,0,100)}%;background:${col}"></i></div><div class="gp" style="left:${x}px;top:${i*RH+22}px;width:${Math.round(w*clamp(r.ex,0,100)/100)}px"></div>`}).join('');
+ const labs=rows.map(r=>r.proj?`<div class="gl pj" style="height:${RH}px"><b title="${esc(r.n)}">${esc(r.n)}</b></div>`:`<div class="gl" style="height:${RH}px;padding-inline-start:10px;cursor:pointer" onclick="openSheet('${r.k}')" title="${esc(r.n)}">${esc(r.n)}</div>`).join('');
+ return `<div class="row noprint" style="margin:0 0 8px"><button onclick="PXD=Math.min(24,PXD*1.4);body()">＋ ${t('zi')}</button><button onclick="PXD=Math.max(.8,PXD/1.4);body()">－ ${t('zo')}</button><span class="mut">${t('legend')}</span></div>
+ <div class="card" style="padding:0;overflow:hidden"><div class="gwrap" dir="ltr"><div class="gl0" style="width:${LW}px"><div style="height:26px"></div>${labs}</div>
+ <div class="gcan" style="width:${W}px;height:${rows.length*RH+26}px"><div class="gh" style="width:${W}px">${hd}</div><div style="position:absolute;inset:26px 0 0 0">${gl}</div><div class="gt" style="left:${tx}px;top:0;height:${rows.length*RH+26}px"></div><div style="position:absolute;inset:26px 0 0 0">${bars}</div></div></div></div>`}
+
+/* ---- actions ---- */
+const findR=k=>{const [pid,tid]=k.split('|');return ALLR.find(z=>String(z.pr.pid)==pid&&z.id==tid)};
+function utoast(m,fn){let e=$('ut');if(e)e.remove();e=document.createElement('div');e.id='ut';e.className='ut';e.innerHTML=`<span>${esc(m)}</span><button id="utb">${t('undo')}</button>`;document.body.appendChild(e);
+ $('utb').onclick=()=>{e.remove();fn()};setTimeout(()=>e.remove(),7000)}
+async function rpcProg(r,v,as,ae,note){const args={pid:+r.pr.pid,tid:r.id,p_pc:v,p_as:as||'',p_ae:ae||''};if(note!==undefined)args.p_note=note;
+ const {error}=await sb.rpc('set_task_progress',args);if(error)throw error}
+function quick(k){const r=findR(k);if(!r)return;const old={pc:r.pcr,as:r.x.as||'',ae:r.x.ae||''},tdy=ds(TODAY);
+ const as=r.x.as||(r.s!=null&&r.s<=TODAY?r.x.s:tdy);
+ run(async()=>{await rpcProg(r,100,as,tdy);await reload();utoast(t('saved2'),()=>run(async()=>{await rpcProg(r,old.pc,old.as,old.ae);await reload()},t('upd')))},false)}
+const setP=(k,v)=>run(async()=>{const r=findR(k);if(!r)return;await rpcProg(r,v,v>0?r.x.as||ds(TODAY):'', '');await reload()},t('upd'));
+/* ---- task sheet ---- */
+let SH=null;
+function closeSheet(){const o=$('sov');if(o)o.remove();SH=null}
+async function openSheet(k){const r=findR(k);if(!r)return;SH={k,r};closeSheet();SH={k,r};
+ const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
+ const x=r.x,ro=!r.edit||!r.leaf&&!ADM&&!r.mine,done=isDone(r),dis=ro?'disabled':'';
+ const dep=r.preds.map(d=>{const q=r.pr.byId[d.x.id],ok=q&&q.a.a>=100;return `<div>${ok?'✅':'⏳'} ${esc(d.x.n)} <span class="mut num">${pct(q?q.a.a:0)} · ${d.y}${d.l?(d.l>0?' +':' ')+d.l:''}</span></div>`}).join('')||'<span class="mut">—</span>';
+ const sc=r.pr.rs.filter(z=>z.preds.some(d=>d.x.id==r.id));
+ const su=sc.map(z=>`<div>${z.a.a>=100?'✅':'⏳'} ${esc(z.x.n)}</div>`).join('')||'<span class="mut">—</span>';
+ o.innerHTML=`<div class="sbx"><h3>${x.ms?'◆ ':''}${esc(x.n)}</h3><div class="mut">${esc(r.pr.pname)}${pathS(r)?' · '+pathS(r):''}</div>
+ <div class="mut" style="margin:4px 0">${t('plan')}: ${dtx(r.s)} → ${dtx(r.e)} · ${relT(r)}${r.own?' · '+esc(UN[r.own]||''):''}</div>
+ ${x.tu?`<div class="mut">${t('sh_last')}: ${esc(x.tu.by||'')} · <span class="num">${fd(String(x.tu.at||'').slice(0,10))}</span></div>`:''}
+ ${ro?`<div class="chp o" style="margin:6px 0">${t('sh_ro')}</div>`:''}
+ ${r.leaf?`<label>${t('sh_prog')}</label><div style="display:flex;gap:10px;align-items:center"><input type="range" id="sh_rg" min="0" max="100" step="5" value="${r.pcr}" ${dis} style="flex:1;padding:0"><input type="number" id="sh_pc" min="0" max="100" value="${r.pcr}" ${dis} style="width:84px;direction:ltr"></div>
+ <div class="pb">${[0,25,50,75,100].map(v=>`<button ${dis} onclick="shPc(${v})"><span class="num">${v}%</span></button>`).join('')}</div>
+ <div class="g2"><div><label>${t('sh_as')}</label><input type="date" id="sh_as" value="${esc(x.as||'')}" max="${ds(TODAY)}" ${dis}></div><div><label>${t('sh_ae')}</label><input type="date" id="sh_ae" value="${esc(x.ae||'')}" max="${ds(TODAY)}" ${dis}></div></div>
+ <div class="pb"><button ${dis} onclick="shD('as',0)">${t('sh_asPlan')}</button><button ${dis} onclick="shD('both',0)">${t('sh_doneAsPlan')}</button><button ${dis} onclick="shD('as',1)">${t('sh_as')}: ${t('sh_today')}</button><button ${dis} onclick="shD('ae',1)">${t('sh_ae')}: ${t('sh_today')}</button></div>
+ <label>${t('sh_nt')}</label><textarea id="sh_nt" ${dis}>${esc(x.tn||'')}</textarea>`:`<div class="mut" style="margin:6px 0">${t('prog')}: <b class="num">${pct(r.a.a)}</b></div>${pbar(r.a.a,r.a.ex)}${x.tn?`<label>${t('sh_nt')}</label><div>${esc(x.tn)}</div>`:''}`}
+ ${CFG.deps?`<label>${t('sh_pred')}</label>${dep}<label>${t('sh_succ')}</label>${su}`:''}
+ <label>${t('sh_att')}</label><div id="sh_atl" class="mut">…</div>
+ ${r.edit?`<div class="g2" style="margin-top:6px"><div><input type="text" id="sh_at" placeholder="${t('sh_ft')}"></div><div><input type="file" id="sh_af"></div></div><div class="row" style="margin-top:6px"><button onclick="shUp()">📎 ${t('sh_up')}</button></div>`:''}
+ <label>${t('sh_hist')}</label><div id="sh_hl" class="mut">…</div>
+ <div class="row">${r.leaf&&!ro?`<button class="p" onclick="shSave()">${t('sh_save')}</button>`:''}<button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;
+ if(r.leaf){const rg=$('sh_rg'),pc=$('sh_pc');rg.oninput=()=>pc.value=rg.value;pc.oninput=()=>rg.value=clamp(+pc.value||0,0,100)}
+ shAtts();shHist()}
+const shPc=v=>{$('sh_pc').value=v;$('sh_rg').value=v};
+function shD(w,today){const r=SH.r,x=r.x,tdy=ds(TODAY),cl=n=>ds(Math.min(n,TODAY));
+ if(w=='both'){shPc(100);$('sh_as').value=x.s?cl(r.s):tdy;$('sh_ae').value=x.e?cl(r.e):tdy;return}
+ if(w=='as')$('sh_as').value=today?tdy:(x.s?cl(r.s):tdy);if(w=='ae')$('sh_ae').value=tdy}
+async function shSave(){const r=SH.r,pcv=$('sh_pc').value;const v=Math.round(+pcv);
+ if(pcv===''||!(v>=0&&v<=100))return toast(t('e_pc'));
+ let as=$('sh_as').value,ae=$('sh_ae').value;const tdy=ds(TODAY);
+ if(as>tdy||ae>tdy)return toast(t('e_fut'));
+ if(v>0&&!as)as=(r.s!=null&&r.s<=TODAY)?r.x.s:tdy;
+ if(v>=100&&!ae)ae=tdy;if(v<100)ae='';
+ if(as&&ae&&ae<as)return toast(t('e_ord'));
+ await run(async()=>{await rpcProg(r,v,as,ae,$('sh_nt').value);closeSheet();await reload()},t('upd'))}
+async function shAtts(){const r=SH.r,el=$('sh_atl');if(!el)return;
+ const {data,error}=await sb.from('plan_attachments').select('*').eq('cr_id',r.pr.pid).eq('task_id',r.id).order('created_at',{ascending:false});
+ if(!$('sh_atl'))return;
+ if(error||!data||!data.length){el.innerHTML=t('sh_noatt');return}
+ el.innerHTML=data.map(a=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding:4px 0"><a href="#" onclick="shOpenA('${esc(a.path)}');return false" style="color:#2a6a90;overflow-wrap:anywhere">📎 ${esc(a.title)}</a>${(ADM||a.uploaded_by==ME.id)?`<button class="r" style="padding:2px 10px" onclick="shDelA(${a.id},'${esc(a.path)}')">${t('sh_del')}</button>`:''}</div>`).join('')}
+async function shOpenA(path){const w=window.open('','_blank');const {data,error}=await sb.storage.from('pl-attachments').createSignedUrl(path,300);
+ if(error){if(w)w.close();return toast(error.message)}if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl}
+const shDelA=(id,path)=>run(async()=>{await sb.storage.from('pl-attachments').remove([path]);const {error}=await sb.from('plan_attachments').delete().eq('id',id);if(error)throw error;await shAtts()},t('upd'));
+const shUp=()=>run(async()=>{const f=$('sh_af').files[0];if(!f)throw new Error(t('sh_f'));if(f.size>10485760)throw new Error(t('e_big'));
+ const r=SH.r,ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase(),path=r.pr.pid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
+ const up=await sb.storage.from('pl-attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});if(up.error)throw up.error;
+ const ins=await sb.from('plan_attachments').insert({cr_id:r.pr.pid,task_id:r.id,title:$('sh_at').value.trim()||f.name,path,size:f.size,mime:f.type||'',uploaded_by:ME.id});
+ if(ins.error){await sb.storage.from('pl-attachments').remove([path]);throw ins.error}
+ $('sh_af').value='';$('sh_at').value='';await shAtts()},t('upd'));
+async function shHist(){const r=SH.r,el=$('sh_hl');if(!el)return;
+ const {data}=await sb.from('plan_audit').select('user_name,action,at').eq('cr_id',r.pr.pid).order('at',{ascending:false}).limit(200);
+ if(!$('sh_hl'))return;
+ const L=(data||[]).filter(a=>{const p=String(a.action).split('|');return p[0]=='taskprog'&&p[1]==String(r.x.n||'').slice(0,60)}).slice(0,8);
+ el.innerHTML=L.length?L.map(a=>{const p=a.action.split('|');return `<div style="border-top:1px dashed var(--line);padding:3px 0"><span class="num">${fd(String(a.at).slice(0,10))}</span> · ${esc(a.user_name||'')} · <b class="num">${esc(p[2]||'')}%</b>${p[3]?` · ${t('sh_as')} <span class="num">${fd(p[3])}</span>`:''}${p[4]?` · ${t('sh_ae')} <span class="num">${fd(p[4])}</span>`:''}${p[5]?`<div>📝 ${esc(p[5])}</div>`:''}</div>`}).join(''):t('sh_nohist')}
+/* ---- exports ---- */
+function dl(name,mime,body){const b=new Blob([body],{type:mime}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+function icsOut(){const r=leaves(scope()).filter(tabF).filter(z=>z.s!=null&&z.e!=null&&!isDone(z));if(!r.length)return toast(t('none'));
+ const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//IDO//Tasks//AR','CALSCALE:GREGORIAN','METHOD:PUBLISH'],st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),dd=n=>ds(n).replace(/-/g,'');
+ r.forEach(z=>L.push('BEGIN:VEVENT','UID:'+z.pr.pid+'-'+z.id+'@ido','DTSTAMP:'+st,'DTSTART;VALUE=DATE:'+dd(z.s),'DTEND;VALUE=DATE:'+dd(z.e+1),'SUMMARY:'+icsEsc((z.x.ms?'◆ ':'')+z.x.n),'DESCRIPTION:'+icsEsc(z.pr.pname+' ('+z.pr.pcode+')'),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(z.x.n),'TRIGGER:-P1D','END:VALARM','END:VEVENT'));
+ L.push('END:VCALENDAR');dl('my-tasks.ics','text/calendar;charset=utf-8',L.join('\r\n'))}
+function csvOut(){let lv=leaves(scope());if(MODE=='me')lv=lv.filter(tabF);else if(FST)lv=lv.filter(r=>FST=='open'?!isDone(r):FST=='late'?lateD(r)>0:isDone(r));
+ const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',H=[t('c_sec'),t('c_proj'),'#',t('c_task'),t('who'),t('c_ps'),t('c_pe'),t('prog')+' %',t('c_as'),t('c_ae'),t('c_late'),t('pStat'),t('c_nt')];
+ const rows=[H].concat(lv.map(r=>[secN(r.pr.sc),r.pr.pname,r.pr.pcode,(r.path.concat([r.x.n])).join(' > '),UN[r.own]||'',fd(r.x.s),fd(r.x.e),Math.round(r.a.a),fd(r.x.as),fd(r.x.ae),lateD(r),isDone(r)?t('pdone'):lateD(r)>0?t('tLate'):t('tOpen'),r.x.tn||'']));
+ dl('tasks-'+ds(TODAY)+'.csv','text/csv;charset=utf-8','﻿'+rows.map(a=>a.map(q).join(',')).join('\r\n'))}
 boot();
+
 
 </script><script>/*fmtfix*/
 (function(){
