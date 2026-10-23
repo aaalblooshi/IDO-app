@@ -152,7 +152,7 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'تم البتّ فيها',en:'Decided'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'صدر بشأنها قرار',en:'Decided'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
@@ -277,7 +277,7 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="projects.html">📁 ${a?'المشاريع':'Projects'}</a><a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
+ h.innerHTML=`<a class="hb" href="tasks.html">✅ ${a?'مهامي':'My tasks'}</a><a class="hb" href="inbox.html">🔔 ${a?'الإشعارات':'Notifications'}</a><a class="hb" href="projects.html">📁 ${a?'المشاريع':'Projects'}</a>`+((role=='admin'||(ME0&&ME0.view_scope))?`<a class="hb" href="portfolio.html">📊 ${a?'المحفظة':'Portfolio'}</a>`:'')+`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 let ROLEOFF=[];
@@ -286,4 +286,23 @@ async function applySvc(){try{if(sb&&!applySvc.done){const r=await sb.from('app_
 new MutationObserver(()=>{if(OFFSVC.length||ROLEOFF.length)applySvc()}).observe(document.body,{childList:true,subtree:true});
 const _draw=draw;draw=function(){_draw();if(MINE)drawMine()};
 draw();loadMine();applySvc();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
