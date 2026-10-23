@@ -340,7 +340,7 @@ const W=[
 ["stageNoteT","Note","ملاحظة"],
 ["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
 ["l_apprej","Rejected by the approver","رفض المعتمد"],
-["l_proxy","signed by proxy","توقيع بالإنابة"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
+["l_proxy","signed by proxy","توقيع بالإنابة"],["l_adm","by the administrator (override)","بصفة الأدمن (تجاوز)"],["admSub","Submit as administrator","تقديم بصفة الأدمن"],["admSign","Sign as administrator","توقيع بصفة الأدمن"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
 ["l_crlink","Linked to change request","ربط بطلب التغيير"],
 ["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
 ["l_stagenote","Note","ملاحظة"],
@@ -631,7 +631,7 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
  if(k=='deleted')return t('delMoved');
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
- if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):'');
+ if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):p[2]=='admin'?' — '+t('l_adm'):'');
  if(k=='taskprog')return t('l_taskprog')+': '+(p[1]||'')+' → '+(p[2]||0)+'%';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
  if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
@@ -900,6 +900,8 @@ async function openCR(id){
  let acts='',more='';
  if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
  if(ed&&!aed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
+ const admAct=adm&&!arch&&stage&&!ed&&!mine&&!sigs.some(s=>s.user_id==me.id&&s.stage==stage&&s.status=='signed');
+ if(admAct)acts+=stage=='created'?`<button class="g" onclick="submitCR()">${t('admSub')}</button>`:`<button class="g" onclick="admSign('${stage}')">${t('admSign')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
@@ -1100,9 +1102,13 @@ async function archiveCR(v){const {error}=await sb.from('charters').update({arch
 async function sendReview(){
  if(!sigs.some(s=>s.stage=='reviewed'))return msg(t('needRev'));
  await setStatus('PMO Review');openCR(cr.id)}
+async function admRow(stage){let row=sigs.find(s=>s.user_id==me.id&&s.stage==stage);
+ if(!row){const {data,error}=await sb.from('charter_signatories').insert({cr_id:cr.id,stage:stage,user_id:me.id}).select().single();if(error){msg(error.message);return null}row=data;sigs.push(row)}return row}
+async function admSign(stage){const row=await admRow(stage);if(!row)return;openSign(row.id,stage,false);pend.adm=true}
 async function proceedSubmit(){
  const mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
  if(mine&&mine.status!='signed'){openSign(mine.id,'created',true);return}
+ if(!mine&&me.role=='admin'&&cr.created_by!=me.id){const row=await admRow('created');if(!row)return;openSign(row.id,'created',true);pend.adm=true;return}
  if(sigs.filter(s=>s.stage=='created').some(s=>s.status!='signed'))return msg(t('creatorsSign'));
  await setStatus('Submitted');openCR(cr.id)}
 async function sendApproval(){
@@ -1138,11 +1144,12 @@ async function confirmSign(){
  if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
  await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage+(pend.by?'|proxy':''));
+ await lg(cr.id,'signed|'+pend.stage+(pend.adm?'|admin':pend.by?'|proxy':''));
  {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('charters').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('charters').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('charter_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
- if(cr.status=='PMO Review'&&all('reviewed')){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}
+ if(pend.adm){if(pend.stage=='created'&&['Draft','Returned to PM'].includes(cr.status))await setStatus('Submitted');else if(pend.stage=='reviewed'&&cr.status=='PMO Review'){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}else if(pend.stage=='approved'&&cr.status=='Awaiting Approval')await setStatus('Approved')}
+ else if(cr.status=='PMO Review'&&all('reviewed')){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}
  else if(cr.status=='Awaiting Approval'&&all('approved'))await setStatus('Approved',{issued_at:new Date().toISOString()});
  else if(pend.submit&&pend.stage=='created'&&['Draft','Returned to PM'].includes(cr.status)){if(data.some(x=>x.stage=='created'&&x.status!='signed'))msg(t('creatorsSign'));else await setStatus('Submitted')}
  $('modal').classList.remove('on');openCR(cr.id)}
@@ -1294,7 +1301,26 @@ function adminView(){curView=adminView;editing=false;
  app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('manageUsers')}</h2><div class="mut">${t('manageUsersH')}</div><div class="row"><button class="p" onclick="location.href='users.html'">${t('manageUsers')} ←</button></div></div>`}
 async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
 applyStatic();start();
-</script><script>/*fmtfix*/
+</script><script>/*navfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';if(f=='index.html'||f=='')return;
+ function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function build(){
+  if(document.getElementById('gnav'))return;var ar=lg()=='ar';
+  var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['projects.html','📁',ar?'المشاريع':'Projects','projects']];
+  if(ls('hdrRole')=='admin'||ls('hdrScope')=='1')items.push(['portfolio.html','📊',ar?'المحفظة':'Portfolio','portfolio']);
+  var n=document.createElement('nav');n.id='gnav';
+  var h='';
+  if(history.length>1&&document.referrer&&document.referrer.indexOf(location.origin)==0)h+='<a href="#" id="gback" class="gb"><i>↩</i><span>'+(ar?'رجوع':'Back')+'</span></a>';
+  items.forEach(function(i){h+='<a href="'+i[0]+'" class="gb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
+  n.innerHTML=h;document.body.appendChild(n);
+  var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
+  var s=document.createElement('style');s.textContent='#gnav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:space-around;background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:4px 4px calc(4px + env(safe-area-inset-bottom));direction:'+(ar?'rtl':'ltr')+'}#gnav .gb{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;text-decoration:none;color:#6b6f76;font:700 11px/1.3 Cairo,system-ui,sans-serif;padding:3px 2px;border-radius:10px;min-width:0}#gnav .gb i{font-style:normal;font-size:19px;line-height:1.2}#gnav .gb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body{padding-bottom:64px!important}@media print{#gnav{display:none}}';document.head.appendChild(s)}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*fmtfix*/
 (function(){
  var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
  var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
