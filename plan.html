@@ -219,6 +219,68 @@ details.ck{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:
 }
 
 .crl select{width:auto;min-width:200px}.crl{align-items:center}
+/* ---- v3: columns, resize, drag ---- */
+.ptw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:#fff;-webkit-overflow-scrolling:touch}
+.ptw .ptab{border:0;border-radius:0;min-width:var(--tw,100%);overflow:visible}
+.ptcb{display:flex;justify-content:flex-end;margin:0 0 6px}
+.cmn{position:relative}.cmn>summary{cursor:pointer;list-style:none;border:1px solid var(--line);border-radius:99px;padding:4px 12px;background:#fff;font-weight:700;font-size:13px;display:inline-block}
+.cmn .cmb{position:absolute;inset-inline-end:0;top:34px;z-index:30;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:0 8px 22px rgba(0,0,0,.18);min-width:230px}
+.cmb label{display:flex;gap:8px;align-items:center;margin:5px 0;font-weight:600;font-size:13.5px}.cmb input{width:auto}
+.pr.ph .hc{position:relative;padding-inline-end:8px;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rz{position:absolute;inset-inline-end:-4px;top:-5px;bottom:-5px;width:12px;cursor:col-resize;touch-action:none;z-index:3}
+.rz::after{content:"";position:absolute;inset-block:6px;inset-inline-start:5px;width:2px;background:rgba(255,255,255,.45);border-radius:2px}
+.rz:hover::after{background:#fff}
+.dg{cursor:grab;color:var(--mut);font-size:15px;padding:0 3px;touch-action:none;user-select:none}.dg:active{cursor:grabbing}
+.pr.dragging{opacity:.45}.pr.dropb{box-shadow:0 3px 0 0 #3D96C7}.pr.dropa{box-shadow:0 -3px 0 0 #3D96C7}
+.grl.dragging{opacity:.45}.grl.dropb{box-shadow:inset 0 -3px 0 #3D96C7}.grl.dropa{box-shadow:inset 0 3px 0 #3D96C7}
+.c-wt{position:relative}.wsm{position:absolute;inset-inline-end:4px;top:-2px;font-size:10px;color:var(--mut);background:#fff;padding:0 3px;border-radius:6px}.wsm.bad{color:#d1101d;font-weight:800}
+.c-st,.c-rn{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:700px){.ptw .ptab{min-width:0}.rz,.dg{display:none}}
+/* ---- v3: gantt side table ---- */
+.glh{width:var(--lw,500px)!important;display:grid!important;grid-template-columns:var(--gpc,34px 1fr);gap:6px;align-items:center;padding:0 8px!important;box-sizing:border-box}
+.glh .hc{position:relative;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;user-select:none}
+.gl{width:var(--lw,500px)!important;box-sizing:border-box}
+.grl{display:grid!important;grid-template-columns:var(--gpc,34px 1fr);gap:6px;align-items:center;padding:0 8px!important;box-sizing:border-box}
+.grl>div{min-width:0}
+.grl input,.grl .pkb{width:100%;height:min(30px,calc(100% - 6px));padding:0 6px;font-size:12.5px;border-radius:6px;box-sizing:border-box;min-width:0}
+.grl input[type=date]+*,.grl .dtv{padding:0 4px;min-height:0;height:min(30px,calc(100% - 6px));line-height:1;display:flex;align-items:center;justify-content:center;font-size:12px}
+.grl .dtw{height:100%;display:flex;align-items:center}
+[dir=rtl] .grl input[data-pk=n]{direction:rtl;text-align:right}
+.gcw{display:flex;align-items:center;gap:2px}.gcn{display:flex;align-items:center;gap:4px;min-width:0}.gcn input{flex:1}.gcn .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.gct{overflow:hidden;text-overflow:ellipsis;font-size:12px;white-space:nowrap}
+.gsv path.ahit{stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer;fill:none}
+.bar .lk{opacity:0;transition:opacity .12s}.bar:hover .lk,.bar.hl .lk,.bar.lsrc .lk{opacity:1}@media(hover:none){.bar .lk{opacity:1;width:10px;height:10px}}
+.bar .lks{left:-9px;right:auto;top:5px}.bar.ms .lks{left:-14px;right:auto;top:4px}.bar.sum .lk{top:-2px}
+.bar.sum.crit{background:var(--r)}
+.gtip{position:fixed;z-index:200;background:#23272b;color:#fff;border-radius:10px;padding:8px 12px;font-size:12.5px;max-width:320px;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.35);line-height:1.5}.gtip .mut{color:#cfd3d8}
+/* ---- v3: WBS tree ---- */
+.otw{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fbfaf6;padding:14px 10px;max-height:78vh}
+.otree ul{display:flex;justify-content:center;padding:20px 0 0;position:relative;margin:0}
+.otree>ul{padding-top:0}
+.otree li{list-style:none;text-align:center;position:relative;padding:20px 6px 0}
+.otree>ul>li{padding-top:0}
+.otree li::before,.otree li::after{content:"";position:absolute;top:0;right:50%;border-top:2px solid #b9b4a6;width:50%;height:20px}
+.otree li::after{right:auto;left:50%;border-left:2px solid #b9b4a6}
+.otree li:only-child::before,.otree li:only-child::after{display:none}
+.otree li:first-child::before,.otree li:last-child::after{border:0}
+.otree li:last-child::before{border-right:2px solid #b9b4a6;border-radius:0 8px 0 0}
+.otree li:first-child::after{border-radius:8px 0 0 0}
+.otree>ul>li::before,.otree>ul>li::after{display:none}
+.otree ul ul::before{content:"";position:absolute;top:0;left:50%;border-left:2px solid #b9b4a6;height:20px}
+.wc{display:inline-block;vertical-align:top;width:168px;background:#fff;border:1px solid var(--line);border-top:5px solid var(--lc,#B39A6B);border-radius:10px;padding:7px 9px;text-align:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative}
+.wc.root{--lc:#23272b;width:190px;cursor:default}
+.wc .wch{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.wc .wb{background:var(--lc);color:#fff;border-radius:6px;padding:1px 7px;font-size:11.5px;font-weight:800}
+.wc .wcn{display:block;font-size:13px;line-height:1.35;margin:5px 0 3px;overflow-wrap:anywhere;max-height:4.1em;overflow:hidden}
+.wc .wcd,.wc .wcw,.wc .wcm{font-size:11.5px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wc .wcp{height:5px;background:#eee;border-radius:4px;margin:5px 0 2px;overflow:hidden}.wc .wcp i{display:block;height:100%;background:var(--lc)}
+.wc.d0{--lc:#B39A6B}.wc.d1{--lc:#949594}.wc.d2{--lc:#3D96C7}.wc.d3{--lc:#7a6740}.wc.d4{--lc:#2a6a90}
+.pr.ph .hc,.glh .hc{overflow:visible!important}
+.pr.ph .hc>*{}
+@media(min-width:900px){
+ .gwrap:not(.gfs),.ptw,.otw{width:min(1400px,calc(100vw - 24px));margin-inline-start:calc(50% - min(700px,50vw - 12px))}
+}
+.wc{width:178px}.wc .wcd{white-space:normal;font-size:11px}
 </style></head><body>
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><div class="hgrp"><a class="hbtn" id="hacc" href="account.html" hidden></a><button class="hbtn" id="lb" onclick="toggleLang()">العربية</button><button class="hbtn" id="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})" hidden></button></div></div><div class="ttl" id="ttl"></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <div id="app"></div>
@@ -452,6 +514,7 @@ const W=[
 ["stageNoteT","Note","ملاحظة"],
 ["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
 ["l_apprej","Rejected by the approver","رفض المعتمد"],
+["l_proxy","signed by proxy","توقيع بالإنابة"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
 ["l_crlink","Linked to change request","ربط بطلب التغيير"],
 ["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
 ["l_stagenote","Note","ملاحظة"],
@@ -662,12 +725,12 @@ const W=[
 ["t_task", "Tasks", "المهام"],
 ["f_agr", "Required agreements", "الاتفاقيات المطلوبة"],
 ["f_risks", "Project risks", "مخاطر المشروع"],
-["risks_hint", "Initial assessment: choose impact and probability (1–5). The risk score is their product: green up to 4, yellow 5–12, red 15 and above.", "التقييم الابتدائي: اختر درجة التأثير والاحتمالية (١–٥). درجة الخطر هي حاصل ضربهما: أخضر حتى ٤، أصفر من ٥ إلى ١٢، أحمر من ١٥ فأكثر."],
+["risks_hint", "Initial assessment: choose impact and probability (1–5). The risk score is their product: green up to 4, yellow 5–12, red 15 and above.", "التقييم الابتدائي: اختر درجة التأثير والاحتمالية (1–5). درجة الخطر هي حاصل ضربهما: أخضر حتى 4، أصفر من 5 إلى 12، أحمر من 15 فأكثر."],
 ["k_desc", "Risk description", "وصف الخطر"],
 ["k_when", "Expected time / phase", "الوقت أو المرحلة المتوقعة"],
 ["k_owner", "Risk owner", "المسؤول عن الخطر"],
-["k_imp", "Impact (1–5)", "درجة التأثير (١–٥)"],
-["k_prob", "Probability (1–5)", "درجة الاحتمالية (١–٥)"],
+["k_imp", "Impact (1–5)", "درجة التأثير (1–5)"],
+["k_prob", "Probability (1–5)", "درجة الاحتمالية (1–5)"],
 ["k_score", "Risk score", "درجة الخطر"],
 ["lv_low", "Low", "منخفض"],
 ["lv_med", "Medium", "متوسط"],
@@ -739,7 +802,25 @@ const W=[
 ["pl_delSub", "This also deletes {n} sub-activities. Continue?", "سيُحذف معه {n} من الأنشطة التي تحته. متابعة؟"],
 ["pl_noIndent", "There is no activity above to be its parent.", "لا يوجد نشاط فوقه ليكون أبًا له."],
 ["pl_maxLvl", "The plan structure allows fewer levels.", "هيكل الخطة لا يسمح بمستويات أكثر."],
-["pl_leafOnly", "Links are allowed between activities that have no sub-activities.", "الربط بين الأنشطة التي ليس تحتها أنشطة فرعية فقط."],
+["pl_stat", "Status", "الحالة"],
+["pl_s_done", "Done", "مكتمل"],
+["pl_s_late", "Late", "متأخر"],
+["pl_s_prog", "In progress", "جارٍ"],
+["pl_s_new", "Not started", "لم يبدأ"],
+["pl_cols", "Columns", "الأعمدة"],
+["pl_colReset", "Default columns", "الأعمدة الافتراضية"],
+["pl_colH", "Drag the edge of a column header to resize it. Your choice is remembered on this device.", "اسحب حافة عنوان العمود لتغيير عرضه. اختيارك يُحفظ على هذا الجهاز."],
+["pl_normW", "Normalize weights (each group = 100)", "تسوية الأوزان (مجموع كل مجموعة = 100)"],
+["pl_wKids", "Sum of the weights of the sub-activities", "مجموع أوزان الأنشطة الفرعية"],
+["pl_dragRow", "Drag to reorder", "اسحب لإعادة الترتيب"],
+["pl_depEd", "Edit link", "تعديل الربط"],
+["pl_depPred", "Predecessor (comes first)", "النشاط السابق (يسبق)"],
+["pl_depType", "Link type", "نوع الربط"],
+["pl_depLag", "Lag (working days, negative = overlap)", "التأخير بالأيام (سالب = تداخل)"],
+["pl_depDel", "Delete link", "حذف الربط"],
+["pl_wbsTree", "Tree", "شجرة"],
+["pl_wbsList", "Cards list", "قائمة بطاقات"],
+["pl_leafOnly", "An activity cannot be linked to its own parent or sub-activities.", "لا يمكن ربط النشاط بالنشاط الأب له أو بأنشطته الفرعية."],
 ["pl_cycle", "This link would create a loop.", "هذا الربط يصنع حلقة مغلقة."],
 ["pl_predBad", "Unrecognised predecessor: ", "نشاط سابق غير معروف: "],
 ["pl_zoom", "Zoom", "التكبير"],
@@ -810,7 +891,7 @@ const W=[
 ["pl_xWbs", "WBS number must look like 1 or 1.1 or 1.1.1", "رقم WBS يجب أن يكون مثل 1 أو 1.1 أو 1.1.1"],
 ["pl_xDup", "duplicate WBS", "رقم WBS مكرر"],
 ["pl_xNoPar", "parent row is missing:", "الصف الأب غير موجود:"],
-["pl_xDepth", "maximum 3 levels", "الحد الأقصى ٣ مستويات"],
+["pl_xDepth", "maximum 3 levels", "الحد الأقصى 3 مستويات"],
 ["pl_xDate", "date not understood (use 2026-03-15 or 15/03/2026)", "صيغة التاريخ غير مفهومة (استخدم 2026-03-15 أو 15/03/2026)"],
 ["pl_xWho", "assignee not found:", "المكلّف غير موجود في النظام:"],
 ["pl_xParDep", "parent activities cannot have predecessors", "الأنشطة الرئيسية لا تقبل نشاطًا سابقًا"],
@@ -849,7 +930,7 @@ const W=[
 ["pl_lvLbl", "Level", "المستوى"],
 ["pl_addAt", "Add an activity at:", "أضف نشاطًا في:"],
 ["pl_asSub", "under this one", "فرعي لهذا النشاط"],
-["pl_lvHint", "Level 1 = main activity. Pick the level you want, it is added right after the related activity.", "المستوى ١ = نشاط رئيسي. اختر المستوى المطلوب ويُضاف النشاط مباشرة بعد النشاط المرتبط."],
+["pl_lvHint", "Level 1 = main activity. Pick the level you want, it is added right after the related activity.", "المستوى 1 = نشاط رئيسي. اختر المستوى المطلوب ويُضاف النشاط مباشرة بعد النشاط المرتبط."],
 ["pl_up", "Up", "أعلى"],
 ["pl_down", "Down", "أسفل"],
 ["pl_lower", "Lower a level", "إنزال مستوى"],
@@ -911,7 +992,7 @@ const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
 /* ===== configurable lists (sectors, departments, goals, types...) and roles ===== */
 let SET={},ROLES={},LST={};
-const adg=n=>String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]);
+const adg=n=>String(n).replace(/\d/g,c=>'0123456789'[c]);
 const GA=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع'];
 const defLists=()=>({
  sectors:[1,2,3,4].map(n=>['قطاع '+adg(n),'Sector '+n]),
@@ -936,7 +1017,7 @@ const myPerm=()=>{const r=ROLES[me.role_key||me.role];return r&&r.perms||{}};
 const canNew=()=>{if(me.role=='admin')return true;const p=myPerm();if(p.create&&p.create[SVC]!==undefined)return !!p.create[SVC];return me.role=='pm'};
 const svcOn=()=>{const p=myPerm();return !(p.svc&&p.svc[SVC]===false)};
 
-const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
+const fd=d=>new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
 const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
@@ -945,12 +1026,23 @@ const shF=x=>!!(x&&(x.n||x.i||x.c));
 const stripBlank=()=>{if(cr&&cr.data)Object.keys(cr.data).forEach(k=>{if(Array.isArray(cr.data[k]))cr.data[k]=cr.data[k].filter(filled)});if(cr&&Array.isArray(cr.stakeholders))cr.stakeholders=cr.stakeholders.filter(shF)};
 const pgText=(rd,rt,od,ot)=>t('pgFmt').replace('{d}',rd+od).replace('{t}',rt+ot).replace('{rd}',rd).replace('{rt}',rt).replace('{od}',od).replace('{ot}',ot);
 const lg=(id,a)=>sb.from('plan_audit').insert({cr_id:id,user_name:me.full_name,action:a});
+let AEDIT=null,AEDIT0='';
+const aedOn=()=>!!cr&&AEDIT===SVC+':'+cr.id;
+function adminEditStart(){AEDIT=SVC+':'+cr.id;AEDIT0=JSON.stringify(cr.data||{});openCR(cr.id)}
+async function adminEditDone(ok){const id=cr.id;
+ if(ok){try{await flushAtt()}catch(e){return msg(e.message||String(e))}
+  await save(false);const a=JSON.parse(AEDIT0||'{}'),b=cr.data||{},ks=[...new Set([...Object.keys(a),...Object.keys(b)])].filter(k=>k[0]!='_'&&JSON.stringify(a[k])!==JSON.stringify(b[k]));
+  await lg(id,'adminedit|'+(ks.join(',')||'-'))}
+ else if(AEDIT0){cr.data=JSON.parse(AEDIT0);await save(false)}
+ AEDIT=null;AEDIT0='';openCR(id)}
+function officeDecide(kind){const ap=kind=='approve';askNote(t(ap?'offApprove':'offReject'),t(ap?'offApprovePh':'rejPrompt'),t(ap?'offApprove':'offReject'),async c=>{await setStatus(ap?'Approved':'Rejected',c?{comment:c}:{});await lg(cr.id,(ap?'officeapproved|':'officerejected|')+(c||''));openCR(cr.id)},!ap)}
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
  if(k=='deleted')return t('delMoved');
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
- if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
+ if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):'');
+ if(k=='taskprog')return t('l_taskprog')+': '+(p[1]||'')+' → '+(p[2]||0)+'%';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
  if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
  if(k=='removed')return t('l_removed');
@@ -962,6 +1054,9 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  if(k=='apprejected')return t('l_apprej')+': '+p.slice(1).join('|');
+ if(k=='adminedit')return t('l_adminedit')+(p[1]&&p[1]!='-'?': '+p[1]:'');
+ if(k=='officeapproved')return t('l_offapp')+(p[1]?': '+p.slice(1).join('|'):'');
+ if(k=='officerejected')return t('l_offrej')+(p[1]?': '+p.slice(1).join('|'):'');
  if(k=='crlink')return t('l_crlink')+': '+p.slice(1).join('|');
  if(k=='crunlink')return t('l_crunlink');
  if(k=='revcancelled')return t('l_revcancelled');
@@ -984,10 +1079,11 @@ async function toggleLang(){
 
 // ===== App =====
 const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
-let GR=[];
+let GR=[],PROXY=[];
+const isMine=s=>s.user_id==me.id||PROXY.includes(s.user_id);
 const pcOf=r=>SVC=='charter'?(r.code||''):((r.data||{}).pcode||'');
 const gEd=r=>{const p=pcOf(r);return !!p&&GR.some(g=>g.pcode==p&&g.lvl=='edit'&&(!g.svcs||g.svcs.includes(SVC)))};
-async function loadSet(){SET={};GR=[];try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
+async function loadSet(){SET={};GR=[];PROXY=[];try{const r=await sb.rpc('my_proxy_for');PROXY=(r.data||[]).map(x=>x.id)}catch(_){}try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
  applyLists();ROLES={};try{const r=await sb.from('app_roles').select('*');(r.data||[]).forEach(x=>ROLES[x.key]=x)}catch(_){}}
 async function start(){
  curView=start;editing=false;
@@ -1041,7 +1137,7 @@ function enrich(){
  const adm=me.role=='admin';DB.by={};
  DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
  DB.sg.forEach(s=>{if(DB.by[s.cr_id])DB.by[s.cr_id].sg.push(s)});
- DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>s.user_id==me.id);
+ DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>isMine(s));
   if(r.created_by==me.id)x.rel.push('created');
   if(my.some(s=>s.stage=='reviewed'))x.rel.push('reviewer');
   if(my.some(s=>s.stage=='approved'))x.rel.push('approver');
@@ -1111,7 +1207,7 @@ function adminBlock(){
   if(s.status=='signed'&&s.signed_at){const st0=(lgT[s.cr_id+'|'+need]||[]).filter(d=>d<=new Date(s.signed_at));if(st0.length)wu(s.user_id).d.push((new Date(s.signed_at)-Math.max(...st0))/864e5)}});
  const now=new Date(),ym=d=>d.getFullYear()*12+d.getMonth(),cm=ym(now);
  const mc=k=>A.filter(r=>ym(new Date(r.created_at))==cm-k).length;
- const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{month:'short'}),mc(k)]});
+ const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE-u-nu-latn':'en-GB',{month:'short'}),mc(k)]});
  const pr=LST.ptype.map(x=>x[0]).map(p=>[t('pt_'+p),A.filter(r=>r.data.ptype==p).length]);
  const dm={};A.forEach(r=>{const k=r.data.sector;if(k)dm[secL(k)]=(dm[secL(k)]||0)+1});
  const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -1161,7 +1257,7 @@ async function submitCR(){
  await save(false);await openCR(cr.id);await proceedSubmit()}
 
 // ===== Project plan: model, calendar, scheduling =====
-const ad=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
+const ad=n=>lang=='ar'?String(n).replace(/\d/g,c=>'0123456789'[c]):String(n);
 const monthsBetween=(a,b)=>{if(!a||!b)return null;const n=(new Date(b)-new Date(a))/864e5;if(isNaN(n)||n<0)return null;return Math.round(n/30.4375*10)/10};
 const fdate=v=>v?fdx(v).slice(0,10):'';
 const PL={view:'list',zoom:'',sel:null,ed:null,key:'',coll:{},imp:null,err:''};
@@ -1203,7 +1299,7 @@ function norm(){const d=cr.data;if(!Array.isArray(d.tasks))d.tasks=[];const ts=d
  let again=false;out.forEach(x=>{if(M[x.id].d>maxD)again=true});
  d.tasks=out;if(again&&!norm.r){norm.r=1;norm();norm.r=0}
  // parents cannot have dependencies, and deps must point to existing leaf tasks
- out.forEach(x=>{if(M[x.id].kids.length)x.dep=[];x.dep=(x.dep||[]).filter(e=>M[e.t]&&!M[e.t].kids.length&&e.t!=x.id)})}
+ out.forEach(x=>{x.dep=(x.dep||[]).filter(e=>M[e.t]&&e.t!=x.id&&!isDesc(M[e.t].x,x.id)&&!isDesc(x,e.t))})}
 const isLeaf=x=>!(M[x.id]&&M[x.id].kids.length);
 function rollup(){const ts=T();for(let i=ts.length-1;i>=0;i--){const x=ts[i],m=M[x.id];if(!m||!m.kids.length)continue;
   let s=1e12,e=-1e12,sum=0,w=0,as=1e12,aeAll=true,ae=-1e12;
@@ -1237,8 +1333,8 @@ const wbsOf=id=>M[id]?M[id].w:'';
 const taskByWbs=w=>{for(const id in M)if(M[id].w==w)return M[id].x;return null};
 function predText(x){return (x.dep||[]).map(e=>(wbsOf(e.t)||'?')+((e.y&&e.y!='FS')||e.l?(e.y||'FS')+(e.l?(e.l>0?'+':'')+e.l:''):'')).join(', ')}
 function parsePred(txt,self){const out=[],errs=[];String(txt||'').split(/[,;،\n]+/).map(s=>s.trim()).filter(Boolean).forEach(tok=>{
-  const m=/^(\d+(?:\.\d+)*)\s*(FS|SS|FF|SF)?\s*([+-]\s*\d+)?$/i.exec(tok.replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));
-  if(!m){errs.push(tok);return}const p=taskByWbs(m[1]);if(!p||(self&&p.id==self.id)||!isLeaf(p)){errs.push(tok);return}
+  const m=/^(\d+(?:\.\d+)*)\s*(FS|SS|FF|SF)?\s*([+-]\s*\d+)?$/i.exec(tok.replace(/[0-9]/g,c=>'0123456789'.indexOf(c)));
+  if(!m){errs.push(tok);return}const p=taskByWbs(m[1]);if(!p||(self&&!linkOK(self,p))){errs.push(tok);return}
   out.push({t:p.id,y:(m[2]||'FS').toUpperCase(),l:m[3]?+m[3].replace(/\s/g,''):0})});return{out,errs}}
 function grow(x){}
 function fitRO(){}
@@ -1248,8 +1344,8 @@ async function openCR(id){
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const ed=!arch&&(cr.created_by==me.id||adm||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
- curView=()=>openCR(id);editing=ed;
+ const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
+ curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
@@ -1257,24 +1353,26 @@ async function openCR(id){
  const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st);
  const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
  const showApp=['Reviewed','Awaiting Approval','Office Decision','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
- const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
+ const inStage=sigs.some(s=>isMine(s)&&s.stage==stage);
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
- const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
+ const mine=arch?null:sigs.find(s=>isMine(s)&&s.stage==stage&&s.status=='pending');
  const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(PL.key!==key){PL.key=key;PL.sel=null;PL.ed=null;PL.xl=false;PL.imp=null}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at)+(s.signed_by&&s.signed_by!=s.user_id?' · '+t('byProxy').replace('{n}',esc((users[s.signed_by]||{}).full_name||'')):''):`<span class="mut">${fin?'—':t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
- if(ed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
+ if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
+ if(ed&&!aed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
- if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}</button>`;
+ if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
+ if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
- if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
- if(ed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
+ if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):(st=='Office Decision'?t('officeNote')+(cr.comment?' — '+esc(cr.comment):''):''));
 
@@ -1283,7 +1381,7 @@ async function openCR(id){
  const s0=STEP[st];
  const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
  if(!Array.isArray(d.tasks))d.tasks=[];
- PL.ed=PL.ed||null;PL.canEdit=ed||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'));PL.rev=canRev;PL.nAtt=atts.length;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
+ PL.ed=PL.ed||null;PL.canEdit=ed||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'));PL.rev=canRev;PL.aed=aed;PL.nAtt=atts.length;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
  if(adm&&!arch){try{const q=await sb.from('plans').select('code,pn:data->>pname').order('id',{ascending:false}).limit(500);PL.crs=q.data||[]}catch(_){PL.crs=[]}}
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
@@ -1356,7 +1454,7 @@ function indentTask(id){const ts=T(),x=byId(id),sib=ts.filter(z=>(z.p||'')==(x.p
  const np=sib[k-1];if(M[np.id].d+1>maxDepth())return msg(t('pl_maxLvl'));
  // subtree depth check
  const sd=Math.max(...ts.filter(z=>z.id==id||isDesc(z,id)).map(z=>M[z.id].d))-M[id].d;if(M[np.id].d+1+sd>maxDepth())return msg(t('pl_maxLvl'));
- mut(()=>{const [i,j]=subtree(id),blk=ts.splice(i,j-i);x.p=np.id;const [pi,pj]=subtree(np.id);ts.splice(pj,0,...blk);np.dep=[];ts.forEach(z=>z.dep=(z.dep||[]).filter(q=>q.t!=np.id));if(!x.s&&np.s){x.s=np.s;x.e=np.e}delete PL.coll[np.id]},true)}
+ mut(()=>{const [i,j]=subtree(id),blk=ts.splice(i,j-i);x.p=np.id;const [pi,pj]=subtree(np.id);ts.splice(pj,0,...blk);if(!x.s&&np.s){x.s=np.s;x.e=np.e}delete PL.coll[np.id]},true)}
 function outdentTask(id){const x=byId(id);if(!x.p)return;mut(()=>{const ts=T(),par=byId(x.p),[i,j]=subtree(id),blk=ts.splice(i,j-i);x.p=par.p||'';const [pi,pj]=subtree(par.id);ts.splice(pj,0,...blk)},true)}
 function setSel(id){PL.sel=PL.sel==id?null:id;renderPlan()}
 function togColl(id){PL.coll[id]=!PL.coll[id];renderPlan()}
@@ -1469,13 +1567,13 @@ function rowClick(ev,id){const tg=ev.target.tagName;if(tg=='INPUT'||tg=='SELECT'
 // ---------- inputs ----------
 function onPlanInput(x){if(!x.dataset.pk)return;const row=x.closest('.pr');if(!row)return;const t0=byId(row.dataset.id);if(!t0)return;const k=x.dataset.pk;
  if(k=='n'){t0.n=x.value;pSave()}
- else if(k=='pc'){t0.pc=Math.max(0,Math.min(100,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0));pSave()}}
+ else if(k=='pc'){t0.pc=Math.max(0,Math.min(100,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0));pSave()}}
 function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest('.pr');if(!row)return;const t0=byId(row.dataset.id);if(!t0)return;
  if(k=='n'||k=='pc')return;
  snap();
  if(k=='s'){const old=(!isNaN(dn(t0.s))&&!isNaN(dn(t0.e)))?durOf(t0):3,a=dn(x.value);if(isNaN(a)){t0.s=''}else{t0.s=ds(nextWork(a));t0.e=ds(addWork(dn(t0.s),old-1))}afterDates(t0)}
  else if(k=='e'){t0.e=x.value;const a=dn(t0.s),b=dn(t0.e);if(!isNaN(b)&&isNaN(a)){t0.s=ds(prevWork(b))}else if(!isNaN(b))t0.e=ds(prevWork(b));afterDates(t0)}
- else if(k=='du'){const du=Math.max(1,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||1);if(isNaN(dn(t0.s))){const b=PL.canEdit?dn(cr.data.sdate):NaN;t0.s=ds(nextWork(isNaN(b)?todayN():b))}t0.e=ds(addWork(dn(t0.s),du-1));afterDates(t0)}
+ else if(k=='du'){const du=Math.max(1,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||1);if(isNaN(dn(t0.s))){const b=PL.canEdit?dn(cr.data.sdate):NaN;t0.s=ds(nextWork(isNaN(b)?todayN():b))}t0.e=ds(addWork(dn(t0.s),du-1));afterDates(t0)}
  else if(k=='w'){if(x.value=='__n'){}else{t0.w=x.value;if(x.value)t0.wn=''}pSave();return}
  else if(k=='as'||k=='ae'){t0[k]=x.value;if(k=='ae'&&x.value&&(+t0.pc||0)<100)t0.pc=100;norm();rollup();renderPlan();pSave();return}
  else if(k=='pred'){const r=parsePred(x.value,t0);if(r.errs.length){msg(t('pl_predBad')+r.errs.join(', '));renderPlan();return}
@@ -1497,10 +1595,10 @@ function gRange(){let lo=1e12,hi=-1e12;const add=v=>{const n=dn(v);if(!isNaN(n))
  const t0=todayN();if(PL.trk&&t0>=lo-30&&t0<=hi+30){if(t0<lo)lo=t0;if(t0>hi)hi=t0}
  lo-=2;hi+=6;return[lo,hi]}
 function ganttH(){RH=PL.rh||(window.innerWidth<700?32:38);const rows=visible();if(!rows.length)return `<div class="mut">${t('pl_empty')}</div>`;
- const [lo,hi]=gRange(),span=hi-lo+1,wide=window.innerWidth>=900,LW=wide?(PL.trk?640:500):(PL.trk?150:136);
- let dw;const z=PL.zoom;if(z=='day')dw=30;else if(z=='week')dw=12;else if(z=='month')dw=4.2;else if(z=='custom')dw=PL.dwc||12;else{const av=Math.max(260,Math.min(window.innerWidth,1200)-LW-40);dw=Math.max(6,Math.min(30,av/span))}
- GZ={dw,lo,hi,W:Math.ceil(span*dw),LW,rows,idx:{}};rows.forEach((x,i)=>GZ.idx[x.id]=i);
- const H=rows.length*RH,loc=lang=='ar'?'ar-AE':'en-GB';
+ const [lo,hi]=gRange(),span=hi-lo+1,wide=window.innerWidth>=900,gc=gcolList(wide),LW=gLW(gc,wide);
+ let dw;const z=PL.zoom;if(z=='day')dw=30;else if(z=='week')dw=12;else if(z=='month')dw=4.2;else if(z=='custom')dw=PL.dwc||12;else{const av=Math.max(260,gAvail()-LW-24);dw=Math.max(6,Math.min(30,av/span))}
+ GZ={dw,lo,hi,W:Math.ceil(span*dw),LW,rows,idx:{},gc,wide};rows.forEach((x,i)=>GZ.idx[x.id]=i);
+ const H=rows.length*RH,loc=lang=='ar'?'ar-AE-u-nu-latn':'en-GB';
  // header
  let mh='',sh='';let n=lo;while(n<=hi){const d=new Date(n*864e5),m=d.getUTCMonth(),y=d.getUTCFullYear();let e=n;while(e+1<=hi&&new Date((e+1)*864e5).getUTCMonth()==m)e++;
   mh+=`<div class="gm" style="left:${(n-lo)*dw}px;width:${(e-n+1)*dw}px">${dw*(e-n+1)>46?d.toLocaleDateString(loc,{month:'short',year:'numeric',timeZone:'UTC'}):''}</div>`;n=e+1}
@@ -1516,37 +1614,37 @@ function ganttH(){RH=PL.rh||(window.innerWidth<700?32:38);const rows=visible();i
   if(bs&&!isNaN(dn(bs.s))&&!isNaN(dn(bs.e))&&(bs.s!=x.s||bs.e!=x.e))bars+=`<div class="bbase" style="left:${(dn(bs.s)-lo)*dw}px;width:${(dn(bs.e)-dn(bs.s)+1)*dw}px;top:${top+RH-6}px"></div>`;
   const as=dn(x.as);if(!isNaN(as)&&leaf){const ae=isNaN(dn(x.ae))?t0:dn(x.ae);bars+=`<div class="bact" style="left:${(as-lo)*dw}px;width:${Math.max(dw,(ae-as+1)*dw)}px;top:${top+RH-6}px"></div>`}
   const nm=(x.fx?'📌 ':'')+esc(x.n||'')+(x.pc>=100&&leaf?' ✓':'')+(x.rn?' 💬':'');
-  if(x.ms&&leaf){bars+=`<div class="bar ms lv${lv} ${crit?'crit':''}${ls}" data-id="${x.id}" style="left:${(a-lo+.5)*dw-10}px;top:${top+TM}px"><i></i>${PL.adv&&PL.canEdit?'<span class="lk"></span>':''}</div><div class="blb" style="left:${(a-lo+.5)*dw+14}px;top:${top+TL}px">${nm}</div>`;return}
+  if(x.ms&&leaf){bars+=`<div class="bar ms lv${lv} ${crit?'crit':''}${ls}" data-id="${x.id}" style="left:${(a-lo+.5)*dw-10}px;top:${top+TM}px"><i></i>${PL.canEdit?'<span class="lk lks"></span><span class="lk lke"></span>':''}</div><div class="blb" data-id="${x.id}" style="left:${(a-lo+.5)*dw+14}px;top:${top+TL}px">${nm}</div>`;return}
   const w=(b-a+1)*dw;
-  if(!leaf){bars+=`<div class="bar sum lv${lv}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TS}px"><div class="bp" style="width:${x.pc||0}%"></div></div><div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`;return}
+  if(!leaf){bars+=`<div class="bar sum lv${lv} ${crit?'crit':''}${ls}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TS}px"><div class="bp" style="width:${x.pc||0}%"></div>${PL.canEdit?'<span class="lk lks"></span><span class="lk lke"></span>':''}</div><div class="blb" data-id="${x.id}" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`;return}
   const inside=w>=90;
-  bars+=`<div class="bar lv${lv} ${crit?'crit':''} ${late?'late':''} ${PL.canEdit&&!PL.lm?'ed':''}${ls}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TB}px"><div class="bp" style="width:${x.pc||0}%"></div>${inside?`<span class="bt">${nm}</span>`:''}${PL.canEdit&&!PL.lm?'<span class="bl"></span><span class="br"></span>':''}${PL.canEdit&&PL.adv?'<span class="lk"></span>':''}</div>${inside?'':`<div class="blb" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`}`});
+  bars+=`<div class="bar lv${lv} ${crit?'crit':''} ${late?'late':''} ${PL.canEdit&&!PL.lm?'ed':''}${ls}" data-id="${x.id}" style="left:${(a-lo)*dw}px;width:${w}px;top:${top+TB}px"><div class="bp" style="width:${x.pc||0}%"></div>${inside?`<span class="bt">${nm}</span>`:''}${PL.canEdit&&!PL.lm?'<span class="bl"></span><span class="br"></span>':''}${PL.canEdit?'<span class="lk lks"></span><span class="lk lke"></span>':''}</div>${inside?'':`<div class="blb" data-id="${x.id}" style="left:${(a-lo)*dw+w+6}px;top:${top+TL}px">${nm}</div>`}`});
  // arrows
- let ar='',cnt=0;rows.forEach((x,i)=>{(x.dep||[]).forEach(e=>{if(cnt++>600)return;const j=GZ.idx[e.t];if(j==null)return;const p=byId(e.t);if(!p)return;const ps=dn(p.s),pe=dn(p.e),ss=dn(x.s),se=dn(x.e);if([ps,pe,ss,se].some(isNaN))return;
+ let ar='',cnt=0;rows.forEach((x,i)=>{(x.dep||[]).forEach((e,di)=>{if(cnt++>600)return;const j=GZ.idx[e.t];if(j==null)return;const p=byId(e.t);if(!p)return;const ps=dn(p.s),pe=dn(p.e),ss=dn(x.s),se=dn(x.e);if([ps,pe,ss,se].some(isNaN))return;
    const y1=j*RH+RH/2,y2=i*RH+RH/2,y=e.y||'FS';const out=(y=='FS'||y=='FF')?1:-1,inn=(y=='FS'||y=='SS')?1:-1;
    const x1=((out==1?pe+1:ps)-lo)*dw+(byId(e.t).ms&&out==1?-dw/2+10:0),x2=((inn==1?ss:se+1)-lo)*dw;
    const s1=x1+out*10,s2=x2-inn*10;let pts;
    if(y=='FS'&&s2>=s1){pts=[[x1,y1],[s1,y1],[s1,y2],[x2,y2]]}
    else{const ym=y2>y1?y1+RH/2:y2<y1?y1-RH/2:y1+RH/2;pts=[[x1,y1],[s1,y1],[s1,ym],[s2,ym],[s2,y2],[x2,y2]]}
    const c=CP.crit.has(e.t)&&CP.crit.has(x.id);
-   ar+=`<path d="M${pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L')}" class="${c?'ac':''}" marker-end="url(#${c?'ahr':'ah'})"/>`})});
- const lab=rows.map(x=>{const m=M[x.id];return `<div class="grl d${m.d} ${m.kids.length?'sum':''} ${PL.sel==x.id?'sel':''}" data-id="${x.id}" style="height:${RH}px">${m.kids.length?`<button class="cl" data-tc="${x.id}">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span><span class="nm">${x.fx?'📌 ':''}${esc(x.n||'—')}${x.rn?' 💬':''}</span>${PL.trk&&!m.kids.length?`<button class="gck ${(+x.pc||0)>=100?'on':''}" data-ck="${x.id}" title="${t('pl_markDone')}">✓</button>`:''}${wide?`<span class="gs">${esc(x.s)}</span><span class="ge">${esc(x.e)}</span><span class="gw">${esc(whoName(x))}</span>${PL.trk?`<span class="gp">${x.pc||0}%</span>`:''}`:''}</div>`}).join('');
+   const pd='M'+pts.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L');ar+=`<path d="${pd}" class="${c?'ac':''}" marker-end="url(#${c?'ahr':'ah'})"/>`+(PL.canEdit?`<path d="${pd}" class="ahit" data-to="${x.id}" data-di="${di}"/>`:'')})});
+ const lab=rows.map(x=>gRow(x,gc,wide)).join('');
  const lmName=PL.ls&&byId(PL.ls)?((M[PL.ls].w)+' '+(byId(PL.ls).n||'')).trim():'';
  const tbH=`<div class="gtb"><div class="seg">${[['auto',t('pl_fit')],['day',t('pl_z_day')],['week',t('pl_z_week')],['month',t('pl_z_month')]].map(([z,l])=>`<button class="${PL.zoom==z?'on':''}" onclick="setZoom('${z}')">${l}</button>`).join('')}<button onclick="zoomStep(0.8)" title="−">−</button><button onclick="zoomStep(1.25)" title="+">＋</button></div>
  <div class="seg"><span class="mut" style="padding:0 6px;align-self:center;font-size:12px">${t('pl_rowSize')}</span>${[[28,'pl_rs_s'],[38,'pl_rs_m'],[54,'pl_rs_l']].map(([v,k])=>`<button class="${RH==v?'on':''}" onclick="setRH(${v})">${t(k)}</button>`).join('')}</div>
- <button class="sm" onclick="gToday()">${t('pl_today')}</button><button class="sm" onclick="togFS()">${PL.gfs?'✕ '+t('pl_fsx'):'⛶ '+t('pl_fs')}</button>
+ ${window.innerWidth>=900?gColMenu():''}<button class="sm" onclick="gToday()">${t('pl_today')}</button><button class="sm" onclick="togFS()">${PL.gfs?'✕ '+t('pl_fsx'):'⛶ '+t('pl_fs')}</button>
  ${PL.canEdit?`<button class="sm ${PL.lm?'p':''}" onclick="togLM()">🔗 ${t('pl_linkMode')}</button>`:''}</div>
  ${PL.lm?`<div class="lmb">🔗 ${PL.ls?t('pl_lmPick2').replace('{x}',esc(lmName)):t('pl_lmPick1')}<button class="sm" onclick="togLM()">✓ ${t('pl_lmDone')}</button></div>`:(PL.canEdit?`<div class="mut" style="font-size:12px;margin-bottom:6px">${t('pl_dragH')}</div>`:'')}`;
  return `<div class="gwrap ${PL.gfs?'gfs':''}">`+tbH+`
- <div class="gx" id="gx" dir="ltr"><div class="gin" style="width:${LW+GZ.W}px">
-  <div class="ghd" style="height:${HH}px"><div class="glh" style="width:${LW}px">${wide?`<span class="wb">#</span><span class="nm">${t('pl_name')}</span><span class="gs">${t('pl_start')}</span><span class="ge">${t('pl_end')}</span><span class="gw">${t('pl_who')}</span>${PL.trk?`<span class="gp">%</span>`:''}`:`<span class="wb">#</span><span class="nm">${t('pl_name')}</span>`}</div><div class="gth" style="width:${GZ.W}px"><div class="gmr">${mh}</div><div class="gdr">${sh}</div></div></div>
-  <div class="gbd" style="height:${H}px"><div class="gl" style="width:${LW}px">${lab}</div>
+ <div class="gx" id="gx" dir="ltr"><div class="gin" style="width:${LW+GZ.W}px;--lw:${LW}px;--gw:${GZ.W}px;--gpc:${gcolsCss(gc,wide)}">
+  <div class="ghd" style="height:${HH}px">${gHead(gc,wide)}<div class="gth" style="width:${GZ.W}px"><div class="gmr">${mh}</div><div class="gdr">${sh}</div></div></div>
+  <div class="gbd" style="height:${H}px"><div class="gl">${lab}</div>
    <div class="gt" id="gt" style="width:${GZ.W}px;height:${H}px;background-size:${dw>=14?dw+'px 100%,':''}100% ${RH}px">${bg}${today}<svg class="gsv" width="${GZ.W}" height="${H}"><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#6b6f76"/></marker><marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#d1101d"/></marker></defs>${ar}</svg>${bars}<svg class="gtmp" id="gtmp" width="${GZ.W}" height="${H}"></svg></div></div></div></div></div>`}
 function zoomStep(f){PL.zoom='custom';PL.dwc=Math.max(2,Math.min(60,(GZ.dw||12)*f));renderPlan()}
 function setRH(v){PL.rh=v;renderPlan()}
 function togFS(){PL.gfs=!PL.gfs;document.body.style.overflow=PL.gfs?'hidden':'';renderPlan()}
 function togLM(){PL.lm=!PL.lm;PL.ls=null;renderPlan()}
-function linkPick(id){const x=byId(id);if(!x)return;if(!isLeaf(x)){return msg(t('pl_leafOnly'))}
+function linkPick(id){const x=byId(id);if(!x)return;
  if(!PL.ls){PL.ls=id;return renderPlan()}
  if(PL.ls==id){PL.ls=null;return renderPlan()}
  const f=PL.ls;PL.ls=null;
@@ -1557,7 +1655,7 @@ let GD=null;
 function bindGantt(sc){const gx=$('gx');if(!gx)return;
  if(sc){gx.scrollLeft=sc.x;gx.scrollTop=sc.y}else{const t0=todayN();gx.scrollLeft=(PL.trk&&t0>=GZ.lo&&t0<=GZ.hi)?Math.max(0,(t0-GZ.lo)*GZ.dw-80):0;if(PL.sel&&byId(PL.sel))setTimeout(()=>gFocus(PL.sel,true),30)}
  gx.querySelectorAll('.bar').forEach(b=>b.addEventListener('pointerdown',ev=>barDown(ev,b)));
- gx.querySelectorAll('.grl').forEach(r=>r.addEventListener('click',ev=>{const tc=ev.target.closest('[data-tc]');if(tc){togColl(tc.dataset.tc);return}
+ gx.querySelectorAll('.grl').forEach(r=>r.addEventListener('click',ev=>{if(ev.target.closest('input,select,.pkb,.dg'))return;const tc=ev.target.closest('[data-tc]');if(tc){togColl(tc.dataset.tc);return}
   const ck=ev.target.closest('[data-ck]');if(ck){ev.stopPropagation();gDone(ck.dataset.ck);return}
   if(PL.lm&&PL.canEdit){linkPick(r.dataset.id);return}gFocus(r.dataset.id,false,true)}))}
 function gDone(id){const x=byId(id);if(!x||!isLeaf(x)||!(PL.trk||PL.canEdit))return;snap();if((+x.pc||0)>=100){x.pc=0;x.ae=''}else{x.pc=100;if(!x.as)x.as=x.s;if(!x.ae){const t0=ds(todayN());x.ae=t0}}norm();rollup();renderPlan();pSave()}
@@ -1574,19 +1672,19 @@ function barDown(ev,b){if(ev.button>0)return;const id=b.dataset.id,x=byId(id);if
  if(PL.lm&&PL.canEdit){ev.preventDefault();linkPick(id);return}
  let mode='move';if(ev.target.classList.contains('bl'))mode='l';else if(ev.target.classList.contains('br'))mode='r';else if(ev.target.classList.contains('lk'))mode='link';
  const can=PL.canEdit;if(!can){return}
- if(!leaf&&mode!='move')return;
+ if(!leaf&&mode!='move'&&mode!='link')return;
  ev.preventDefault();b.setPointerCapture(ev.pointerId);
- GD={id,mode,x0:ev.clientX,y0:ev.clientY,dd:0,moved:false,b,l0:parseFloat(b.style.left),w0:parseFloat(b.style.width)||0,pid:ev.pointerId};
+ GD={id,mode,fe:ev.target.classList.contains('lke'),x0:ev.clientX,y0:ev.clientY,dd:0,moved:false,b,l0:parseFloat(b.style.left),w0:parseFloat(b.style.width)||0,pid:ev.pointerId};
  b.classList.add('drag');
  b.onpointermove=gMove;b.onpointerup=gUp;b.onpointercancel=gUp}
 function gMove(ev){if(!GD)return;const dx=ev.clientX-GD.x0;if(Math.abs(dx)>4||Math.abs(ev.clientY-GD.y0)>4)GD.moved=true;
- if(GD.mode=='link'){const g=$('gtmp'),r=$('gt').getBoundingClientRect();const j=GZ.idx[GD.id],p=byId(GD.id);const x1=(dn(p.e)+1-GZ.lo)*GZ.dw,y1=j*RH+RH/2;g.innerHTML=`<line x1="${x1}" y1="${y1}" x2="${ev.clientX-r.left}" y2="${ev.clientY-r.top}" stroke="#0a6b3d" stroke-width="2" stroke-dasharray="4 3"/>`;return}
+ if(GD.mode=='link'){const g=$('gtmp'),r=$('gt').getBoundingClientRect();const j=GZ.idx[GD.id],p=byId(GD.id);const x1=(GD.fe?dn(p.e)+1-GZ.lo:dn(p.s)-GZ.lo)*GZ.dw,y1=j*RH+RH/2;g.innerHTML=`<line x1="${x1}" y1="${y1}" x2="${ev.clientX-r.left}" y2="${ev.clientY-r.top}" stroke="#0a6b3d" stroke-width="2" stroke-dasharray="4 3"/>`;return}
  const dd=Math.round(dx/GZ.dw);GD.dd=dd;const b=GD.b;
  if(GD.mode=='move')b.style.left=(GD.l0+dd*GZ.dw)+'px';
  else if(GD.mode=='l'){const w=Math.max(GZ.dw,GD.w0-dd*GZ.dw);b.style.left=(GD.l0+GD.w0-w)+'px';b.style.width=w+'px'}
  else if(GD.mode=='r'){b.style.width=Math.max(GZ.dw,GD.w0+dd*GZ.dw)+'px'}}
 function gUp(ev){if(!GD)return;const g=GD;GD=null;g.b.classList.remove('drag');g.b.onpointermove=g.b.onpointerup=g.b.onpointercancel=null;try{g.b.releasePointerCapture(g.pid)}catch(_){}
- if(g.mode=='link'){const gt=$('gtmp');if(gt)gt.innerHTML='';const el=document.elementFromPoint(ev.clientX,ev.clientY),tb=el&&el.closest&&el.closest('.bar');if(tb&&tb.dataset.id&&tb.dataset.id!=g.id){linkTasks(g.id,tb.dataset.id)}else renderPlan();return}
+ if(g.mode=='link'){const gt=$('gtmp');if(gt)gt.innerHTML='';const el=document.elementFromPoint(ev.clientX,ev.clientY),tb=el&&el.closest&&el.closest('.bar');if(tb&&tb.dataset.id&&tb.dataset.id!=g.id){const r=tb.getBoundingClientRect(),te=ev.clientX>r.left+r.width/2;linkTasks(g.id,tb.dataset.id,(g.fe?'F':'S')+(te?'F':'S'))}else renderPlan();return}
  if(!g.moved||g.dd==0){if(!g.moved){gFocus(g.id,true,true)}else renderPlan();return}
  snap();const x=byId(g.id),m=M[g.id],dd=g.dd;
  const shift=z=>{const a=dn(z.s),du=durOf(z);if(isNaN(a))return;const ns=nextWork(a+dd);z.s=ds(ns);z.e=ds(addWork(ns,du-1))};
@@ -1594,40 +1692,41 @@ function gUp(ev){if(!GD)return;const g=GD;GD=null;g.b.classList.remove('drag');g
  else if(g.mode=='l'){const a=dn(x.s),e=dn(x.e);let ns=nextWork(a+dd);if(ns>e)ns=nextWork(e);x.s=ds(ns);if(ns>e)x.e=ds(ns)}
  else if(g.mode=='r'){const a=dn(x.s),e=dn(x.e);let ne=prevWork(e+dd);if(ne<a)ne=nextWork(a);x.e=ds(ne)}
  norm();rollup();propagate();rollup();renderPlan();pSave()}
-function linkTasks(from,to){const f=byId(from),tt=byId(to);if(!f||!tt||!isLeaf(f)||!isLeaf(tt)){renderPlan();return msg(t('pl_leafOnly'))}
+function linkTasks(from,to,ty){const f=byId(from),tt=byId(to);if(!f||!tt||!linkOK(f,tt)){renderPlan();return msg(t('pl_leafOnly'))}
  if(reaches(from,to,succMap())&&false){}
  if(reaches(to,from,succMap())){renderPlan();return msg(t('pl_cycle'))}
  if((tt.dep||[]).some(e=>e.t==from)){renderPlan();return}
- snap();tt.dep=(tt.dep||[]).concat([{t:from,y:'FS',l:0}]);norm();rollup();propagate();rollup();renderPlan();pSave()}
+ snap();tt.dep=(tt.dep||[]).concat([{t:from,y:ty||'FS',l:0}]);norm();rollup();propagate();rollup();renderPlan();pSave()}
 // ===== task sheet (editor) =====
 function openSheet(id){PL.ed=id;const x=byId(id);PL.shDeps=x?JSON.parse(JSON.stringify(x.dep||[])):[];renderPlan();const s=$('shbox');if(s)s.scrollIntoView({block:'nearest'})}
 function closeSheet(){PL.ed=null;renderPlan()}
 function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const m=M[x.id],leaf=!m.kids.length,ed=PL.canEdit,trk=PL.trk,dis=ed?'':'disabled',adv=PL.adv;
- const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select class="srch" id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input type="hidden" id="sd_l${i}" value="${e.l||0}">`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
+ const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select class="srch" id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input type="hidden" id="sd_l${i}" value="${e.l||0}">`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
  return `<div class="shov" onclick="if(event.target==this)closeSheet()"><div class="shb" id="shbox"><div class="top"><b>${m.w} · ${t('pl_task')}</b><button class="sm" onclick="closeSheet()">✕</button></div>
  <label>${t('pl_name')}</label><input id="sh_n" value="${esc(x.n)}" ${dis}>
  ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><label>${t('pl_durD')}</label><input id="sh_du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${dis} style="max-width:140px"><div class="mut" id="sh_d" style="margin-top:4px"></div>
  <label class="tg2"><input type="checkbox" id="sh_ms" ${x.ms?'checked':''} ${dis}> ${t('pl_ms')}</label>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
  <label>${t('pl_who')}</label><select class="srch" id="sh_w" ${dis}>${userOpts(x.w)}</select><input id="sh_wn" placeholder="${t('pl_whoOther')}" value="${esc(x.w?'':x.wn||'')}" ${dis} style="margin-top:4px">
- ${leaf?`<label>${t('pl_after')}</label><div class="mut" style="margin:-2px 0 4px">${t('pl_afterH')}</div>${preds}${ed&&(adv||!(PL.shDeps||[]).length)?`<button class="sm" onclick="shAdd()">+ ${t('pl_addPred')}</button>`:''}`:''}
+ <label>${t('pl_after')}</label><div class="mut" style="margin:-2px 0 4px">${t('pl_afterH')}</div>${preds}${ed&&(adv||!(PL.shDeps||[]).length)?`<button class="sm" onclick="shAdd()">+ ${t('pl_addPred')}</button>`:''}
  ${trk&&leaf?`<div class="sec" style="margin-top:12px">${t('pl_track')}</div><div class="g2"><div><label>${t('pl_astart')}</label><input id="sh_as" type="date" value="${esc(x.as)}"></div><div><label>${t('pl_aend')}</label><input id="sh_ae" type="date" value="${esc(x.ae)}"></div></div><label>${t('pl_pct')} (0-100)</label><input id="sh_pc" inputmode="numeric" value="${x.pc||0}">`:''}
  <label>${t('pl_note')}</label><textarea id="sh_nt" rows="2" ${dis}>${esc(x.nt||'')}</textarea>
  ${PL.rev?`<label>💬 ${t('pl_revNote')}</label><textarea id="sh_rn" rows="2">${esc(x.rn||'')}</textarea>`:(x.rn?`<div class="rnote ro"><b>💬 ${t('pl_revNote')}</b><div style="white-space:pre-wrap">${esc(x.rn)}</div></div>`:'')}
  <div class="row" style="margin-top:12px">${(ed||trk||PL.rev)?`<button class="p" onclick="shSave()">${t('save')}</button>`:''}${ed&&M[x.id].d<maxDepth()?`<button onclick="shSub()">+ ${t('pl_addSub')}</button>`:''}${ed?`<button class="r" onclick="PL.ed=null;delTask('${x.id}')">🗑 ${t('pl_del')}</button>`:''}<button onclick="closeSheet()">${t('cancel')}</button></div></div></div>`}
 function shAdd(){shRead();(PL.shDeps=PL.shDeps||[]).push({t:'',y:'FS',l:0});renderPlan()}
 function shDel(i){shRead();PL.shDeps.splice(i,1);renderPlan()}
-function shRead(){(PL.shDeps||[]).forEach((e,i)=>{const a=$('sd_t'+i);if(a){e.t=a.value;e.y=$('sd_y'+i).value;e.l=+String($('sd_l'+i).value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0}})}
+function shRead(){(PL.shDeps||[]).forEach((e,i)=>{const a=$('sd_t'+i);if(a){e.t=a.value;e.y=$('sd_y'+i).value;e.l=+String($('sd_l'+i).value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0}})}
 function shSub(){const id=PL.ed;shSave(true);PL.ed=null;addTask(id)}
 function shSave(keep){norm();const x=byId(PL.ed);if(!x)return;const ed=PL.canEdit,trk=PL.trk,leaf=isLeaf(x);snap();
  if(PL.rev&&$('sh_rn'))x.rn=$('sh_rn').value.trim();
  if(ed){x.n=$('sh_n').value.trim();const w=$('sh_w').value,wn=$('sh_wn').value.trim();x.w=w;x.wn=w?'':wn;x.nt=$('sh_nt').value;
   if(leaf){const s=$('sh_s').value,e=$('sh_e').value;x.ms=$('sh_ms').checked?1:0;if(x.ms){x.s=s?ds(nextWork(dn(s))):'';x.e=x.s}else{x.s=s?ds(nextWork(dn(s))):'';x.e=e?ds(prevWork(dn(e))):x.e;if(x.s&&x.e&&dn(x.e)<dn(x.s))x.e=x.s}
-   shRead();const deps=(PL.shDeps||[]).filter(e=>e.t);const ok=[];for(const e of deps){if(reaches(x.id,e.t,succMap())){msg(t('pl_cycle'));continue}if(!ok.some(q=>q.t==e.t))ok.push(e)}x.dep=ok}}
- if(trk&&leaf){x.as=$('sh_as').value;x.ae=$('sh_ae').value;x.pc=Math.max(0,Math.min(100,+String($('sh_pc').value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0));if(x.ae&&x.pc<100)x.pc=100}
+  }
+  shRead();{const deps=(PL.shDeps||[]).filter(e=>e.t);const ok=[];for(const e of deps){if(reaches(x.id,e.t,succMap())){msg(t('pl_cycle'));continue}if(!ok.some(q=>q.t==e.t))ok.push(e)}x.dep=ok}}
+ if(trk&&leaf){x.as=$('sh_as').value;x.ae=$('sh_ae').value;x.pc=Math.max(0,Math.min(100,+String($('sh_pc').value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0));if(x.ae&&x.pc<100)x.pc=100}
  if(!keep)PL.ed=null;norm();rollup();propagate();rollup();renderPlan();pSave()}
 document.addEventListener('input',e=>{const x=e.target;
  if(x.id=='sh_s'||x.id=='sh_e'){const a=dn($('sh_s').value),b=dn($('sh_e').value),u=$('sh_du');if(u)u.value=(isNaN(a)||isNaN(b)||b<a)?'':wdays(a,b)}
- if(x.id=='sh_du'){const du=Math.max(1,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||0);let a=dn($('sh_s').value);if(!du)return;if(isNaN(a)){const b=dn(cr.data.sdate);a=nextWork(isNaN(b)?todayN():b);$('sh_s').value=ds(a)}a=nextWork(a);$('sh_s').value=ds(a);$('sh_e').value=ds(addWork(a,du-1))}});
+ if(x.id=='sh_du'){const du=Math.max(1,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0);let a=dn($('sh_s').value);if(!du)return;if(isNaN(a)){const b=dn(cr.data.sdate);a=nextWork(isNaN(b)?todayN():b);$('sh_s').value=ds(a)}a=nextWork(a);$('sh_s').value=ds(a);$('sh_e').value=ds(addWork(a,du-1))}});
 // ===== Excel / paste import & export =====
 const XL_AR=['رقم WBS','اسم النشاط','تاريخ البداية','تاريخ النهاية','المكلّف','يسبقه','ملاحظات','البداية الفعلية','النهاية الفعلية','نسبة الإنجاز %'];
 const XL_EN=['WBS no.','Activity name','Start date','End date','Assigned to','Predecessors','Notes','Actual start','Actual end','Progress %'];
@@ -1643,7 +1742,7 @@ function xlExport(tpl){const a=lang=='ar';let rows=[xlH()];
  dl(blob,(tpl?'Plan-template-':'Plan-'+(cr.code||'')+'-')+stamp()+'.xlsx')}
 function xlOpen(){PL.xl=true;PL.imp=null;renderPlan();const b=$('xlbox');if(b)b.scrollIntoView({block:'nearest'})}
 function xlClose(){PL.xl=false;PL.imp=null;renderPlan()}
-const A2E=s=>String(s).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
+const A2E=s=>String(s).replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[0-9]/g,c=>'0123456789'.indexOf(c));
 function parseDate(v){if(v==null||v==='')return'';if(v instanceof Date&&!isNaN(v))return ds(Math.round(v.getTime()/864e5));if(typeof v=='number'&&v>20000&&v<80000)return ds(Math.round(v)-25569);
  const s=A2E(String(v)).trim();let m=/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/.exec(s);if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
  m=/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/.exec(s);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
@@ -1720,7 +1819,7 @@ function rollup(){const ts=T();for(let i=ts.length-1;i>=0;i--){const x=ts[i],m=M
   let s=1e12,e=-1e12,as=1e12,aeAll=true,ae=-1e12,pc=0;const ws=wOf(m.kids);
   m.kids.forEach((k,j)=>{const a=dn(k.s),b=dn(k.e);if(!isNaN(a)&&a<s)s=a;if(!isNaN(b)&&b>e)e=b;pc+=(+k.pc||0)*ws[j]/100;M[k.id].pw=ws[j];
    const a2=dn(k.as),b2=dn(k.ae);if(!isNaN(a2)&&a2<as)as=a2;if(isNaN(b2))aeAll=false;else if(b2>ae)ae=b2});
-  x.s=s<1e12?ds(s):'';x.e=e>-1e12?ds(e):'';x.pc=Math.round(pc);x.dep=[];x.ms=0;x.fx=0;
+  x.s=s<1e12?ds(s):'';x.e=e>-1e12?ds(e):'';x.pc=Math.round(pc);x.ms=0;x.fx=0;
   x.as=as<1e12?ds(as):'';x.ae=aeAll&&ae>-1e12?ds(ae):''}
  const roots=ts.filter(x=>!x.p),rw=wOf(roots);roots.forEach((k,j)=>{if(M[k.id])M[k.id].pw=rw[j]})}
 function planPct(){const roots=T().filter(x=>!x.p),ws=wOf(roots);return Math.round(roots.reduce((a,k,j)=>a+(+k.pc||0)*ws[j]/100,0))}
@@ -1736,10 +1835,20 @@ function backward(){const lv=T().filter(isLeaf),anch=new Set(lv.filter(x=>x.fx).
     else if(ty=='FF'){const le=prevWork(inv(ye,l));if(pe>le)ne=le}
     else{const ls=prevWork(inv(ye,l));if(ps>ls)ne=addWork(ls,du-1)}
     if(ne!=null){const ns=subWork(ne,du-1);p.s=ds(ns);p.e=ds(ne);anch.add(p.id);ch=true}}}}}
+const linkOK=(x,z)=>z.id!=x.id&&!isDesc(z,x.id)&&!isDesc(x,z.id);
+function leavesOf(id){const x=byId(id);if(!x)return[];if(isLeaf(x))return[x];return T().filter(z=>isLeaf(z)&&isDesc(z,id))}
+function spanOf(id){let a=1e12,b=-1e12;leavesOf(id).forEach(z=>{const s=dn(z.s),e=dn(z.e);if(!isNaN(s)&&s<a)a=s;if(!isNaN(e)&&e>b)b=e});return a<1e12&&b>-1e12?[a,b]:null}
+function need(x,e){const sp=spanOf(e.t);if(!sp)return null;const ps=sp[0],pe=sp[1],l=+e.l||0,y=e.y||'FS';
+ if(y=='FS')return{s:lagged(nextWork(pe+1),l)};if(y=='SS')return{s:lagged(nextWork(ps),l)};if(y=='FF')return{e:lagged(nextWork(pe),l)};return{e:lagged(nextWork(ps),l)}}
+function violated(x){const sp=spanOf(x.id);if(!sp)return false;let bad=false;(x.dep||[]).forEach(e=>{const n=need(x,e);if(!n)return;if(n.s!=null&&sp[0]<n.s)bad=true;if(n.e!=null&&sp[1]<n.e)bad=true});return bad}
+function groupShift(){let moved=0;T().filter(x=>!isLeaf(x)&&(x.dep||[]).length).forEach(x=>{const sp=spanOf(x.id);if(!sp)return;let dd=0;
+  (x.dep||[]).forEach(e=>{const n=need(x,e);if(!n)return;if(n.s!=null&&n.s>sp[0])dd=Math.max(dd,n.s-sp[0]);if(n.e!=null&&n.e>sp[1])dd=Math.max(dd,n.e-sp[1])});
+  if(dd>0){leavesOf(x.id).forEach(z=>{const a=dn(z.s),du=durOf(z);if(isNaN(a)||z.fx)return;const ns=nextWork(a+dd);z.s=ds(ns);z.e=ds(addWork(ns,du-1))});moved++}});return moved}
 function propagate(){backward();const lv=T().filter(isLeaf);let ch=true,pass=0,moved=0;
  while(ch&&pass++<lv.length+3){ch=false;for(const x of lv){if(x.fx)continue;const s=dn(x.s);if(isNaN(s))continue;const du=durOf(x);let s2=s;
   for(const e of x.dep||[]){const n=need(x,e);if(!n)continue;if(n.s!=null&&n.s>s2)s2=n.s;if(n.e!=null){const f=subWork(n.e,du-1);if(f>s2)s2=f}}
-  if(s2>s){s2=nextWork(s2);x.s=ds(s2);x.e=ds(addWork(s2,du-1));ch=true;moved++}}}
+  if(s2>s){s2=nextWork(s2);x.s=ds(s2);x.e=ds(addWork(s2,du-1));ch=true;moved++}}
+  if(groupShift()){ch=true}}
  return moved}
 function togFx(id){mut(()=>{const x=byId(id);x.fx=x.fx?0:1;if(x.fx)propagate()},true)}
 // ---- weights ui ----
@@ -1755,7 +1864,7 @@ function defDates(par,after){const d=cr.data;let s=dn(after&&after.e)+1;
 function fillWho(){T().forEach(z=>{if(z._ne&&isLeaf(z)&&!z.w&&!String(z.wn||'').trim()&&me)z.w=me.id})}
 function addTask(parent,afterId){fillWho();mut(()=>{const par=parent||'',ts=T(),after=afterId?byId(afterId):null;
   const [s,e]=defDates(par,after);const x=blankTask(par,s,e);x._ne=1;
-  if(par&&byId(par)&&!M[par].kids.length){const pp=byId(par);if(!isNaN(dn(pp.s))&&!isNaN(dn(pp.e)))pp.pd=durOf(pp);x.s=pp.s||s;x.e=pp.e||e;x.w=pp.w||'';x.wn=pp.wn||'';pp.dep=[];(ts.forEach(z=>{z.dep=(z.dep||[]).filter(q=>q.t!=par)}))}
+  if(par&&byId(par)&&!M[par].kids.length){const pp=byId(par);if(!isNaN(dn(pp.s))&&!isNaN(dn(pp.e)))pp.pd=durOf(pp);x.s=pp.s||s;x.e=pp.e||e;x.w=pp.w||'';x.wn=pp.wn||'';}
   let idx=ts.length;if(after){idx=ts.indexOf(after)+1;while(idx<ts.length&&isDesc(ts[idx],after.id))idx++}else if(par){const pi=ts.indexOf(byId(par));idx=pi+1;while(idx<ts.length&&isDesc(ts[idx],par))idx++}
   ts.splice(idx,0,x);PL.sel=x.id;PL.focus=x.id;if(par)delete PL.coll[par]});}
 // ---- levels (1..5) ----
@@ -1797,27 +1906,51 @@ function qabH(){if(!PL.canEdit)return '';const ts=T();const ref=(PL.sel&&byId(PL
  return `<div class="qab"><div class="qh">${t('pl_addAfter')} <b>${esc(M[ref.id].w)} ${esc(ref.n||'…')}</b></div><div class="lvr">${btns.join('')}</div></div>`}
 // ---- rows ----
 const wkHint=x=>{const a=dn(x.s);if(isNaN(a))return '';if(isHol(a))return t('pl_wkhol')+': '+esc(calCfg().hol[ds(a)]);if(isOff(a))return t('pl_wkend');return ''};
-function colsFor(){const trk=PL.trk,wt=cr.data.wmode=='cu'||PL.adv;return '64px minmax(160px,3fr) 128px 128px 60px minmax(110px,1.4fr) minmax(110px,1.4fr)'+(wt?' 66px':'')+(trk?' 120px 120px 56px':'')+' 76px'}
+// ---- column system (resizable, optional, remembered) ----
+const CDEF={w:{w:64,l:'#'},n:{w:260,l:'pl_name'},s:{w:128,l:'pl_start'},e:{w:128,l:'pl_end'},d:{w:72,l:'pl_dur'},a:{w:160,l:'pl_who'},p:{w:160,l:'pl_after'},wt:{w:90,l:'pl_wLbl'},as:{w:128,l:'pl_astart'},ae:{w:128,l:'pl_aend'},pc:{w:72,l:'pl_pct'},st:{w:110,l:'pl_stat'},rn:{w:220,l:'pl_revNote'},x:{w:84,l:''}};
+const COPT=['s','e','d','a','p','wt','st','rn'],CDEFOFF=['st','rn'];
+function ccLoad(){if(PL.cc)return PL.cc;let o=null;try{o=JSON.parse(localStorage.getItem('pl_cc2')||'null')}catch(_){}PL.cc=o&&o.w?o:{w:{},off:CDEFOFF.slice()};if(!PL.cc.off)PL.cc.off=CDEFOFF.slice();if(!PL.cc.g)PL.cc.g={};if(!PL.cc.goff)PL.cc.goff=['d','wt','p'];return PL.cc}
+function ccSave(){try{localStorage.setItem('pl_cc2',JSON.stringify(PL.cc))}catch(_){}}
+const narrow=()=>window.innerWidth<700;
+function colOn(k){const c=ccLoad();if(narrow())return !CDEFOFF.includes(k);return !c.off.includes(k)}
+function colList(){const a=['w','n'];['s','e','d','a','p','wt'].forEach(k=>{if(colOn(k))a.push(k)});if(PL.trk)a.push('as','ae','pc');['st','rn'].forEach(k=>{if(colOn(k))a.push(k)});a.push('x');return a}
+const cw=k=>Math.max(44,Math.round((ccLoad().w[k]||CDEF[k].w)));
+function colsFor(){return colList().map(k=>k=='n'?`minmax(${cw(k)}px,1fr)`:cw(k)+'px').join(' ')}
+const colsW=()=>colList().reduce((a,k)=>a+cw(k)+6,16);
+function stOf(x){if(!isLeaf(x))return (+x.pc||0)>=100?t('pl_s_done'):'';const pc=+x.pc||0;if(pc>=100)return t('pl_s_done');const b=dn(x.e),a=dn(x.s),n=todayN();if(!PL.trk&&PL.st!='Approved')return '';if(!isNaN(b)&&n>b)return t('pl_s_late');if(pc>0||(!isNaN(a)&&n>=a))return t('pl_s_prog');return t('pl_s_new')}
+function colMenuH(){const c=ccLoad();return `<details class="cmn"><summary>⚙ ${t('pl_cols')}</summary><div class="cmb">${COPT.map(k=>`<label><input type="checkbox" ${!c.off.includes(k)?'checked':''} onchange="colTog('${k}',this.checked)"> ${t(CDEF[k].l)}</label>`).join('')}<div class="row" style="margin:6px 0 0"><button class="sm" onclick="colReset()">${t('pl_colReset')}</button><button class="sm" onclick="normW()">⚖ ${t('pl_normW')}</button></div><div class="mut" style="font-size:12px;margin-top:4px">${t('pl_colH')}</div></div></details>`}
+function colTog(k,on){const c=ccLoad();c.off=c.off.filter(z=>z!=k);if(!on)c.off.push(k);ccSave();renderPlan()}
+function colReset(){PL.cc={w:{},off:CDEFOFF.slice(),g:{},goff:['d','wt','p']};ccSave();renderPlan()}
+function normW(){snap();const d=cr.data;if(d.wmode!='cu'){d.wmode='cu';T().forEach(x=>{x.wt=Math.round((M[x.id]&&M[x.id].pw||0)*10)/10})}
+ const g={};T().forEach(x=>{(g[x.p||'']=g[x.p||'']||[]).push(x)});Object.values(g).forEach(a=>{const s=a.reduce((q,x)=>q+(+x.wt||0),0);if(s>0)a.forEach(x=>x.wt=Math.round((+x.wt||0)*1000/s)/10);else a.forEach(x=>x.wt=Math.round(1000/a.length)/10)});norm();rollup();renderPlan();pSave()}
+function wSum(x){const k=M[x.id].kids;if(!k.length)return '';const s=cr.data.wmode=='cu'?k.reduce((a,z)=>a+(+z.wt||0),0):100;return Math.round(s*10)/10}
+function hdrCell(k){const L=CDEF[k].l;return `<div class="hc" data-ck="${k}">${k=='w'?'#':(L?t(L):'')}${k!='x'?`<i class="rz" data-k="${k}"></i>`:''}</div>`}
 function tableH(){const ts=T();if(!ts.length&&!PL.canEdit)return `<div class="mut">${t('pl_empty')}</div>`;if(!ts.length&&PL.canEdit&&!PL.start&&!PL.tpl){PL.start=true;return ''}
- const trk=PL.trk,wt=cr.data.wmode=='cu'||PL.adv;
- const hd=`<div class="pr ph"><div>#</div><div>${t('pl_name')}</div><div>${t('pl_start')}</div><div>${t('pl_end')}</div><div>${t('pl_dur')}</div><div>${t('pl_who')}</div><div>${t('pl_after')}</div>${wt?`<div>${t('pl_wLbl')}</div>`:''}${trk?`<div>${t('pl_astart')}</div><div>${t('pl_aend')}</div><div>${t('pl_pct')}</div>`:''}<div></div></div>`;
- return `<div class="ptab ${trk?'trk':''}" style="--gc:${colsFor()}">${hd}${visible().map(x=>rowH2(x)).join('')}</div>`}
+ const trk=PL.trk,cols=colList();
+ const hd=`<div class="pr ph">${cols.map(hdrCell).join('')}</div>`;
+ return `<div class="ptcb">${colMenuH()}</div><div class="ptw"><div class="ptab ${trk?'trk':''}" id="ptab" style="--gc:${colsFor()};--tw:${colsW()}px">${hd}${visible().map(x=>rowH2(x)).join('')}</div></div>`}
+// column resize (pointer)
+document.addEventListener('pointerdown',ev=>{const h=ev.target.closest&&ev.target.closest('.rz');if(!h)return;ev.preventDefault();ev.stopPropagation();const k=h.dataset.k,c=ccLoad(),gp=!!h.closest('.glh'),st=gp?c.g:c.w,x0=ev.clientX,w0=gp?gcw(k):cw(k),rtl=document.documentElement.dir=='rtl'&&!gp,tb=$('ptab');
+ const mv=e=>{const dx=(e.clientX-x0)*(rtl?-1:1);st[k]=Math.max(40,w0+dx);if(tb){tb.style.setProperty('--gc',colsFor());tb.style.setProperty('--tw',colsW()+'px')}else if(typeof gLive=='function')gLive()};
+ const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);ccSave()};document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up)},true);
 function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,sel=PL.sel==x.id,dis=ed?'':'disabled',adv=PL.adv,cu=cr.data.wmode=='cu',wt=cu||adv;
- const afterCtl=!leaf?'<span class="mut">—</span>':(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select class="srch" data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
+ const afterCtl=(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select class="srch" data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
  const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select>`;
  const crit=CP.crit.has(x.id),hint=leaf?wkHint(x):'';
  const sum=`${esc(x.s||'—')} → ${esc(x.e||'—')}${leaf&&!isNaN(dn(x.s))&&!isNaN(dn(x.e))?' · '+ad(durOf(x))+' '+t('pl_days'):''}${whoName(x)?' · '+esc(whoName(x)):''}`;
  return `<div class="pr d${lvc(m.d)} ${sel?'sel':''} ${leaf?'':'sum'} ${crit?'crit':''}" data-id="${x.id}" onclick="rowClick(event,'${x.id}')">
-  <div class="c-w" data-l="#">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span></div>
-  <div class="c-n" data-l="${t('pl_name')}"><input data-pk="n" value="${esc(x.n)}" ${dis} placeholder="${t('pl_namePh')}">${x.fx?'<span class="pin" title="'+t('pl_pin')+'">📌</span>':''}</div>
+  <div class="c-w" data-l="#">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span>${ed?`<span class="dg" data-dg="${x.id}" title="${t('pl_dragRow')}">⠿</span>`:''}</div>
+  <div class="c-n" data-l="${t('pl_name')}"><input data-pk="n" value="${esc(x.n)}" ${dis} placeholder="${t('pl_namePh')}" title="${esc(x.n||'')}">${x.fx?'<span class="pin" title="'+t('pl_pin')+'">📌</span>':''}</div>
   <div class="c-sum">${sum}${x.rn?' · 💬':''}</div>
-  <div class="c-s" data-l="${t('pl_start')}"><input type="date" data-pk="s" value="${esc(x.s)}" ${(!ed||!leaf)?'disabled':''}>${hint?`<div class="wkh">${hint}</div>`:''}</div>
-  <div class="c-e" data-l="${t('pl_end')}"><input type="date" data-pk="e" value="${esc(x.e)}" ${(!ed||!leaf)?'disabled':''}></div>
-  <div class="c-d" data-l="${t('pl_dur')}"><input data-pk="du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${(!ed||!leaf)?'disabled':''}></div>
-  <div class="c-a" data-l="${t('pl_who')}">${whoCtl}</div>
-  <div class="c-p" data-l="${t('pl_after')}">${afterCtl}</div>
-  ${wt?`<div class="c-wt" data-l="${t('pl_wLbl')}"><input data-pk="wt" inputmode="decimal" value="${cu?(x.wt==null?'':x.wt):Math.round((m.pw||0)*10)/10}" ${(!ed||!cu)?'disabled':''}></div>`:''}
+  ${colOn('s')?`<div class="c-s" data-l="${t('pl_start')}"><input type="date" data-pk="s" value="${esc(x.s)}" ${(!ed||!leaf)?'disabled':''}>${hint?`<div class="wkh">${hint}</div>`:''}</div>`:''}
+  ${colOn('e')?`<div class="c-e" data-l="${t('pl_end')}"><input type="date" data-pk="e" value="${esc(x.e)}" ${(!ed||!leaf)?'disabled':''}></div>`:''}
+  ${colOn('d')?`<div class="c-d" data-l="${t('pl_dur')}"><input data-pk="du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${(!ed||!leaf)?'disabled':''}></div>`:''}
+  ${colOn('a')?`<div class="c-a" data-l="${t('pl_who')}">${whoCtl}</div>`:''}
+  ${colOn('p')?`<div class="c-p" data-l="${t('pl_after')}">${afterCtl}</div>`:''}
+  ${colOn('wt')?`<div class="c-wt" data-l="${t('pl_wLbl')}"><input data-pk="wt" inputmode="decimal" value="${leaf||cu?(cu?(x.wt==null?'':x.wt):Math.round((m.pw||0)*10)/10):''}" ${(!ed||!M[x.id].par&&false)?'disabled':''} ${!ed?'disabled':''} title="${t('pl_wTip')}">${m.kids.length?`<small class="wsm ${cu&&Math.abs(wSum(x)-100)>0.6?'bad':''}" title="${t('pl_wKids')}">Σ ${wSum(x)}</small>`:''}</div>`:''}
   ${trk?`<div class="c-as" data-l="${t('pl_astart')}"><input type="date" data-pk="as" value="${esc(x.as)}" ${leaf?'':'disabled'}></div><div class="c-ae" data-l="${t('pl_aend')}"><input type="date" data-pk="ae" value="${esc(x.ae)}" ${leaf?'':'disabled'}></div><div class="c-pc" data-l="${t('pl_pct')}"><input data-pk="pc" inputmode="numeric" value="${x.pc||0}" ${leaf?'':'disabled'}></div>`:''}
+   ${colOn('st')?`<div class="c-st" data-l="${t('pl_stat')}">${esc(stOf(x))}</div>`:''}
+  ${colOn('rn')?`<div class="c-rn" data-l="${t('pl_revNote')}" title="${esc(x.rn||'')}">${esc(x.rn||'')}</div>`:''}
   <div class="c-x"><button class="sm" onclick="event.stopPropagation();openSheet('${x.id}')" title="${t('pl_edit')}">✎</button>${PL.rev?`<button class="sm" onclick="event.stopPropagation();rnEdit('${x.id}')" title="${t('pl_revNote')}">💬</button>`:''}</div>
   ${x.rn||PL.rne==x.id?`<div class="rnr" onclick="event.stopPropagation()">${PL.rev&&PL.rne==x.id?`<textarea id="rn_${x.id}" rows="2" placeholder="${t('pl_revNote')}">${esc(x.rn||'')}</textarea><div class="row" style="margin:4px 0 0"><button class="sm p" onclick="rnSave('${x.id}')">${t('pl_revNoteSave')}</button><button class="sm" onclick="PL.rne=null;renderPlan()">${t('cancel')}</button></div>`:`💬 <b>${t('pl_revNote')}:</b> ${esc(x.rn)}`}</div>`:''}
   ${sel&&ed?rowActs(x):''}</div>`}
@@ -1832,14 +1965,14 @@ function rowActs(x){const m=M[x.id],md=maxDepth();
  <div class="ral2"><button onclick="moveTask('${x.id}',-1)">▲ ${t('pl_up')}</button><button onclick="moveTask('${x.id}',1)">▼ ${t('pl_down')}</button>${md>0?`<button onclick="indentTask('${x.id}')">⇥ ${t('pl_lower')}</button><button onclick="outdentTask('${x.id}')">⇤ ${t('pl_raise')}</button>`:''}${leaf?`<button onclick="linkPrev('${x.id}')">🔗 ${t('pl_linkPrev')}</button><button class="${x.fx?'on':''}" onclick="togFx('${x.id}')" title="${t('pl_pinH')}">📌 ${t('pl_pin')}${x.fx?' ✓':''}</button>`:''}<button class="r" onclick="delTask('${x.id}')">🗑 ${t('pl_del')}</button></div></div>`}
 function addAtLevel(id,k){const x=byId(id),m=M[id];if(!x)return;if(k==m.d+2)return addTask(id);const chain=[];let c=x;while(c){chain.unshift(c);c=M[c.id].par}const a=chain[k-1]||x;addTask(a.p||'',a.id)}
 // ---- date edits: weekend dates are allowed (soft hint) ----
-function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest('.pr');if(!row)return;const t0=byId(row.dataset.id);if(!t0)return;
+function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest('.pr,.grl');if(!row)return;const t0=byId(row.dataset.id);if(!t0)return;
  if(k=='n'||k=='pc')return;
  snap();
  if(k=='s'){const old=(!isNaN(dn(t0.s))&&!isNaN(dn(t0.e)))?durOf(t0):3,a=dn(x.value);if(isNaN(a)){t0.s=''}else{t0.s=ds(a);t0.e=ds(addWork(a,old-1))}afterDates(t0)}
  else if(k=='e'){t0.e=x.value;const a=dn(t0.s),b=dn(t0.e);if(!isNaN(b)&&isNaN(a)){t0.s=ds(prevWork(b))}afterDates(t0)}
- else if(k=='du'){const du=Math.max(1,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c))||1);if(isNaN(dn(t0.s))){const b=PL.canEdit?dn(cr.data.sdate):NaN;t0.s=ds(isNaN(b)?todayN():b)}t0.e=ds(addWork(dn(t0.s),du-1));afterDates(t0)}
+ else if(k=='du'){const du=Math.max(1,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||1);if(isNaN(dn(t0.s))){const b=PL.canEdit?dn(cr.data.sdate):NaN;t0.s=ds(isNaN(b)?todayN():b)}t0.e=ds(addWork(dn(t0.s),du-1));afterDates(t0)}
  else if(k=='w'){if(x.value=='__n'){}else{t0.w=x.value;if(x.value)t0.wn=''}pSave();return}
- else if(k=='wt'){t0.wt=Math.max(0,Math.min(100,+String(x.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace('٫','.')||0));norm();rollup();renderPlan();pSave();return}
+ else if(k=='wt'){const d=cr.data;if(d.wmode!='cu'){d.wmode='cu';T().forEach(z=>{z.wt=Math.round((M[z.id]&&M[z.id].pw||0)*10)/10})}t0.wt=Math.max(0,Math.min(100,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace('٫','.')||0));norm();rollup();renderPlan();pSave();return}
  else if(k=='as'||k=='ae'){t0[k]=x.value;if(k=='ae'&&x.value&&(+t0.pc||0)<100)t0.pc=100;norm();rollup();renderPlan();pSave();return}
  else if(k=='pred'){const r=parsePred(x.value,t0);if(r.errs.length){msg(t('pl_predBad')+r.errs.join(', '));renderPlan();return}
    const old=t0.dep;t0.dep=r.out;if(r.out.some(e=>reaches(t0.id,e.t,succMap()))){t0.dep=old;msg(t('pl_cycle'));renderPlan();return}afterDates(t0)}
@@ -1867,7 +2000,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
   const body=PL.view=='gantt'?ganttH():(PL.view=='wbs'?wbsH():tableH()),ed=PL.canEdit,er=issues().some(i=>i.e);
   h=rnoteH()+diffH()+(ed&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
    +(ed?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')
-   +(ed&&T().length?`<div class="rdy ${er?'':'ok'}">${er?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')
+   +(ed&&!PL.aed&&T().length?`<div class="rdy ${er?'':'ok'}">${er?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')
    +legend()+sheetH()+impH()+(ed&&PL.view=='list'?qabH():'')}
  el.innerHTML=h;
  if(PL.view=='gantt'&&$('gx')){bindGantt(sc)}
@@ -1895,6 +2028,101 @@ function printPlan(){norm();rollup();cpm();const d=cr.data,css=[...document.styl
  <table><thead><tr><th>#</th><th>${t('pl_name')}</th><th>${t('pl_start')}</th><th>${t('pl_end')}</th><th>${t('pl_dur')}</th><th>${t('pl_who')}</th><th>${t('pl_after')}</th><th>${t('pl_wLbl')}</th><th>${t('pl_pct')}</th><th>${t('pl_revNote')}</th></tr></thead><tbody>${rows}</tbody></table>
  <div class="pg2"><h1>${t('pl_vGantt')}</h1>${g}</div></div><script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
  const w=window.open('','_blank');if(!w)return msg(lang=='ar'?'اسمح بالنوافذ المنبثقة لتنزيل الملف.':'Allow pop-ups to download.');w.document.open();w.document.write(html);w.document.close()}
+// ---- critical path (work-day based; full path incl. summary rows) ----
+function cpm(){CP={crit:new Set(),on:false};const lv=T().filter(x=>isLeaf(x)&&!isNaN(dn(x.s))&&!isNaN(dn(x.e)));if(lv.length<2)return;
+ const ids=new Set(lv.map(x=>x.id)),mp=succMap(),linked=new Set();let any=false;
+ lv.forEach(x=>(x.dep||[]).forEach(e=>{if(ids.has(e.t)){linked.add(x.id);linked.add(e.t);any=true}}));if(!any)return;
+ const lo=Math.min(...lv.map(x=>dn(x.s))),hi=Math.max(...lv.map(x=>dn(x.e)))+400,IX={};let c=0;
+ for(let n=lo;n<=hi;n++){IX[n]=c;if(!isOff(n)&&!isHol(n))c++}
+ const wi=n=>{if(IX[n]!=null)return IX[n];return n<lo?0:c};
+ const ES={},EF={},du={};lv.forEach(x=>{ES[x.id]=wi(nextWork(dn(x.s)));du[x.id]=Math.max(1,durOf(x));EF[x.id]=ES[x.id]+du[x.id]});
+ const indeg={};lv.forEach(x=>indeg[x.id]=0);lv.forEach(x=>(x.dep||[]).forEach(e=>{if(ids.has(e.t))indeg[x.id]++}));
+ const q=lv.filter(x=>!indeg[x.id]).map(x=>x.id),order=[];while(q.length){const k=q.shift();order.push(k);(mp[k]||[]).forEach(e=>{if(ids.has(e.to)&&--indeg[e.to]==0)q.push(e.to)})}
+ if(order.length<lv.length)return;
+ const end=Math.max(...lv.map(x=>EF[x.id])),LS={},LF={};
+ for(let i=order.length-1;i>=0;i--){const x=byId(order[i]),id=x.id;let lf=end,ls=null;
+  (mp[id]||[]).forEach(e=>{if(!ids.has(e.to))return;const l=e.l;
+   if(e.y=='FS')lf=Math.min(lf,LS[e.to]-l);else if(e.y=='FF')lf=Math.min(lf,LF[e.to]-l);else if(e.y=='SS'){const v=LS[e.to]-l;ls=ls==null?v:Math.min(ls,v)}else{const v=LF[e.to]-l;ls=ls==null?v:Math.min(ls,v)}});
+  let s2=lf-du[id];if(ls!=null&&ls<s2)s2=ls;LS[id]=s2;LF[id]=s2+du[id]}
+ lv.forEach(x=>{if(linked.has(x.id)&&LS[x.id]-ES[x.id]<=0)CP.crit.add(x.id)});
+ T().forEach(x=>{if(!isLeaf(x)&&T().some(k=>CP.crit.has(k.id)&&isDesc(k,x.id)))CP.crit.add(x.id)});
+ CP.on=CP.crit.size>0}
+// ===== v3: gantt side table (editable, resizable columns), row drag, tooltips, link editing, WBS tree =====
+const GDEF={w:50,n:170,s:96,e:96,d:52,a:104,wt:60,p:100,pc:52};
+const gAvail=()=>window.innerWidth>=900?Math.min(1400,window.innerWidth-24):window.innerWidth-28;
+const gcw=k=>Math.max(40,Math.round(ccLoad().g[k]||GDEF[k]||80));
+function gcolList(wide){if(!wide)return PL.trk?['w','n','pc']:['w','n'];const a=['w','n'];['s','e','d','a','wt','p'].forEach(k=>{if(!ccLoad().goff.includes(k))a.push(k)});if(PL.trk)a.push('pc');return a}
+function gcolsCss(gc,wide){if(!wide)return PL.trk?'34px 1fr 38px':'34px 1fr';return gc.map(k=>gcw(k)+'px').join(' ')}
+function gLW(gc,wide){if(!wide)return PL.trk?150:136;return gc.reduce((a,k)=>a+gcw(k)+6,14)}
+function gHead(gc,wide){return `<div class="glh">${gc.map(k=>{const L=CDEF[k].l;return `<div class="hc" data-ck="${k}">${k=='w'?'#':(L?t(L):'')}${wide?`<i class="rz" data-k="${k}"></i>`:''}</div>`}).join('')}</div>`}
+function gCell(k,x,m,leaf,ed,wide){const dis=ed?'':'disabled',ld=(!ed||!leaf)?'disabled':'';
+ if(k=='w')return `<div class="gcw">${m.kids.length?`<button class="cl" data-tc="${x.id}">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span>${ed&&wide?`<span class="dg" data-dg="${x.id}" title="${t('pl_dragRow')}">⠿</span>`:''}</div>`;
+ if(k=='n'){const ck=PL.trk&&leaf?`<button class="gck ${(+x.pc||0)>=100?'on':''}" data-ck="${x.id}" title="${t('pl_markDone')}">✓</button>`:'';
+  if(ed&&wide)return `<div class="gcn"><input data-pk="n" value="${esc(x.n)}" title="${esc(x.n||'')}" placeholder="${t('pl_namePh')}">${x.fx?'📌':''}${x.rn?'💬':''}${ck}</div>`;
+  return `<div class="gcn"><span class="nm" title="${esc(x.n||'')}">${x.fx?'📌 ':''}${esc(x.n||'—')}${x.rn?' 💬':''}</span>${ck}</div>`}
+ if(k=='s')return ed&&wide?`<div><input type="date" data-pk="s" value="${esc(x.s)}" ${ld}></div>`:`<div class="gct">${esc(x.s)}</div>`;
+ if(k=='e')return ed&&wide?`<div><input type="date" data-pk="e" value="${esc(x.e)}" ${ld}></div>`:`<div class="gct">${esc(x.e)}</div>`;
+ if(k=='d')return `<div><input data-pk="du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${ld}></div>`;
+ if(k=='a')return ed?`<div><select class="srch" data-pk="w">${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select></div>`:`<div class="gct" title="${esc(whoName(x))}">${esc(whoName(x))}</div>`;
+ if(k=='wt'){const cu=cr.data.wmode=='cu';return `<div><input data-pk="wt" inputmode="decimal" value="${leaf||cu?(cu?(x.wt==null?'':x.wt):Math.round((m.pw||0)*10)/10):''}" ${dis} title="${t('pl_wTip')}"></div>`}
+ if(k=='p')return ed?`<div><input data-pk="pred" value="${esc(predText(x))}" placeholder="1.1, 2.3SS+2" dir="ltr"></div>`:`<div class="gct" dir="ltr">${esc(predText(x))}</div>`;
+ if(k=='pc')return `<div><input data-pk="pc" inputmode="numeric" value="${x.pc||0}" ${leaf&&(PL.trk||ed)?'':'disabled'}></div>`;
+ return '<div></div>'}
+function gRow(x,gc,wide){const m=M[x.id],leaf=!m.kids.length,ed=PL.canEdit;
+ return `<div class="grl d${lvc(m.d)} ${m.kids.length?'sum':''} ${PL.sel==x.id?'sel':''}" data-id="${x.id}" style="height:${RH}px">${gc.map(k=>gCell(k,x,m,leaf,ed,wide)).join('')}</div>`}
+function gLive(){const g=document.querySelector('.gin');if(!g||!GZ.gc)return;const LW=gLW(GZ.gc,GZ.wide);GZ.LW=LW;g.style.setProperty('--gpc',gcolsCss(GZ.gc,GZ.wide));g.style.setProperty('--lw',LW+'px');g.style.width=(LW+GZ.W)+'px'}
+// ---- row drag & drop reorder ----
+function moveTo(id,tid,after){const ts=T(),x=byId(id),t0=byId(tid);if(!x||!t0||id==tid||isDesc(t0,id))return;
+ const sd=Math.max(...ts.filter(z=>z.id==id||isDesc(z,id)).map(z=>M[z.id].d))-M[id].d;if(M[tid].d+sd>maxDepth())return msg(t('pl_maxLvl'));
+ mut(()=>{const [i,j]=subtree(id),blk=ts.splice(i,j-i);const [ti,tj]=subtree(tid);x.p=t0.p||'';ts.splice(after?tj:ti,0,...blk)},true)}
+document.addEventListener('pointerdown',ev=>{const h=ev.target.closest&&ev.target.closest('.dg');if(!h||!PL.canEdit)return;ev.preventDefault();ev.stopPropagation();
+ const id=h.dataset.dg,row=h.closest('.pr,.grl');if(!row)return;row.classList.add('dragging');let tg=null,aft=false,raf=0;
+ const clear=()=>document.querySelectorAll('.dropa,.dropb').forEach(e=>e.classList.remove('dropa','dropb'));
+ const mv=e=>{clear();const el=document.elementFromPoint(e.clientX,e.clientY),r=el&&el.closest&&el.closest('.pr[data-id],.grl[data-id]');
+  if(r&&r.dataset.id!=id&&byId(r.dataset.id)&&!isDesc(byId(r.dataset.id),id)){const b=r.getBoundingClientRect();aft=e.clientY>b.top+b.height/2;tg=r.dataset.id;r.classList.add(aft?'dropb':'dropa')}else tg=null;
+  cancelAnimationFrame(raf);const ey=e.clientY;if(ey<70||ey>window.innerHeight-70){const f=()=>{window.scrollBy(0,ey<70?-12:12);raf=requestAnimationFrame(f)};raf=requestAnimationFrame(f)}};
+ const up=()=>{cancelAnimationFrame(raf);document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);clear();row.classList.remove('dragging');if(tg)moveTo(id,tg,aft)};
+ document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up)},true);
+// ---- hover tooltips (gantt bars, labels, long names) ----
+(function(){let tip=null;const hide=()=>{if(tip){tip.remove();tip=null}};
+ document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('.gx .bar,.gx .blb,.gx .grl .nm,.gx .grl input[data-pk=n],.gx .gm');if(!el||!cr||!cr.data)return;
+  const row=el.closest('[data-id]');const id=row&&row.dataset.id,x=id&&byId(id);if(!x)return;hide();const m=M[id];
+  tip=document.createElement('div');tip.className='gtip';tip.innerHTML=`<b>${esc(m.w)} ${esc(x.n||'—')}</b><div dir="ltr">${esc(x.s||'—')} → ${esc(x.e||'—')}${isLeaf(x)&&!isNaN(dn(x.s))&&!isNaN(dn(x.e))?' · '+durOf(x)+' '+t('pl_days'):''}</div>${whoName(x)?`<div>👤 ${esc(whoName(x))}</div>`:''}<div>📈 ${x.pc||0}% · ⚖ ${Math.round((m.pw||0)*10)/10}%</div>${(x.dep||[]).length?`<div class="mut">${t('pl_after')}: ${esc(predText(x))}</div>`:''}${x.rn?`<div>💬 ${esc(x.rn)}</div>`:''}`;
+  document.body.appendChild(tip);const mvT=ev=>{if(!tip)return;const w=tip.offsetWidth,h2=tip.offsetHeight;let l=ev.clientX+14,tp=ev.clientY+16;if(l+w>window.innerWidth-8)l=ev.clientX-w-14;if(tp+h2>window.innerHeight-8)tp=ev.clientY-h2-14;tip.style.left=Math.max(4,l)+'px';tip.style.top=Math.max(4,tp)+'px'};mvT(e);el._mv=mvT;el.addEventListener('mousemove',mvT);
+  el.addEventListener('mouseleave',()=>{hide();el.removeEventListener('mousemove',mvT)},{once:true})});
+ document.addEventListener('scroll',hide,true)})();
+// ---- edit a link (click an arrow) ----
+document.addEventListener('click',ev=>{const h=ev.target.closest&&ev.target.closest('.ahit');if(!h||!PL.canEdit)return;depEdit(h.dataset.to,+h.dataset.di)},true);
+function depEdit(to,di){const x=byId(to);if(!x||!(x.dep||[])[di])return;const e=x.dep[di];let o=$('nmod');if(o)o.remove();o=document.createElement('div');o.id='nmod';o.className='nov';
+ const nm=z=>esc((M[z.id].w+' '+(z.n||'')).trim());
+ o.innerHTML=`<div class="nbx"><b>🔗 ${t('pl_depEd')}</b><div class="mut" style="margin:4px 0 8px">${nm(x)}</div>
+ <label>${t('pl_depPred')}</label><select class="srch" id="de_t">${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${z.id==e.t?'selected':''}>${nm(z)}</option>`).join('')}</select>
+ <label>${t('pl_depType')}</label><select id="de_y">${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select>
+ <label>${t('pl_depLag')}</label><input id="de_l" inputmode="numeric" value="${+e.l||0}" style="max-width:120px">
+ <div class="row"><button class="p" id="de_s">${t('save')}</button><button class="r" id="de_d">🗑 ${t('pl_depDel')}</button><button id="de_c">${t('cancel')}</button></div></div>`;
+ document.body.appendChild(o);o.onclick=ev=>{if(ev.target==o)o.remove()};$('de_c').onclick=()=>o.remove();
+ $('de_d').onclick=()=>{o.remove();snap();x.dep.splice(di,1);norm();rollup();renderPlan();pSave()};
+ $('de_s').onclick=()=>{const nt=$('de_t').value,ny=$('de_y').value,nl=+String($('de_l').value).replace(/[^\d-]/g,'')||0;
+  if(nt!=e.t&&reaches(x.id,nt,succMap())){msg(t('pl_cycle'));return}
+  o.remove();snap();x.dep[di]={t:nt,y:ny,l:nl};x.dep=x.dep.filter((q,i)=>x.dep.findIndex(z=>z.t==q.t&&(z.y||'FS')==(q.y||'FS'))==i);norm();rollup();propagate();rollup();renderPlan();pSave()}}
+// ---- WBS tree (org-chart cards) ----
+function wbsNode(x){const m=M[x.id],kids=m.kids,col=PL.coll[x.id];
+ const pc=+x.pc||0;
+ return `<li><div class="wc d${lvc(m.d)}" data-id="${x.id}" onclick="openSheet('${x.id}')" title="${esc(x.n||'')}"><div class="wch"><span class="wb">${m.w}</span>${kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${col?'▸ '+kids.length:'▾'}</button>`:''}</div><b class="wcn">${esc(x.n||'—')}${x.fx?' 📌':''}${x.rn?' 💬':''}</b><div class="wcd" dir="ltr">${esc(x.s||'—')} → ${esc(x.e||'—')}</div>${whoName(x)?`<div class="wcw">👤 ${esc(whoName(x))}</div>`:''}<div class="wcp"><i style="width:${pc}%"></i></div><div class="wcm">${pc}% · ⚖ ${Math.round((m.pw||0)*10)/10}%</div></div>${kids.length&&!col?`<ul>${kids.map(wbsNode).join('')}</ul>`:''}</li>`}
+function wbsH(){const roots=T().filter(x=>!x.p);if(!roots.length)return `<div class="mut">${t('pl_empty')}</div>`;const d=cr.data,sp=planSpan(),vert=PL.wv=='v';
+ const rootCard=`<div class="wc root"><div class="wch"><span class="wb">📁</span></div><b class="wcn">${esc(d.pname||t('planOf'))}</b>${sp?`<div class="wcd" dir="ltr">${ds(sp[0])} → ${ds(sp[1])}</div>`:''}${d.pmname?`<div class="wcw">👤 ${esc(d.pmname)}</div>`:''}<div class="wcp"><i style="width:${planPct()}%"></i></div><div class="wcm">${planPct()}%</div></div>`;
+ const tb=`<div class="ptb" style="margin-bottom:8px"><div class="seg"><button class="${!vert?'on':''}" onclick="PL.wv='h';renderPlan()">🌳 ${t('pl_wbsTree')}</button><button class="${vert?'on':''}" onclick="PL.wv='v';renderPlan()">☰ ${t('pl_wbsList')}</button></div><div class="seg"><button onclick="collAll(true)">⊟</button><button onclick="collAll(false)">⊞</button></div></div>`;
+ if(vert){return tb+`<div class="wbs">${T().filter(x=>{let p=M[x.id].par;while(p){if(PL.coll[p.id])return false;p=M[p.id].par}return true}).map(x=>{const m=M[x.id];
+  return `<div class="wn d${lvc(m.d)}" style="margin-inline-start:${m.d*18}px" onclick="openSheet('${x.id}')"><div class="wh">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:''}<span class="wb">${m.w}</span><b>${esc(x.n||'—')}</b>${x.fx?' 📌':''}${x.rn?' 💬':''}</div><div class="wm"><span dir="ltr">${esc(x.s||'—')} → ${esc(x.e||'—')}</span>${whoName(x)?`<span>👤 ${esc(whoName(x))}</span>`:''}<span>⚖ ${Math.round((m.pw||0)*10)/10}%</span><span>📈 ${x.pc||0}%</span></div></div>`}).join('')}</div>`}
+ return tb+`<div class="otw"><div class="otree" dir="ltr"><ul><li>${rootCard}<ul>${roots.map(wbsNode).join('')}</ul></li></ul></div></div>`}
+
+function gColMenu(){const c=ccLoad();return `<details class="cmn"><summary>⚙ ${t('pl_cols')}</summary><div class="cmb">${['s','e','d','a','wt','p'].map(k=>`<label><input type="checkbox" ${!c.goff.includes(k)?'checked':''} onchange="gColTog('${k}',this.checked)"> ${t(CDEF[k].l)}</label>`).join('')}<div class="row" style="margin:6px 0 0"><button class="sm" onclick="colReset()">${t('pl_colReset')}</button></div><div class="mut" style="font-size:12px;margin-top:4px">${t('pl_colH')}</div></div></details>`}
+function gColTog(k,on){const c=ccLoad();c.goff=c.goff.filter(z=>z!=k);if(!on)c.goff.push(k);ccSave();renderPlan()}
+
+// autoscroll while dragging a link near the chart edges
+(function(){let raf=0,vx=0;const loop=()=>{const gx=$('gx');if(!gx||!GD||GD.mode!='link'||!vx){raf=0;return}gx.scrollLeft+=vx;raf=requestAnimationFrame(loop)};
+ document.addEventListener('pointermove',e=>{if(!GD||GD.mode!='link'){vx=0;return}const gx=$('gx');if(!gx)return;const r=gx.getBoundingClientRect(),L=r.left+(GZ.LW||0);
+  vx=e.clientX>r.right-50?14:(e.clientX<L+50&&e.clientX>r.left?-14:0);if(vx&&!raf)raf=requestAnimationFrame(loop)},true)})();
 
 const szf=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB';
 async function uploadAtt(f,title){
@@ -2014,7 +2242,7 @@ function askNote(title,ph,ok,cb,req){let o=$('nmod');if(o)o.remove();o=document.
 
 // ---- signing ----
 function useSaved(){if(!me.signature_img)return;upImg=me.signature_img;$('prev').src=upImg;$('prev').style.display='block';tab('u')}
-function openSign(id,stage,submit){pend={id,stage,submit:!!submit};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit,by:(()=>{const s=sigs.find(x=>x.id==id);return s&&s.user_id!=me.id?me.id:null})()};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
@@ -2029,8 +2257,8 @@ async function confirmSign(){
  let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
  if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
- await sb.from('plan_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage);
+ await sb.from('plan_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);
+ await lg(cr.id,'signed|'+pend.stage+(pend.by?'|proxy':''));
  {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('plans').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('plans').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('plan_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
@@ -2043,7 +2271,7 @@ async function confirmSign(){
 const DOCX_URL='https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js',LIBP={};
 function loadScript(u){return LIBP[u]||(LIBP[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>{delete LIBP[u];no(new Error('Could not load library'))};document.head.appendChild(s)}))}
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000)}
-const fdx=v=>{if(!v)return'';const d=new Date(v),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};
+const fdx=v=>{if(!v)return'';const d=new Date(v),p=n=>String(n).padStart(2,'0');return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes())};
 const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())};
 const d2b=u=>{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a};
 const imgInfo=u=>new Promise(ok=>{const i=new Image();i.onload=()=>ok({w:i.naturalWidth||1,h:i.naturalHeight||1});i.onerror=()=>ok({w:3,h:1});i.src=u});
@@ -2104,4 +2332,23 @@ function adminView(){curView=adminView;editing=false;
  app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('manageUsers')}</h2><div class="mut">${t('manageUsersH')}</div><div class="row"><button class="p" onclick="location.href='users.html'">${t('manageUsers')} ←</button></div></div>`}
 async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
 applyStatic();start();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
