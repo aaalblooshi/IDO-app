@@ -60,10 +60,11 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  clear:['مسح','Clear'],savesig:['حفظ التوقيع','Save signature'],rmsig:['حذف التوقيع المحفوظ','Remove saved signature'],drawfirst:['ارسم توقيعك أولًا.','Draw your signature first.'],nosig:['لا يوجد توقيع محفوظ.','No saved signature.'],
  s_notif:['تنبيهات البريد','Email notifications'],s_notif_h:['أوقف التنبيهات التي لا تريد أن تصلك. (التذكيرات لا يمكن إيقافها)','Turn off events you do not want by email. (Reminders cannot be turned off.)'],
  ev_submitted:['إرسال نموذج للمراجعة','Form sent for review'],ev_reviewerAssigned:['تحديدي مراجعًا','I am assigned as reviewer'],ev_reviewDone:['اعتماد المراجعة','Review completed'],ev_approverAssigned:['تحديدي معتمِدًا','I am assigned as approver'],ev_approved:['الاعتماد النهائي','Final approval'],ev_draftAssigned:['توجيه مسودة لي','A draft is assigned to me'],
+ ev_taskUpdated:['تحديث إنجاز نشاط في خطة','A plan task was updated'],ev_approverRejected:['رفض المعتمِد (إحالة للمكتب)','Approver rejected (sent to office)'],
  ev_deleteRequested:['طلبات الحذف الجديدة (للأدمن)','New deletion requests (admin)'],ev_deleteApproved:['الموافقة على طلب حذفي','My deletion request approved'],ev_deleteRejected:['رفض طلب حذفي','My deletion request rejected'],
  s_info:['معلومات الحساب','Account info'],lastin:['آخر تسجيل دخول','Last sign-in'],joined:['تاريخ إنشاء الحساب','Account created'],bigimg:['الصورة كبيرة أو غير مدعومة.','Image is too large or unsupported.']
 };
-const EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected'];
+const EV=['submitted','reviewerAssigned','reviewDone','approverAssigned','approved','draftAssigned','deleteRequested','deleteApproved','deleteRejected','approverRejected','taskUpdated'];
 let me=null,sess=null,cvx=null,drawn=false,down=false;
 async function load(){
  if(!sb)return gate('needLogin');
@@ -118,7 +119,26 @@ function setPhoto(inp){const f=inp.files[0];if(!f)return;const r=new FileReader(
 const saveMail=()=>run(async()=>{const e=$('a_e').value.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(e))throw new Error(t('email'));const {error}=await sb.auth.updateUser({email:e});if(error)throw error;$('a_e').value=''},t('mailsent'));
 const savePw=()=>run(async()=>{const a1=$('a_p1').value,b1=$('a_p2').value;if(a1.length<8)throw new Error(t('pwshort'));if(a1!==b1)throw new Error(t('pwmis'));const {error}=await sb.auth.updateUser({password:a1});if(error)throw error;$('a_p1').value='';$('a_p2').value=''},t('pwdone'));
 load();
-</script><script>/*fmtfix*/
+</script><script>/*navfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';if(f=='index.html'||f=='')return;
+ function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function build(){
+  if(document.getElementById('gnav'))return;var ar=lg()=='ar';
+  var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['projects.html','📁',ar?'المشاريع':'Projects','projects']];
+  if(ls('hdrRole')=='admin'||ls('hdrScope')=='1')items.push(['portfolio.html','📊',ar?'المحفظة':'Portfolio','portfolio']);
+  var n=document.createElement('nav');n.id='gnav';
+  var h='';
+  if(history.length>1&&document.referrer&&document.referrer.indexOf(location.origin)==0)h+='<a href="#" id="gback" class="gb"><i>↩</i><span>'+(ar?'رجوع':'Back')+'</span></a>';
+  items.forEach(function(i){h+='<a href="'+i[0]+'" class="gb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
+  n.innerHTML=h;document.body.appendChild(n);
+  var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
+  var s=document.createElement('style');s.textContent='#gnav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:space-around;background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:4px 4px calc(4px + env(safe-area-inset-bottom));direction:'+(ar?'rtl':'ltr')+'}#gnav .gb{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;text-decoration:none;color:#6b6f76;font:700 11px/1.3 Cairo,system-ui,sans-serif;padding:3px 2px;border-radius:10px;min-width:0}#gnav .gb i{font-style:normal;font-size:19px;line-height:1.2}#gnav .gb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body{padding-bottom:64px!important}@media print{#gnav{display:none}}';document.head.appendChild(s)}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*fmtfix*/
 (function(){
  var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
  var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
