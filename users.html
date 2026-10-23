@@ -30,7 +30,7 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 .uh{display:flex;gap:10px;align-items:center;padding:10px 12px;cursor:pointer}.uh .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;overflow:hidden}.uh .av img{width:100%;height:100%;object-fit:cover}
 .uh .tx{flex:1;min-width:0}.uh .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.uh .tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ub{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.ur.open .ub{display:block}.ur.open{border-color:var(--g)}
-.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}.hgrp{display:flex;gap:6px;align-items:center;flex:none}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
+.sb{position:sticky;top:50px;z-index:4;background:var(--bg);padding:6px 0 8px}.nu{display:none}.nu.on{display:block}.hgrp{display:flex;gap:6px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end;min-width:0}@media(max-width:480px){.hgrp .hbtn{padding:6px 9px;font-size:12.5px}}.hbtn{padding:6px 11px!important;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(max-width:520px){.top{gap:4px;padding:8px 8px}.hbtn{padding:5px 8px!important;font-size:12px}}</style></head><body>
 <div class="top"><button onclick="location.href='./'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -57,12 +57,21 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  na:['NA','NA'],mailnote:['تغيير البريد هنا يغيّر بريد تسجيل الدخول مباشرة.','Changing the email here changes the sign-in email immediately.'],
  roles:['⚙ إدارة الأدوار','⚙ Manage roles'],add:['+ مستخدم جديد','+ New user'],addT:['إنشاء مستخدم جديد','Create a new user'],create:['إنشاء المستخدم','Create user'],created:['تم إنشاء المستخدم. أبلغه ببريده وكلمة المرور.','User created. Tell them the email and password.'],cancel:['إلغاء','Cancel']
 };
-let USERS=[],ROLES=[],Q='',RF='',LIM=30,OPEN=null;
+let USERS=[],ROLES=[],Q='',RF='',LIM=30,OPEN=null,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]);
+D.sc_t=['نطاق الرؤية','View scope'];D.sc_own=['حسب الدور (الافتراضي)','By role (default)'];D.sc_sec=['المستوى ٢: القطاع (كل خدمات القطاع)','Level 2: Sector (all services of the sector)'];D.sc_cen=['المستوى ١: المركز (يرى كل شيء)','Level 1: Centre (sees everything)'];D.sc_pick=['اختر القطاع/القطاعات:','Choose sector(s):'];D.sc_save=['حفظ النطاق','Save scope'];D.sc_h=['للرؤية فقط؛ لمنح تعديل/عرض على مشروع محدد استخدم صفحة «المشاريع».','View only; to grant view/edit on a specific project use the Projects page.'];
+const scBox=u=>{const s=u.view_scope||'',cur=u.view_sectors||[];return `<div class="card" style="margin-top:10px;background:var(--bg,#f7f5ef)"><b>${t('sc_t')}</b>
+ <select id="sc_${u.id}" onchange="scCh('${u.id}')"><option value="" ${!s?'selected':''}>${t('sc_own')}</option><option value="sector" ${s=='sector'?'selected':''}>${t('sc_sec')}</option><option value="center" ${s=='center'?'selected':''}>${t('sc_cen')}</option></select>
+ <div id="scs_${u.id}" style="display:${s=='sector'?'block':'none'};margin-top:6px"><div class="mut">${t('sc_pick')}</div>${SECS.map((x,i)=>`<label class="tg" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" class="scx_${u.id}" value="${i+1}" ${cur.includes(i+1)?'checked':''} style="width:auto"> ${esc(lang=='ar'?x[0]:x[1])}</label>`).join('')}</div>
+ <div class="mut" style="margin:6px 0">${t('sc_h')}</div><button class="p" onclick="scSave('${u.id}')">${t('sc_save')}</button></div>`};
+const scCh=id=>{$('scs_'+id).style.display=$('sc_'+id).value=='sector'?'block':'none'};
+const scSave=id=>run(async()=>{const s=$('sc_'+id).value,a=[...document.querySelectorAll('.scx_'+id+':checked')].map(x=>+x.value);if(s=='sector'&&!a.length)throw new Error(t('sc_pick'));
+ const {error}=await sb.rpc('admin_set_scope',{uid:id,p_scope:s||null,p_sectors:s=='sector'?a:null});if(error)throw error;const u=USERS.find(x=>x.id==id);u.view_scope=s||null;u.view_sectors=s=='sector'?a:null});
 async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
  if(!p||p.role!='admin')return gate('adminOnly');
+ try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
  await reload()}
 const rk=u=>u.role_key||u.role;
 const rn=k=>{const r=ROLES.find(x=>x.key==k);return r?(lang=='ar'?r.name_ar:r.name_en):(D['r_'+k]?t('r_'+k):k)};
@@ -80,7 +89,7 @@ function drawList(){
  const rows=flt(),show=rows.slice(0,LIM);$('cnt').textContent=rows.length+' '+t('count');
  $('list').innerHTML=(show.map(u=>`<div class="ur ${OPEN==u.id?'open':''}" id="u_${u.id}"><div class="uh" onclick="tog('${u.id}')"><div class="av">${u.avatar?`<img src="${u.avatar}">`:esc((u.full_name||'?').trim().charAt(0))}</div><div class="tx"><b>${esc(u.full_name||u.email)}</b><span>${esc(u.job_title||t('na'))} · ${esc(rn(rk(u)))}</span></div></div>
   <div class="ub"><div class="g2"><div><label>${t('name')}</label><input id="n_${u.id}" value="${esc(u.full_name)}"></div><div><label>${t('job')}</label><input id="j_${u.id}" value="${esc(u.job_title||'')}"></div><div><label>${t('email')}</label><input id="e_${u.id}" dir="ltr" value="${esc(u.email||'')}"></div><div><label>${t('role')}</label>${roleSel('r_'+u.id,rk(u))}</div></div>
-  <div class="mut" style="margin-top:4px">${t('mailnote')}</div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div>
+  <div class="mut" style="margin-top:4px">${t('mailnote')}</div><div class="row"><button class="p" onclick="saveU('${u.id}')">${t('save')}</button></div>${scBox(u)}
   <label>${t('newpw2')}</label><div class="pwr"><input id="p_${u.id}" type="password" autocomplete="new-password" placeholder="${t('pwshort')}">${eyeB('p_'+u.id)}</div><div class="row"><button onclick="setPw('${u.id}')">${t('setpw')}</button></div></div></div>`).join('')||`<div class="mut">${t('none')}</div>`)+(rows.length>LIM?`<div class="row" style="justify-content:center"><button onclick="LIM+=30;drawList()">${t('more')}</button></div>`:'')}
 function tog(id){OPEN=OPEN==id?null:id;document.querySelectorAll('.ur').forEach(e=>e.classList.toggle('open',e.id=='u_'+OPEN))}
 const EM=/^\S+@\S+\.\S+$/;
