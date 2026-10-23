@@ -11,9 +11,9 @@
 html{-webkit-text-size-adjust:100%}
 body{margin:0;color:var(--ink);font:14.5px/1.6 var(--fnt);background:radial-gradient(800px 380px at 100% -60px,#dcefe3 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#fbe4e6 0,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
 #hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.hgrp{display:flex;gap:6px;align-items:center}.hbtn{padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.hbtn[hidden]{display:none}
+.hgrp{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;min-width:0}@media(max-width:480px){.hgrp .hbtn{padding:6px 9px;font-size:12.5px}}.hbtn{padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}.hbtn[hidden]{display:none}
 .fwr{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--line)}.fwr:last-child{border:0}.fwr .fn{flex:1;min-width:120px;overflow-wrap:anywhere}.fwe{display:none;width:100%}.fwe.on{display:block}.fwe label{display:flex;gap:8px;align-items:center;padding:3px 0;font-size:13.5px}.fwe label input{width:auto}
-.hin{max-width:900px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hin{max-width:900px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .logo{height:44px;width:auto;display:block}
 .flash{animation:fl 1.2s ease}@keyframes fl{0%{box-shadow:0 0 0 4px var(--g)}100%{box-shadow:0 0 0 0 transparent}}#lst{scroll-margin-top:calc(var(--hh,90px) + 8px);min-height:calc(100vh - var(--hh,90px) - 90px)}#lst .top .sm{white-space:nowrap;flex:0 0 auto}
 .ttl{max-width:900px;margin:0 auto;padding:0 14px 7px;font-weight:800;font-size:17px;color:var(--ch);display:flex;align-items:center;gap:8px}.ttl:before{content:"";width:5px;height:20px;border-radius:3px;background:linear-gradient(var(--r) 0 50%,var(--g) 50% 100%)}
@@ -96,6 +96,9 @@ canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;to
 .pkb{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;min-height:42px;text-align:start;border:1px solid var(--line,#d9d4c7);background:#fff;border-radius:12px;padding:8px 12px;font:inherit;cursor:pointer;color:inherit}.pkb:disabled{opacity:.6;cursor:default}.pkb span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pkb::after{content:"⌕";color:#6b6f76;font-size:16px}.pkb.em span{color:#8a8f96}
 .pkov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:flex-end;justify-content:center}.pkbx{background:#fff;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;padding:12px}@media(min-width:700px){.pkov{align-items:center}.pkbx{border-radius:18px}}
 .pkbx input{width:100%;margin-bottom:8px}.pkl{overflow:auto;flex:1;-webkit-overflow-scrolling:touch}.pki{display:block;width:100%;text-align:start;border:0;border-bottom:1px solid #eee;background:#fff;padding:11px 8px;font:inherit;cursor:pointer}.pki:hover,.pki.on{background:#f2faf5}.pki.on{font-weight:800}.pkn{padding:8px;color:#6b6f76;font-size:13px}
+
+button,select,input,textarea,a,label,.item,.tile{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.nov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:95;display:flex;align-items:center;justify-content:center;padding:12px}.nbx{background:#fff;border-radius:16px;padding:14px;width:100%;max-width:520px}.nbx textarea{width:100%;margin:8px 0;min-height:130px;resize:vertical}
 .hid{display:none!important}.pick{border:1px dashed var(--g);background:#f4faf6;border-radius:12px;padding:10px 12px;margin:0 0 12px}.pick select,.pick input{width:100%;margin:6px 0}
 .dinfo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.dinfo div{background:#f7faf8;border:1px solid var(--line);border-radius:10px;padding:6px 9px;min-width:0}.dinfo span{display:block;font-size:11.5px;color:var(--mut)}.dinfo b{display:block;font-size:13.5px;overflow-wrap:anywhere}
 @media(max-width:560px){.dinfo{grid-template-columns:repeat(2,1fr)}}
@@ -113,7 +116,7 @@ canvas{width:100%;height:150px;border:1.5px dashed #bdb8aa;border-radius:12px;to
 <div id="pd"><canvas id="cv"></canvas><div class="row"><button id="clb" onclick="clr()">Clear</button></div></div>
 <div class="row" style="margin:0 0 8px"><button id="sv" style="display:none" onclick="useSaved()">✍ <span id="svt"></span></button></div>
 <div id="pu" style="display:none"><input type="file" id="file" accept="image/png,image/jpeg"><img id="prev" style="max-height:90px;display:none;margin-top:6px"></div>
-<div id="anw" style="display:none;margin-top:10px"><textarea id="ant" rows="2" style="width:100%"></textarea></div>
+<div id="anw" style="display:none;margin-top:10px"><textarea id="ant" rows="4" style="width:100%;resize:vertical"></textarea></div>
 <div class="row"><button class="p" id="cfb" onclick="confirmSign()">Confirm signature</button><button id="cnb" onclick="$('modal').classList.remove('on')">Cancel</button></div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -330,6 +333,24 @@ const W=[
 ["st_Awaiting Approval","Awaiting approval","بانتظار الاعتماد"],
 ["st_Approved","Approved","معتمد"],
 ["st_Rejected","Rejected","مرفوض"],
+["st_Office Decision","Office decision (after approver rejection)","قرار مكتب التطوير (بعد رفض المعتمد)"],
+["officeNote","The approver rejected this. Choose another approver and send again, return it to the preparer, or reject it finally.","رفضها المعتمد. اختر معتمدًا آخر وأعد الإرسال، أو أعدها للمُعدّ، أو ارفضها نهائيًا."],
+["a_office","Office decision needed","بانتظار قرار المكتب"],
+["finalReject","Reject finally","رفض نهائي"],
+["noteOpt","Note (optional)","ملاحظة (اختيارية)"],
+["stageNoteT","Note","ملاحظة"],
+["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
+["l_apprej","Rejected by the approver","رفض المعتمد"],
+["l_crlink","Linked to change request","ربط بطلب التغيير"],
+["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
+["l_stagenote","Note","ملاحظة"],
+["delReqRev","Request to cancel the new version","طلب إلغاء الإصدار الجديد"],
+["delHintRev","After the Institutional Development Office approves, the plan returns to the last approved version.","بعد موافقة مكتب التطوير المؤسسي تعود الخطة إلى آخر نسخة معتمدة."],
+["revCancelled","The new version was cancelled and the approved version was restored.","تم إلغاء الإصدار الجديد واستعادة النسخة المعتمدة."],
+["revCancelBtn","Cancel the new version now","إلغاء الإصدار الجديد الآن"],
+["revCancelAsk","Cancel the new version and restore the last approved version?","إلغاء الإصدار الجديد واستعادة آخر نسخة معتمدة؟"],
+["l_revised","A new version was started","بدء إصدار جديد"],
+["l_revcancelled","The new version was cancelled","إلغاء الإصدار الجديد"],
 ["p_Low","Low","منخفضة"],
 ["p_Medium","Medium","متوسطة"],
 ["p_High","High","عالية"],
@@ -615,6 +636,12 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='attremoved')return t('l_attRemoved')+': '+p.slice(1).join('|');
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
+ if(k=='apprejected')return t('l_apprej')+': '+p.slice(1).join('|');
+ if(k=='crlink')return t('l_crlink')+': '+p.slice(1).join('|');
+ if(k=='crunlink')return t('l_crunlink');
+ if(k=='revcancelled')return t('l_revcancelled');
+ if(k=='revised')return t('l_revised');
+ if(k=='stagenote')return t('l_stagenote')+' ('+t('stg_'+p[1])+'): '+p.slice(2).join('|');
  return a}
 function setHH(){const h=$('hd');if(h)document.documentElement.style.setProperty('--hh',h.offsetHeight+'px')}
 window.addEventListener('resize',setHH);window.addEventListener('load',setHH);
@@ -632,7 +659,10 @@ async function toggleLang(){
 
 // ===== App =====
 const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
-async function loadSet(){SET={};try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
+let GR=[];
+const pcOf=r=>SVC=='charter'?(r.code||''):((r.data||{}).pcode||'');
+const gEd=r=>{const p=pcOf(r);return !!p&&GR.some(g=>g.pcode==p&&g.lvl=='edit'&&(!g.svcs||g.svcs.includes(SVC)))};
+async function loadSet(){SET={};GR=[];try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
  applyLists();ROLES={};try{const r=await sb.from('app_roles').select('*');(r.data||[]).forEach(x=>ROLES[x.key]=x)}catch(_){}}
 async function start(){
  curView=start;editing=false;
@@ -646,6 +676,8 @@ async function start(){
  if(location.hash=='#me'||(location.hash=='#admin'&&me.role=='admin')){const h=location.hash;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();if(h=='#admin')return adminView();return editMe()}
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
+ const om=/^#o=(\d+)/.exec(location.hash||'');
+ if(om){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();return openCR(+om[1])}
  homeView();
 }
 function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
@@ -661,7 +693,7 @@ async function signup(){const e=$('em').value.trim(),p=$('pw').value;if(!e||p.le
 const nv=(f,k)=>`<button class="nv ${curView===f?'on':''}" onclick="${f.name}()">${t(k)}</button>`;
 function hdrInit(){const a=lang=='ar',x=$('hacc'),o=$('hso');if(x){x.hidden=false;x.textContent='👤 '+(a?'حسابي':'My account')}if(o){o.hidden=false;o.textContent=a?'تسجيل الخروج':'Sign out'}}
 const bar=()=>{hdrInit();return `<div class="nav"><button class="nv" onclick="location.href='./'">${lang=='ar'?'⬅ الصفحة الرئيسية':'⬅ Home page'}</button>${nv(homeView,'home')}${nv(listView,'requests')}${me.role=='admin'?nv(adminView,'admin'):''}</div>`};
-const SC={'Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
+const SC={'Office Decision':'s-ret','Cancelled':'s-d','Draft':'s-d','Returned to PM':'s-ret','Approved':'s-ok','Rejected':'s-no'};
 function toPanel(cond){const p=document.querySelector('.pn.on'),tb=document.querySelector('.tabs');if(!p)return;const hh=(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||90)+(tb?tb.offsetHeight:0),top=p.getBoundingClientRect().top;if(cond&&top>=hh)return;window.scrollTo({top:Math.max(0,top+window.scrollY-hh-6),behavior:'smooth'})}
 const delB=()=>`<span class="pill" style="background:#fdecee;color:#d1101d;border:1px solid #f3b9be;margin-inline-start:6px">🗑 ${t('delBadge')}</span>`;
 async function loadDelP(){try{const r=await sb.from('del_requests').select('cr_id').eq('svc',SVC).eq('status','pending');return new Set((r.data||[]).map(x=>x.cr_id))}catch(_){return new Set()}}
@@ -673,8 +705,8 @@ function setTab(v){showArch=v;listView()}
 // ===== Dashboard =====
 let DB=null,H={f:'',q:'',rel:'all'};
 const FIN=s=>s=='Approved'||s=='Rejected'||s=='Cancelled';
-const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Approved':4,'Rejected':4,'Cancelled':0};
-const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval'];
+const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Office Decision':3,'Approved':4,'Rejected':4,'Cancelled':0};
+const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'];
 const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
 async function loadAll(){
  const [a,b,c,dp]=await Promise.all([sb.from('closure_reports').select('*').order('id',{ascending:false}),sb.from('closure_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('closure_audit').select('cr_id,action,at').like('action','status|%'),loadDelP()]);
@@ -696,12 +728,13 @@ function enrich(){
   else if(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))x.act='a_approve';
   else if(adm&&st=='Submitted')x.act='a_assignRev';
   else if(adm&&st=='Reviewed')x.act='a_assignApp';
+  else if(adm&&st=='Office Decision')x.act='a_office';
   x.days=dsince(r.stage_at||r.created_at);
   x.over=HOLD.includes(st)&&x.days>=3;
  })}
 function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>users[s.user_id]?.full_name).filter(Boolean).join(', ');
  if(st=='Draft'||st=='Returned to PM')return users[r.created_by]?.full_name||'';
- if(st=='Submitted'||st=='Reviewed')return t('role_admin');
+ if(st=='Submitted'||st=='Reviewed'||st=='Office Decision')return t('role_admin');
  if(st=='PMO Review')return nm('reviewed');
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
@@ -742,7 +775,7 @@ const acc=(title,body,open)=>`<details class="card acc" ${open?'open':''}><summa
 const expBtns=()=>`<div class="mut">${t('x_expNote')}</div><div class="row"><button class="p" id="xe" onclick="exportExcel()">📊 ${t('x_excel')}</button><button id="xb" onclick="exportBackup()">💾 ${t('x_backup')}</button></div>`;
 function adminBlock(){
  const A=DB.crs,n=s=>A.filter(r=>r.status==s).length,over=list('overdue');
- const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Approved','Rejected','Cancelled'];
+ const ST=['Draft','Returned to PM','Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision','Approved','Rejected','Cancelled'];
  const ap=n('Approved'),rj=n('Rejected'),fn=ap+rj;
  const lgT={};DB.lg.forEach(l=>{const k=l.cr_id+'|'+l.action.slice(7);(lgT[k]=lgT[k]||[]).push(new Date(l.at))});
  const cyc=A.filter(r=>r.status=='Approved'&&lgT[r.id+'|Approved']).map(r=>(Math.max(...lgT[r.id+'|Approved'])-new Date(r.created_at))/864e5);
@@ -850,35 +883,36 @@ async function openCR(id){
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const ed=!arch&&cr.created_by==me.id&&(st=='Draft'||st=='Returned to PM');
+ const ed=!arch&&(cr.created_by==me.id||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed;
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
- const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st);
+ const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st);
  const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
- const showApp=['Reviewed','Awaiting Approval','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
+ const showApp=['Reviewed','Awaiting Approval','Office Decision','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
  const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
- const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
+ const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
  const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
  const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
  const ARR=[...LISTS,'bmeasure','deliv'];ARR.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});syncReq();if(ed)ARR.forEach(k=>{if(!d[k].length){d[k].push(typeof BLANK[k]=='object'?{...BLANK[k]}:'');if(typeof BLANK[k]=='object'&&OPEN[k]===undefined)OPEN[k]=0}});
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${sg=='approved'?AN.map(a=>`<div class="nt ap"><b>💬 ${t('apprNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join(''):''}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
  if(ed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
+ if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
  if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}</button>`;
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(ed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
- const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):'');
+ const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):(st=='Office Decision'?t('officeNote')+(cr.comment?' — '+esc(cr.comment):''):''));
  const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'NA'}</div>`;
  const pnav=(p,n)=>ed?`<div class="pnav">${p?`<button onclick="goTab('${p}')">${t('back')}</button>`:'<span></span>'}${n?`<button class="p" onclick="goTab('${n}')">${t('next')}</button>`:''}</div>`:'';
  const s0=STEP[st];
@@ -1008,7 +1042,7 @@ let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;cl
 async function softDel(id,data,prev,reason){const nd={...(data||{}),_deleted:{by:me.full_name,at:new Date().toISOString(),prev:prev,reason:reason||''}};return sb.from('closure_reports').update({status:'Cancelled',archived:true,data:nd}).eq('id',id)}
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await softDel(cr.id,cr.data,cr.status,'');if(error)return msg(error.message);await lg(cr.id,'deleted');msg(t('delMoved'));homeView()}
 const SVC='closure';
-const FWEV=[['submitted','إرسال للمراجعة','Sent for review'],['reviewerAssigned','تحديد مراجع','Reviewer assigned'],['reviewDone','اعتماد المراجعة','Review completed'],['approverAssigned','تحديد معتمِد','Approver assigned'],['approved','الاعتماد النهائي','Final approval'],['draftAssigned','توجيه مسودة','Draft assigned'],['deleteApproved','الموافقة على الحذف','Deletion approved'],['deleteRejected','رفض الحذف','Deletion rejected']];
+const FWEV=[['submitted','إرسال للمراجعة','Sent for review'],['reviewerAssigned','تحديد مراجع','Reviewer assigned'],['reviewDone','اعتماد المراجعة','Review completed'],['approverAssigned','تحديد معتمِد','Approver assigned'],['approved','الاعتماد النهائي','Final approval'],['draftAssigned','توجيه مسودة','Draft assigned'],['deleteApproved','الموافقة على الحذف','Deletion approved'],['deleteRejected','رفض الحذف','Deletion rejected'],['approverRejected','رفض المعتمِد (إحالة للمكتب)','Approver rejection']];
 let FW=[];
 async function drawFollow(){if(!cr)return;const d0=$('delbox');if(!d0)return;let box=$('fwbox');if(!box){d0.insertAdjacentHTML('afterend','<div id="fwbox"></div>');box=$('fwbox')}
  const a=lang=='ar',T2=(x,y)=>a?x:y;let r;try{r=await sb.from('followers').select('*').eq('svc',SVC).eq('cr_id',cr.id)}catch(_){return}
@@ -1037,22 +1071,29 @@ function pkOpen(sel){const ar=typeof lang!='undefined'&&lang=='ar';const all=[..
   $('pkl').innerHTML=m.map((o,i)=>`<button type="button" class="pki ${o.v===sel.value?'on':''}" data-i="${all.indexOf(o)}">${o.v===''?`<span class="mut">— ${esc(o.t||(ar?'بدون':'None'))} —</span>`:esc(o.t)}</button>`).join('')+(tot>60?`<div class="pkn">${ar?'يوجد '+tot+' نتيجة، اكتب أكثر لتضييق البحث.':tot+' results, type more to narrow.'}</div>`:'')+(!tot?`<div class="pkn">${ar?'لا نتائج':'No results'}</div>`:'')};
  ov.addEventListener('click',e=>{const b=e.target.closest('.pki');if(!b)return;const o=all[+b.dataset.i];sel.value=o.v;pkSet(sel);cl();sel.dispatchEvent(new Event('change',{bubbles:true}))});
  $('pkq').addEventListener('input',draw);$('pkq').addEventListener('keydown',e=>{if(e.key=='Escape')cl();if(e.key=='Enter'){const f=ov.querySelector('.pki');if(f)f.click()}});draw();setTimeout(()=>$('pkq').focus(),50)}
-try{new MutationObserver(()=>{clearTimeout(pkEnh.t);pkEnh.t=setTimeout(pkEnh,30)}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
+const TTI={'✕':['إغلاق / حذف','Close / remove'],'✎':['تعديل','Edit'],'▲':['أعلى','Up'],'▼':['أسفل','Down'],'🗑':['حذف','Delete'],'⇥':['إنزال مستوى','Lower a level'],'⇤':['رفع مستوى','Raise a level'],'↶':['تراجع','Undo'],'↷':['إعادة','Redo'],'⊟':['طيّ الكل','Collapse all'],'⊞':['فتح الكل','Expand all'],'−':['تصغير','Zoom out'],'＋':['تكبير','Zoom in'],'🔔':['تخصيص التنبيهات','Customize alerts'],'▸':['فتح','Expand'],'▾':['طيّ','Collapse']};
+function ttEnh(){const ar=typeof lang!='undefined'&&lang=='ar';document.querySelectorAll('button:not([title])').forEach(b=>{const x=(b.textContent||'').replace(/\s+/g,' ').trim();if(!x)return;const k=TTI[x];if(k)b.title=k[ar?0:1];else if(x.length<70)b.title=x})}
+try{new MutationObserver(()=>{clearTimeout(pkEnh.t);pkEnh.t=setTimeout(()=>{pkEnh();ttEnh()},30)}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
 async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;drawFollow();
  let rows=[];try{const r=await sb.from('del_requests').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});rows=r.data||[]}catch(_){}
  const last=rows[0],pend=last&&last.status=='pending',adm=me.role=='admin',st=cr.status;
- const canReq=cr.created_by==me.id&&!cr.archived&&!pend&&!['Draft','Returned to PM','Cancelled'].includes(st);
+ const revP=SVC=='plan'&&cr.version>1&&st!='Approved'&&st!='Cancelled';
+ const canReq=cr.created_by==me.id&&!cr.archived&&!pend&&(revP?true:!['Draft','Returned to PM','Cancelled'].includes(st));
  let h='';
  if(pend){const pl=document.querySelector('.crh .top .pill');if(pl&&!document.querySelector('.crh .top .pill+.pill'))pl.insertAdjacentHTML('afterend',delB())}
  if(pend)h+=`<div class="sig"><b>🗑 ${t('delPending')}</b><div class="mut">${esc((users[last.requested_by]||{}).full_name||'')} · ${fd(last.requested_at)}</div><div>${esc(last.note||'NA')}</div>${adm?`<textarea id="dl_n" rows="2" placeholder="${t('delDecNote')}" style="width:100%;margin-top:8px;box-sizing:border-box"></textarea><div class="row"><button class="g" onclick="delDecide(${last.id},true)">${t('delApprove')}</button><button class="r" onclick="delDecide(${last.id},false)">${t('delReject')}</button></div>`:''}</div>`;
  else if(last&&last.status=='rejected'&&!cr.archived)h+=`<div class="sig"><b>🗑 ${t('delRejected')}</b>${last.decision_note?`<div>${esc(last.decision_note)}</div>`:''}</div>`;
- if(canReq)h+=`<div class="row"><button class="r" onclick="$('dl_box').style.display=''">🗑 ${t('delReq')}</button></div><div class="pick" id="dl_box" style="display:none"><div class="mut">${t('delHint')}</div><textarea id="dl_q" rows="3" placeholder="${t('delNote')}" style="width:100%;margin-top:6px;box-sizing:border-box"></textarea><div class="row" style="margin-top:8px"><button class="r" onclick="delSend()">${t('delSend')}</button></div></div>`;
+ if(canReq)h+=`<div class="row"><button class="r" onclick="$('dl_box').style.display=''">🗑 ${t(revP?'delReqRev':'delReq')}</button></div><div class="pick" id="dl_box" style="display:none"><div class="mut">${t(revP?'delHintRev':'delHint')}</div><textarea id="dl_q" rows="3" placeholder="${t('delNote')}" style="width:100%;margin-top:6px;box-sizing:border-box"></textarea><div class="row" style="margin-top:8px"><button class="r" onclick="delSend()">${t('delSend')}</button></div></div>`;
+ if(adm&&revP&&!pend)h+=`<div class="row"><button class="r" onclick="revCancelNow()">↩ ${t('revCancelBtn')}</button></div>`;
  el.innerHTML=h}
+async function revCancelNow(){if(!confirm(t('revCancelAsk')))return;const {error}=await sb.rpc('pl_cancel_revision',{pid:cr.id});if(error)return msg(error.message);msg(t('revCancelled'));openCR(cr.id)}
 async function delSend(){const note=($('dl_q').value||'').trim();
  const {error}=await sb.from('del_requests').insert({svc:SVC,cr_id:cr.id,note:note||'NA',requested_by:me.id});if(error)return msg(error.message);
  await lg(cr.id,'delreq');msg(t('delSent'));openCR(cr.id)}
 async function delDecide(id,ok){const dn=(($('dl_n')||{}).value||'').trim();
  const {error}=await sb.from('del_requests').update({status:ok?'approved':'rejected',decided_by:me.id,decided_at:new Date().toISOString(),decision_note:dn}).eq('id',id);if(error)return msg(error.message);
+ const revP=SVC=='plan'&&cr.version>1&&cr.status!='Approved';
+ if(ok&&revP){const u=await sb.rpc('pl_cancel_revision',{pid:cr.id});if(u.error)return msg(u.error.message);await lg(cr.id,'delok');msg(t('revCancelled'));return openCR(cr.id)}
  if(ok){const u=await softDel(cr.id,cr.data,cr.status,dn);if(u.error)return msg(u.error.message)}
  await lg(cr.id,ok?'delok':'delno');
  if(ok){await listView();msg(t('delDone'))}else openCR(cr.id)}
@@ -1068,16 +1109,21 @@ async function proceedSubmit(){
 async function sendApproval(){
  if(!sigs.some(s=>s.stage=='approved'))return msg(t('needApp'));
  await setStatus('Awaiting Approval');openCR(cr.id)}
-async function ret(){const c=prompt(t('retPrompt'));if(!c)return;
+async function ret(){askNote(t('returnPM'),t('retPrompt'),t('returnPM'),async c=>{
  await sb.from('closure_signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
  const nn=NOTES[cr.id]||{},items={};Object.keys(nn).forEach(k=>{const v=String(nn[k]||'').trim();if(v)items[k]=v});
  const nd={...cr.data};delete nd._anotes;if(Object.keys(items).length)nd._notes={v:cr.version,by:me.full_name,at:new Date().toISOString(),items:items};else delete nd._notes;
- await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)}
-async function rej(){const c=prompt(t('rejPrompt'));if(!c)return;await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)}
+ await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)},true)}
+async function rej(){askNote(t('reject'),t('rejPrompt'),t('reject'),async c=>{await setStatus('Office Decision',{comment:c});await lg(cr.id,'apprejected|'+c);openCR(cr.id)},true)}
+async function finalRej(){askNote(t('finalReject'),t('rejPrompt'),t('finalReject'),async c=>{await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)},true)}
+function askNote(title,ph,ok,cb,req){let o=$('nmod');if(o)o.remove();o=document.createElement('div');o.id='nmod';o.className='nov';
+ o.innerHTML=`<div class="nbx"><b>${esc(title)}</b><textarea id="nm_t" rows="6" placeholder="${esc(ph||'')}"></textarea><div class="row"><button class="p" id="nm_ok">${esc(ok)}</button><button id="nm_c">${esc(t('cancel'))}</button></div></div>`;
+ document.body.appendChild(o);const ta=$('nm_t');setTimeout(()=>ta.focus(),60);$('nm_c').onclick=()=>o.remove();o.onclick=e=>{if(e.target==o)o.remove()};
+ $('nm_ok').onclick=()=>{const v=ta.value.trim();if(req&&!v){ta.focus();return}o.remove();cb(v)}}
 
 // ---- signing ----
 function useSaved(){if(!me.signature_img)return;upImg=me.signature_img;$('prev').src=upImg;$('prev').style.display='block';tab('u')}
-function openSign(id,stage,submit){pend={id,stage,submit:!!submit};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display=ap?'block':'none';$('ant').value='';$('ant').placeholder=t('apprNotePh');$('modal').classList.add('on');
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
@@ -1094,7 +1140,7 @@ async function confirmSign(){
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
  await sb.from('closure_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
  await lg(cr.id,'signed|'+pend.stage);
- if(pend.stage=='approved'){const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('closure_reports').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx}];await sb.from('closure_reports').update({data:nd}).eq('id',cr.id);await lg(cr.id,'approvenote|'+tx)}}
+ {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('closure_reports').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('closure_reports').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('closure_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
  if(cr.status=='PMO Review'&&all('reviewed')){await setStatus('Reviewed');if(data.some(x=>x.stage=='approved'))await setStatus('Awaiting Approval')}
