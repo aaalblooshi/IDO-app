@@ -544,6 +544,8 @@ async function start(){
  users={};ps.forEach(p=>users[p.id]=p);me=users[session.user.id];await loadSet();
  if(!svcOn()){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('noAccess')}</p><button class="p" onclick="location.href='./'">${t('goHome')}</button></div>`;return}
  if(location.hash=='#me'||(location.hash=='#admin'&&me.role=='admin')){const h=location.hash;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();if(h=='#admin')return adminView();return editMe()}
+ const hs=/^#start=(.+)/.exec(location.hash||'');
+ if(hs&&typeof startFor=='function'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();return startFor(decodeURIComponent(hs[1]))}
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
  const om=/^#o=(\d+)/.exec(location.hash||'');
