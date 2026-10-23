@@ -340,6 +340,7 @@ const W=[
 ["stageNoteT","Note","ملاحظة"],
 ["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
 ["l_apprej","Rejected by the approver","رفض المعتمد"],
+["l_proxy","signed by proxy","توقيع بالإنابة"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
 ["l_crlink","Linked to change request","ربط بطلب التغيير"],
 ["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
 ["l_stagenote","Note","ملاحظة"],
@@ -551,12 +552,12 @@ const W=[
 ["t_task", "Tasks", "المهام"],
 ["f_agr", "Required agreements", "الاتفاقيات المطلوبة"],
 ["f_risks", "Project risks", "مخاطر المشروع"],
-["risks_hint", "Initial assessment: choose impact and probability (1–5). The risk score is their product: green up to 4, yellow 5–12, red 15 and above.", "التقييم الابتدائي: اختر درجة التأثير والاحتمالية (١–٥). درجة الخطر هي حاصل ضربهما: أخضر حتى ٤، أصفر من ٥ إلى ١٢، أحمر من ١٥ فأكثر."],
+["risks_hint", "Initial assessment: choose impact and probability (1–5). The risk score is their product: green up to 4, yellow 5–12, red 15 and above.", "التقييم الابتدائي: اختر درجة التأثير والاحتمالية (1–5). درجة الخطر هي حاصل ضربهما: أخضر حتى 4، أصفر من 5 إلى 12، أحمر من 15 فأكثر."],
 ["k_desc", "Risk description", "وصف الخطر"],
 ["k_when", "Expected time / phase", "الوقت أو المرحلة المتوقعة"],
 ["k_owner", "Risk owner", "المسؤول عن الخطر"],
-["k_imp", "Impact (1–5)", "درجة التأثير (١–٥)"],
-["k_prob", "Probability (1–5)", "درجة الاحتمالية (١–٥)"],
+["k_imp", "Impact (1–5)", "درجة التأثير (1–5)"],
+["k_prob", "Probability (1–5)", "درجة الاحتمالية (1–5)"],
 ["k_score", "Risk score", "درجة الخطر"],
 ["lv_low", "Low", "منخفض"],
 ["lv_med", "Medium", "متوسط"],
@@ -581,7 +582,7 @@ const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
 /* ===== configurable lists (sectors, departments, goals, types...) and roles ===== */
 let SET={},ROLES={},LST={};
-const adg=n=>String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]);
+const adg=n=>String(n).replace(/\d/g,c=>'0123456789'[c]);
 const GA=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع'];
 const defLists=()=>({
  sectors:[1,2,3,4].map(n=>['قطاع '+adg(n),'Sector '+n]),
@@ -606,7 +607,7 @@ const myPerm=()=>{const r=ROLES[me.role_key||me.role];return r&&r.perms||{}};
 const canNew=()=>{if(me.role=='admin')return true;const p=myPerm();if(p.create&&p.create[SVC]!==undefined)return !!p.create[SVC];return me.role=='pm'};
 const svcOn=()=>{const p=myPerm();return !(p.svc&&p.svc[SVC]===false)};
 
-const fd=d=>new Date(d).toLocaleString(lang=='ar'?'ar-AE':'en-GB');
+const fd=d=>new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
 const pl=v=>v?t('p_'+v):'';
 const msg=x=>alert(x);
 let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
@@ -615,12 +616,23 @@ const shF=x=>!!(x&&(x.n||x.i||x.c));
 const stripBlank=()=>{if(cr&&cr.data)Object.keys(cr.data).forEach(k=>{if(Array.isArray(cr.data[k]))cr.data[k]=cr.data[k].filter(filled)});if(cr&&Array.isArray(cr.stakeholders))cr.stakeholders=cr.stakeholders.filter(shF)};
 const pgText=(rd,rt,od,ot)=>t('pgFmt').replace('{d}',rd+od).replace('{t}',rt+ot).replace('{rd}',rd).replace('{rt}',rt).replace('{od}',od).replace('{ot}',ot);
 const lg=(id,a)=>sb.from('charter_audit').insert({cr_id:id,user_name:me.full_name,action:a});
+let AEDIT=null,AEDIT0='';
+const aedOn=()=>!!cr&&AEDIT===SVC+':'+cr.id;
+function adminEditStart(){AEDIT=SVC+':'+cr.id;AEDIT0=JSON.stringify(cr.data||{});openCR(cr.id)}
+async function adminEditDone(ok){const id=cr.id;
+ if(ok){try{await flushAtt()}catch(e){return msg(e.message||String(e))}
+  await save(false);const a=JSON.parse(AEDIT0||'{}'),b=cr.data||{},ks=[...new Set([...Object.keys(a),...Object.keys(b)])].filter(k=>k[0]!='_'&&JSON.stringify(a[k])!==JSON.stringify(b[k]));
+  await lg(id,'adminedit|'+(ks.join(',')||'-'))}
+ else if(AEDIT0){cr.data=JSON.parse(AEDIT0);await save(false)}
+ AEDIT=null;AEDIT0='';openCR(id)}
+function officeDecide(kind){const ap=kind=='approve';askNote(t(ap?'offApprove':'offReject'),t(ap?'offApprovePh':'rejPrompt'),t(ap?'offApprove':'offReject'),async c=>{await setStatus(ap?'Approved':'Rejected',c?{comment:c}:{});await lg(cr.id,(ap?'officeapproved|':'officerejected|')+(c||''));openCR(cr.id)},!ap)}
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
  if(k=='deleted')return t('delMoved');
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
- if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')';
+ if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):'');
+ if(k=='taskprog')return t('l_taskprog')+': '+(p[1]||'')+' → '+(p[2]||0)+'%';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
  if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
  if(k=='removed')return t('l_removed');
@@ -632,6 +644,9 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  if(k=='apprejected')return t('l_apprej')+': '+p.slice(1).join('|');
+ if(k=='adminedit')return t('l_adminedit')+(p[1]&&p[1]!='-'?': '+p[1]:'');
+ if(k=='officeapproved')return t('l_offapp')+(p[1]?': '+p.slice(1).join('|'):'');
+ if(k=='officerejected')return t('l_offrej')+(p[1]?': '+p.slice(1).join('|'):'');
  if(k=='crlink')return t('l_crlink')+': '+p.slice(1).join('|');
  if(k=='crunlink')return t('l_crunlink');
  if(k=='revcancelled')return t('l_revcancelled');
@@ -654,10 +669,11 @@ async function toggleLang(){
 
 // ===== App =====
 const ATTMAX=()=>(+SET.att_max_mb||10)*1048576;
-let GR=[];
+let GR=[],PROXY=[];
+const isMine=s=>s.user_id==me.id||PROXY.includes(s.user_id);
 const pcOf=r=>SVC=='charter'?(r.code||''):((r.data||{}).pcode||'');
 const gEd=r=>{const p=pcOf(r);return !!p&&GR.some(g=>g.pcode==p&&g.lvl=='edit'&&(!g.svcs||g.svcs.includes(SVC)))};
-async function loadSet(){SET={};GR=[];try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
+async function loadSet(){SET={};GR=[];PROXY=[];try{const r=await sb.rpc('my_proxy_for');PROXY=(r.data||[]).map(x=>x.id)}catch(_){}try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
  applyLists();ROLES={};try{const r=await sb.from('app_roles').select('*');(r.data||[]).forEach(x=>ROLES[x.key]=x)}catch(_){}}
 async function start(){
  curView=start;editing=false;
@@ -711,7 +727,7 @@ function enrich(){
  const adm=me.role=='admin';DB.by={};
  DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
  DB.sg.forEach(s=>{if(DB.by[s.cr_id])DB.by[s.cr_id].sg.push(s)});
- DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>s.user_id==me.id);
+ DB.crs.forEach(r=>{const x=DB.by[r.id],st=r.status,my=x.sg.filter(s=>isMine(s));
   if(r.created_by==me.id)x.rel.push('created');
   if(my.some(s=>s.stage=='reviewed'))x.rel.push('reviewer');
   if(my.some(s=>s.stage=='approved'))x.rel.push('approver');
@@ -781,7 +797,7 @@ function adminBlock(){
   if(s.status=='signed'&&s.signed_at){const st0=(lgT[s.cr_id+'|'+need]||[]).filter(d=>d<=new Date(s.signed_at));if(st0.length)wu(s.user_id).d.push((new Date(s.signed_at)-Math.max(...st0))/864e5)}});
  const now=new Date(),ym=d=>d.getFullYear()*12+d.getMonth(),cm=ym(now);
  const mc=k=>A.filter(r=>ym(new Date(r.created_at))==cm-k).length;
- const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE':'en-GB',{month:'short'}),mc(k)]});
+ const months=[5,4,3,2,1,0].map(k=>{const d=new Date(now.getFullYear(),now.getMonth()-k,1);return[d.toLocaleDateString(lang=='ar'?'ar-AE-u-nu-latn':'en-GB',{month:'short'}),mc(k)]});
  const pr=LST.ptype.map(x=>x[0]).map(p=>[t('pt_'+p),A.filter(r=>r.data.ptype==p).length]);
  const dm={};A.forEach(r=>{const k=r.data.sector;if(k)dm[secL(k)]=(dm[secL(k)]||0)+1});
  const dp=Object.entries(dm).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -825,7 +841,7 @@ async function submitCR(){
  await proceedSubmit()}
 
 // ===== Project charter: data model & form =====
-const ad=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
+const ad=n=>lang=='ar'?String(n).replace(/\d/g,c=>'0123456789'[c]):String(n);
 const monthsBetween=(a,b)=>{if(!a||!b)return null;const n=(new Date(b)-new Date(a))/864e5;if(isNaN(n)||n<0)return null;return Math.round(n/30.4375*10)/10};
 const lvl=s=>s>=15?'high':s>=5?'med':'low';
 const score=r=>(+r.i&&+r.x)?(+r.i)*(+r.x):0;
@@ -861,8 +877,8 @@ async function openCR(id){
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const ed=!arch&&(cr.created_by==me.id||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
- curView=()=>openCR(id);editing=ed;
+ const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
+ curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
  const canAdm=adm&&!fin&&!arch;
@@ -870,25 +886,27 @@ async function openCR(id){
  const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st);
  const showRev=adm||!['Draft','Returned to PM','Submitted','Cancelled'].includes(st);
  const showApp=['Reviewed','Awaiting Approval','Office Decision','Approved'].includes(st)||(adm&&['Submitted','PMO Review'].includes(st))||(st=='Rejected'&&sigs.some(s=>s.stage=='approved'));
- const inStage=sigs.some(s=>s.user_id==me.id&&s.stage==stage);
+ const inStage=sigs.some(s=>isMine(s)&&s.stage==stage);
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
- const mine=arch?null:sigs.find(s=>s.user_id==me.id&&s.stage==stage&&s.status=='pending');
+ const mine=arch?null:sigs.find(s=>isMine(s)&&s.stage==stage&&s.status=='pending');
  const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
  const ARR=['stk_int','stk_ext','agr','appr','acts','reqs','team','risks'];ARR.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});if(ed)ARR.forEach(k=>{if(!d[k].length){d[k].push(typeof BLANK[k]=='object'?{...BLANK[k]}:'');if(typeof BLANK[k]=='object'&&OPEN[k]===undefined)OPEN[k]=0}});
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at):`<span class="mut">${t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at)+(s.signed_by&&s.signed_by!=s.user_id?' · '+t('byProxy').replace('{n}',esc((users[s.signed_by]||{}).full_name||'')):''):`<span class="mut">${fin?'—':t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
- if(ed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
+ if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
+ if(ed&&!aed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  if(canAdm&&st=='Submitted')acts+=`<button class="g" onclick="sendReview()">${t('sendRev')}</button>`;
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
- if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}</button>`;
+ if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
+ if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
- if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>s.user_id==me.id&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
- if(ed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
+ if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):(st=='Office Decision'?t('officeNote')+(cr.comment?' — '+esc(cr.comment):''):''));
  const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'NA'}</div>`;
@@ -927,7 +945,7 @@ async function openCR(id){
  <div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s0?'on':''}"></i>`).join('')}</div>
  <div class="dinfo"><div><span>${t('pcode')}</span><b dir="ltr">${esc(cr.code)}</b></div><div><span>${t('docNo')}</span><b dir="ltr">${esc(cr.doc_no)}</b></div><div><span>${t('docType')}</span><b>${t('docTypeV')}</b></div><div><span>${t('issue')}</span><b>${esc(issued)}</b></div></div>
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
- ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}${adm?`<div class="row"><button id="xw" onclick="exportWord()">📄 ${t('x_word')}</button></div>`:''}</div>
+ ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}${aed?`<div class="sig" style="margin-top:8px;border-color:#B39A6B">✏ ${t('aedBanner')}</div>`:''}${adm?`<div class="row"><button id="xw" onclick="exportWord()">📄 ${t('x_word')}</button>${!aed&&!arch&&!['Draft','Returned to PM','Cancelled'].includes(st)?`<button onclick="adminEditStart()">✏ ${t('aedBtn')}</button>`:''}</div>`:''}</div>
  ${ed?`<div class="fp"><div class="bg"><i id="fpb"></i></div><div class="mut" id="fpt"></div></div>`:''}
  ${nbn}${nbar}
  <div class="tabs">${TABS.map(k=>`<button class="tb ${ftab==k?'on':''}" data-t="${k}" onclick="showTab('${k}')">${t('tab_'+k)}${ncnt(k)?`<i class="nbd">💬${ncnt(k)}</i>`:''}${REQ[k]?`<i class="bd"></i>`:''}</button>`).join('')}</div>
@@ -954,7 +972,7 @@ async function openCR(id){
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
 document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
- if(x.dataset&&x.dataset.num){const v=x.value.replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');if(v!==x.value)x.value=v}
+ if(x.dataset&&x.dataset.num){const v=x.value.replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');if(v!==x.value)x.value=v}
  if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg();if(x.dataset.k=='sdate'||x.dataset.k=='edate'){const u=$('dur');if(u)u.textContent=durTxt()}}
  if(x.dataset.a){const o=cr.data[x.dataset.a],i=+x.dataset.r;if(x.dataset.c){o[i][x.dataset.c]=x.value;{const sm=$('sm_'+x.dataset.a+'_'+i);if(sm&&SUMF[x.dataset.a])sm.innerHTML=SUMF[x.dataset.a](o[i])}if(x.dataset.a=='risks'){const b=$('rk_'+i);if(b)b.outerHTML=riskHTML(o[i],i)}}else o[i]=x.value}
  if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}
@@ -974,7 +992,7 @@ function allRows(a,on){document.querySelectorAll('.sh[data-acc='+a+']').forEach(
 const mvRow=(a,i,dv)=>{const r=cr.data[a],j=i+dv;if(j<0||j>=r.length)return;[r[i],r[j]]=[r[j],r[i]];OPEN[a]=j;save(true)};
 function pasteBox(a){const b=$('pb_'+a);if(b)b.style.display=b.style.display=='none'?'':'none'}
 function pasteGo(a){const tx=$('pt_'+a).value.replace(/\r/g,'');const lines=tx.split('\n').filter(l=>l.trim()!=='');if(!lines.length)return;
- const isO=typeof BLANK[a]=='object',num=s=>String(s).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^0-9.]/g,'');
+ const isO=typeof BLANK[a]=='object',num=s=>String(s).replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[^0-9.]/g,'');
  cr.data[a]=cr.data[a].filter(filled);
  for(const ln of lines){if(!isO){cr.data[a].push(ln.trim());continue}
   const cells=ln.split('\t'),r={...BLANK[a]};COLS[a].forEach((c,j)=>{let v=(cells[j]||'').trim();if(c.type=='number')v=num(v);if(c.sel){v=num(v);v=(+v>=1&&+v<=5)?String(Math.round(+v)):''}r[c.c]=v});cr.data[a].push(r)}
@@ -1102,7 +1120,7 @@ function askNote(title,ph,ok,cb,req){let o=$('nmod');if(o)o.remove();o=document.
 
 // ---- signing ----
 function useSaved(){if(!me.signature_img)return;upImg=me.signature_img;$('prev').src=upImg;$('prev').style.display='block';tab('u')}
-function openSign(id,stage,submit){pend={id,stage,submit:!!submit};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
+function openSign(id,stage,submit){pend={id,stage,submit:!!submit,by:(()=>{const s=sigs.find(x=>x.id==id);return s&&s.user_id!=me.id?me.id:null})()};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
  const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
@@ -1117,8 +1135,8 @@ async function confirmSign(){
  let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
  if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
- await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString()}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage);
+ await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);
+ await lg(cr.id,'signed|'+pend.stage+(pend.by?'|proxy':''));
  {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('charters').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('charters').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('charter_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};
@@ -1131,7 +1149,7 @@ async function confirmSign(){
 const DOCX_URL='https://cdn.jsdelivr.net/npm/docx@9.7.1/dist/index.iife.js',LIBP={};
 function loadScript(u){return LIBP[u]||(LIBP[u]=new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=()=>{delete LIBP[u];no(new Error('Could not load library'))};document.head.appendChild(s)}))}
 function dl(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000)}
-const fdx=v=>{if(!v)return'';const d=new Date(v),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())};
+const fdx=v=>{if(!v)return'';const d=new Date(v),p=n=>String(n).padStart(2,'0');return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes())};
 const stamp=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes())};
 const d2b=u=>{const b=atob(u.split(',')[1]),a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a};
 const imgInfo=u=>new Promise(ok=>{const i=new Image();i.onload=()=>ok({w:i.naturalWidth||1,h:i.naturalHeight||1});i.onerror=()=>ok({w:3,h:1});i.src=u});
@@ -1274,4 +1292,23 @@ function adminView(){curView=adminView;editing=false;
  app.innerHTML=bar()+`<div class="card"><h2>${t('x_expTitle')}</h2>${expBtns()}</div><div class="card"><h2>${t('manageUsers')}</h2><div class="mut">${t('manageUsersH')}</div><div class="row"><button class="p" onclick="location.href='users.html'">${t('manageUsers')} ←</button></div></div>`}
 async function saveU(id){const {error}=await sb.from('profiles').update({role:$('r_'+id).value,job_title:$('j_'+id).value}).eq('id',id);error?msg(error.message):(msg(t('saved')),start())}
 applyStatic();start();
-</script></body></html>
+</script><script>/*fmtfix*/
+(function(){
+ var AR={'٠':0,'١':1,'٢':2,'٣':3,'٤':4,'٥':5,'٦':6,'٧':7,'٨':8,'٩':9,'۰':0,'۱':1,'۲':2,'۳':3,'۴':4,'۵':5,'۶':6,'۷':7,'۸':8,'۹':9};
+ var RA=/[٠-٩۰-۹]/g,RI=/(\d{4})-(\d{2})-(\d{2})/g;
+ function fixTxt(s){if(!s)return s;var o=s.replace(RA,function(c){return AR[c]});o=o.replace(RI,function(m,y,mo,d){return (+mo>=1&&+mo<=12&&+d>=1&&+d<=31)?d+'/'+mo+'/'+y:m});return o}
+ function walk(root){try{var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentNode;if(!p)return NodeFilter.FILTER_REJECT;var g=p.nodeName;return(g=='SCRIPT'||g=='STYLE'||g=='TEXTAREA'||g=='OPTION'&&0)?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT}}),n,L=[];while(n=w.nextNode())L.push(n);L.forEach(function(n){var v=n.nodeValue,f=fixTxt(v);if(f!==v)n.nodeValue=f})}catch(e){}}
+ function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
+ function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
+ function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+ function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
+ function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
+ var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
+ var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
+ new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
+ setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ run();
+})();
+</script>
+</body></html>
