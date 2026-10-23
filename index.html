@@ -12,7 +12,7 @@
 html{-webkit-text-size-adjust:100%}
 body{margin:0;color:var(--ink);font:15px/1.65 var(--fnt);background:radial-gradient(800px 380px at 100% -60px,#dcefe3 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#fbe4e6 0,transparent 58%),var(--bg);background-attachment:fixed;min-height:100vh}
 #hd{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.93);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.hin{max-width:1000px;margin:0 auto;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hin{max-width:1000px;margin:0 auto;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .logo{height:44px;width:auto;display:block}
 .stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#d1101d}.stripe i:nth-child(2){background:#0a6b3d}.stripe i:nth-child(3){background:#1b1d1f}.stripe i:nth-child(4){background:#a8a7a7}
 button{font:inherit;font-weight:700;cursor:pointer}
@@ -127,10 +127,10 @@ const AXES=[
   title:{ar:'إدارة المشاريع',en:'Project Management'},
   desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
   services:[
-   {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'إنشاء مشروع جديد (ميثاق المشروع)',en:'Create a New Project (Project Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
-   {icon:'file',status:'live',href:'plan.html',stats:'pl',title:{ar:'خطة المشروع (الأنشطة والمخطط الزمني)',en:'Project Plan (Activities & Gantt)'},desc:{ar:'بناء خطة المشروع بأنشطة ومهام ومخطط جانت تفاعلي مع المراجعة والاعتماد.',en:'Build the project plan with activities, tasks and an interactive Gantt chart, with review and approval.'}},
-   {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'إدارة طلبات التغيير في المشاريع',en:'Project Change Request Management'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
-   {icon:'check',status:'live',href:'closure.html',stats:'cl',title:{ar:'إغلاق مشروع (التقرير الختامي)',en:'Project Closure (Final Report)'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
+   {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'المشاريع (ميثاق المشروع)',en:'Projects (Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
+   {icon:'file',status:'live',href:'plan.html',stats:'pl',title:{ar:'خطط المشاريع',en:'Project Plans'},desc:{ar:'بناء خطة المشروع بأنشطة ومهام ومخطط جانت تفاعلي مع المراجعة والاعتماد.',en:'Build the project plan with activities, tasks and an interactive Gantt chart, with review and approval.'}},
+   {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'طلبات التغيير',en:'Change Requests'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
+   {icon:'check',status:'live',href:'closure.html',stats:'cl',title:{ar:'التقارير الختامية',en:'Closure Reports'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
   ]},
  {id:'quality',color:'#d1101d',icon:'shield',
   title:{ar:'إدارة الجودة والوثائق',en:'Quality & Documents Management'},
@@ -152,7 +152,7 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'تم البتّ فيها',en:'Decided'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
@@ -214,7 +214,7 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
   (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
    if(mine)created++;
    if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
-   const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'));
+   const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
 const STATS={cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
@@ -277,7 +277,7 @@ function drawMine(){
  if(MINE.state=='ok')MINE.shown=true}
 MINE={state:'loading'};
 function hdrBtns(role){const h=$('hx');if(!h)return;const a=lang=='ar';
- h.innerHTML=`<a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
+ h.innerHTML=`<a class="hb" href="projects.html">📁 ${a?'المشاريع':'Projects'}</a><a class="hb" href="account.html">👤 ${a?'حسابي':'My account'}</a>`+(role=='admin'?`<a class="hb" href="settings.html">⚙ ${a?'الإعدادات':'Settings'}</a><a class="hb" href="users.html">🛠 ${a?'إدارة المستخدمين':'User management'}</a><a class="hb" href="archive.html">🗂 ${a?'الأرشيف':'Archive'}</a>`:'')+`<button class="hb" style="cursor:pointer;font:inherit;font-weight:700;font-size:13px" onclick="sb.auth.signOut().then(()=>{try{localStorage.removeItem('hdrRole')}catch(e){}location.reload()})">⎋ ${a?'تسجيل الخروج':'Sign out'}</button>`}
 try{const r0=localStorage.getItem('hdrRole');if(r0)setTimeout(()=>hdrBtns(r0),0)}catch(e){}
 let OFFSVC=[];
 let ROLEOFF=[];
