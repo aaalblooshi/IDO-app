@@ -135,7 +135,7 @@ const AXES=[
    {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'المشاريع (ميثاق المشروع)',en:'Projects (Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
    {icon:'file',status:'live',href:'plan.html',stats:'pl',title:{ar:'خطط المشاريع',en:'Project Plans'},desc:{ar:'بناء خطة المشروع بأنشطة ومهام ومخطط جانت تفاعلي مع المراجعة والاعتماد.',en:'Build the project plan with activities, tasks and an interactive Gantt chart, with review and approval.'}},
    {icon:'refresh',status:'live',href:'cr.html',stats:'cr',title:{ar:'طلبات التغيير',en:'Change Requests'},desc:{ar:'رفع طلبات التغيير ومراجعتها واعتمادها إلكترونيًا مع التواقيع والمتابعة.',en:'Submit, review and approve change requests electronically, with signatures and tracking.'}},
-   {icon:'check',status:'live',href:'closure.html',stats:'cl',title:{ar:'التقارير الختامية',en:'Closure Reports'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
+   {icon:'book',status:'live',href:'closure.html',stats:'cl',title:{ar:'التقارير الختامية',en:'Closure Reports'},desc:{ar:'إعداد التقرير الختامي واعتماد إغلاق المشروع.',en:'Prepare the final report and approve the project closure.'}}
   ]},
  {id:'quality',color:'#d1101d',icon:'shield',
   title:{ar:'إدارة الجودة والوثائق',en:'Quality & Documents Management'},
@@ -157,8 +157,8 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_tkl:{ar:'متأخرة',en:'Late'},t_tka:{ar:'إنجازي الفعلي',en:'My actual progress'},t_tke:{ar:'المخطط حتى اليوم',en:'Planned to date'},t_tkg:{ar:'الفارق عن المخطط',en:'Gap vs plan'},t_tkn:{ar:'كل مهامي',en:'All my tasks'},t_tklp:{ar:'نسبة المتأخرة من المتبقية',en:'Late share of remaining'},t_tkdy:{ar:'مجموع أيام التأخير',en:'Total late days'},t_tkmx:{ar:'أطول تأخير (يوم)',en:'Longest delay (days)'},t_tkav:{ar:'متوسط التأخير (يوم)',en:'Average delay (days)'},m_cnt:{ar:'العدد',en:'Count'},m_pct:{ar:'الإنجاز والمخطط',en:'Progress vs plan'},m_dly:{ar:'التأخير',en:'Delay'},priT:{ar:'الإجراءات المطلوبة منك',en:'Actions required from you'},pri_tk:{ar:'مهام متأخرة',en:'Late tasks'},pri_ac:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_tkt:{ar:'موعد إنجازها اليوم',en:'Due today'},t_tko:{ar:'المتبقية',en:'Remaining'},t_tkd:{ar:'المنجزة',en:'Completed'},tkFab:{ar:'مهامي',en:'My tasks'},
- t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
+ t_tkl:{ar:'متأخرة',en:'Late'},t_tka:{ar:'إنجازي الفعلي',en:'My actual progress'},t_tke:{ar:'المخطط حتى اليوم',en:'Planned to date'},t_tkg:{ar:'الفارق عن المخطط',en:'Gap vs plan'},t_tkn:{ar:'كل مهامي',en:'All my tasks'},t_tklp:{ar:'نسبة المتأخرة من المتبقية',en:'Late share of remaining'},t_tkdy:{ar:'مجموع أيام التأخير',en:'Total late days'},t_tkmx:{ar:'أطول تأخير (يوم)',en:'Longest delay (days)'},t_tkav:{ar:'متوسط التأخير (يوم)',en:'Average delay (days)'},m_cnt:{ar:'العدد',en:'Count'},m_pct:{ar:'الإنجاز والمخطط',en:'Progress vs plan'},m_dly:{ar:'التأخير',en:'Delay'},priT:{ar:'الإجراءات المطلوبة منك',en:'Actions required from you'},pri_tk:{ar:'مهام متأخرة',en:'Late tasks'},pri_ac:{ar:'بانتظار إجراءك',en:'Awaiting my action'},t_tkt:{ar:'موعد إنجازها اليوم',en:'Due today'},t_tko:{ar:'المتبقية',en:'Remaining'},t_tkd:{ar:'المنجزة',en:'Completed'},tkFab:{ar:'مهامي',en:'My tasks'},
+ t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجراءك',en:'Awaiting your action'},t_done:{ar:'مكتملة',en:'Completed'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
  foot:{ar:'مكتب التطوير المؤسسي · مركز الإمارات للدراسات والبحوث الاستراتيجية',en:'Institutional Development Office · Emirates Center for Strategic Studies and Research'}
@@ -234,12 +234,12 @@ const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r
  window.TKC={late,today,open,done};tkFab();
  window.TKD={late,today,open,done,nn,a:nn?Math.round(sA/nn):0,e:nn?Math.round(sE/nn):0,ld,mx,av:late?Math.round(ld/late):0};
  return tkTiles(tkMode())};
-const tkMode=()=>{try{return localStorage.getItem('tk_home_mode')||'cnt'}catch(e){return'cnt'}};
+let TKM='cnt';const tkMode=()=>TKM;
 function tkTiles(m){const d=window.TKD;if(!d)return[];const H='tasks.html';
  if(m=='pct')return[{k:'tke',n:d.e,s:'%',c:'#B39A6B',href:H},{k:'tka',n:d.a,s:'%',c:'#3D96C7',href:H},{k:'tkg',n:d.a-d.e,s:'%',c:(d.a-d.e<0?'#d1101d':'#1c7a45'),href:H,hot:d.a-d.e<0},{k:'tkn',n:d.nn,c:'#23272b',href:H}];
  if(m=='dly')return[{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tklp',n:d.open?Math.round(d.late/d.open*100):0,s:'%',c:'#d1101d',href:H},{k:'tkt',n:d.today,c:'#a8761a',href:H},{k:'tkg',n:d.a-d.e,s:'%',c:(d.a-d.e<0?'#d1101d':'#1c7a45'),href:H,hot:d.a-d.e<0}];
  return[{k:'tkn',n:d.nn,c:'#23272b',href:H},{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tkd',n:d.done,c:'#1c7a45',href:H},{k:'tko',n:d.open,c:'#3D96C7',href:H}]}
-function setTkMode(m){try{localStorage.setItem('tk_home_mode',m)}catch(e){}if(MINE&&MINE.panels){const p=MINE.panels.find(x=>x.s.stats=='tk');if(p)p.tiles=tkTiles(m)}drawMine()}
+function setTkMode(m){TKM=m;if(MINE&&MINE.panels){const p=MINE.panels.find(x=>x.s.stats=='tk');if(p)p.tiles=tkTiles(m)}drawMine()}
 function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
  const n=c.late+c.today;a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
 const STATS={tk:tkLoad,cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
