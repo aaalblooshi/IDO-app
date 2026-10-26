@@ -36,7 +36,7 @@ main{max-width:1000px;margin:0 auto;padding:16px 14px 40px}
 .pan:last-child{margin-bottom:0}.pan{cursor:pointer}
 .pri{border:1.5px solid #f3b9be;background:#fff8f8;border-radius:14px;padding:8px 10px;margin-bottom:10px}.pri>b{display:block;font-size:13.5px;color:#d1101d;margin-bottom:6px}.prg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}.prg a{display:flex;align-items:center;gap:8px;text-decoration:none;color:inherit;background:#fff;border:1px solid #f3b9be;border-radius:10px;padding:7px 9px}.prg em{font-style:normal;font-weight:800;font-size:20px;color:#d1101d;min-width:28px;text-align:center}.prg span{font-size:12.5px;line-height:1.35;font-weight:700}
 .tkm{display:flex;gap:6px;margin:0 0 8px;flex-wrap:wrap}.tkm button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:12.5px;font-weight:700;color:var(--mut);cursor:pointer}.tkm button.on{background:#23272b;border-color:#23272b;color:#fff}
-.pantk .tl{grid-template-columns:repeat(2,1fr)!important}
+.pantk .tl{grid-template-columns:repeat(4,1fr)!important;gap:6px}.pantk .tl .tile,.pantk .tl>*{min-width:0}
 .ph{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:inherit;text-decoration:none}
 .ph .ico{width:38px;height:38px;border-radius:12px}.ph .ico svg{width:20px;height:20px}
 .ph b{flex:1;font-size:15.5px;line-height:1.4}.ph .go{width:20px;height:20px}
@@ -157,7 +157,7 @@ const UI={
  emptyT:{ar:'الخدمات قيد الإعداد',en:'Services are being prepared'},emptyD:{ar:'ستظهر خدمات هذا المحور هنا قريبًا.',en:'This axis’ services will appear here soon.'},
  none:{ar:'لا توجد نتائج مطابقة لبحثك.',en:'No services match your search.'},
  mineT:{ar:'لوحتي',en:'My dashboard'},hello:{ar:'مرحبًا',en:'Hello'},mineSub:{ar:'ملخص نشاطك في كل خدمة',en:'A summary of your activity in each service'},
- t_tkl:{ar:'متأخرة',en:'Late'},t_tka:{ar:'إنجازي الفعلي',en:'My actual progress'},t_tke:{ar:'المخطط حتى اليوم',en:'Planned to date'},t_tkg:{ar:'الفارق عن المخطط',en:'Gap vs plan'},t_tkn:{ar:'كل مهامي',en:'All my tasks'},t_tkdy:{ar:'مجموع أيام التأخير',en:'Total late days'},t_tkmx:{ar:'أطول تأخير (يوم)',en:'Longest delay (days)'},t_tkav:{ar:'متوسط التأخير (يوم)',en:'Average delay (days)'},m_cnt:{ar:'العدد',en:'Count'},m_pct:{ar:'الإنجاز والمخطط',en:'Progress vs plan'},m_dly:{ar:'التأخير',en:'Delay'},priT:{ar:'الأهم الآن',en:'Most important now'},pri_tk:{ar:'مهام متأخرة',en:'Late tasks'},pri_ac:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_tkt:{ar:'موعد إنجازها اليوم',en:'Due today'},t_tko:{ar:'المتبقية',en:'Remaining'},t_tkd:{ar:'المنجزة',en:'Completed'},tkFab:{ar:'مهامي',en:'My tasks'},
+ t_tkl:{ar:'متأخرة',en:'Late'},t_tka:{ar:'إنجازي الفعلي',en:'My actual progress'},t_tke:{ar:'المخطط حتى اليوم',en:'Planned to date'},t_tkg:{ar:'الفارق عن المخطط',en:'Gap vs plan'},t_tkn:{ar:'كل مهامي',en:'All my tasks'},t_tkdy:{ar:'مجموع أيام التأخير',en:'Total late days'},t_tkmx:{ar:'أطول تأخير (يوم)',en:'Longest delay (days)'},t_tkav:{ar:'متوسط التأخير (يوم)',en:'Average delay (days)'},m_cnt:{ar:'العدد',en:'Count'},m_pct:{ar:'الإنجاز والمخطط',en:'Progress vs plan'},m_dly:{ar:'التأخير',en:'Delay'},priT:{ar:'الإجراءات المطلوبة منك',en:'Actions required from you'},pri_tk:{ar:'مهام متأخرة',en:'Late tasks'},pri_ac:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_tkt:{ar:'موعد إنجازها اليوم',en:'Due today'},t_tko:{ar:'المتبقية',en:'Remaining'},t_tkd:{ar:'المنجزة',en:'Completed'},tkFab:{ar:'مهامي',en:'My tasks'},
  t_created:{ar:'أنشأتُها',en:'Created by me'},t_action:{ar:'بانتظار إجرائي',en:'Awaiting my action'},t_done:{ar:'مكتملة',en:'Completed'},t_del:{ar:'طلبات الحذف',en:'Delete requests'},
  needLogin:{ar:'سجّل الدخول لعرض لوحتك الشخصية وطلباتك.',en:'Sign in to see your personal dashboard and requests.'},signIn:{ar:'تسجيل الدخول',en:'Sign in'},
  mineErr:{ar:'تعذّر تحميل بياناتك الآن.',en:'Could not load your data right now.'},
@@ -238,7 +238,7 @@ const tkMode=()=>{try{return localStorage.getItem('tk_home_mode')||'cnt'}catch(e
 function tkTiles(m){const d=window.TKD;if(!d)return[];const H='tasks.html';
  if(m=='pct')return[{k:'tke',n:d.e,s:'%',c:'#B39A6B',href:H},{k:'tka',n:d.a,s:'%',c:'#3D96C7',href:H},{k:'tkg',n:d.a-d.e,s:'%',c:(d.a-d.e<0?'#d1101d':'#1c7a45'),href:H,hot:d.a-d.e<0},{k:'tkn',n:d.nn,c:'#23272b',href:H}];
  if(m=='dly')return[{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tkdy',n:d.ld,c:'#d1101d',href:H},{k:'tkmx',n:d.mx,c:'#a8761a',href:H},{k:'tkav',n:d.av,c:'#a8761a',href:H}];
- return[{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tkt',n:d.today,c:'#a8761a',href:H},{k:'tko',n:d.open,c:'#23272b',href:H},{k:'tkd',n:d.done,c:'#1c7a45',href:H}]}
+ return[{k:'tko',n:d.open,c:'#23272b',href:H},{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tkt',n:d.today,c:'#a8761a',href:H},{k:'tkd',n:d.done,c:'#1c7a45',href:H},{k:'tkdy',n:d.ld,c:'#d1101d',href:H},{k:'tkmx',n:d.mx,c:'#a8761a',href:H},{k:'tkav',n:d.av,c:'#a8761a',href:H},{k:'tkg',n:d.a-d.e,s:'%',c:(d.a-d.e<0?'#d1101d':'#1c7a45'),href:H,hot:d.a-d.e<0}]}
 function setTkMode(m){try{localStorage.setItem('tk_home_mode',m)}catch(e){}if(MINE&&MINE.panels){const p=MINE.panels.find(x=>x.s.stats=='tk');if(p)p.tiles=tkTiles(m)}drawMine()}
 function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
  const n=c.late+c.today;a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
@@ -300,7 +300,7 @@ function drawMine(){
  if(MINE.state=='login')body=`<div class="login"><span>${T('needLogin')}</span><a href="cr.html">${T('signIn')}</a></div>`;
  else if(MINE.state=='error')body=`<div class="login" style="flex-direction:column;align-items:flex-start"><span>${T('mineErr')}</span><small dir="ltr" style="color:#6b6f76">${esc(MINE.msg||'')}</small><button onclick="sb.auth.signOut().then(()=>location.reload())">${lang=='ar'?'تسجيل الخروج وإعادة المحاولة':'Sign out and retry'}</button></div>`;
  else if(MINE.state=='loading')body='<div class="sk"></div>';
- else body=priStrip()+MINE.panels.map(({s,tiles})=>`<div class="pan ${s.stats=='tk'?'pantk':''}" style="--ac:#0a6b3d" data-h="${esc(s.href)}" onclick="if(!event.target.closest('a,button'))location.href=this.dataset.h"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a>${s.stats=='tk'?`<div class="tkm">${[['cnt','m_cnt'],['pct','m_pct'],['dly','m_dly']].map(([m,k])=>`<button class="${tkMode()==m?'on':''}" onclick="setTkMode('${m}')">${T(k)}</button>`).join('')}</div>`:''}<div class="tl">${tiles?tileList(tiles).map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b data-n="${t.n}" data-s="${t.s||''}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
+ else body=priStrip()+MINE.panels.map(({s,tiles})=>`<div class="pan ${s.stats=='tk'?'pantk':''}" style="--ac:#0a6b3d" data-h="${esc(s.href)}" onclick="if(!event.target.closest('a,button'))location.href=this.dataset.h"><a class="ph" href="${esc(s.href)}"><div class="ico">${svg(s.icon)}</div><b>${esc(L(s.title))}</b>${svg('arrow','go')}</a>${s.stats=='tk'?`<div class="tkm">${[['cnt','m_cnt'],['pct','m_pct'],['dly','m_dly']].map(([m,k])=>`<button class="${tkMode()==m?'on':''}" onclick="setTkMode('${m}')">${T(k)}</button>`).join('')}</div>`:''}<div class="tl">${tiles?tileList(tiles).map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b dir="ltr" data-n="${t.n}" data-s="${t.s||''}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):`<div class="login" style="grid-column:1/-1">${T('mineErr')}</div>`}</div></div>`).join('');
  el.innerHTML=`<div class="mh"><div><h2>${T('mineT')}${MINE.name?' · '+esc(MINE.name):''}</h2><small>${T('mineSub')}</small></div></div>`+body;
  el.querySelectorAll('.tile b').forEach(b=>{const n=+b.dataset.n;const sf=b.dataset.s||'';if(matchMedia('(prefers-reduced-motion:reduce)').matches||MINE.shown){b.textContent=n+sf;return}let st=performance.now();(function f(t){const p=Math.min(1,(t-st)/700);b.textContent=Math.round(n*p)+sf;if(p<1)requestAnimationFrame(f)})(st)});
  if(MINE.state=='ok')MINE.shown=true}
@@ -364,7 +364,7 @@ draw();loadMine();applySvc();
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function lg(){return ls('lang')=='en'?'en':'ar'}
  function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
- var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1]];
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
  var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
  +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
  var built=0;
@@ -431,4 +431,57 @@ draw();loadMine();applySvc();
  run();
 })();
 </script>
+<script>/*helpfix*/(function(){
+ if(window.__hq)return;window.__hq=1;
+ var H={
+  pname:['الاسم الرسمي للمشروع كما سيظهر في كل الوثائق والتقارير. اجعله واضحًا ومختصرًا ولا تغيّره بعد الاعتماد إلا بطلب تغيير.','The official project name used in all documents and reports. Keep it short and clear; changing it after approval needs a change request.'],
+  pcode:['رمز المشروع يُولَّد تلقائيًا ويربط الميثاق والخطة وطلبات التغيير والتقرير الختامي ببعضها.','The project code is generated automatically and links the charter, plan, change requests and closure report.'],
+  pdesc:['وصف مختصر لما هو المشروع وماذا سينتج. يكفي 3–5 أسطر.','A short description of what the project is and what it will deliver (3–5 lines).'],
+  purpose:['لماذا يُنفَّذ المشروع؟ اذكر المشكلة أو الفرصة والقيمة المتوقعة.','Why is the project being done? State the problem or opportunity and the expected value.'],
+  sector:['القطاع المسؤول عن المشروع. يحدّد من يرى المشروع في المحفظة ومن يملك صلاحية نطاقه.','The sector responsible for the project. It decides who sees it in the portfolio.'],
+  dept:['الإدارة داخل القطاع. اختر «لا ينطبق» إن كان المشروع على مستوى القطاع.','The department within the sector. Choose “Not applicable” for a sector-level project.'],
+  pmname:['مدير المشروع المسؤول عن التنفيذ والمتابعة.','The project manager responsible for delivery and follow-up.'],
+  owner:['مالك المشروع: صاحب القرار والمستفيد الرئيس من النتيجة.','Project owner: the decision-maker and main beneficiary.'],
+  ptype:['استراتيجي أم تشغيلي. المشاريع الاستراتيجية لها وزن أعلى في احتساب إنجاز القطاع والمركز.','Strategic or operational. Strategic projects weigh more in sector and centre progress.'],
+  sdate:['تاريخ البدء المخطط. في التقرير الختامي يُعبَّأ تلقائيًا من الخطة (أول بداية فعلية) ويمكن تعديله.','Planned start. In the closure report it is filled from the plan (earliest actual start) and can be edited.'],
+  edate:['تاريخ الانتهاء المخطط. في التقرير الختامي يُعبَّأ من آخر نهاية فعلية إذا اكتملت كل المهام.','Planned end. In the closure report it is filled from the latest actual end once all tasks are complete.'],
+  dur:['مدة التنفيذ تُحسب تلقائيًا من التاريخين.','Duration is calculated automatically from the two dates.'],
+  budget:['التكلفة التقديرية بالدرهم الإماراتي. اكتب الرقم فقط.','Estimated cost in AED. Enter the number only.'],
+  goal:['اربط المشروع بهدف أو أكثر من أهداف المركز الاستراتيجية.','Link the project to one or more of the centre’s strategic goals.'],
+  gov:['هل يخدم المشروع استراتيجية وطنية أو حكومية؟ إن نعم فاذكرها.','Does the project support a national or government strategy? If yes, state which.'],
+  team:['أسماء وأدوار أعضاء فريق العمل.','Names and roles of the project team.'],
+  acts:['أهم الأنشطة الرئيسية. التفاصيل الزمنية تُعدّ لاحقًا في «خطة المشروع».','Main activities. Detailed timing is done later in the project plan.'],
+  reqs:['ما يحتاجه المشروع من موارد أو دعم أو قرارات.','What the project needs in resources, support or decisions.'],
+  risks:['المخاطر المتوقعة وكيف ستُعالَج.','Expected risks and how they will be handled.'],
+  agr:['الاتفاقيات أو العقود المطلوبة قبل أو أثناء التنفيذ.','Agreements or contracts needed before or during delivery.'],
+  appr:['الموافقات الرسمية المطلوبة من جهات داخلية أو خارجية.','Formal approvals needed from internal or external parties.'],
+  stk_int:['الجهات الداخلية المتأثرة أو المشاركة.','Internal parties affected or involved.'],
+  stk_ext:['الجهات الخارجية المتأثرة أو المشاركة.','External parties affected or involved.'],
+  rdate:['تاريخ إعداد الوثيقة.','Date the document was prepared.'],
+  rbyn:['اسم من أعدّ التقرير.','Name of the report preparer.'],
+  pstatus:['حالة المشروع عند الإغلاق: مكتمل أو ملغى. اختيار «ملغى» يفتح حقولًا إلزامية جديدة، ويبقى عدد الخانات الكلي ثابتًا.','Project status at closure: completed or cancelled. Choosing “cancelled” adds mandatory fields while the total number of fields stays the same.'],
+  summary:['ملخص عام للإنجاز: ما الذي تحقق وما الذي لم يتحقق.','A general summary of what was and was not achieved.'],
+  outs:['المخرجات الفعلية التي سُلّمت.','The actual outputs delivered.'],
+  bens:['الفوائد المتحققة فعلًا.','Benefits actually realised.'],
+  bmeasure:['كيف قِيست الفوائد (المؤشر والقيمة).','How the benefits were measured (indicator and value).'],
+  ugoals:['أهداف لم تتحقق.','Goals that were not achieved.'],ubens:['فوائد لم تتحقق.','Benefits that were not realised.'],
+  probs:['المشكلات والتحديات التي واجهها المشروع.','Problems and challenges the project faced.'],
+  rsks:['المخاطر التي حدثت وكيف عولجت.','Risks that occurred and how they were handled.'],
+  depts:['الإدارات التي شاركت أو تأثرت.','Departments that took part or were affected.'],
+  deliv:['المخرجات المسلَّمة وإثباتها.','Delivered outputs and their evidence.'],
+  less:['الدروس المستفادة لتحسين المشاريع القادمة.','Lessons learned to improve future projects.'],
+  orgchg:['تغييرات تنظيمية أو إجرائية مقترحة.','Proposed organisational or process changes.'],
+  c_pct:['نسبة الإنجاز عند الإلغاء (٠–١٠٠).','Completion percentage at cancellation (0–100).']
+ };
+ var css='.hq{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-inline-start:6px;border-radius:50%;border:1.5px solid #B39A6B;background:#fff;color:#7a6740;font:700 13px/1 inherit;cursor:pointer;padding:0;vertical-align:middle}.hq:active{background:#f3ecdc}#hqs{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:95;display:flex;align-items:flex-end;justify-content:center}#hqs>div{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.2)}#hqs b{display:block;font-size:16px;margin-bottom:6px}#hqs p{margin:0 0 10px;line-height:1.7;font-size:14.5px}#hqs a{color:#2a6a90;font-weight:700}#hqs button{font:inherit;padding:9px 18px;border-radius:10px;border:1px solid #ddd5c3;background:#fff;margin-inline-end:8px}';
+ var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+ function L(){try{if(typeof lang!='undefined')return lang}catch(e){}return (document.documentElement.lang||'ar').slice(0,2)}
+ function show(k,lab){var c=H[k];if(!c)return;var ar=L()=='ar',o=document.createElement('div');o.id='hqs';o.onclick=function(e){if(e.target==o)o.remove()};
+  o.innerHTML='<div><b></b><p></p><a href="help.html">'+(ar?'المساعدة والجولة':'Help & tour')+' ›</a><div style="margin-top:12px"><button>'+(ar?'حسنًا':'OK')+'</button></div></div>';
+  o.querySelector('b').textContent=lab;o.querySelector('p').textContent=c[ar?0:1];o.querySelector('button').onclick=function(){o.remove()};document.body.appendChild(o)}
+ function scan(){document.querySelectorAll('.lr[data-fk]').forEach(function(r){if(r.querySelector('.hq'))return;var k=r.getAttribute('data-fk');if(!H[k])return;var lb=r.querySelector('label');if(!lb)return;
+  var b=document.createElement('button');b.type='button';b.className='hq';b.textContent='؟';b.setAttribute('aria-label','help');
+  b.onclick=function(e){e.preventDefault();e.stopPropagation();show(k,lb.textContent.replace('*','').trim())};lb.after(b)})}
+ var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,120)}).observe(document.body,{childList:true,subtree:true});scan();
+})();</script>
 </body></html>
