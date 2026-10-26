@@ -586,7 +586,7 @@ const W=[
 ["fz_on", "Attach a feasibility study to this charter", "إرفاق دراسة جدوى بهذا الميثاق"],
 ["fz_no", "No (optional)", "لا (اختيارية)"],
 ["fz_yes", "Yes", "نعم"],
-["fz_req", "Make the study mandatory before submission (admin)", "جعل دراسة الجدوى إلزامية قبل الإرسال (للمدير)"],
+["fz_req", "Make the study mandatory before submission", "جعل دراسة الجدوى إلزامية قبل الإرسال"],
 ["fz_reqn", "Mandatory", "إلزامية"],
 ["fz_ev", "Final evaluation (weights)", "التقييم النهائي (الأوزان)"],
 ["fz_score", "Score 0-100", "الدرجة 0-100"],
@@ -1065,7 +1065,7 @@ function fzHtml(ed,adm){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
  const v=fzTot(d);
  return `<div class="sec">${t('fz_t')}</div><div class="mut" style="margin-bottom:8px">${t('fz_hint')}</div>
  <div class="row" style="align-items:center"><label style="flex:1">${t('fz_on')}</label><select data-k="fz_on" ${dis} onchange="fzToggle(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${on?'selected':''}>${t('fz_yes')}</option></select></div>
- ${adm?`<div class="row" style="align-items:center"><label style="flex:1">${t('fz_req')}</label><select data-k="fz_req" onchange="fzReq(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${d.fz_req=='1'?'selected':''}>${t('fz_reqn')}</option></select></div>`:(d.fz_req=='1'?`<div class="mut">⚠ ${t('fz_reqn')}</div>`:'')}
+ ${(adm||ed)?`<div class="row" style="align-items:center"><label style="flex:1">${t('fz_req')}</label><select data-k="fz_req" onchange="fzReq(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${d.fz_req=='1'?'selected':''}>${t('fz_reqn')}</option></select></div>`:(d.fz_req=='1'?`<div class="mut">⚠ ${t('fz_reqn')}</div>`:'')}
  <div id="fzbody" style="${on?'':'display:none'}">${f}<div class="sec" style="margin-top:14px">${t('fz_ev')}</div>${sc}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div></div>`}
 function fzMissing(d){if(d.fz_req!='1'||me.role=='admin')return false;if(d.fz_on!='1')return true;if(!String(d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
 
@@ -1484,7 +1484,7 @@ applyStatic();start();
  function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
  function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
  function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
-  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f);i.addEventListener('click',function(){try{if(!i.disabled&&i.showPicker)i.showPicker()}catch(e){}})}
  function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
  function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
  var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
