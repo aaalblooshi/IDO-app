@@ -142,6 +142,7 @@ const W=[
 ["x_wait","Preparing…","جارٍ التجهيز…"],
 ["x_fail","Export failed:","تعذّر التصدير:"],
 ["x_formTitle","Change Request Form","نموذج طلب تغيير"],
+["f_pg","Page no.","رقم الصفحة"],["f_dn","Document name","اسم الوثيقة"],["f_dc","Document code","رمز الوثيقة"],["f_ver","Version","رقم الإصدار"],["f_cls","Classification","تصنيف الوثيقة"],["f_clsv","Internal","داخلي"],
 ["x_code","Request no.","رقم الطلب"],
 ["x_status","Status","الحالة"],
 ["x_created","Created on","تاريخ الإنشاء"],
@@ -587,6 +588,8 @@ const W=[
 ["completeCancel", "Please complete the cancellation section: ", "يرجى استكمال قسم الإلغاء: "],
 ["attTitle", "Attachment title", "عنوان المرفق"],
 ["extraAppNote", "The document stays approved. To get an additional approval, add the approver above; he/she will see a sign button and the document is not affected.", "تبقى الوثيقة معتمدة. لطلب اعتماد إضافي أضف المعتمد أعلاه فيظهر له زر الاعتماد دون أن تتأثر حالة الوثيقة."],
+["formNo", "Form No. (10) Final report form", "نموذج رقم (10) نموذج التقرير النهائي"],
+["apprTop", "Senior management", "الإدارة العليا"],
 ["home", "Closure reports", "التقارير الختامية"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
@@ -1225,66 +1228,57 @@ async function busy(id,fn){const b=$(id),old=b?b.textContent:'';if(b){b.disabled
 function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Sakkal Majalla',GRN='B39A6B',RED='D1101D',LIGHT='F2F2F2',LINE='B39A6B';
  const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k].filter(filled):[];
- const AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
- const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||26,bold:!!o.b,italics:!!o.it,color:o.c}));
+ const SCL=9026/10200,AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
+ const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||24,bold:!!o.b,italics:!!o.it,color:o.c}));
  const P=(tx,o={})=>new D.Paragraph({bidirectional:rtl,alignment:o.al||al,spacing:{before:o.sb||0,after:o.sa==null?40:o.sa},keepNext:o.kn,pageBreakBefore:o.pb,children:runs(tx,o)});
  const bd={style:D.BorderStyle.SINGLE,size:4,color:LINE},borders={top:bd,bottom:bd,left:bd,right:bd};
- const C=(kids,o={})=>new D.TableCell({children:Array.isArray(kids)?kids:[kids],width:{size:o.w,type:D.WidthType.DXA},columnSpan:o.span,verticalAlign:o.v||D.VerticalAlign.TOP,borders,margins:{top:70,bottom:70,left:120,right:120},shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined});
- const T=(rows,widths)=>new D.Table({rows,columnWidths:widths,width:{size:widths.reduce((x,y)=>x+y,0),type:D.WidthType.DXA},visuallyRightToLeft:rtl,layout:D.TableLayoutType.FIXED});
+ const C=(kids,o={})=>new D.TableCell({children:Array.isArray(kids)?kids:[kids],width:{size:Math.round(o.w*SCL),type:D.WidthType.DXA},columnSpan:o.span,verticalAlign:o.v||D.VerticalAlign.TOP,borders,margins:{top:70,bottom:70,left:120,right:120},shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined});
+ const T=(rows,widths)=>new D.Table({rows,columnWidths:widths.map(x=>Math.round(x*SCL)),width:{size:Math.round(widths.reduce((x,y)=>x+y,0)*SCL),type:D.WidthType.DXA},visuallyRightToLeft:rtl,layout:D.TableLayoutType.FIXED});
  const R=(cells,hdr)=>new D.TableRow({children:cells,cantSplit:true,tableHeader:!!hdr});
  const W=10200,gap=()=>new D.Paragraph({spacing:{after:100},children:[]});
  const sec=(n,tx,pb)=>new D.Paragraph({bidirectional:rtl,alignment:al,keepNext:true,pageBreakBefore:!!pb,spacing:{before:pb?0:260,after:120},shading:{type:D.ShadingType.CLEAR,fill:GRN,color:'auto'},border:{[rtl?'right':'left']:{style:D.BorderStyle.SINGLE,size:36,color:RED,space:4}},children:runs(n+'. '+tx,{b:1,c:'FFFFFF',size:26})});
- const lab=(x,w)=>C(P(x,{b:1,sa:0}),{w,fill:LIGHT});
- const hdrRow=(labels,widths)=>R(labels.map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:20,sa:0}),{w:widths[i],fill:GRN})),1);
+ const lab=(x,w)=>C(P(x,{b:1,c:'FFFFFF',size:26,sa:0}),{w,fill:GRN,v:D.VerticalAlign.CENTER});
+ const hdrRow=(labels,widths)=>R(labels.map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:24,sa:0}),{w:widths[i],fill:GRN})),1);
  const listTbl=(arr,title)=>T([hdrRow([title],[W]),...(arr.length?arr:['']).map(v=>R([C(P(v,{sa:0}),{w:W})]))],[W]);
  const kids=[];
- // ---- page 1: title, header table, approval table
- const logo=document.querySelector('.logo');
- if(logo&&logo.src.startsWith('data:')){const li=await imgInfo(logo.src),h=62;kids.push(new D.Paragraph({alignment:AL.CENTER,spacing:{after:200},children:[new D.ImageRun({type:'png',data:d2b(logo.src),transformation:{width:Math.round(h*li.w/li.h),height:h}})]}))}
- kids.push(P(t('closureOf')+(d.pname?' ('+d.pname+')':''),{al:AL.CENTER,b:1,c:GRN,size:44,sb:200,sa:300}));
- const hw=[2550,2550,2550,2550];
- kids.push(T([R([t('x_code'),t('docNo'),t('docType'),t('issue')].map((x,i)=>C(P(x,{b:1,c:'FFFFFF',size:21,al:AL.CENTER,sa:0}),{w:hw[i],fill:GRN})),1),R([cr.code,cr.doc_no,t('docTypeV'),cr.issued_at?fdate(cr.issued_at):'—'].map((x,i)=>C(P(x,{b:1,al:AL.CENTER,sa:0}),{w:hw[i],fill:'F7FAF8'})))],hw));
- kids.push(P(t('apprBlock'),{al:AL.CENTER,b:1,c:GRN,size:30,sb:400,sa:120,kn:true}));
+ const cancelled=d.pstatus=='cancelled';
  const sw=[3000,2800,2000,2400],srows=[hdrRow([t('thName'),t('thJob'),t('tDate'),t('x_sign')],sw)];
  const apS=cr.status=='Approved'?sigs.filter(s=>s.stage=='approved'&&s.status=='signed'):[]; // details appear ONLY after the report is approved
- for(const s of apS){const u=nm(s.user_id);let sc=[P('')];
-  if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
-  srows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||rl(u),{sa:0,size:20}),{w:sw[1],v:D.VerticalAlign.CENTER}),C(P(fdate(s.signed_at),{sa:0,al:AL.CENTER}),{w:sw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sw[3],v:D.VerticalAlign.CENTER})]))}
- if(!apS.length)srows.push(new D.TableRow({cantSplit:true,height:{value:1100,rule:D.HeightRule.ATLEAST},children:sw.map(w=>C(new D.Paragraph({children:[]}),{w}))}));
- kids.push(T(srows,sw));
- // ---- page 2: table of contents
- const cancelled=d.pstatus=='cancelled',SEC=['s_info','s_ach','s_lsn'];if(cancelled)SEC.push('s_cancel');if(atts.length)SEC.push('s_att');
- kids.push(P(t('toc'),{al:AL.CENTER,b:1,c:GRN,size:36,pb:true,sa:300}));
- SEC.forEach((k,i)=>kids.push(new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:160},border:{bottom:{style:D.BorderStyle.DOTTED,size:4,color:LINE,space:4}},children:runs((i+1)+'.  '+t(k),{size:26,b:1})})));
- const txt=k=>T([R([lab(t('f_'+k),W)]),R([C(P(d[k],{sa:0}),{w:W})])],[W]);
- const lst=k=>listTbl(A(k).filter(x=>String(x).trim()),t('f_'+k));
- // ---- 1. report details
- kids.push(sec(1,t('s_info'),true));
- const lw=[3100,7100],rows=[];const rw=(l,v)=>rows.push(R([lab(l,lw[0]),C(Array.isArray(v)?v:P(v,{sa:0}),{w:lw[1]})]));
- rw(t('f_pname'),d.pname);rw(t('f_pcode'),d.pcode);rw(t('f_pdesc'),d.pdesc);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));
+ // ---- title (form heading, small gold text like the Center's model)
+ kids.push(new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:200},children:runs(t('formNo')+(d.pname?' — '+d.pname:''),{c:GRN,size:28})}));
+ const lw=[2600,6400],rows=[];const rw=(l,v)=>rows.push(R([lab(l,lw[0]),C(Array.isArray(v)?v:P(v,{sa:0}),{w:lw[1]})]));
+ rw(t('f_pname'),d.pname);rw(t('f_pcode'),d.pcode);rw(t('docNo'),cr.doc_no);rw(t('f_pdesc'),d.pdesc);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));
  rw(t('f_pmname'),d.pmname);rw(t('f_owner'),d.owner);rw(t('f_rdate'),d.rdate);
  rw(t('f_dur'),[P(t('f_sdate')+': '+(d.sdate||'NA'),{sa:20}),P(t('f_edate')+': '+(d.edate||'NA'),{sa:0})]);
  rw(t('f_rby'),[P(t('f_rbyn')+': '+(d.rbyn||'NA'),{sa:20}),P(t('f_rbyj')+': '+(d.rbyj||'NA'),{sa:0})]);
  rw(t('f_pstatus'),d.pstatus?t('ps_'+d.pstatus):'');
- kids.push(T(rows,lw));
- // ---- 2. achievements
- kids.push(sec(2,t('s_ach'),true));
- kids.push(txt('summary'));kids.push(gap());kids.push(lst('outs'));kids.push(gap());kids.push(lst('bens'));kids.push(gap());
+ kids.push(T(rows,lw));kids.push(gap());
+ // question = gold bullet + question text, answer underneath (the model's layout)
+ const q=(label)=>new D.Paragraph({bidirectional:rtl,alignment:al,keepNext:true,spacing:{before:200,after:60},children:[new D.TextRun({text:'●  ',font:FONT,size:20,color:GRN,rightToLeft:rtl}),...runs(label,{b:1})]});
+ const ans=v=>String(v==null||v===''?'NA':v).split('\n').map(x=>new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:40},indent:{[rtl?'right':'left']:360},border:{bottom:{style:D.BorderStyle.SINGLE,size:4,color:'BFBFBF',space:1}},children:runs(x,{})}));
+ const txt=k=>[q(t('f_'+k)),...ans(d[k])];
+ const lst=k=>{const a=A(k).filter(x=>String(x).trim());return [q(t('f_'+k)),...(a.length?a:['']).map((x,i)=>new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:40},indent:{[rtl?'right':'left']:360},border:{bottom:{style:D.BorderStyle.SINGLE,size:4,color:'BFBFBF',space:1}},children:runs((a.length?(i+1)+'.  ':'')+x,{})}))]};
+ txt('summary').forEach(x=>kids.push(x));lst('outs').forEach(x=>kids.push(x));lst('bens').forEach(x=>kids.push(x));
  const mw=[5200,2000,3000],bm=A('bmeasure');
- kids.push(T([R([C(P(t('f_bmeasure'),{b:1,sa:0}),{w:W,span:3,fill:LIGHT})]),hdrRow([t('m_b'),t('m_p'),t('m_d')],mw),...(bm.length?bm:[{b:'',p:'',d:''}]).map(r=>R([r.b,r.p===''||r.p==null?'':r.p+'%',r.d].map((v,j)=>C(P(v,{sa:0}),{w:mw[j]}))))],mw));
- kids.push(gap());kids.push(lst('ugoals'));kids.push(gap());kids.push(lst('ubens'));
- // ---- 3. challenges and lessons
- kids.push(sec(3,t('s_lsn'),true));
- kids.push(lst('probs'));kids.push(gap());kids.push(lst('rsks'));kids.push(gap());kids.push(lst('depts'));kids.push(gap());
+ kids.push(q(t('f_bmeasure')));
+ kids.push(T([hdrRow([t('m_b'),t('m_p'),t('m_d')],mw),...(bm.length?bm:[{b:'',p:'',d:''}]).map(r=>R([r.b,r.p===''||r.p==null?'':r.p+'%',r.d].map((v,j)=>C(P(v,{sa:0}),{w:mw[j]}))))],mw));
+ lst('ugoals').forEach(x=>kids.push(x));lst('ubens').forEach(x=>kids.push(x));
+ lst('probs').forEach(x=>kids.push(x));lst('rsks').forEach(x=>kids.push(x));lst('depts').forEach(x=>kids.push(x));
  const dw=[4600,5600],dv=A('deliv');
- kids.push(T([R([C(P(t('f_deliv'),{b:1,sa:0}),{w:W,span:2,fill:LIGHT})]),hdrRow([t('d_o'),t('d_u')],dw),...(dv.length?dv:[{o:'',u:''}]).map(r=>R([r.o,r.u].map((v,j)=>C(P(v,{sa:0}),{w:dw[j]}))))],dw));
- kids.push(gap());kids.push(lst('less'));kids.push(gap());kids.push(txt('orgchg'));
- let n=4;
- if(cancelled){kids.push(sec(n++,t('s_cancel'),true));['c_reason','c_fin','c_done'].forEach(k=>{kids.push(txt(k));kids.push(gap())});
-  kids.push(T([R([lab(t('f_c_pct'),W)]),R([C(P(d.c_pct===''||d.c_pct==null?'':d.c_pct+'%',{sa:0}),{w:W})])],[W]));kids.push(gap());kids.push(txt('c_impact'))}
- if(atts.length){kids.push(sec(n++,t('s_att'),true));kids.push(listTbl(atts.map(a=>a.title),t('att')))}
- const foot=new D.Footer({children:[new D.Paragraph({alignment:AL.CENTER,bidirectional:rtl,children:[new D.TextRun({text:cr.doc_no+' · '+(d.pname||'')+' · ',font:FONT,size:16,color:'6B6F76',rightToLeft:rtl}),new D.TextRun({children:[D.PageNumber.CURRENT,' / ',D.PageNumber.TOTAL_PAGES],font:FONT,size:16,color:'6B6F76'})]})]});
- const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:26,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
+ kids.push(q(t('f_deliv')));
+ kids.push(T([hdrRow([t('d_o'),t('d_u')],dw),...(dv.length?dv:[{o:'',u:''}]).map(r=>R([r.o,r.u].map((v,j)=>C(P(v,{sa:0}),{w:dw[j]}))))],dw));
+ lst('less').forEach(x=>kids.push(x));txt('orgchg').forEach(x=>kids.push(x));
+ if(cancelled){['c_reason','c_fin','c_done'].forEach(k=>txt(k).forEach(x=>kids.push(x)));
+  kids.push(q(t('f_c_pct')));ans(d.c_pct===''||d.c_pct==null?'':d.c_pct+'%').forEach(x=>kids.push(x));txt('c_impact').forEach(x=>kids.push(x))}
+ if(atts.length){kids.push(q(t('att')));atts.forEach((a,i)=>kids.push(new D.Paragraph({bidirectional:rtl,alignment:al,spacing:{after:40},indent:{[rtl?'right':'left']:360},children:runs((i+1)+'.  '+a.title,{})})))}
+ // ---- approval (end of the form, like the model)
+ for(const s of apS){const u=nm(s.user_id);let sc=[P('')];
+  if(s.signature_img&&s.signature_img.startsWith('data:image')){const ii=await imgInfo(s.signature_img),h=Math.min(56,Math.round(150*ii.h/ii.w)||56),w=Math.round(h*ii.w/ii.h);sc=[new D.Paragraph({alignment:AL.CENTER,children:[new D.ImageRun({type:s.signature_img.includes('jpeg')?'jpg':'png',data:d2b(s.signature_img),transformation:{width:w,height:h}})]})]}
+  srows.push(R([C(P(u.full_name||'',{b:1,sa:0}),{w:sw[0],v:D.VerticalAlign.CENTER}),C(P(u.job_title||rl(u),{sa:0,size:22}),{w:sw[1],v:D.VerticalAlign.CENTER}),C(P(fdate(s.signed_at),{sa:0,al:AL.CENTER}),{w:sw[2],v:D.VerticalAlign.CENTER}),C(sc,{w:sw[3],v:D.VerticalAlign.CENTER})]))}
+ if(!apS.length)srows.push(new D.TableRow({cantSplit:true,height:{value:1100,rule:D.HeightRule.ATLEAST},children:sw.map(w=>C(new D.Paragraph({children:[]}),{w}))}));
+ kids.push(new D.Paragraph({children:[],spacing:{before:300}}));kids.push(P(t('apprBlock')+' ('+t('apprTop')+')',{b:1,size:26,sa:80,kn:true}));
+ kids.push(T(srows,sw));
+ const doc=new D.Document({creator:me.full_name||'Report',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:24,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:1440,bottom:1440,left:1440,right:1440}},bidi:rtl},children:kids}]});
  const blob=await D.Packer.toBlob(doc);dl(blob,cr.doc_no+'.docx')})}
 
 // ---------- Excel (hand-written .xlsx, no library) ----------
