@@ -614,6 +614,9 @@ const W=[
 ["fz_a5", "Financial feasibility (15%)", "الجدوى المالية (15%)"],
 ["fz_a6", "Risks (10%)", "المخاطر (10%)"],
 ["fz_a7", "Sustainability (10%)", "الاستدامة (10%)"],
+["fz_ask", "Return and request a feasibility study", "إرجاع وطلب دراسة جدوى"],
+["fz_askPh", "What should the study cover? (optional)", "ما المطلوب في دراسة الجدوى؟ (اختياري)"],
+["fz_askDef", "Please complete the feasibility study and resubmit.", "يرجى استكمال دراسة الجدوى وإعادة الإرسال."],
 ["home", "Project charters", "مواثيق المشاريع"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
@@ -951,6 +954,7 @@ async function openCR(id){
  if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
  if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
+ if(canRet&&typeof retFz=='function'&&d.fz_req!='1'&&d.fz_on!='1')acts+=`<button class="r" onclick="retFz()">${t('fz_ask')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
  acts+=relBtn();
@@ -1067,7 +1071,13 @@ function fzHtml(ed,adm){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
  <div class="row" style="align-items:center"><label style="flex:1">${t('fz_on')}</label><select data-k="fz_on" ${dis} onchange="fzToggle(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${on?'selected':''}>${t('fz_yes')}</option></select></div>
  ${(adm||ed)?`<div class="row" style="align-items:center"><label style="flex:1">${t('fz_req')}</label><select data-k="fz_req" onchange="fzReq(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${d.fz_req=='1'?'selected':''}>${t('fz_reqn')}</option></select></div>`:(d.fz_req=='1'?`<div class="mut">⚠ ${t('fz_reqn')}</div>`:'')}
  <div id="fzbody" style="${on?'':'display:none'}">${f}<div class="sec" style="margin-top:14px">${t('fz_ev')}</div>${sc}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div></div>`}
-function fzMissing(d){if(d.fz_req!='1'||me.role=='admin')return false;if(d.fz_on!='1')return true;if(!String(d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
+function fzMissing(d){if(d.fz_req!='1'||(me.role=='admin'&&cr.created_by!=me.id))return false;if(d.fz_on!='1')return true;if(!String(d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
+
+function retFz(){askNote(t('fz_ask'),t('fz_askPh'),t('fz_ask'),async c=>{
+ await sb.from('charter_signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
+ const nd={...cr.data,fz_on:'1',fz_req:'1'};delete nd._anotes;
+ const msgT=(c||'')||t('fz_askDef');
+ await setStatus('Returned to PM',{comment:msgT,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+msgT);openCR(cr.id)},false)}
 
 const szf=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB';
 async function uploadAtt(f,title){
