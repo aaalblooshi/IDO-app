@@ -369,7 +369,7 @@ const W=[
 ["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"],
 ["l_reminded","Reminder sent","تم إرسال تذكير"],
 ["hello","Hello","مرحباً"],
-["c_action","Needs my action","بانتظار إجرائي"],
+["c_action","Needs my action","بانتظار إجراءك"],
 ["c_mine","My requests in progress","طلباتي الجارية"],
 ["c_mineA","All in progress","كل الطلبات الجارية"],
 ["c_returned","Returned","معادة للتعديل"],
@@ -580,6 +580,40 @@ const W=[
 ["addRow", "+ Add row", "+ إضافة صف"],
 ["addItem", "+ Add item", "+ إضافة بند"],
 ["assignTo", "User who will complete the charter", "المستخدم الذي سيُكمل الميثاق"],
+["extraAppNote", "The document stays approved. To get an additional approval, add the approver above; he/she will see a sign button and the document is not affected.", "تبقى الوثيقة معتمدة. لطلب اعتماد إضافي أضف المعتمد أعلاه فيظهر له زر الاعتماد دون أن تتأثر حالة الوثيقة."],
+["tab_fz", "Feasibility study", "دراسة الجدوى"],
+["fz_t", "Feasibility study (form IDO-01-FM03 · v1.0)", "نموذج دراسة الجدوى (IDO-01-FM03 · الإصدار 1.0)"],
+["fz_on", "Attach a feasibility study to this charter", "إرفاق دراسة جدوى بهذا الميثاق"],
+["fz_no", "No (optional)", "لا (اختيارية)"],
+["fz_yes", "Yes", "نعم"],
+["fz_req", "Make the study mandatory before submission (admin)", "جعل دراسة الجدوى إلزامية قبل الإرسال (للمدير)"],
+["fz_reqn", "Mandatory", "إلزامية"],
+["fz_ev", "Final evaluation (weights)", "التقييم النهائي (الأوزان)"],
+["fz_score", "Score 0-100", "الدرجة 0-100"],
+["fz_tot", "Total", "المجموع"],
+["fz_b1", "Recommended", "موصى به"],
+["fz_b2", "Needs completion", "يحتاج استكمالًا"],
+["fz_b3", "Not recommended", "غير موصى به"],
+["fz_miss", "The feasibility study is mandatory: complete the executive summary and all seven scores.", "دراسة الجدوى إلزامية: أكمل الملخص التنفيذي والدرجات السبع."],
+["fz_hint", "The reviewer may return the charter together with this study. An administrator can bypass this requirement.", "يمكن للمعتمد إرجاع الميثاق مع هذه الدراسة للمُعِد. وللمدير تجاوز هذا الشرط."],
+["fz_f_cur", "Current situation summary", "ملخص الوضع الراهن"],
+["fz_f_exec", "Executive summary", "الملخص التنفيذي"],
+["fz_f_stk", "Stakeholders", "أصحاب المصلحة"],
+["fz_f_alt", "Alternatives considered", "البدائل المطروحة"],
+["fz_f_bench", "Benchmark / best practices", "المقارنة المرجعية"],
+["fz_f_cmp", "Solution comparison (weighted criteria)", "مقارنة الحلول (معايير موزونة)"],
+["fz_f_ops", "Operational and technical feasibility", "الجدوى التشغيلية والفنية"],
+["fz_f_fin", "Financial feasibility (costs)", "الجدوى المالية (التكاليف)"],
+["fz_f_ben", "Benefits and impact analysis", "تحليل الفوائد والأثر"],
+["fz_f_rsk", "Risks and constraints", "المخاطر والقيود"],
+["fz_f_note", "Evaluator remarks", "ملاحظات المقيِّم"],
+["fz_a1", "Strategic link (15%)", "الارتباط الاستراتيجي (15%)"],
+["fz_a2", "Clarity of the challenge (15%)", "وضوح التحدي (15%)"],
+["fz_a3", "Impact (20%)", "الأثر (20%)"],
+["fz_a4", "Operational feasibility (15%)", "الجدوى التشغيلية (15%)"],
+["fz_a5", "Financial feasibility (15%)", "الجدوى المالية (15%)"],
+["fz_a6", "Risks (10%)", "المخاطر (10%)"],
+["fz_a7", "Sustainability (10%)", "الاستدامة (10%)"],
 ["home", "Project charters", "مواثيق المشاريع"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
@@ -846,6 +880,7 @@ async function submitCR(){
  const lab=k=>t('f_'+(k=='sdate'||k=='edate'?k:k));
  if(miss.length)return msg(t('complete')+miss.map(lab).join(', '));
  if(monthsBetween(d.sdate,d.edate)==null)return msg(t('badDates'));
+ if(fzMissing(d)){showTab('fz');return msg(t('fz_miss'))}
  stripBlank();await save(false);await openCR(cr.id);
  await proceedSubmit()}
 
@@ -859,7 +894,7 @@ const fdate=v=>v?fdx(v).slice(0,10):'';
 const REQ={gen:['pname','pdesc','ptype','goal','purpose','sdate','edate','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs']};
 const TABKEYS={gen:['pname','pdesc','ptype','goal','gov','purpose','dur','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs'],stk:['stk_int','stk_ext','acts'],res:['reqs','team','agr'],rsk:['risks','assume','constr','appr']};
 const STAR=['pname','pdesc','ptype','goal','purpose','dur','owner','sector','dept','pmname','budget','nrisk','alt','impact','outputs'];
-const TABS=['gen','ctx','stk','res','rsk','flow'];
+const TABS=['gen','ctx','stk','res','rsk','fz','flow'];
 const TOT=16,OPTF=['gov','stk_int','stk_ext','acts','reqs','team','agr','risks','assume','constr','appr'];
 const COLS={
  acts:[{c:'a',l:'a_act',area:1},{c:'d',l:'a_del',area:1},{c:'t',l:'a_time',area:1}],
@@ -889,7 +924,8 @@ async function openCR(id){
  const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
- const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
+ const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st]||(st=='Approved'&&!arch&&sigs.some(s=>s.stage=='approved'&&s.status=='pending')?'approved':undefined);
+ const extraApp=adm&&!arch&&st=='Approved';
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
  const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st);
@@ -979,8 +1015,9 @@ async function openCR(id){
  <div class="card pn ${ftab=='ctx'?'on':''}" data-t="ctx"><div class="sec">${t('tab_ctx')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['nrisk','alt','impact','outputs'].map(tf).join('')}${pnav('gen','stk')}</div>
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('s_stk')}</div>${fld('stk_int',listEd('stk_int'))}${fld('stk_ext',listEd('stk_ext'))}<div class="sec" style="margin-top:14px">${t('s_acts')}</div>${fld('acts',rowsEd('acts'))}${pnav('ctx','res')}</div>
  <div class="card pn ${ftab=='res'?'on':''}" data-t="res"><div class="sec">${t('s_res')}</div>${fld('reqs',rowsEd('reqs'),'',t('reqs_hint'))}${fld('team',rowsEd('team'),'',t('team_hint'))}<div class="sec" style="margin-top:14px">${t('s_agr')}</div>${fld('agr',listEd('agr'))}${pnav('stk','rsk')}</div>
- <div class="card pn ${ftab=='rsk'?'on':''}" data-t="rsk"><div class="sec">${t('s_rsk')}</div>${fld('risks',rowsEd('risks'),'',t('risks_hint'))}${tf('assume')}${tf('constr')}<div class="sec" style="margin-top:14px">${t('s_appr')}</div>${fld('appr',listEd('appr'))}${pnav('res','flow')}</div>
- <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('rsk','')}
+ <div class="card pn ${ftab=='rsk'?'on':''}" data-t="rsk"><div class="sec">${t('s_rsk')}</div>${fld('risks',rowsEd('risks'),'',t('risks_hint'))}${tf('assume')}${tf('constr')}<div class="sec" style="margin-top:14px">${t('s_appr')}</div>${fld('appr',listEd('appr'))}${pnav('res','fz')}</div>
+<div class="card pn ${ftab=='fz'?'on':''}" data-t="fz">${fzHtml(ed,adm)}${pnav('rsk','flow')}</div>
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp||extraApp,2):''}${extraApp?`<div class="mut" style="margin:6px 0">${t('extraAppNote')}</div>`:''}${more?`<div class="row">${more}</div>`:''}${pnav('rsk','')}
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
@@ -1014,6 +1051,23 @@ const delRow=(a,i)=>{cr.data[a].splice(i,1);if(!cr.data[a].length)delete OPEN[a]
 async function save(q){const m=monthsBetween(cr.data.sdate,cr.data.edate);if(m!=null)cr.data.months=m;else delete cr.data.months;
  const {data:r,error}=await sb.from('charters').update({data:cr.data}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
+
+// ===== Feasibility study (optional, can be made mandatory by an admin) =====
+const FZW=[15,15,20,15,15,10,10],FZF=['cur','exec','stk','alt','bench','cmp','ops','fin','ben','rsk','note'];
+function fzTot(d){let s=0,n=0;FZW.forEach((w,i)=>{const v=parseFloat(d['fz_s'+(i+1)]);if(!isNaN(v)){s+=Math.max(0,Math.min(100,v))*w/100;n++}});return n?Math.round(s*10)/10:null}
+function fzBand(v){return v==null?'':v>=80?t('fz_b1'):v>=60?t('fz_b2'):t('fz_b3')}
+function fzCalc(){const v=fzTot(cr.data),e=$('fz_tot');if(e)e.innerHTML=v==null?'—':ad(v)+'% · '+fzBand(v)}
+function fzToggle(v){cr.data.fz_on=v;const b=$('fzbody');if(b)b.style.display=v=='1'?'':'none';fit();updProg()}
+function fzReq(v){cr.data.fz_req=v}
+function fzHtml(ed,adm){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
+ const f=FZF.map(k=>`<div><div class="lr"><label>${t('fz_f_'+k)}</label></div>${ed?`<div class="ta-w"><textarea class="ta" rows="2" data-k="fz_${k}">${esc(d['fz_'+k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d['fz_'+k])||'NA'}</div>`}</div>`).join('');
+ const sc=FZW.map((w,i)=>`<div class="row" style="align-items:center;margin:4px 0"><span style="flex:1">${t('fz_a'+(i+1))}</span><input data-k="fz_s${i+1}" data-num="1" inputmode="decimal" style="width:90px" placeholder="${t('fz_score')}" value="${esc(d['fz_s'+(i+1)]||'')}" ${dis} oninput="setTimeout(fzCalc,0)"></div>`).join('');
+ const v=fzTot(d);
+ return `<div class="sec">${t('fz_t')}</div><div class="mut" style="margin-bottom:8px">${t('fz_hint')}</div>
+ <div class="row" style="align-items:center"><label style="flex:1">${t('fz_on')}</label><select data-k="fz_on" ${dis} onchange="fzToggle(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${on?'selected':''}>${t('fz_yes')}</option></select></div>
+ ${adm?`<div class="row" style="align-items:center"><label style="flex:1">${t('fz_req')}</label><select data-k="fz_req" onchange="fzReq(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${d.fz_req=='1'?'selected':''}>${t('fz_reqn')}</option></select></div>`:(d.fz_req=='1'?`<div class="mut">⚠ ${t('fz_reqn')}</div>`:'')}
+ <div id="fzbody" style="${on?'':'display:none'}">${f}<div class="sec" style="margin-top:14px">${t('fz_ev')}</div>${sc}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div></div>`}
+function fzMissing(d){if(d.fz_req!='1'||me.role=='admin')return false;if(d.fz_on!='1')return true;if(!String(d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
 
 const szf=n=>n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round((n||0)/1024))+' KB';
 async function uploadAtt(f,title){
@@ -1189,10 +1243,10 @@ async function busy(id,fn){const b=$(id),old=b?b.textContent:'';if(b){b.disabled
 
 // ---------- Word ----------
 function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
- await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Arial',GRN='0A6B3D',RED='D1101D',LIGHT='E5F2EA',LINE='B9C7BE';
+ await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Sakkal Majalla',GRN='B39A6B',RED='D1101D',LIGHT='F2F2F2',LINE='B39A6B';
  const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k].filter(filled):[];
  const AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
- const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||22,bold:!!o.b,italics:!!o.it,color:o.c}));
+ const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||26,bold:!!o.b,italics:!!o.it,color:o.c}));
  const P=(tx,o={})=>new D.Paragraph({bidirectional:rtl,alignment:o.al||al,spacing:{before:o.sb||0,after:o.sa==null?40:o.sa},keepNext:o.kn,pageBreakBefore:o.pb,children:runs(tx,o)});
  const bd={style:D.BorderStyle.SINGLE,size:4,color:LINE},borders={top:bd,bottom:bd,left:bd,right:bd};
  const C=(kids,o={})=>new D.TableCell({children:Array.isArray(kids)?kids:[kids],width:{size:o.w,type:D.WidthType.DXA},columnSpan:o.span,verticalAlign:o.v||D.VerticalAlign.TOP,borders,margins:{top:70,bottom:70,left:120,right:120},shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined});
@@ -1260,8 +1314,12 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  kids.push(T([R([lab(t('f_constr'),W)]),R([C(P(d.constr,{sa:0}),{w:W})])],[W]));
  kids.push(sec(7,t('s_appr')));
  kids.push(listTbl(A('appr').filter(x=>String(x).trim()),t('f_appr')));
+ if(d.fz_on=='1'){kids.push(sec(8,t('fz_t'),1));
+  FZF.forEach(k=>{kids.push(T([R([lab(t('fz_f_'+k),W)]),R([C(P(d['fz_'+k],{sa:0}),{w:W})])],[W]));kids.push(gap())});
+  const fw=[6200,2000,2000],tv=fzTot(d);
+  kids.push(T([hdrRow([t('fz_ev'),t('fz_score'),'%'],fw),...FZW.map((w,i)=>R([C(P(t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,''),{sa:0}),{w:fw[0]}),C(P(d['fz_s'+(i+1)]||'',{sa:0,al:AL.CENTER}),{w:fw[1]}),C(P(w+'%',{sa:0,al:AL.CENTER}),{w:fw[2]})])),R([lab(t('fz_tot'),fw[0]),C(P(tv==null?'':tv+'%',{b:1,sa:0,al:AL.CENTER}),{w:fw[1]}),C(P(fzBand(tv),{b:1,sa:0,al:AL.CENTER}),{w:fw[2]})])],fw))}
  const foot=new D.Footer({children:[new D.Paragraph({alignment:AL.CENTER,bidirectional:rtl,children:[new D.TextRun({text:cr.doc_no+' · '+(d.pname||'')+' · ',font:FONT,size:16,color:'6B6F76',rightToLeft:rtl}),new D.TextRun({children:[D.PageNumber.CURRENT,' / ',D.PageNumber.TOTAL_PAGES],font:FONT,size:16,color:'6B6F76'})]})]});
- const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:22,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
+ const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:26,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
  const blob=await D.Packer.toBlob(doc);dl(blob,cr.doc_no+'.docx')})}
 
 // ---------- Excel (hand-written .xlsx, no library) ----------
