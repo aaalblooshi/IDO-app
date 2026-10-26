@@ -61,7 +61,8 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  charter:['ميثاق المشروع','Charter'],plan:['خطة المشروع','Plan'],cr:['طلبات التغيير','Change requests'],closure:['التقرير الختامي','Closure report'],
  n_charter:['لم يتم تقديم الميثاق','Charter not submitted'],n_plan:['لم يتم رفع الخطة','Plan not uploaded'],n_cr:['لا توجد طلبات تغيير','No change requests'],n_closure:['لم يتم رفع التقرير الختامي','Closure report not uploaded'],none:['لا توجد مشاريع.','No projects.'],count:['مشروع','projects'],
  strategic:['استراتيجي','Strategic'],operational:['تشغيلي','Operational'],pm:['مدير المشروع','PM'],
- tasks:['المهام (مهامي)','Tasks'],faT:['تجاوز المكتب: عرض المشروع في الخطة وطلبات التغيير والمهام والتقرير الختامي قبل اعتماد الميثاق','Office bypass: show the project in plans, change requests, tasks and closure before the charter is approved'],faH:['مع بقاء مسار الاعتماد قائمًا؛ يمكن الاستمرار فيه أو تجاوزه من صفحة النموذج.','The approval workflow stays in place; it can be continued or bypassed from the form.'],faB:['بتجاوز المكتب','Office bypass'],plAct:['خطط هذا المشروع غير المعتمدة','Unapproved plans of this project'],plActOn:['تفعيل المهام قبل الاعتماد','Activate tasks before approval'],plActOff:['إيقاف تفعيل المهام','Deactivate tasks'],plActH:['عند التفعيل يرى المكلّفون مهامهم في «مهامي» ويحدّثون إنجازهم دون انتظار اعتماد الخطة.','When activated, assignees see their tasks in My tasks and update progress without waiting for plan approval.'],
+ tasks:['المهام (مهامي)','Tasks'],hu_h:['يستثنى من الإخفاء (أسماء مسموح لها برؤية المشروع المخفي)','Exempt from hiding (people who may still see the hidden project)'],hu_add:['إضافة','Add'],hu_ph:['اسم المستخدم…','User name…'],hu_none:['لا أحد (الأدمن فقط)','Nobody (admin only)'],oo_t:['المكلّفون يرون مهامهم فقط ولا يرون الخطة كاملة','Assignees see only their own tasks, not the whole plan'],oo_h:['الوضع الافتراضي: المكلّف يرى الخطة كاملة. فعّل هذا الخيار لحصر رؤيته في مهامه (ومهام الأب والأبناء المرتبطة بها).','Default: an assignee sees the whole plan. Turn this on to limit them to their own tasks (with their parent and sub-tasks).'],
+ faT:['تجاوز المكتب: عرض المشروع في الخطة وطلبات التغيير والمهام والتقرير الختامي قبل اعتماد الميثاق','Office bypass: show the project in plans, change requests, tasks and closure before the charter is approved'],faH:['مع بقاء مسار الاعتماد قائمًا؛ يمكن الاستمرار فيه أو تجاوزه من صفحة النموذج.','The approval workflow stays in place; it can be continued or bypassed from the form.'],faB:['بتجاوز المكتب','Office bypass'],plAct:['خطط هذا المشروع غير المعتمدة','Unapproved plans of this project'],plActOn:['تفعيل المهام قبل الاعتماد','Activate tasks before approval'],plActOff:['إيقاف تفعيل المهام','Deactivate tasks'],plActH:['عند التفعيل يرى المكلّفون مهامهم في «مهامي» ويحدّثون إنجازهم دون انتظار اعتماد الخطة.','When activated, assignees see their tasks in My tasks and update progress without waiting for plan approval.'],
  manage:['⚙ إعدادات المشروع','⚙ Project settings'],hide:['إخفاء المشروع من الصفحة','Hide project from the page'],weight:['وزن المشروع (اتركه فارغًا للافتراضي)','Project weight (empty = default)'],
  wsave:['حفظ الإعداد','Save'],arch:['أرشفة المشروع بكل طلباته','Archive project with all its requests'],folder:['اسم مجلد الأرشيف (اختياري)','Archive folder name (optional)'],
  restore:['استرجاع المشروع من الأرشيف','Restore project from archive'],archAsk:['سيتم أرشفة الميثاق والخطة وكل طلبات التغيير والتقرير الختامي لهذا المشروع. متابعة؟','The charter, plan, all change requests and the closure report of this project will be archived. Continue?'],
@@ -127,7 +128,10 @@ function card(p){const c=p.ch,cf=CFG[p.code]||{},arc=isArc(p),hid=isHid(p),o=OPE
  ${ADM?`<details class="adm" ${o?'open':''} ontoggle="tg(this,'${p.code}')"><summary>${t('manage')}</summary>${o?adm(p):''}</details>`:''}</div>`}
 function adm(p){const cf=CFG[p.code]||{},arc=isArc(p),c=p.ch,g=GRS.filter(x=>x.pcode==p.code);
  const un=id=>{const u=USR.find(x=>x.id==id);return u?u.full_name:id};
- return `<label class="ck" style="font-weight:700"><span style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="hd" ${cf.hidden?'checked':''}> ${t('hide')}</span></label>
+ return `<label class="ck" style="font-weight:700"><span style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="hd" ${cf.hidden?'checked':''} onchange="$('hux').style.display=this.checked?'block':'none'"> ${t('hide')}</span></label>
+ <div id="hux" style="display:${cf.hidden?'block':'none'};margin:0 0 10px;padding:8px;border:1px dashed #e4dfd4;border-radius:10px"><b>${t('hu_h')}</b><div id="hul" class="chips">${huHtml(p.code)}</div>
+ <div class="g2" style="margin-top:6px"><div><input id="hun" list="gul" placeholder="${t('hu_ph')}"></div><div><button onclick="huAdd('${p.code}')">${t('hu_add')}</button></div></div></div>
+ <label class="ck" style="font-weight:700"><span style="display:flex;gap:6px;align-items:flex-start"><input type="checkbox" id="oo" ${cf.own_only?'checked':''}> ${t('oo_t')}</span></label><div class="mut" style="margin:0 0 8px">${t('oo_h')}</div>
  <label class="ck" style="font-weight:700"><span style="display:flex;gap:6px;align-items:flex-start"><input type="checkbox" id="fa" ${cf.force_active?'checked':''}> ${t('faT')}</span></label><div class="mut" style="margin:0 0 8px">${t('faH')}</div>
  <label>${t('weight')}</label><input id="wt" type="number" min="0" step="0.1" inputmode="decimal" value="${cf.weight==null?'':cf.weight}" style="max-width:160px">
  <div class="row"><button class="p" onclick="saveCfg('${p.code}')">${t('wsave')}</button></div>
@@ -143,8 +147,12 @@ function adm(p){const cf=CFG[p.code]||{},arc=isArc(p),c=p.ch,g=GRS.filter(x=>x.p
  <div class="ck" style="margin-top:6px">${['charter','plan','cr','closure','tasks'].map(s=>`<label><input type="checkbox" class="gs" value="${s}" checked> ${t(s)}</label>`).join('')}</div>
  <div class="row"><button class="p" onclick="gAdd('${p.code}')">${t('gAdd')}</button></div>`}
 function tg(el,c){if(el.open){if(OPEN!=c){OPEN=c;drawList()}}else if(OPEN==c)OPEN=null}
+let HU={};const huGet=pc=>HU[pc]||(HU[pc]=[...((CFG[pc]||{}).hidden_users||[])]);
+const huHtml=pc=>{const a=huGet(pc);return a.length?a.map(i=>`<button class="on" onclick="huDel('${pc}','${i}')">${esc((USR.find(u=>u.id==i)||{}).full_name||i)} ✕</button>`).join(''):`<span class="mut">${t('hu_none')}</span>`};
+const huAdd=pc=>{const n=($('hun').value||'').trim(),u=USR.find(x=>x.full_name==n);if(!u)return;const a=huGet(pc);if(!a.includes(u.id))a.push(u.id);$('hun').value='';$('hul').innerHTML=huHtml(pc)};
+const huDel=(pc,i)=>{HU[pc]=huGet(pc).filter(x=>x!=i);$('hul').innerHTML=huHtml(pc)};
 const saveCfg=pc=>run(async()=>{const w=$('wt').value.trim(),h=$('hd').checked;
- const {error}=await sb.from('project_cfg').upsert({pcode:pc,hidden:h,weight:w===''?null:+w,force_active:!!($('fa')||{}).checked,updated_at:new Date().toISOString()});if(error)throw error;await reload()});
+ const {error}=await sb.from('project_cfg').upsert({pcode:pc,hidden:h,weight:w===''?null:+w,force_active:!!($('fa')||{}).checked,own_only:!!($('oo')||{}).checked,hidden_users:huGet(pc),updated_at:new Date().toISOString()});if(error)throw error;await reload()});
 const archP=(pc,flag)=>{if(flag&&!confirm(t('archAsk')))return;run(async()=>{const f=flag?($('fo')||{}).value||null:null;
  const {error}=await sb.rpc('archive_project',{pc,flag,folder:f});if(error)throw error;OPEN=null;await reload()})};
 const gAdd=pc=>run(async()=>{const nm=$('gu').value.trim().toLowerCase(),u=USR.find(x=>(x.full_name||'').trim().toLowerCase()==nm);if(!u)throw new Error(t('gUnk'));
@@ -218,7 +226,7 @@ load();
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function lg(){return ls('lang')=='en'?'en':'ar'}
  function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
- var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1]];
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
  var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
  +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
  var built=0;
@@ -285,4 +293,57 @@ load();
  run();
 })();
 </script>
+<script>/*helpfix*/(function(){
+ if(window.__hq)return;window.__hq=1;
+ var H={
+  pname:['الاسم الرسمي للمشروع كما سيظهر في كل الوثائق والتقارير. اجعله واضحًا ومختصرًا ولا تغيّره بعد الاعتماد إلا بطلب تغيير.','The official project name used in all documents and reports. Keep it short and clear; changing it after approval needs a change request.'],
+  pcode:['رمز المشروع يُولَّد تلقائيًا ويربط الميثاق والخطة وطلبات التغيير والتقرير الختامي ببعضها.','The project code is generated automatically and links the charter, plan, change requests and closure report.'],
+  pdesc:['وصف مختصر لما هو المشروع وماذا سينتج. يكفي 3–5 أسطر.','A short description of what the project is and what it will deliver (3–5 lines).'],
+  purpose:['لماذا يُنفَّذ المشروع؟ اذكر المشكلة أو الفرصة والقيمة المتوقعة.','Why is the project being done? State the problem or opportunity and the expected value.'],
+  sector:['القطاع المسؤول عن المشروع. يحدّد من يرى المشروع في المحفظة ومن يملك صلاحية نطاقه.','The sector responsible for the project. It decides who sees it in the portfolio.'],
+  dept:['الإدارة داخل القطاع. اختر «لا ينطبق» إن كان المشروع على مستوى القطاع.','The department within the sector. Choose “Not applicable” for a sector-level project.'],
+  pmname:['مدير المشروع المسؤول عن التنفيذ والمتابعة.','The project manager responsible for delivery and follow-up.'],
+  owner:['مالك المشروع: صاحب القرار والمستفيد الرئيس من النتيجة.','Project owner: the decision-maker and main beneficiary.'],
+  ptype:['استراتيجي أم تشغيلي. المشاريع الاستراتيجية لها وزن أعلى في احتساب إنجاز القطاع والمركز.','Strategic or operational. Strategic projects weigh more in sector and centre progress.'],
+  sdate:['تاريخ البدء المخطط. في التقرير الختامي يُعبَّأ تلقائيًا من الخطة (أول بداية فعلية) ويمكن تعديله.','Planned start. In the closure report it is filled from the plan (earliest actual start) and can be edited.'],
+  edate:['تاريخ الانتهاء المخطط. في التقرير الختامي يُعبَّأ من آخر نهاية فعلية إذا اكتملت كل المهام.','Planned end. In the closure report it is filled from the latest actual end once all tasks are complete.'],
+  dur:['مدة التنفيذ تُحسب تلقائيًا من التاريخين.','Duration is calculated automatically from the two dates.'],
+  budget:['التكلفة التقديرية بالدرهم الإماراتي. اكتب الرقم فقط.','Estimated cost in AED. Enter the number only.'],
+  goal:['اربط المشروع بهدف أو أكثر من أهداف المركز الاستراتيجية.','Link the project to one or more of the centre’s strategic goals.'],
+  gov:['هل يخدم المشروع استراتيجية وطنية أو حكومية؟ إن نعم فاذكرها.','Does the project support a national or government strategy? If yes, state which.'],
+  team:['أسماء وأدوار أعضاء فريق العمل.','Names and roles of the project team.'],
+  acts:['أهم الأنشطة الرئيسية. التفاصيل الزمنية تُعدّ لاحقًا في «خطة المشروع».','Main activities. Detailed timing is done later in the project plan.'],
+  reqs:['ما يحتاجه المشروع من موارد أو دعم أو قرارات.','What the project needs in resources, support or decisions.'],
+  risks:['المخاطر المتوقعة وكيف ستُعالَج.','Expected risks and how they will be handled.'],
+  agr:['الاتفاقيات أو العقود المطلوبة قبل أو أثناء التنفيذ.','Agreements or contracts needed before or during delivery.'],
+  appr:['الموافقات الرسمية المطلوبة من جهات داخلية أو خارجية.','Formal approvals needed from internal or external parties.'],
+  stk_int:['الجهات الداخلية المتأثرة أو المشاركة.','Internal parties affected or involved.'],
+  stk_ext:['الجهات الخارجية المتأثرة أو المشاركة.','External parties affected or involved.'],
+  rdate:['تاريخ إعداد الوثيقة.','Date the document was prepared.'],
+  rbyn:['اسم من أعدّ التقرير.','Name of the report preparer.'],
+  pstatus:['حالة المشروع عند الإغلاق: مكتمل أو ملغى. اختيار «ملغى» يفتح حقولًا إلزامية جديدة، ويبقى عدد الخانات الكلي ثابتًا.','Project status at closure: completed or cancelled. Choosing “cancelled” adds mandatory fields while the total number of fields stays the same.'],
+  summary:['ملخص عام للإنجاز: ما الذي تحقق وما الذي لم يتحقق.','A general summary of what was and was not achieved.'],
+  outs:['المخرجات الفعلية التي سُلّمت.','The actual outputs delivered.'],
+  bens:['الفوائد المتحققة فعلًا.','Benefits actually realised.'],
+  bmeasure:['كيف قِيست الفوائد (المؤشر والقيمة).','How the benefits were measured (indicator and value).'],
+  ugoals:['أهداف لم تتحقق.','Goals that were not achieved.'],ubens:['فوائد لم تتحقق.','Benefits that were not realised.'],
+  probs:['المشكلات والتحديات التي واجهها المشروع.','Problems and challenges the project faced.'],
+  rsks:['المخاطر التي حدثت وكيف عولجت.','Risks that occurred and how they were handled.'],
+  depts:['الإدارات التي شاركت أو تأثرت.','Departments that took part or were affected.'],
+  deliv:['المخرجات المسلَّمة وإثباتها.','Delivered outputs and their evidence.'],
+  less:['الدروس المستفادة لتحسين المشاريع القادمة.','Lessons learned to improve future projects.'],
+  orgchg:['تغييرات تنظيمية أو إجرائية مقترحة.','Proposed organisational or process changes.'],
+  c_pct:['نسبة الإنجاز عند الإلغاء (٠–١٠٠).','Completion percentage at cancellation (0–100).']
+ };
+ var css='.hq{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-inline-start:6px;border-radius:50%;border:1.5px solid #B39A6B;background:#fff;color:#7a6740;font:700 13px/1 inherit;cursor:pointer;padding:0;vertical-align:middle}.hq:active{background:#f3ecdc}#hqs{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:95;display:flex;align-items:flex-end;justify-content:center}#hqs>div{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.2)}#hqs b{display:block;font-size:16px;margin-bottom:6px}#hqs p{margin:0 0 10px;line-height:1.7;font-size:14.5px}#hqs a{color:#2a6a90;font-weight:700}#hqs button{font:inherit;padding:9px 18px;border-radius:10px;border:1px solid #ddd5c3;background:#fff;margin-inline-end:8px}';
+ var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
+ function L(){try{if(typeof lang!='undefined')return lang}catch(e){}return (document.documentElement.lang||'ar').slice(0,2)}
+ function show(k,lab){var c=H[k];if(!c)return;var ar=L()=='ar',o=document.createElement('div');o.id='hqs';o.onclick=function(e){if(e.target==o)o.remove()};
+  o.innerHTML='<div><b></b><p></p><a href="help.html">'+(ar?'المساعدة والجولة':'Help & tour')+' ›</a><div style="margin-top:12px"><button>'+(ar?'حسنًا':'OK')+'</button></div></div>';
+  o.querySelector('b').textContent=lab;o.querySelector('p').textContent=c[ar?0:1];o.querySelector('button').onclick=function(){o.remove()};document.body.appendChild(o)}
+ function scan(){document.querySelectorAll('.lr[data-fk]').forEach(function(r){if(r.querySelector('.hq'))return;var k=r.getAttribute('data-fk');if(!H[k])return;var lb=r.querySelector('label');if(!lb)return;
+  var b=document.createElement('button');b.type='button';b.className='hq';b.textContent='؟';b.setAttribute('aria-label','help');
+  b.onclick=function(e){e.preventDefault();e.stopPropagation();show(k,lb.textContent.replace('*','').trim())};lb.after(b)})}
+ var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,120)}).observe(document.body,{childList:true,subtree:true});scan();
+})();</script>
 </body></html>
