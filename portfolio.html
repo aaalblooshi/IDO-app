@@ -176,7 +176,7 @@ async function start(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
  const [pl,cf,cr,ss]=await Promise.all([
-  q('plans','id,code,status,act:data->>_active,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks',r=>r.eq('archived',false)).then(a=>a.filter(p=>p.status=='Approved'||p.act=='true')),
+  q('plans','id,code,status,act:data->>_active,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,tasks:data->tasks',r=>r.eq('archived',false)).then(a=>a.filter(p=>p.status=='Approved'||p.act=='true')),
   q('project_cfg','*'),
   q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
   q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector']))]);
@@ -184,7 +184,7 @@ async function start(){
  ss.forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||p.id>best[k].id)best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,an=analyze(p.tasks||[],p.wm),c=CFG[k]||{};
-  return {k,id:p.id,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+  return {k,id:p.id,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
  PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
  draw()}
 const wavg=(arr,f)=>{const W=arr.reduce((s,p)=>s+p.w,0);return W?arr.reduce((s,p)=>s+f(p)*p.w,0)/W:0};
@@ -389,51 +389,147 @@ function repCsv(){if(!RP)return;const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t);
 function repShare(){const el=document.querySelector('#rep .rp');if(!el)return;
  const h='<!doctype html><html lang="'+lang+'" dir="'+(lang=='ar'?'rtl':'ltr')+'"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+t('rTitle')+'</title><style>body{font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;margin:14px;color:#1b1d1f}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid #ddd5c3;padding:4px 7px}th{background:#f3ecdc}.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}.kp b{display:block;font-size:22px}.kp span{font-size:12px;color:#666}.num{direction:ltr;unicode-bidi:embed}</style></head><body>'+el.outerHTML+'</body></html>';
  dlFile('report_'+RP.f+'_'+RP.t+'.html','text/html;charset=utf-8',h)}
-// ---- monthly projects deck (PowerPoint) following the Sep-2026 model ----
-const PPTX_URL='https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
-function loadPptx(){if(window.PptxGenJS)return Promise.resolve();return new Promise((ok,no)=>{const s=document.createElement('script');s.src=PPTX_URL;s.onload=ok;s.onerror=()=>no(new Error('lib'));document.head.appendChild(s)})}
-async function repPptx(){
- try{await loadPptx()}catch(e){return alert(t('rPptF'))}
- try{
- const L=scoped(),A=agg(L),ar=lang=='ar',GOLD='B39A6B',GRY='F2F2F2',DK='23272B',FONT='Sakkal Majalla';
- const pp=new window.PptxGenJS();pp.layout='LAYOUT_WIDE';pp.rtlMode=ar;
- const al=ar?'right':'left',R0=v=>Math.round(v||0);
- const base=(title)=>{const s=pp.addSlide();s.background={color:'FFFFFF'};s.addShape(pp.ShapeType.rect,{x:0,y:0,w:13.33,h:0.9,fill:{color:GOLD}});
-  s.addText(title,{x:0.4,y:0.1,w:12.5,h:0.7,fontFace:FONT,fontSize:26,bold:true,color:'FFFFFF',align:al,rtlMode:ar,valign:'middle'});
-  s.addText((ar?'مكتب التطوير المؤسسي · ':'Institutional Development Office · ')+(RP?RP.f+' → '+RP.t:ds(TODAY)),{x:0.4,y:7.05,w:12.5,h:0.3,fontFace:FONT,fontSize:11,color:'808080',align:al,rtlMode:ar});return s};
- const done=L.filter(p=>p.a>=99.5).length,run=L.length-done;
- const kp=[[ar?'إجمالي المشاريع':'Total projects',L.length],[ar?'المشاريع المكتملة':'Completed',done],[ar?'المشاريع القائمة':'Ongoing',run],[ar?'المشاريع المتوقفة':'Stopped','—'],[ar?'المشاريع الملغية':'Cancelled','—'],
-  [ar?'الميزانية المعتمدة':'Approved budget','—'],[ar?'المصروفات':'Expenses','—'],[ar?'% الإنجاز المخططة':'Planned %',R0(A.ex)+'%'],[ar?'% الإنجاز الفعلية':'Actual %',R0(A.a)+'%'],[ar?'% التأخير':'Delay %',Math.max(0,R0(A.ex-A.a))+'%']];
- const s1=base(ar?'ملخص مشاريع مركز الإمارات للدراسات والبحوث الاستراتيجية':'ECSSR projects summary');
- kp.forEach((k,i)=>{const col=i%5,row=Math.floor(i/5),x=0.4+col*2.55,y=1.15+row*0.85;
-  s1.addShape(pp.ShapeType.rect,{x,y,w:2.4,h:0.72,fill:{color:GRY},line:{color:GOLD,width:1}});
-  s1.addText(String(k[1]),{x,y:y+0.02,w:2.4,h:0.4,fontFace:FONT,fontSize:22,bold:true,color:DK,align:'center'});
-  s1.addText(k[0],{x,y:y+0.4,w:2.4,h:0.3,fontFace:FONT,fontSize:13,color:'6B6F76',align:'center',rtlMode:ar})});
- const secs=A.rows;
- if(secs.length){s1.addChart(pp.charts.BAR,[{name:ar?'المخطط':'Planned',labels:secs.map(r=>secN(r.sc)),values:secs.map(r=>R0(r.ex))},{name:ar?'الفعلي':'Actual',labels:secs.map(r=>secN(r.sc)),values:secs.map(r=>R0(r.a))}],{x:0.4,y:3.0,w:6.3,h:3.9,barDir:'col',chartColors:[GOLD,'3D96C7'],showLegend:true,legendPos:'b',showValue:true,valAxisMaxVal:100,catAxisLabelFontFace:FONT,dataLabelFontSize:11,showTitle:true,title:ar?'المخطط مقابل الفعلي حسب القطاع':'Planned vs actual by sector',titleFontFace:FONT,titleFontSize:14});
-  s1.addChart(pp.charts.BAR,[{name:ar?'عدد المشاريع':'Projects',labels:secs.map(r=>secN(r.sc)),values:secs.map(r=>r.L.length)}],{x:6.9,y:3.0,w:6.0,h:3.9,barDir:'col',chartColors:[GOLD],showValue:true,showLegend:false,catAxisLabelFontFace:FONT,showTitle:true,title:ar?'عدد المشاريع حسب القطاع':'Projects per sector',titleFontFace:FONT,titleFontSize:14})}
- const hdr=(arr)=>arr.map(x=>({text:x,options:{bold:true,color:'FFFFFF',fill:{color:GOLD},align:'center',fontFace:FONT,fontSize:13,rtlMode:ar}}));
- const cell=(x,o={})=>({text:String(x==null?'':x),options:{fontFace:FONT,fontSize:12,align:o.al||'center',rtlMode:ar,color:DK,border:{type:'solid',color:GOLD,pt:0.5}}});
- secs.forEach(r=>{
-  const d=base((ar?'ملخص الأداء العام لمشاريع ':'Performance of ')+secN(r.sc));
-  const rows=[hdr([ar?'المشروع':'Project',ar?'% المخطط':'Planned %',ar?'% الفعلي':'Actual %',ar?'ملاحظات':'Notes'])];
-  r.L.forEach(p=>rows.push([cell(p.name,{al}),cell(R0(p.ex)+'%'),cell(R0(p.a)+'%'),cell(p.lateN?p.lateN+' '+(ar?'مهمة متأخرة':'late tasks'):(ar?'منتظم':'On track'))]));
-  d.addTable(rows,{x:4.6,y:1.2,w:8.3,colW:[3.5,1.2,1.2,2.4],rowH:0.4});
-  d.addChart(pp.charts.BAR,[{name:ar?'المخطط':'Planned',labels:r.L.map(p=>p.name.slice(0,18)),values:r.L.map(p=>R0(p.ex))},{name:ar?'الفعلي':'Actual',labels:r.L.map(p=>p.name.slice(0,18)),values:r.L.map(p=>R0(p.a))}],{x:0.3,y:1.2,w:4.2,h:5.6,barDir:'bar',chartColors:[GOLD,'3D96C7'],showLegend:true,legendPos:'b',valAxisMaxVal:100,catAxisLabelFontFace:FONT,catAxisLabelFontSize:10});
-  r.L.forEach(p=>{
-   const ts=p.tasks||[],has=new Set(ts.map(x=>x.p).filter(Boolean)),leaf=ts.filter(x=>!has.has(x.id));
-   const cur=leaf.filter(x=>+x.pc>0&&+x.pc<100).slice(0,3).map(x=>x.n).join('، ')||'—';
+// ---- monthly projects deck (PowerPoint) built from the Center's Sep-2026 template (report-template.pptx) ----
+const ZIP_URL='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+function loadZip(){if(window.JSZip)return Promise.resolve();return new Promise((ok,no)=>{const s=document.createElement('script');s.src=ZIP_URL;s.onload=ok;s.onerror=()=>no(new Error('lib'));document.head.appendChild(s)})}
+async function buildDeck(L,A,tplBuf){
+ const z=await JSZip.loadAsync(tplBuf);
+ const P=s=>new DOMParser().parseFromString(s,'application/xml'),S=d=>'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+new XMLSerializer().serializeToString(d).replace(/^<\?xml[^>]*\?>\s*/,'');
+ const rd=async n=>P(await z.file(n).async('string'));
+ const kids=(n,nm)=>[...n.childNodes].filter(c=>c.nodeName==nm);
+ const secA=s=>{const x=SECS[(+s||0)-1];return x?x[0]:'قطاع '+s};
+ const R0=v=>Math.round(v||0),num=v=>(+v>0)?(+v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'-';
+ const fmt=n=>{if(n==null)return '--';const q=ds(n).split('-');return q[2]+'/'+q[1]+'/'+q[0]};
+ /* ---------- helpers on XML ---------- */
+ const shape=(d,id)=>{for(const e of d.getElementsByTagName('p:cNvPr'))if(e.getAttribute('id')==id)return e.parentNode.parentNode;return null};
+ const txb=sp=>[...sp.childNodes].find(c=>/txBody$/.test(c.nodeName));
+ const setLines=(sp,lines)=>{if(!sp)return;const tb=txb(sp);if(!tb)return;const ps=kids(tb,'a:p');const tpl=ps[0].cloneNode(true);ps.forEach(p=>tb.removeChild(p));
+  (Array.isArray(lines)?lines:[lines]).forEach(tx=>{const p=tpl.cloneNode(true);const rs=kids(p,'a:r');
+   [...p.childNodes].forEach(c=>{if(['a:br','a:fld'].includes(c.nodeName))p.removeChild(c)});
+   if(!rs.length){const end=kids(p,'a:endParaRPr')[0],r=p.ownerDocument.createElementNS(p.namespaceURI,'a:r');if(end){const rp=end.cloneNode(true);const nn=p.ownerDocument.createElementNS(p.namespaceURI,'a:rPr');[...rp.attributes].forEach(a=>nn.setAttribute(a.name,a.value));[...rp.childNodes].forEach(c=>nn.appendChild(c.cloneNode(true)));r.appendChild(nn)}
+    const t=p.ownerDocument.createElementNS(p.namespaceURI,'a:t');r.appendChild(t);p.insertBefore(r,end||null);rs.push(r)}
+   rs.slice(1).forEach(r=>p.removeChild(r));kids(rs[0],'a:t')[0].textContent=String(tx);tb.appendChild(p)})};
+ const setT=(d,id,tx)=>setLines(shape(d,id),tx);
+ const setTable=(d,rows,tid)=>{const gf=shape(d,tid),tbl=gf.getElementsByTagName('a:tbl')[0],trs=kids(tbl,'a:tr'),tpl=trs[1];trs.slice(1).forEach(r=>tbl.removeChild(r));let h=+trs[0].getAttribute('h');
+  rows.forEach(vals=>{const r=tpl.cloneNode(true);kids(r,'a:extLst').forEach(e=>r.removeChild(e));kids(r,'a:tc').forEach((tc,i)=>setLines(tc,vals[i]==null?'':vals[i]));tbl.appendChild(r);h+=+r.getAttribute('h')});
+  const xf=[...gf.childNodes].find(c=>c.nodeName=='p:xfrm'),ex=xf&&xf.getElementsByTagName('a:ext')[0];if(ex)ex.setAttribute('cy',h)};
+ /* ---------- charts ---------- */
+ const esc2=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+ const col=i=>String.fromCharCode(65+i);
+ const chartXml=async(src,cats,series)=>{const d=await rd(src),C='http://schemas.openxmlformats.org/drawingml/2006/chart';
+  const sers=[...d.getElementsByTagName('c:ser')];const n=cats.length;
+  sers.forEach((se,i)=>{const s=series[i]||series[0];
+   const tv=se.getElementsByTagName('c:tx')[0].getElementsByTagName('c:v')[0];tv.textContent=s.name;
+   const frag=x=>P('<r xmlns:c="'+C+'">'+x+'</r>').documentElement.firstChild;
+   const cat=se.getElementsByTagName('c:cat')[0],val=se.getElementsByTagName('c:val')[0];
+   const fc=(val.getElementsByTagName('c:formatCode')[0]||{}).textContent||'General';
+   const nc=frag('<c:cat><c:strRef><c:f>Sheet1!$A$2:$A$'+(n+1)+'</c:f><c:strCache><c:ptCount val="'+n+'"/>'+cats.map((c,k)=>'<c:pt idx="'+k+'"><c:v>'+esc2(c)+'</c:v></c:pt>').join('')+'</c:strCache></c:strRef></c:cat>');
+   const nv=frag('<c:val><c:numRef><c:f>Sheet1!$'+col(i+1)+'$2:$'+col(i+1)+'$'+(n+1)+'</c:f><c:numCache><c:formatCode>'+esc2(fc)+'</c:formatCode><c:ptCount val="'+n+'"/>'+s.vals.map((v,k)=>'<c:pt idx="'+k+'"><c:v>'+(+v||0)+'</c:v></c:pt>').join('')+'</c:numCache></c:numRef></c:val>');
+   se.replaceChild(d.importNode(nc,true),cat);se.replaceChild(d.importNode(nv,true),val);
+   [...se.getElementsByTagName('c:dPt')].forEach(p=>{if(+p.getElementsByTagName('c:idx')[0].getAttribute('val')>=n)p.parentNode.removeChild(p)});
+   [...se.getElementsByTagName('c:dLbl')].forEach(p=>p.parentNode.removeChild(p))});
+  [...d.getElementsByTagName('c:externalData')].forEach(e=>e.parentNode.removeChild(e));return d};
+ const chartRels=async(n,sty,clr)=>{const r=await z.file('ppt/charts/_rels/'+n+'.rels').async('string');return r};
+ /* ---------- keep a copy of the sample slides we will clone, then drop the sample content ---------- */
+ const tplSlide={},tplRel={};
+ for(const k of [5,6,7]){tplSlide[k]=await z.file('ppt/slides/slide'+k+'.xml').async('string');tplRel[k]=await z.file('ppt/slides/_rels/slide'+k+'.xml.rels').async('string')}
+ const chT={8:await z.file('ppt/charts/chart8.xml').async('string'),9:await z.file('ppt/charts/chart9.xml').async('string')};
+ const styT={7:await z.file('ppt/charts/style7.xml').async('string'),8:await z.file('ppt/charts/style8.xml').async('string')},clrT={7:await z.file('ppt/charts/colors7.xml').async('string'),8:await z.file('ppt/charts/colors8.xml').async('string')};
+ const gone=[];z.forEach(p=>{let m;if((m=/^ppt\/slides\/(?:_rels\/)?slide(\d+)\.xml(\.rels)?$/.exec(p))&&+m[1]>=5)gone.push(p);
+  else if((m=/^ppt\/notesSlides\/(?:_rels\/)?notesSlide(\d+)\.xml(\.rels)?$/.exec(p))&&+m[1]>=4)gone.push(p);
+  else if((m=/^ppt\/charts\/(?:_rels\/)?(chart|style|colors)(\d+)\.xml(\.rels)?$/.exec(p))&&((m[1]=='chart'&&+m[2]>=8)||(m[1]!='chart'&&+m[2]>=7)))gone.push(p);
+  else if(/^ppt\/embeddings\//.test(p)||p=='docProps/thumbnail.jpeg')gone.push(p)});
+ gone.forEach(p=>z.remove(p));
+ /* chart1-7 rels: drop the embedded workbook link */
+ for(let i=1;i<=7;i++){const f='ppt/charts/_rels/chart'+i+'.xml.rels',d=await rd(f);[...d.getElementsByTagName('Relationship')].forEach(r=>{if(/\/package$/.test(r.getAttribute('Type')))r.parentNode.removeChild(r)});z.file(f,S(d))}
+ /* ---------- numbers ---------- */
+ const done=L.filter(p=>p.a>=99.5).length,run=L.length-done,delay=Math.max(0,R0(A.ex-A.a));
+ const bud=L.reduce((s,p)=>s+(+p.bud||0),0),strat=L.filter(p=>p.pt=='strategic').length,oper=L.length-strat,secs=A.rows;
+ /* ---------- slide 1 ---------- */
+ let d=await rd('ppt/slides/slide1.xml');
+ [[128,L.length],[131,done],[134,run],[50,0],[54,0],[137,num(bud)],[140,'-'],[143,R0(A.ex)+'%'],[146,R0(A.a)+'%'],[149,delay+'%']].forEach(([i,v])=>setT(d,i,v));
+ z.file('ppt/slides/slide1.xml',S(d));
+ z.file('ppt/charts/chart1.xml',S(await chartXml('ppt/charts/chart1.xml',['المشاريع المكتملة','المشاريع القائمة','المشاريع الملغاة والمتوقفه'],[{name:'مخلص أعداد المشاريع',vals:[done,run,0]}])));
+ const c2=await rd('ppt/charts/chart2.xml');const cat2=c2.getElementsByTagName('c:cat')[0].getElementsByTagName('c:v')[0].textContent;
+ z.file('ppt/charts/chart2.xml',S(await chartXml('ppt/charts/chart2.xml',[cat2],[{name:'% الإنجاز المخططة',vals:[A.ex/100]},{name:'% الإنجاز الفعلية',vals:[A.a/100]},{name:'% التأخير',vals:[delay/100]}])));
+ z.file('ppt/charts/chart3.xml',S(await chartXml('ppt/charts/chart3.xml',['مقارنة المصروفات مع الميزانية المعتمدة'],[{name:'الميزانية المعتمدة',vals:[bud]},{name:'المصروفات',vals:[0]}])));
+ z.file('ppt/charts/chart4.xml',S(await chartXml('ppt/charts/chart4.xml',['المشاريع الاستراتيجية','المشاريع التشغيلية'],[{name:'مخلص أعداد المشاريع',vals:[strat,oper]}])));
+ /* ---------- slides 2-4 ---------- */
+ const sn=secs.map(r=>secA(r.sc));
+ d=await rd('ppt/slides/slide2.xml');setTable(d,secs.map((r,i)=>[r.L.length,sn[i]]),13);z.file('ppt/slides/slide2.xml',S(d));
+ z.file('ppt/charts/chart5.xml',S(await chartXml('ppt/charts/chart5.xml',sn,[{name:'عدد المشاريع',vals:secs.map(r=>r.L.length)}])));
+ const sb=secs.map(r=>r.L.reduce((s,p)=>s+(+p.bud||0),0));
+ d=await rd('ppt/slides/slide3.xml');setTable(d,secs.map((r,i)=>[num(sb[i]),r.L.length,sn[i]]),7);z.file('ppt/slides/slide3.xml',S(d));
+ z.file('ppt/charts/chart6.xml',S(await chartXml('ppt/charts/chart6.xml',sn,[{name:'الميزانية المخصصة',vals:sb}])));
+ d=await rd('ppt/slides/slide4.xml');setTable(d,secs.map((r,i)=>[sn[i],R0(r.ex)+'%',R0(r.a)+'%']),6);z.file('ppt/slides/slide4.xml',S(d));
+ z.file('ppt/charts/chart7.xml',S(await chartXml('ppt/charts/chart7.xml',sn,[{name:'% الإنجاز المخطط',vals:secs.map(r=>r.ex/100)},{name:'% الإنجاز الفعلي',vals:secs.map(r=>r.a/100)}])));
+ /* ---------- generated slides ---------- */
+ let sNo=5,cNo=12,stNo=11;const added=[];
+ const mkRel=(k,chartName)=>{let r=tplRel[k];r=r.replace(/<Relationship [^>]*notesSlide[^>]*\/>/,'');if(chartName)r=r.replace(/\.\.\/charts\/chart\d+\.xml/,'../charts/'+chartName);return r};
+ const newChart=async(tk,srcKey,cats,series)=>{const cn='chart'+(cNo++)+'.xml',sk=(tk==8?7:8);const st='style'+stNo+'.xml',cl='colors'+stNo+'.xml';stNo++;
+  const tmp='ppt/charts/__t'+tk+'.xml';z.file(tmp,chT[tk]);const dd=await chartXml(tmp,cats,series);z.remove(tmp);
+  z.file('ppt/charts/'+cn,S(dd));z.file('ppt/charts/'+st,styT[sk]);z.file('ppt/charts/'+cl,clrT[sk]);
+  z.file('ppt/charts/_rels/'+cn+'.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.microsoft.com/office/2011/relationships/chartStyle" Target="'+st+'"/><Relationship Id="rId2" Type="http://schemas.microsoft.com/office/2011/relationships/chartColorStyle" Target="'+cl+'"/></Relationships>');
+  added.push(['chart',cn],['style',st],['colors',cl]);return cn};
+ const addSlide=(xml,rels)=>{const n='slide'+(sNo++);z.file('ppt/slides/'+n+'.xml',xml);z.file('ppt/slides/_rels/'+n+'.xml.rels',rels);added.push(['slide',n+'.xml']);return n};
+ const stageOf=p=>p.a>=99.5?4:(p.lateN>0?3:(p.a>0?2:1));
+ for(const r of secs){
+  const nm=secA(r.sc);
+  /* divider */
+  let ds5=P(tplSlide[5]);setT(ds5,4,nm);addSlide(S(ds5),mkRel(5));
+  /* performance (chunks of 7) */
+  const CH=7,parts=Math.max(1,Math.ceil(r.L.length/CH));
+  for(let c=0;c<parts;c++){const sub=r.L.slice(c*CH,c*CH+CH),dd=P(tplSlide[6]);
+   setT(dd,3,'ملخص الأداء العام لمشاريع '+nm+(parts>1?' ('+(c+1)+'/'+parts+')':''));
+   setTable(dd,sub.map(p=>[p.name,R0(p.ex)+'%',R0(p.a)+'%',p.lateN?p.lateN+' مهمة متأخرة':'منتظم']),7);
+   const cn=await newChart(8,0,sub.map(p=>p.name.length>28?p.name.slice(0,27)+'…':p.name),[{name:'% الإنجاز المخطط',vals:sub.map(p=>p.ex/100)},{name:'% الإنجاز الفعلي',vals:sub.map(p=>p.a/100)},{name:'% التأخير',vals:sub.map(p=>Math.max(0,p.ex-p.a)/100)}]);
+   addSlide(S(dd),mkRel(6,cn))}
+  /* project detail */
+  for(const p of r.L){
+   const dd=P(tplSlide[7]),ts=p.tasks||[],has=new Set(ts.map(x=>x.p).filter(Boolean)),leaf=ts.filter(x=>!has.has(x.id));
    const ss=ts.map(x=>dn(x.s)).filter(v=>v!=null),ee=ts.map(x=>dn(x.e)).filter(v=>v!=null),ae=ts.map(x=>dn(x.ae)).filter(v=>v!=null);
-   const fmt=n=>{if(n==null)return '—';const q=ds(n).split('-');return q[2]+'/'+q[1]+'/'+q[0]};
-   const e=base(p.name);
-   const fl=[[ar?'رمز المشروع':'Code',p.k],[ar?'القطاع':'Sector',secN(p.sc)],[ar?'مدير المشروع':'Project manager',p.pm||'—'],[ar?'نوع المشروع':'Type',p.pt=='strategic'?(ar?'استراتيجي':'Strategic'):(ar?'تشغيلي':'Operational')],
-    [ar?'تاريخ البداية المخطط':'Planned start',fmt(ss.length?Math.min(...ss):null)],[ar?'تاريخ التسليم المخطط':'Planned delivery',fmt(ee.length?Math.max(...ee):null)],[ar?'تاريخ التسليم الفعلي':'Actual delivery',p.a>=99.5&&ae.length?fmt(Math.max(...ae)):'--'],
-    [ar?'المرحلة الحالية':'Current stage',cur],[ar?'الميزانية المعتمدة':'Approved budget','—'],[ar?'الصرف التراكمي':'Cumulative spend','—'],[ar?'نسبة الإنجاز المخططة':'Planned %',R0(p.ex)+'%'],[ar?'نسبة الإنجاز الفعلية':'Actual %',R0(p.a)+'%'],[ar?'ملاحظات مكتب التطوير المؤسسي':'IDO notes',p.lateN?p.lateN+' '+(ar?'مهمة متأخرة':'late tasks'):'—']];
-   const rows2=fl.map(f=>[{text:f[0],options:{bold:true,fill:{color:GRY},fontFace:FONT,fontSize:13,align:al,rtlMode:ar,color:DK,border:{type:'solid',color:GOLD,pt:0.5}}},cell(f[1],{al})]);
-   e.addTable(rows2,{x:0.4,y:1.15,w:7.4,colW:[2.7,4.7],rowH:0.42});
-   e.addChart(pp.charts.BAR,[{name:ar?'المخطط':'Planned',labels:[ar?'الإنجاز':'Progress'],values:[R0(p.ex)]},{name:ar?'الفعلي':'Actual',labels:[ar?'الإنجاز':'Progress'],values:[R0(p.a)]}],{x:8.1,y:1.2,w:4.9,h:4.5,barDir:'col',chartColors:[GOLD,'3D96C7'],showLegend:true,legendPos:'b',showValue:true,valAxisMaxVal:100,catAxisLabelFontFace:FONT});
-  })});
- await pp.writeFile({fileName:'projects_report_'+(RP?RP.f+'_'+RP.t:ds(TODAY))+'.pptx'});
+   const st0=ss.length?Math.min(...ss):null,en0=ee.length?Math.max(...ee):null;
+   setT(dd,2,p.name);setT(dd,60,p.dsc||'—');
+   setT(dd,90,st0!=null?ds(st0).slice(0,4):'—');setT(dd,102,fmt(st0));setT(dd,106,fmt(en0));setT(dd,110,p.a>=99.5&&ae.length?fmt(Math.max(...ae)):'--');
+   setT(dd,45,num(p.bud));setT(dd,50,'-');setT(dd,54,'-');setT(dd,71,'-');
+   setT(dd,84,'% '+R0(p.ex));setT(dd,88,'% '+R0(p.a));
+   const late=leaf.filter(x=>{const e=dn(x.e);return e!=null&&e<TODAY&&(+x.pc||0)<100}).slice(0,4);
+   const notes=[];if(p.lateN>0)notes.push('عدد المهام المتأخرة: '+p.lateN);if(p.gap>=1)notes.push('الفجوة بين المخطط والفعلي: '+R0(p.gap)+'%');late.forEach(x=>notes.push('متأخرة: '+x.n));
+   setLines(shape(dd,43),notes.length?notes:['لا توجد ملاحظات']);
+   setT(dd,94,p.pt=='strategic'?'إستراتيجي':'تشغيلي');setT(dd,96,secA(p.sc));setT(dd,97,'المركز');
+   setT(dd,103,p.ow||'—');setT(dd,111,p.pm||'—');
+   /* current phase highlight */
+   const cur=stageOf(p),lbl=[20,21,26,30],nmb=[22,23,27,31];
+   const rp=id=>kids(kids(txb(shape(dd,id)),'a:p')[0],'a:r')[0].getElementsByTagName('a:rPr')[0].cloneNode(true);
+   const L_on=rp(21),L_off=rp(20),N_on=rp(23),N_off=rp(22);
+   const swap=(id,src)=>{const r=kids(kids(txb(shape(dd,id)),'a:p')[0],'a:r')[0],old=r.getElementsByTagName('a:rPr')[0];r.replaceChild(src.cloneNode(true),old)};
+   lbl.forEach((id,i)=>swap(id,i+1==cur?L_on:L_off));nmb.forEach((id,i)=>swap(id,i+1==cur?N_on:N_off));
+   const cn=await newChart(9,0,[p.name.length>40?p.name.slice(0,39)+'…':p.name],[{name:'% الإنجاز المخطط',vals:[p.ex/100]},{name:'% الإنجاز الفعلي',vals:[p.a/100]}]);
+   addSlide(S(dd),mkRel(7,cn))}
+ }
+ /* ---------- package plumbing ---------- */
+ const ct=await rd('[Content_Types].xml'),T=ct.documentElement;
+ [...T.getElementsByTagName('Override')].forEach(o=>{if(!z.file(o.getAttribute('PartName').replace(/^\//,'')))T.removeChild(o)});
+ const CTS={slide:'application/vnd.openxmlformats-officedocument.presentationml.slide+xml',chart:'application/vnd.openxmlformats-officedocument.drawingml.chart+xml',style:'application/vnd.ms-office.chartstyle+xml',colors:'application/vnd.ms-office.chartcolorstyle+xml'};
+ added.forEach(([k,n])=>{const o=ct.createElementNS(T.namespaceURI,'Override');o.setAttribute('PartName','/ppt/'+(k=='slide'?'slides':'charts')+'/'+n);o.setAttribute('ContentType',CTS[k]);T.appendChild(o)});
+ z.file('[Content_Types].xml',S(ct));
+ const pr=await rd('ppt/_rels/presentation.xml.rels'),R=pr.documentElement,pres=await rd('ppt/presentation.xml'),lst=pres.getElementsByTagName('p:sldIdLst')[0];
+ [...R.getElementsByTagName('Relationship')].forEach(r=>{const m=/^slides\/slide(\d+)\.xml$/.exec(r.getAttribute('Target')||'');if(m&&+m[1]>=5){const id=r.getAttribute('Id');R.removeChild(r);[...lst.childNodes].forEach(s=>{if(s.getAttribute&&s.getAttribute('r:id')==id)lst.removeChild(s)})}});
+ added.filter(a=>a[0]=='slide').forEach(([k,n],i)=>{const id='rId'+(200+i);const r=pr.createElementNS(R.namespaceURI,'Relationship');r.setAttribute('Id',id);r.setAttribute('Type','http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide');r.setAttribute('Target','slides/'+n);R.appendChild(r);
+  const s=pres.createElementNS(lst.namespaceURI,'p:sldId');s.setAttribute('id',String(2147377000+i));s.setAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','r:id',id);lst.appendChild(s)});
+ z.file('ppt/_rels/presentation.xml.rels',S(pr));z.file('ppt/presentation.xml',S(pres));
+ const rr=await rd('_rels/.rels');[...rr.getElementsByTagName('Relationship')].forEach(r=>{if(/thumbnail/.test(r.getAttribute('Type')))r.parentNode.removeChild(r)});z.file('_rels/.rels',S(rr));
+ z.file('docProps/app.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"><Application>Microsoft Office PowerPoint</Application><Slides>'+(4+added.filter(a=>a[0]=='slide').length)+'</Slides></Properties>');
+ return z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.presentationml.presentation',compression:'DEFLATE'})}
+async function repPptx(){
+ try{await loadZip()}catch(e){return alert(t('rPptF'))}
+ try{
+  const rs=await fetch('report-template.pptx?v=1');if(!rs.ok)throw new Error('template '+rs.status);
+  const blob=await buildDeck(scoped(),agg(scoped()),await rs.arrayBuffer());
+  const name='projects_report_'+(RP?RP.f+'_'+RP.t:ds(TODAY))+'.pptx';
+  const f=new File([blob],name,{type:blob.type});
+  if(navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|Android/.test(navigator.userAgent)){navigator.share({files:[f],title:name}).catch(()=>{});return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
  }catch(e){console.error(e);alert(t('rPptF')+' '+(e&&e.message||''))}}
 
 boot();
@@ -542,7 +638,7 @@ boot();
  function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
  function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
  function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
-  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f);i.addEventListener('click',function(){try{if(!i.disabled&&i.showPicker)i.showPicker()}catch(e){}})}
  function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
  function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
  var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
