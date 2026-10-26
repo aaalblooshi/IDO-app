@@ -61,7 +61,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  charter:['ميثاق المشروع','Charter'],plan:['خطة المشروع','Plan'],cr:['طلبات التغيير','Change requests'],closure:['التقرير الختامي','Closure report'],
  n_charter:['لم يتم تقديم الميثاق','Charter not submitted'],n_plan:['لم يتم رفع الخطة','Plan not uploaded'],n_cr:['لا توجد طلبات تغيير','No change requests'],n_closure:['لم يتم رفع التقرير الختامي','Closure report not uploaded'],none:['لا توجد مشاريع.','No projects.'],count:['مشروع','projects'],
  strategic:['استراتيجي','Strategic'],operational:['تشغيلي','Operational'],pm:['مدير المشروع','PM'],
- manage:['⚙ مكتب التطوير المؤسسي','⚙ Institutional Development Office'],hide:['إخفاء المشروع من الصفحة','Hide project from the page'],weight:['وزن المشروع (اتركه فارغًا للافتراضي)','Project weight (empty = default)'],
+ manage:['⚙ إعدادات المشروع','⚙ Project settings'],hide:['إخفاء المشروع من الصفحة','Hide project from the page'],weight:['وزن المشروع (اتركه فارغًا للافتراضي)','Project weight (empty = default)'],
  wsave:['حفظ الإعداد','Save'],arch:['أرشفة المشروع بكل طلباته','Archive project with all its requests'],folder:['اسم مجلد الأرشيف (اختياري)','Archive folder name (optional)'],
  restore:['استرجاع المشروع من الأرشيف','Restore project from archive'],archAsk:['سيتم أرشفة الميثاق والخطة وكل طلبات التغيير والتقرير الختامي لهذا المشروع. متابعة؟','The charter, plan, all change requests and the closure report of this project will be archived. Continue?'],
  gT:['صلاحيات خاصة على هذا المشروع','Special access on this project'],gUser:['اكتب اسم المستخدم…','Type a user name…'],gView:['عرض فقط','View only'],gEdit:['عرض وتعديل','View & edit'],gAdd:['إضافة','Add'],gDel:['إزالة','Remove'],
@@ -180,9 +180,13 @@ load();
 </script>
 <script>/*navfix*/
 (function(){
- var f=location.pathname.split('/').pop()||'index.html';if(f=='index.html'||f=='')return;
+ var f=location.pathname.split('/').pop()||'index.html';
  function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function logo(){var l=document.querySelector('header .logo,#hd .logo');if(!l||l.getAttribute('data-home'))return;l.setAttribute('data-home','1');l.style.cursor='pointer';l.setAttribute('role','link');l.addEventListener('click',function(){location.href='index.html'})}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',logo);else logo();
+ setTimeout(logo,800);setTimeout(logo,2500);
+ if(f=='index.html'||f=='')return;
  function build(){
   if(document.getElementById('gnav'))return;var ar=lg()=='ar';
   var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['projects.html','📁',ar?'المشاريع':'Projects','projects']];
@@ -193,7 +197,12 @@ load();
   items.forEach(function(i){h+='<a href="'+i[0]+'" class="gnb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
   n.innerHTML=h;document.body.appendChild(n);
   var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
-  var s=document.createElement('style');s.textContent='#gnav{position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;justify-content:space-around;background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:6px 6px calc(max(env(safe-area-inset-bottom),0px) + 22px);direction:'+(ar?'rtl':'ltr')+'}#gnav .gnb{flex:1;display:flex;flex-direction:column;align-items:center;gap:0;text-decoration:none;color:#6b6f76;font:700 13px/1.4 Cairo,system-ui,sans-serif;padding:8px 2px;min-height:54px;justify-content:center;border-radius:12px;min-width:0}#gnav .gnb i{position:static;background:none;width:auto;height:auto;font-style:normal;font-size:26px;line-height:1.2}#gnav .gnb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gnb span{width:auto;font-size:13px;color:inherit;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body{padding-bottom:110px!important}@media print{#gnav{display:none}}';document.head.appendChild(s)}
+  var s=document.createElement('style');s.textContent='#gnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:12;justify-content:space-around;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:6px 6px calc(max(env(safe-area-inset-bottom),0px) + 18px);direction:'+(ar?'rtl':'ltr')+'}@media (max-width:700px){#gnav{display:flex}}@media (display-mode:standalone){#gnav{display:flex}}#gnav .gnb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:#6b6f76;font:700 13px/1.4 Cairo,system-ui,sans-serif;padding:8px 2px;min-height:54px;border-radius:12px;min-width:0}#gnav .gnb i{position:static;background:none;width:auto;height:auto;font-style:normal;font-size:26px;line-height:1.2}#gnav .gnb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gnb span{width:auto;font-size:13px;color:inherit;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body.hasnav .actbar{bottom:var(--gnh,0px)!important}body.hasnav{padding-bottom:var(--pb,110px)!important}@media print{#gnav{display:none!important}body{padding-bottom:0!important}}';document.head.appendChild(s);
+  var q=0;function fit(){q=0;var vis=getComputedStyle(n).display!='none';document.body.classList.toggle('hasnav',vis);var g=vis?n.offsetHeight:0;var ab=document.querySelector('.actbar');var a=(vis&&ab&&ab.offsetParent!==null)?ab.offsetHeight:0;var r=document.documentElement.style;r.setProperty('--gnh',g+'px');r.setProperty('--pb',(g+a+24)+'px')}
+  function sched(){if(!q){q=1;requestAnimationFrame(fit)}}
+  fit();window.addEventListener('resize',sched);window.addEventListener('orientationchange',sched);
+  try{new MutationObserver(sched).observe(document.body,{childList:true,subtree:true})}catch(e){}
+ }
  if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
 })();
 </script>
@@ -213,6 +222,8 @@ load();
  var q=0;function run(){q=0;walk(document.body);scan(document.body);document.querySelectorAll('input.dtx').forEach(sync)}
  new MutationObserver(function(){if(!q)q=requestAnimationFrame(run)}).observe(document.body,{childList:true,subtree:true,characterData:true});
  setInterval(function(){document.querySelectorAll('input.dtx').forEach(sync)},700);
+ document.addEventListener('focusin',function(e){var i=e.target;if(i&&i.nodeName=='INPUT'&&i.type=='number'){var v=i.value;i.setAttribute('inputmode',(i.step&&i.step.indexOf('.')>=0)?'decimal':'numeric');i.type='text';i.value=v}},true);
+ document.addEventListener('input',function(e){var i=e.target;if(!i||(i.nodeName!='INPUT'&&i.nodeName!='TEXTAREA'))return;var t=i.type;if(t&&t!='text'&&t!='tel'&&t!='search'&&t!='textarea')return;var v=i.value;if(RA.test(v)){RA.lastIndex=0;var c=i.selectionStart;i.value=v.replace(RA,function(x){return AR[x]});try{i.setSelectionRange(c,c)}catch(_){}}RA.lastIndex=0},true);
  run();
 })();
 </script>
