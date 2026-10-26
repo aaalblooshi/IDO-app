@@ -370,7 +370,7 @@ const W=[
 ["l_restored","Restored from archive","تم الاسترجاع من الأرشيف"],
 ["l_reminded","Reminder sent","تم إرسال تذكير"],
 ["hello","Hello","مرحباً"],
-["c_action","Needs my action","بانتظار إجرائي"],
+["c_action","Needs my action","بانتظار إجراءك"],
 ["c_mine","My requests in progress","طلباتي الجارية"],
 ["c_mineA","All in progress","كل الطلبات الجارية"],
 ["c_returned","Returned","معادة للتعديل"],
@@ -586,6 +586,7 @@ const W=[
 ["assignedTag", "Assigned draft", "مسودة موجّهة"],
 ["completeCancel", "Please complete the cancellation section: ", "يرجى استكمال قسم الإلغاء: "],
 ["attTitle", "Attachment title", "عنوان المرفق"],
+["extraAppNote", "The document stays approved. To get an additional approval, add the approver above; he/she will see a sign button and the document is not affected.", "تبقى الوثيقة معتمدة. لطلب اعتماد إضافي أضف المعتمد أعلاه فيظهر له زر الاعتماد دون أن تتأثر حالة الوثيقة."],
 ["home", "Closure reports", "التقارير الختامية"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
@@ -922,7 +923,8 @@ async function openCR(id){
  const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
- const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st];
+ const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st]||(st=='Approved'&&!arch&&sigs.some(s=>s.stage=='approved'&&s.status=='pending')?'approved':undefined);
+ const extraApp=adm&&!arch&&st=='Approved';
  const canAdm=adm&&!fin&&!arch;
  const canRev=adm&&!arch&&['Submitted','PMO Review'].includes(st);
  const canApp=adm&&!arch&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st);
@@ -1013,7 +1015,7 @@ async function openCR(id){
  <div class="card pn ${ftab=='ach'?'on':''}" data-t="ach"><div class="sec">${t('s_ach')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${tf('summary')}${fld('outs',listEd('outs'))}${fld('bens',listEd('bens'))}${fld('bmeasure',rowsEd('bmeasure'))}${fld('ugoals',listEd('ugoals'))}${fld('ubens',listEd('ubens'))}${pnav('gen','lsn')}</div>
  <div class="card pn ${ftab=='lsn'?'on':''}" data-t="lsn"><div class="sec">${t('s_lsn')}</div>${fld('probs',listEd('probs'))}${fld('rsks',listEd('rsks'))}${fld('depts',listEd('depts'))}${fld('deliv',rowsEd('deliv'))}${fld('less',listEd('less'))}${tf('orgchg')}${pnav('ach','can')}</div>
  <div class="card pn ${ftab=='can'?'on':''} ${d.pstatus!='cancelled'?'hid':''}" data-t="can"><div class="sec">${t('s_cancel')}</div><div class="mut">${t('cancelHint')}</div>${tf('c_reason')}${tf('c_fin')}${tf('c_done')}${fld('c_pct',inp('c_pct','number'),'full')}${tf('c_impact')}${pnav('lsn','flow')}</div>
- <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}${pnav('can','')}
+ <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp||extraApp,2):''}${extraApp?`<div class="mut" style="margin:6px 0">${t('extraAppNote')}</div>`:''}${more?`<div class="row">${more}</div>`:''}${pnav('can','')}
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
@@ -1221,10 +1223,10 @@ async function busy(id,fn){const b=$(id),old=b?b.textContent:'';if(b){b.disabled
 
 // ---------- Word ----------
 function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
- await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Arial',GRN='0A6B3D',RED='D1101D',LIGHT='E5F2EA',LINE='B9C7BE';
+ await loadScript(DOCX_URL);const D=window.docx,rtl=lang=='ar',FONT='Sakkal Majalla',GRN='B39A6B',RED='D1101D',LIGHT='F2F2F2',LINE='B39A6B';
  const d=cr.data||{},nm=id=>users[id]||{},A=k=>Array.isArray(d[k])?d[k].filter(filled):[];
  const AL=D.AlignmentType,al=AL.LEFT; // in right-to-left paragraphs Word treats 'left' as the start edge (right side)
- const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||22,bold:!!o.b,italics:!!o.it,color:o.c}));
+ const runs=(tx,o={})=>String(tx==null||tx===''?'NA':tx).split('\n').map((ln,i)=>new D.TextRun({text:ln,break:i?1:0,font:FONT,rightToLeft:rtl,size:o.size||26,bold:!!o.b,italics:!!o.it,color:o.c}));
  const P=(tx,o={})=>new D.Paragraph({bidirectional:rtl,alignment:o.al||al,spacing:{before:o.sb||0,after:o.sa==null?40:o.sa},keepNext:o.kn,pageBreakBefore:o.pb,children:runs(tx,o)});
  const bd={style:D.BorderStyle.SINGLE,size:4,color:LINE},borders={top:bd,bottom:bd,left:bd,right:bd};
  const C=(kids,o={})=>new D.TableCell({children:Array.isArray(kids)?kids:[kids],width:{size:o.w,type:D.WidthType.DXA},columnSpan:o.span,verticalAlign:o.v||D.VerticalAlign.TOP,borders,margins:{top:70,bottom:70,left:120,right:120},shading:o.fill?{type:D.ShadingType.CLEAR,fill:o.fill,color:'auto'}:undefined});
@@ -1282,7 +1284,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
   kids.push(T([R([lab(t('f_c_pct'),W)]),R([C(P(d.c_pct===''||d.c_pct==null?'':d.c_pct+'%',{sa:0}),{w:W})])],[W]));kids.push(gap());kids.push(txt('c_impact'))}
  if(atts.length){kids.push(sec(n++,t('s_att'),true));kids.push(listTbl(atts.map(a=>a.title),t('att')))}
  const foot=new D.Footer({children:[new D.Paragraph({alignment:AL.CENTER,bidirectional:rtl,children:[new D.TextRun({text:cr.doc_no+' · '+(d.pname||'')+' · ',font:FONT,size:16,color:'6B6F76',rightToLeft:rtl}),new D.TextRun({children:[D.PageNumber.CURRENT,' / ',D.PageNumber.TOTAL_PAGES],font:FONT,size:16,color:'6B6F76'})]})]});
- const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:22,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
+ const doc=new D.Document({creator:me.full_name||'Charter',title:cr.doc_no,styles:{default:{document:{run:{font:FONT,size:26,rightToLeft:rtl},paragraph:{}}}},sections:[{properties:{page:{size:{width:11906,height:16838},margin:{top:850,bottom:850,left:850,right:850}},bidi:rtl},footers:{default:foot},children:kids}]});
  const blob=await D.Packer.toBlob(doc);dl(blob,cr.doc_no+'.docx')})}
 
 // ---------- Excel (hand-written .xlsx, no library) ----------
