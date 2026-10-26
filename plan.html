@@ -82,6 +82,8 @@ details.acc>.in{padding:0 14px 14px}
 .nbar{margin:0 0 8px}.nbar .mut{margin-top:6px}
 .nt{margin-top:6px;border:1.5px solid var(--r);border-inline-start-width:5px;background:var(--r2);border-radius:10px;padding:8px 10px;font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}.nt.ap{border-color:var(--g);background:var(--g2)}.nt.ap b{color:var(--g)}.nt b{display:block;color:var(--r);font-size:12.5px;margin-bottom:2px;white-space:normal}.nt.old{border-color:var(--am);background:var(--am2)}.nt.old b{color:var(--am)}
 .nbd{background:var(--am);color:#fff;border-radius:99px;font-style:normal;font-size:11px;padding:0 6px;margin-inline-start:6px}
+.rdv{position:fixed;inset:0;z-index:96;background:var(--bg,#f7f5ef);display:flex;flex-direction:column}.rdh{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line)}.rdb{padding:12px;overflow:auto;flex:1}.rdr{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}.rdf{flex:1;border:0;width:100%;background:#fff}
+.sla{display:inline-block;padding:0 8px;border-radius:99px;font-size:11.5px;font-weight:700;background:#eef2ef;color:#4b6355;margin-inline-start:4px}.sla.late{background:#fdecee;color:#d1101d}
 .log{font-size:12.5px;color:var(--mut);max-height:200px;overflow:auto}
 .actbar{position:fixed;inset-inline:0;bottom:0;z-index:15;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
 .actbar .row{margin:0;max-width:900px;margin-inline:auto;justify-content:center}
@@ -509,14 +511,15 @@ const W=[
 ["st_Awaiting Approval","Awaiting approval","بانتظار الاعتماد"],
 ["st_Approved","Approved","معتمد"],
 ["st_Rejected","Rejected","مرفوض"],
-["st_Office Decision","Office decision (after approver rejection)","قرار مكتب التطوير (بعد رفض المعتمد)"],
-["officeNote","The approver rejected this. Choose another approver and send again, return it to the preparer, or reject it finally.","رفضها المعتمد. اختر معتمدًا آخر وأعد الإرسال، أو أعدها للمُعدّ، أو ارفضها نهائيًا."],
+["st_Office Decision","Office decision (after rejection)","قرار مكتب التطوير (بعد الرفض)"],
+["officeNote","A reviewer or approver rejected this. Continue to approval, send it again, return it to the preparer, or reject it finally.","رفضها المراجع أو المعتمد. تابع إجراءات الاعتماد، أو أعد الإرسال، أو أعدها للمُعدّ، أو ارفضها نهائيًا."],
 ["a_office","Office decision needed","بانتظار قرار المكتب"],
 ["finalReject","Reject finally","رفض نهائي"],
 ["noteOpt","Note (optional)","ملاحظة (اختيارية)"],
 ["stageNoteT","Note","ملاحظة"],
 ["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
 ["l_apprej","Rejected by the approver","رفض المعتمد"],
+["l_revrej","Rejected by the reviewer","رفض المراجع"],
 ["l_proxy","signed by proxy","توقيع بالإنابة"],["l_adm","by the administrator (override)","بصفة الأدمن (تجاوز)"],["admSub","Submit as administrator","تقديم بصفة الأدمن"],["admSign","Sign as administrator","توقيع بصفة الأدمن"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
 ["l_crlink","Linked to change request","ربط بطلب التغيير"],
 ["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
@@ -567,7 +570,8 @@ const W=[
 ["with","With","لدى"],
 ["dayW","day(s)","يوم"],
 ["pipe","Pipeline","مراحل الطلبات"],
-["overdue","Overdue (3+ days)","متأخرة (3 أيام فأكثر)"],
+["overdue","Overdue (over 3 working days)","متأخرة (تجاوزت 3 أيام عمل)"],
+["wdayW","working day(s)","يوم عمل"],["relDocs","Project files","ملفات المشروع"],["rdClose","Close","إغلاق"],["rdBack","Back","رجوع"],["rdThis","(this form)","(هذا النموذج)"],["rdNone","No related files.","لا توجد ملفات مرتبطة."],["rd_charter","Charter","ميثاق المشروع"],["rd_plan","Plan","خطة المشروع"],["rd_cr","Change request","طلب تغيير"],["rd_closure","Closure report","التقرير الختامي"],["slaOk","SLA: {n} working days","المهلة: {n} أيام عمل"],["slaLate","Late by {n} day(s)","متأخرة {n} يوم"],
 ["noOverdue","No overdue requests.","لا توجد طلبات متأخرة."],
 ["remindBtn","Send reminder","إرسال تذكير"],
 ["reminded","Reminder sent to (people):","تم إرسال التذكير إلى (عدد الأشخاص):"],
@@ -1061,6 +1065,7 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='returned')return t('l_returned')+': '+p.slice(1).join('|');
  if(k=='rejected')return t('l_rejected')+': '+p.slice(1).join('|');
  if(k=='apprejected')return t('l_apprej')+': '+p.slice(1).join('|');
+ if(k=='revrejected')return t('l_revrej')+': '+p.slice(1).join('|');
  if(k=='adminedit')return t('l_adminedit')+(p[1]&&p[1]!='-'?': '+p[1]:'');
  if(k=='officeapproved')return t('l_offapp')+(p[1]?': '+p.slice(1).join('|'):'');
  if(k=='officerejected')return t('l_offrej')+(p[1]?': '+p.slice(1).join('|'):'');
@@ -1138,6 +1143,8 @@ const FIN=s=>s=='Approved'||s=='Rejected'||s=='Cancelled';
 const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed':3,'Awaiting Approval':3,'Office Decision':3,'Approved':4,'Rejected':4,'Cancelled':0};
 const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'];
 const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
+const SLA=3;
+const waitDays=d=>{const a=new Date(d);if(isNaN(a))return 0;const e=new Date(),p=new Date(a.getFullYear(),a.getMonth(),a.getDate()),q=new Date(e.getFullYear(),e.getMonth(),e.getDate());let n=0;while(p<q){p.setDate(p.getDate()+1);const w=p.getDay();if(w!=0&&w!=6)n++}return n};
 async function loadAll(){
  const [a,b,c,dp]=await Promise.all([sb.from('plans').select('id,code,doc_no,status,version,created_by,created_at,stage_at,archived,comment,cr_link,charter_id,issued_at,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname').order('id',{ascending:false}),sb.from('plan_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('plan_audit').select('cr_id,action,at').like('action','status|%'),loadDelP()]);
  const all=(a.data||[]).map(r=>Object.assign(r,{data:{pname:r.pn,sector:r.sc,ptype:r.pt,pmname:r.pm}}));
@@ -1159,8 +1166,8 @@ function enrich(){
   else if(adm&&st=='Submitted')x.act='a_assignRev';
   else if(adm&&st=='Reviewed')x.act='a_assignApp';
   else if(adm&&st=='Office Decision')x.act='a_office';
-  x.days=dsince(r.stage_at||r.created_at);
-  x.over=HOLD.includes(st)&&x.days>=3;
+  x.days=waitDays(r.stage_at||r.created_at);x.late=HOLD.includes(st)?Math.max(0,x.days-SLA):0;
+  x.over=x.late>0;
  })}
 function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>users[s.user_id]?.full_name).filter(Boolean).join(', ');
  if(st=='Draft'||st=='Returned to PM')return users[r.created_by]?.full_name||'';
@@ -1169,7 +1176,7 @@ function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.s
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
 function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
- return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${x.del?delB():''}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('dayW')}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${x.del?delB():''}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('wdayW')}${HOLD.includes(r.status)?` <span class="sla ${x.late?'late':''}">${x.late?t('slaLate').replace('{n}',x.late):t('slaOk').replace('{n}',SLA)}</span>`:''}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
 function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(!f)return true;
  if(f=='action')return !!x.act;
@@ -1382,6 +1389,8 @@ async function openCR(id){
  if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
+ if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
+ acts+=relBtn();
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
@@ -2254,6 +2263,18 @@ async function ret(){askNote(t('returnPM'),t('retPrompt'),t('returnPM'),async c=
  const nn=NOTES[cr.id]||{},items={};Object.keys(nn).forEach(k=>{const v=String(nn[k]||'').trim();if(v)items[k]=v});
  const nd={...cr.data};delete nd._anotes;if(Object.keys(items).length)nd._notes={v:cr.version,by:me.full_name,at:new Date().toISOString(),items:items};else delete nd._notes;
  await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)},true)}
+const relPc=()=>{try{return SVC=='charter'?(cr&&cr.code):(cr&&cr.data&&cr.data.pcode)}catch(e){return ''}};
+const relBtn=()=>relPc()?`<button class="sm" onclick="relDocs()">📎 ${t('relDocs')}</button>`:'';
+async function relDocs(){const pc=relPc();if(!pc)return;
+ const g=(tb,c,col,isData)=>{let q=sb.from(tb).select(c);q=isData?q.eq('data->>pcode',pc):q.eq('code',pc);return q.then(r=>r.data||[],()=>[])};
+ const [ch,pl,cc,cl]=await Promise.all([g('charters','id,code,status',0,0),g('plans','id,code,status,version',0,1),g('plans','id,code,status',0,1),g('closure_reports','id,code,status',0,1)]);
+ const items=[].concat(ch.map(x=>({sv:'charter',pg:'charter.html',...x})),pl.map(x=>({sv:'plan',pg:'plan.html',...x})),cc.map(x=>({sv:'cr',pg:'cr.html',...x})),cl.map(x=>({sv:'closure',pg:'closure.html',...x})));
+ let o=document.getElementById('rdv');if(o)o.remove();o=document.createElement('div');o.id='rdv';o.className='rdv';
+ const list=()=>{o.innerHTML=`<div class="rdh"><b>📎 ${esc(t('relDocs'))}</b><button onclick="document.getElementById('rdv').remove()">✕ ${esc(t('rdClose'))}</button></div><div class="rdb">${items.length?items.map((x,i)=>`<div class="rdr"><div><b>${esc(t('rd_'+x.sv))}</b> <span dir="ltr">${esc(x.code||'')}</span>${x.version>1?' · v'+x.version:''}<br><span class="mut">${esc(t('st_'+x.status)||x.status)}</span>${(x.sv==SVC&&x.id==cr.id)?' · <span class="mut">'+esc(t('rdThis'))+'</span>':''}</div><button class="p" onclick="relOpen(${i})">${esc(t('open'))}</button></div>`).join(''):`<div class="mut">${esc(t('rdNone'))}</div>`}</div>`};
+ window._rdItems=items;window._rdList=list;list();document.body.appendChild(o)}
+function relOpen(i){const x=window._rdItems[i],o=document.getElementById('rdv');if(!x||!o)return;
+ o.innerHTML=`<div class="rdh"><button onclick="_rdList()">← ${esc(t('rdBack'))}</button><b>${esc(t('rd_'+x.sv))} <span dir="ltr">${esc(x.code||'')}</span></b><a href="${x.pg}#o=${x.id}" target="_blank"><button>↗</button></a></div><iframe class="rdf" src="${x.pg}#o=${x.id}"></iframe>`}
+async function rejR(){askNote(t('reject'),t('rejPrompt'),t('reject'),async c=>{await setStatus('Office Decision',{comment:c});await lg(cr.id,'revrejected|'+c);openCR(cr.id)},true)}
 async function rej(){askNote(t('reject'),t('rejPrompt'),t('reject'),async c=>{await setStatus('Office Decision',{comment:c});await lg(cr.id,'apprejected|'+c);openCR(cr.id)},true)}
 async function finalRej(){askNote(t('finalReject'),t('rejPrompt'),t('finalReject'),async c=>{await setStatus('Rejected',{comment:c});await lg(cr.id,'rejected|'+c);openCR(cr.id)},true)}
 function askNote(title,ph,ok,cb,req){let o=$('nmod');if(o)o.remove();o=document.createElement('div');o.id='nmod';o.className='nov';
@@ -2370,6 +2391,7 @@ applyStatic();start();
 <script>/*navfix*/
 (function(){
  var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self)return}catch(e){}
  function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function logo(){var l=document.querySelector('header .logo,#hd .logo');if(!l||l.getAttribute('data-home'))return;l.setAttribute('data-home','1');l.style.cursor='pointer';l.setAttribute('role','link');l.addEventListener('click',function(){location.href='index.html'})}
@@ -2393,6 +2415,59 @@ applyStatic();start();
   try{new MutationObserver(sched).observe(document.body,{childList:true,subtree:true})}catch(e){}
  }
  if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*hdrfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self){var es=document.createElement('style');es.textContent='#hd,#hd2,#gnav,.top,#tkfab,.fab,.hm{display:none!important}body{padding-bottom:0!important}';document.head.appendChild(es);document.documentElement.classList.add('emb');return}}catch(e){}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function lg(){return ls('lang')=='en'?'en':'ar'}
+ function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1]];
+ var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
+ +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
+ var built=0;
+ function mk(){
+  var hd=document.getElementById('hd'),top=document.querySelector('.top'),hin;
+  if(!hd&&!top)return;
+  if(!document.getElementById('hmcss')){var s=document.createElement('style');s.id='hmcss';s.textContent=CSS;document.head.appendChild(s)}
+  if(hd){hin=hd.querySelector('.hin');if(!hin)return;
+   Array.prototype.forEach.call(hin.children,function(c){if(c.tagName=='IMG'||c.id=='hm')return;c.setAttribute('data-hid','1');c.style.display='none'});
+  }else{
+   if(document.getElementById('hd2'))return;
+   top.style.display='none';
+   var h=document.createElement('header');h.id='hd2';h.innerHTML='<div class="hin"><img class="logo" alt="" src=""></div><div class="stripe"><i></i><i></i><i></i><i></i></div><div class="ttl" id="hd2t"></div>';
+   top.parentNode.insertBefore(h,top);hin=h.querySelector('.hin');
+  }
+  if(!hin.querySelector('#hm')){
+   var m=document.createElement('div');m.className='hm';m.id='hm';m.innerHTML='<button class="hmb" id="hm_l"></button><button class="hmb" id="hm_o" style="display:none"></button><div class="hmw"><button class="hmb hmm" id="hm_m"></button><div class="hmp" id="hm_p" hidden></div></div>';
+   hin.appendChild(m);
+   m.querySelector('#hm_l').onclick=function(){try{toggleLang()}catch(e){}setTimeout(sync,60)};
+   m.querySelector('#hm_o').onclick=function(){try{localStorage.removeItem('hdrRole');localStorage.removeItem('hdrScope')}catch(e){}try{sb.auth.signOut().then(function(){location.href='./'})}catch(e){location.href='./'}};
+   m.querySelector('#hm_m').onclick=function(e){e.stopPropagation();var p=document.getElementById('hm_p');p.hidden=!p.hidden};
+   document.addEventListener('click',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
+  }
+  var lo=hin.querySelector('img.logo');if(lo&&!lo.getAttribute('data-home')){lo.setAttribute('data-home','1');lo.style.cursor='pointer';lo.onclick=function(){location.href='index.html'}}
+  built=1;sync();try{setHH()}catch(e){}
+ }
+ var last='';
+ function sync(){
+  var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
+  var key=[ar,role,sc,sess()].join();
+  var l=document.getElementById('hm_l');if(!l)return;
+  l.textContent=ar?'EN':'عربي';
+  var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
+  document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
+  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
+  var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
+  var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
+  var hdh=document.getElementById('hd2');if(hdh)hdh.setAttribute('dir',ar?'rtl':'ltr');
+ }
+ function go(){mk();sync()}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',go);else go();
+ var n=0,iv=setInterval(function(){mk();sync();if(++n>40&&built)clearInterval(iv)},400);
+ setInterval(sync,1500);
 })();
 </script>
 <script>/*fmtfix*/
