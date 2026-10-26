@@ -524,8 +524,9 @@ async function buildDeck(L,A,tplBuf){
 async function repPptx(){
  try{await loadZip()}catch(e){return alert(t('rPptF'))}
  try{
-  const rs=await fetch('report-template.pptx?v=1');if(!rs.ok)throw new Error('template '+rs.status);
-  const blob=await buildDeck(scoped(),agg(scoped()),await rs.arrayBuffer());
+  let tb=null;try{const r=await sb.storage.from('templates').download('report-template.pptx');if(r&&r.data)tb=await r.data.arrayBuffer()}catch(_){}
+  if(!tb){const rs=await fetch('report-template.pptx?v=1');if(!rs.ok)throw new Error('لا يوجد قالب: ارفعه من الإعدادات');tb=await rs.arrayBuffer()}
+  const blob=await buildDeck(scoped(),agg(scoped()),tb);
   const name='projects_report_'+(RP?RP.f+'_'+RP.t:ds(TODAY))+'.pptx';
   const f=new File([blob],name,{type:blob.type});
   if(navigator.canShare&&navigator.canShare({files:[f]})&&/iPhone|iPad|Android/.test(navigator.userAgent)){navigator.share({files:[f],title:name}).catch(()=>{});return}
