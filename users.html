@@ -58,14 +58,21 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  roles:['⚙ إدارة الأدوار','⚙ Manage roles'],add:['+ مستخدم جديد','+ New user'],addT:['إنشاء مستخدم جديد','Create a new user'],create:['إنشاء المستخدم','Create user'],created:['تم إنشاء المستخدم. أبلغه ببريده وكلمة المرور.','User created. Tell them the email and password.'],cancel:['إلغاء','Cancel']
 };
 let USERS=[],ROLES=[],Q='',RF='',LIM=30,OPEN=null,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]);
-D.sc_t=['نطاق الرؤية','View scope'];D.sc_own=['حسب الدور (الافتراضي)','By role (default)'];D.sc_sec=['المستوى 2: القطاع (كل خدمات القطاع)','Level 2: Sector (all services of the sector)'];D.sc_cen=['المستوى 1: المركز (يرى كل شيء)','Level 1: Centre (sees everything)'];D.sc_pick=['اختر القطاع/القطاعات:','Choose sector(s):'];D.sc_save=['حفظ النطاق','Save scope'];D.sc_h=['للرؤية فقط؛ لمنح تعديل/عرض على مشروع محدد استخدم صفحة «المشاريع».','View only; to grant view/edit on a specific project use the Projects page.'];
+D.ps_b=['ملخص صلاحيات كل المستخدمين','All users permissions summary'];D.ps_n=['المستخدم','User'];D.ps_r=['الدور','Role'];D.ps_v=['نطاق الرؤية','View scope'];D.ps_c=['ينجز مهام الآخرين','Completes others\' tasks'];D.ps_g=['صلاحيات المشاريع الخاصة','Project-specific access'];D.ps_cen=['المركز كله','Whole centre'];D.ps_own=['حسب الدور','By role'];D.ps_close=['إغلاق','Close'];D.ps_yes=['نعم','Yes'];
+D.sc_t=['نطاق الرؤية','View scope'];D.sc_cp=['يستطيع إنجاز مهام المستخدمين الآخرين ضمن نطاق رؤيته (قطاع أو مركز)','Can complete other users\' tasks within their view scope'];D.sc_cph=['بدون هذه الخانة يرى المهام فقط ولا يغيّر إنجازها.','Without this, the user only views tasks and cannot change progress.'];D.sc_own=['حسب الدور (الافتراضي)','By role (default)'];D.sc_sec=['المستوى 2: القطاع (كل خدمات القطاع)','Level 2: Sector (all services of the sector)'];D.sc_cen=['المستوى 1: المركز (يرى كل شيء)','Level 1: Centre (sees everything)'];D.sc_pick=['اختر القطاع/القطاعات:','Choose sector(s):'];D.sc_save=['حفظ النطاق','Save scope'];D.sc_h=['للرؤية فقط؛ لمنح تعديل/عرض على مشروع محدد استخدم صفحة «المشاريع».','View only; to grant view/edit on a specific project use the Projects page.'];
 const scBox=u=>{const s=u.view_scope||'',cur=u.view_sectors||[];return `<div class="card" style="margin-top:10px;background:var(--bg,#f7f5ef)"><b>${t('sc_t')}</b>
  <select id="sc_${u.id}" onchange="scCh('${u.id}')"><option value="" ${!s?'selected':''}>${t('sc_own')}</option><option value="sector" ${s=='sector'?'selected':''}>${t('sc_sec')}</option><option value="center" ${s=='center'?'selected':''}>${t('sc_cen')}</option></select>
  <div id="scs_${u.id}" style="display:${s=='sector'?'block':'none'};margin-top:6px"><div class="mut">${t('sc_pick')}</div>${SECS.map((x,i)=>`<label class="tg" style="display:flex;gap:8px;align-items:center;margin:4px 0"><input type="checkbox" class="scx_${u.id}" value="${i+1}" ${cur.includes(i+1)?'checked':''} style="width:auto"> ${esc(lang=='ar'?x[0]:x[1])}</label>`).join('')}</div>
+ <label class="tg" style="display:flex;gap:8px;align-items:center;margin:10px 0 2px;font-weight:700"><input type="checkbox" id="scc_${u.id}" ${u.scope_complete?'checked':''} style="width:auto"> ${t('sc_cp')}</label><div class="mut" style="margin:0 0 6px">${t('sc_cph')}</div>
  <div class="mut" style="margin:6px 0">${t('sc_h')}</div><button class="p" onclick="scSave('${u.id}')">${t('sc_save')}</button></div>`};
+async function permSum(){const el=$('permx');if(el.innerHTML){el.innerHTML='';return}
+ const {data:g}=await sb.from('project_grants').select('pcode,user_id,lvl,svcs');const by={};(g||[]).forEach(x=>(by[x.user_id]=by[x.user_id]||[]).push(x));
+ const sn=u=>u.view_scope=='center'?t('ps_cen'):u.view_scope=='sector'?(u.view_sectors||[]).map(n=>(SECS[n-1]||[])[lang=='ar'?0:1]||n).join('، '):t('ps_own');
+ const gl=u=>(by[u.id]||[]).map(x=>`<div dir="ltr" style="font-size:12px">${esc(x.pcode)} · ${x.lvl=='edit'?'edit':'view'} · ${x.svcs?esc(x.svcs.join(',')):'all'}</div>`).join('')||'—';
+ el.innerHTML=`<div class="card" style="overflow:auto"><div class="row" style="justify-content:space-between"><b>${t('ps_b')}</b><button onclick="permSum()">${t('ps_close')}</button></div><table style="width:100%;border-collapse:collapse;font-size:13px;min-width:560px"><tr style="text-align:start;background:#f7f5ef">${['ps_n','ps_r','ps_v','ps_c','ps_g'].map(k=>`<th style="padding:6px;text-align:start">${t(k)}</th>`).join('')}</tr>${USERS.map(u=>`<tr style="border-top:1px solid #e4dfd4"><td style="padding:6px">${esc(u.full_name)}</td><td style="padding:6px">${esc(rn(rk(u)))}</td><td style="padding:6px">${esc(sn(u))}</td><td style="padding:6px">${u.scope_complete?t('ps_yes'):'—'}</td><td style="padding:6px">${gl(u)}</td></tr>`).join('')}</table></div>`}
 const scCh=id=>{$('scs_'+id).style.display=$('sc_'+id).value=='sector'?'block':'none'};
 const scSave=id=>run(async()=>{const s=$('sc_'+id).value,a=[...document.querySelectorAll('.scx_'+id+':checked')].map(x=>+x.value);if(s=='sector'&&!a.length)throw new Error(t('sc_pick'));
- const {error}=await sb.rpc('admin_set_scope',{uid:id,p_scope:s||null,p_sectors:s=='sector'?a:null});if(error)throw error;const u=USERS.find(x=>x.id==id);u.view_scope=s||null;u.view_sectors=s=='sector'?a:null});
+ const {error}=await sb.rpc('admin_set_scope',{uid:id,p_scope:s||null,p_sectors:s=='sector'?a:null});if(error)throw error;const u=USERS.find(x=>x.id==id);u.view_scope=s||null;u.view_sectors=s=='sector'?a:null;const cp=!!($('scc_'+id)||{}).checked;const r2=await sb.rpc('admin_set_scope_complete',{uid:id,flag:cp&&!!s});if(r2.error)throw r2.error;u.scope_complete=cp&&!!s});
 async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
@@ -83,7 +90,7 @@ function draw(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  $('app').innerHTML=`<div class="sb"><input id="q" placeholder="${t('search')}" value="${esc(Q)}"><div class="row" style="margin-top:6px"><select id="rf" style="flex:1"><option value="">${t('all')}</option>${ROLES.map(r=>`<option value="${r.key}" ${RF==r.key?'selected':''}>${esc(rn(r.key))}</option>`).join('')}</select><span class="mut" id="cnt"></span><button class="p" onclick="$('nu').classList.toggle('on')">${t('add')}</button><button onclick="location.href='roles.html'">${t('roles')}</button></div></div>
  <div class="card nu" id="nu"><h2>${t('addT')}</h2><div class="g2"><div><label>${t('name')}</label><input id="c_n"></div><div><label>${t('job')}</label><input id="c_j"></div><div><label>${t('email')}</label><input id="c_e" dir="ltr" type="email"></div><div><label>${t('role')}</label>${roleSel('c_r','pm')}</div></div><label>${t('newpw')}</label><div class="pwr"><input id="c_p" type="password" autocomplete="new-password">${eyeB('c_p')}</div><div class="mut">${t('pwhint')}</div><div class="row"><button class="p" onclick="createU()">${t('create')}</button><button onclick="$('nu').classList.remove('on')">${t('cancel')}</button></div></div>
- <div id="list"></div>`;
+ <div class="row" style="margin:8px 0"><button onclick="permSum()">📋 ${t('ps_b')}</button></div><div id="permx"></div><div id="list"></div>`;
  $('q').oninput=e=>{Q=e.target.value;LIM=30;drawList()};$('rf').onchange=e=>{RF=e.target.value;LIM=30;drawList()};drawList()}
 function drawList(){
  const rows=flt(),show=rows.slice(0,LIM);$('cnt').textContent=rows.length+' '+t('count');
@@ -115,6 +122,7 @@ load();
 <script>/*navfix*/
 (function(){
  var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self)return}catch(e){}
  function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function logo(){var l=document.querySelector('header .logo,#hd .logo');if(!l||l.getAttribute('data-home'))return;l.setAttribute('data-home','1');l.style.cursor='pointer';l.setAttribute('role','link');l.addEventListener('click',function(){location.href='index.html'})}
@@ -138,6 +146,59 @@ load();
   try{new MutationObserver(sched).observe(document.body,{childList:true,subtree:true})}catch(e){}
  }
  if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*hdrfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self){var es=document.createElement('style');es.textContent='#hd,#hd2,#gnav,.top,#tkfab,.fab,.hm{display:none!important}body{padding-bottom:0!important}';document.head.appendChild(es);document.documentElement.classList.add('emb');return}}catch(e){}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function lg(){return ls('lang')=='en'?'en':'ar'}
+ function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1]];
+ var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
+ +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
+ var built=0;
+ function mk(){
+  var hd=document.getElementById('hd'),top=document.querySelector('.top'),hin;
+  if(!hd&&!top)return;
+  if(!document.getElementById('hmcss')){var s=document.createElement('style');s.id='hmcss';s.textContent=CSS;document.head.appendChild(s)}
+  if(hd){hin=hd.querySelector('.hin');if(!hin)return;
+   Array.prototype.forEach.call(hin.children,function(c){if(c.tagName=='IMG'||c.id=='hm')return;c.setAttribute('data-hid','1');c.style.display='none'});
+  }else{
+   if(document.getElementById('hd2'))return;
+   top.style.display='none';
+   var h=document.createElement('header');h.id='hd2';h.innerHTML='<div class="hin"><img class="logo" alt="" src="data:image/png;base64,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"></div><div class="stripe"><i></i><i></i><i></i><i></i></div><div class="ttl" id="hd2t"></div>';
+   top.parentNode.insertBefore(h,top);hin=h.querySelector('.hin');
+  }
+  if(!hin.querySelector('#hm')){
+   var m=document.createElement('div');m.className='hm';m.id='hm';m.innerHTML='<button class="hmb" id="hm_l"></button><button class="hmb" id="hm_o" style="display:none"></button><div class="hmw"><button class="hmb hmm" id="hm_m"></button><div class="hmp" id="hm_p" hidden></div></div>';
+   hin.appendChild(m);
+   m.querySelector('#hm_l').onclick=function(){try{toggleLang()}catch(e){}setTimeout(sync,60)};
+   m.querySelector('#hm_o').onclick=function(){try{localStorage.removeItem('hdrRole');localStorage.removeItem('hdrScope')}catch(e){}try{sb.auth.signOut().then(function(){location.href='./'})}catch(e){location.href='./'}};
+   m.querySelector('#hm_m').onclick=function(e){e.stopPropagation();var p=document.getElementById('hm_p');p.hidden=!p.hidden};
+   document.addEventListener('click',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
+  }
+  var lo=hin.querySelector('img.logo');if(lo&&!lo.getAttribute('data-home')){lo.setAttribute('data-home','1');lo.style.cursor='pointer';lo.onclick=function(){location.href='index.html'}}
+  built=1;sync();try{setHH()}catch(e){}
+ }
+ var last='';
+ function sync(){
+  var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
+  var key=[ar,role,sc,sess()].join();
+  var l=document.getElementById('hm_l');if(!l)return;
+  l.textContent=ar?'EN':'عربي';
+  var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
+  document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
+  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
+  var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
+  var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
+  var hdh=document.getElementById('hd2');if(hdh)hdh.setAttribute('dir',ar?'rtl':'ltr');
+ }
+ function go(){mk();sync()}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',go);else go();
+ var n=0,iv=setInterval(function(){mk();sync();if(++n>40&&built)clearInterval(iv)},400);
+ setInterval(sync,1500);
 })();
 </script>
 <script>/*fmtfix*/
