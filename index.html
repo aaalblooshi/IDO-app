@@ -478,7 +478,7 @@ async function load(){
   /* مدد مخصصة لكل طلب */
   try{const r=await sb.from('request_sla').select('svc,req_id,stage,days');(r.data||[]).forEach(x=>{E.sla[x.svc+':'+x.req_id+':'+x.stage]=x.days})}catch(_){}
   try{const r=await sb.from('service_ratings').select('svc,score,created_at').eq('user_id',me.id).order('created_at',{ascending:false}).limit(30);(r.data||[]).forEach(x=>{if(!E.last[x.svc])E.last[x.svc]=x})}catch(_){}
-  if(adm){try{const r=await sb.rpc('rating_summary');if(!r.error)E.sum=r.data||[];const c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).order('created_at',{ascending:false}).limit(8);E.cms=c.data||[]}catch(_){}}
+  if(adm){try{const r=await sb.rpc('rating_summary');if(!r.error)E.sum=r.data||[];let c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).is('archived_at',null).order('created_at',{ascending:false}).limit(8);if(c.error)c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).order('created_at',{ascending:false}).limit(8);E.cms=c.data||[]}catch(_){}}
   E.ok=true}catch(e){E.ok=false}
  render()}
 const slaOf=it=>{const stage=it.st=='PMO Review'?'reviewed':it.st=='Awaiting Approval'?'approved':null;if(!stage||!it.at)return null;const c=E.sla[it.k+':'+it.id+':'+stage];const d=c!=null?c:slaDays(it.k,stage).d;const used=wdBetween(dn(String(it.at).slice(0,10)),today());return {d,custom:c!=null,left:d-used}};
@@ -511,7 +511,7 @@ function service(k){const c=SV[k],n=E.sel,it=vis(k),by=s=>it.filter(x=>x.stage==
   return `<a class="jn-it" href="${x.p}#o=${x.id}"><span><b>${esc(x.name||x.code)}</b><small>${esc(P(SV[x.k].t))}${x.code?' · '+esc(x.code):''}${x.cons?' · '+P(['التخطيط الجماعي','Group planning']):''}${mt}</small></span><em class="${x.act?'a':''}">${tag}${extra}</em></a>`}).join('');
  const contact=E.set.jny_contact?`<div><b>${P(['للاستفسار:','For inquiries:'])}</b> ${esc(E.set.jny_contact)}</div>`:'';
  const card=`<div class="jn-c"><h3>${P(['وصف الخدمة','Service description'])} <small>— ${P(c.t)}</small></h3><div class="jn-mut" style="font-size:14px;color:inherit">${P(c.d)}</div>
- <div class="jn-cols"><div><b>${P(['الفئة المستهدفة','Target group'])}</b><div>${P(['جميع موظفي المركز','All Center employees'])}</div></div><div><b>${P(['قنوات الخدمة','Service channels'])}</b><div>${P(['الموقع الإلكتروني وتطبيق الجوال','Website and mobile app'])}</div></div></div>
+ <div class="jn-cols"><div><b>${P(['الفئة المستهدفة','Target group'])}</b><div>${P(['جميع موظفي المركز','All Center employees'])}</div></div><div><b>${P(['قنوات الخدمة','Service channels'])}</b><div>${P(['الموقع الإلكتروني وتطبيق الهاتف','Website and mobile app'])}</div></div></div>
  <div class="jn-cols"><div><b>${P(['المتطلبات','Requirements'])}</b><ul>${c.rq.map(r=>`<li>${P(r)}</li>`).join('')}</ul></div><div><b>${P(['أبرز خصائص الخدمة','Key features'])}</b><ul>${c.ft.map(r=>`<li>${P(r)}</li>`).join('')}</ul></div></div>
  ${c.doc?`<div class="jn-mut">${P(['مدة المراجعة','Review time'])}: <b>${AR(slaDays(k,'reviewed').d)}</b> · ${P(['مدة الاعتماد','Approval time'])}: <b>${AR(slaDays(k,'approved').d)}</b> ${P(['أيام عمل (الافتراضي)','working days (default)'])}${adm?` · <a href="settings.html">${P(['تعديل المدد الافتراضية','Edit default durations'])}</a>`:''}</div>`:''}${contact}</div>`;
  const left=`<div class="jn-c"><h3>${P(['الخطوة','Step'])} ${AR(n)} ${P(['من','of'])} ${AR(5)} — ${P(stp[n-1])}</h3><div class="jn-state">${state}</div>
