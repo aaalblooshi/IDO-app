@@ -176,7 +176,7 @@ Object.assign(D,{
  sh_f:['اختر ملفًا','Choose a file'],sh_ft:['عنوان المرفق (اختياري)','Attachment title (optional)'],sh_up:['إرفاق','Attach'],sh_noatt:['لا مرفقات.','No attachments.'],sh_nohist:['لا يوجد سجل بعد.','No history yet.'],sh_del:['حذف','Delete'],
  e_fut:['لا يمكن تسجيل تاريخ في المستقبل.','A future date cannot be recorded.'],e_ord:['تاريخ الانتهاء قبل تاريخ البدء.','Finish date is before start date.'],e_pc:['أدخل نسبة بين 0 و100.','Enter a percentage from 0 to 100.'],e_big:['حجم الملف أكبر من 10 م.ب.','File is larger than 10 MB.'],
  saved2:['تم تسجيل الإنجاز','Progress recorded'],upd:['تم التحديث','Updated'],
- viewPlan:['عرض الخطة','View plan'],viewGantt:['المخطط الزمني','Timeline'],
+ viewPlan:['عرض الخطة','View plan'],pEdit:['✏️ تعديل الخطة','✏️ Edit plan'],viewGantt:['المخطط الزمني','Timeline'],
  closeAll:['اكتملت جميع مهام هذا المشروع','All tasks of this project are complete'],startCl:['ابدأ التقرير الختامي','Start the closure report'],openCl:['فتح التقرير الختامي','Open the closure report'],
  gGrp:['تجميع حسب','Group by'],gProj:['المشروع','Project'],gSec:['القطاع','Sector'],gUser:['المكلّف','Assignee'],gCtr:['المركز كله','Whole centre'],
  stAll:['كل الحالات','All statuses'],unas:['غير مسندة','Unassigned'],tTot:['إجمالي المهام','Total tasks'],tDn:['منجزة','Done'],tPj:['المشاريع','Projects'],avg:['متوسط الإنجاز','Avg. progress'],more:['عرض المزيد','Show more'],
@@ -190,7 +190,7 @@ let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',PEXP=new Set(),Q='',FP
 const TEAM=()=>ADM||!!(ME&&ME.view_scope);
 const dayP=n=>plr(n,'day');const SCOL={done:'#1c7a45',late:'#d1101d',prog:'#3D96C7',fut:'#949594'};document.body.classList.add('tkp');
 async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
-let GRT={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
+let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
 function mkProject(p){
  const tasks=p.tasks||[],m={};tasks.forEach(x=>m[x.id]=x);
@@ -209,7 +209,7 @@ function mkProject(p){
  return pr}
 async function reload(){
  let rows=[];
- try{GRT={};const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id);(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1})}catch(_){}
+ try{GRT={};GRPL={};const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id);(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1;if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRPL[x.pcode]=1})}catch(_){}
  if(MODE=='me'){const {data,error}=await sb.rpc('my_plans');if(error){$('app').innerHTML='<div class="card mut">'+esc(error.message)+'</div>';return}
   rows=(data||[]).map(p=>({id:p.id,code:p.code,pcode:p.pcode,pname:p.pname,sc:p.sector,pt:p.ptype,wm:p.wmode,pm:p.pm,cb:p.created_by,tasks:p.tasks}))}
  else{const [pl,cf]=await Promise.all([
@@ -364,7 +364,7 @@ function vProj(rs){
   return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="PEXP.has(${p.pid})?PEXP.delete(${p.pid}):PEXP.add(${p.pid});paint()"><b>${open?'▾':'▸'} ${esc(p.pname)}</b><span style="color:${hCol[h]}">● <span class="mut">${t('h_'+h)}</span></span></div>
   <div class="mut"><span dir="ltr">${esc(p.pcode)}</span>${p.pm?' · '+esc(p.pm):''}${p.sc?' · '+esc(secN(p.sc)):''}</div>${pbar(a.a,a.ex,hCol[h])}
   <div class="stp" style="margin:2px 0">${['done','prog','fut','late'].map(k=>`<span style="--c:${SCOL[k]}"><b class="num">${cnt(k)}</b> ${t('st_'+k)}</span>`).join('')}</div>
-  ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a><button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
+  ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a>${ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRPL[p.pcode]?`<a href="plan.html#o=${p.pid}&e=1"><button>${t('pEdit')}</button></a>`:''}<button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
   ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}${tree}`:`<div class="row" style="margin-top:6px"><button onclick="PEXP.add(${p.pid});paint()">${t('pDet')}</button></div>`}</div>`}).join('')}
 function rowH(p,r,vis){const x=r.x,done=isDone(r),k=p.pid+'|'+x.id,st=stOf(r);
  return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${x.ms?'◆ ':''}${esc(x.n)}</b>${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
@@ -759,7 +759,7 @@ function vDig(rs){
  function ph(){return document.documentElement.lang=='ar'?'يوم/شهر/سنة':'dd/mm/yyyy'}
  function dfmt(v){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''}
  function enh(i){if(i._dt)return;i._dt=1;var w=document.createElement('span');w.className='dtw';var s=document.createElement('span');s.className='dtv';i.parentNode.insertBefore(w,i);w.appendChild(s);w.appendChild(i);i.classList.add('dtx');i._s=s;sync(i);
-  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f)}
+  var f=function(){sync(i)};i.addEventListener('input',f);i.addEventListener('change',f);i.addEventListener('click',function(){try{if(!i.disabled&&i.showPicker)i.showPicker()}catch(e){}})}
  function sync(i){var s=i._s;if(!s)return;var t=dfmt(i.value);if(s.textContent!==(t||ph()))s.textContent=t||ph();s.classList.toggle('em',!t);s.classList.toggle('ds',!!i.disabled)}
  function scan(r){(r.querySelectorAll?r.querySelectorAll('input[type=date]'):[]).forEach(enh);if(r.nodeName=='INPUT'&&r.type=='date')enh(r)}
  var st=document.createElement('style');st.textContent='.dtw{position:relative;display:block;min-width:0}.dtv{display:block;box-sizing:border-box;width:100%;padding:9px 11px;border:1px solid var(--line,#ddd);border-radius:10px;background:#fff;color:var(--ink,#111);font:inherit;direction:ltr;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:2.4em}.dtv.em{color:#999;font-size:.85em}.dtv.ds{background:#f1efe8;color:#777}input.dtx{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;cursor:pointer}';document.head.appendChild(st);
