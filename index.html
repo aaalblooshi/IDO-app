@@ -228,14 +228,15 @@ let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
 const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
-  const [a,b,c]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]})]);
+  const [a,b,c,pc]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]}),tbl=='plans'?sb.from('plan_consult').select('plan_id,closes_at,invitees'):Promise.resolve({data:[]})]);
+  const ci=new Set((pc&&pc.data||[]).filter(z=>new Date(z.closes_at)>new Date()&&(z.invitees||[]).includes(me.id)).map(z=>z.plan_id));
   if(a.error)throw a.error;if(b.error)throw b.error;const dp=new Set((c&&c.data||[]).map(x=>x.cr_id));
   const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
   let created=0,action=0,done=0;const adm=me.role=='admin';
   (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
    if(mine)created++;
    if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
-   const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'));
+   const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'))||(tbl=='plans'&&st=='Draft'&&!mine&&ci.has(r.id));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
 const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=r.data}catch(_){return[]}
