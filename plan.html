@@ -1471,7 +1471,7 @@ async function openCR(id){
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);let cInv=false;try{const q0=await sb.from('plan_consult').select('closes_at,invitees').eq('plan_id',id).maybeSingle();cInv=!!(q0.data&&new Date(q0.data.closes_at)>new Date()&&(q0.data.invitees||[]).includes(me.id))&&st=='Draft'&&!arch}catch(_){}
+ const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);PL.snapK=null;let cInv=false;try{const q0=await sb.from('plan_consult').select('closes_at,invitees').eq('plan_id',id).maybeSingle();cInv=!!(q0.data&&new Date(q0.data.closes_at)>new Date()&&(q0.data.invitees||[]).includes(me.id))&&st=='Draft'&&!arch}catch(_){}
  const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr)||pmOf(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
@@ -1515,7 +1515,7 @@ async function openCR(id){
  const s0=STEP[st];
  const issued=cr.issued_at?fdate(cr.issued_at):t('issueAuto');
  if(!Array.isArray(d.tasks))d.tasks=[];
- PL.ed=PL.ed||null;const rvEd=!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending');PL.rvEd=rvEd&&!adm&&cr.created_by!=me.id;PL.cOnly=cInv&&!ed&&!adm;PL.canEdit=ed||cInv||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'))||rvEd||canRev;PL.rev=canRev||rvEd;PL.aed=aed;PL.nAtt=atts.length;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
+ PL.ed=PL.ed||null;const rvEd=!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending');PL.rvEd=rvEd&&!adm&&cr.created_by!=me.id;if(!PL.snapK)snapTasks();PL.cOnly=cInv&&!ed&&!adm;PL.canEdit=ed||cInv||(!arch&&adm&&(st=='Draft'||st=='Returned to PM'))||rvEd||canRev;PL.rev=canRev||rvEd;PL.aed=aed;PL.nAtt=atts.length;PL.trk=!arch&&st=='Approved'&&(adm||cr.created_by==me.id);PL.arch=arch;PL.st=st;
  if(adm&&!arch){try{const q=await sb.from('plans').select('code,pn:data->>pname').order('id',{ascending:false}).limit(500);PL.crs=q.data||[]}catch(_){PL.crs=[]}}
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
@@ -1543,8 +1543,8 @@ function goTab(k){showTab(k);toPanel()}
 function updProg(){}
 const strip=ts=>ts.map(x=>{const o={...x};delete o._d;delete o._ne;return o});
 const tkJ=x=>{const o={...x};delete o._d;delete o._ne;delete o.eb;return JSON.stringify(o)};
-function snapTasks(){const m={};(cr.data.tasks||[]).forEach(x=>m[x.id]=tkJ(x));PL.snap=m;PL.snapK=cr.id+':'+(cr.updated_at||'')}
-function stampEdits(){if(!cr||!me)return;const ts=cr.data.tasks||[];if(!PL.snap||PL.snapK!=cr.id+':'+(cr.updated_at||''))snapTasks();
+function snapTasks(){const m={};(cr.data.tasks||[]).forEach(x=>m[x.id]=tkJ(x));PL.snap=m;PL.snapK='x'}
+function stampEdits(){if(!cr||!me)return;const ts=cr.data.tasks||[];if(!PL.snap||!PL.snapK)snapTasks();
  const kids=new Set();ts.forEach(x=>{if(x.p)kids.add(x.p)});
  ts.forEach(x=>{const o=PL.snap[x.id];const hasKid=(M&&M[x.id]&&M[x.id].kids&&M[x.id].kids.length)||kids.has(x.id);if(o===undefined||o!==tkJ(x)){if(o===undefined||!hasKid)x.eb=me.id}});
  const cur=new Set(ts.map(x=>x.id)),del=(cr.data._del||[]).filter(r=>!cur.has(r.id));
