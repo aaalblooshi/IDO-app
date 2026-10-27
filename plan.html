@@ -1063,6 +1063,8 @@ const W=[
 ["cs_addb", "Add selected", "إضافة المحدّدين"],
 ["l_consultadd", "Added people to group planning", "إضافة أشخاص إلى التخطيط الجماعي"],
 ["l_consultedit", "Edited the plan during group planning", "تعديل الخطة أثناء التخطيط الجماعي"],
+["pl_dBy", "by", "بواسطة"],
+["cs_edits", "edits", "تعديل"],
 ["cs_search", "Search users…", "ابحث عن مستخدم…"],
 ["cs_sel", "Selected", "المحدّدون"],
 ["cs_none", "Group planning has not been opened. You can publish the draft to the concerned people for a limited period to collect their notes before approval.", "لم يُفتح التخطيط الجماعي بعد. يمكنك نشر المسودة للمعنيين لمدة محددة لجمع ملاحظاتهم قبل الاعتماد."],
@@ -1080,7 +1082,7 @@ const W=[
 ["cs_empty", "No notes yet.", "لا توجد ملاحظات بعد."],
 ["cs_part", "Participation", "قياس المشاركة"],
 ["cs_done", "commented", "علّق"],
-["cs_wait", "no note yet", "لم يعلّق بعد"],
+["cs_wait", "no activity yet", "لا مشاركة بعد"],
 ["cs_of", "of", "من"],
 ["cs_cnt", "notes", "ملاحظة"],
 ["cs_ro", "You are not invited to comment.", "لست ضمن المدعوّين للتعليق."],
@@ -1540,10 +1542,19 @@ function showTab(k){ftab=k;document.querySelectorAll('.tb').forEach(b=>b.classLi
 function goTab(k){showTab(k);toPanel()}
 function updProg(){}
 const strip=ts=>ts.map(x=>{const o={...x};delete o._d;delete o._ne;return o});
-async function save(q){if(!cr)return;norm();rollup();const dd={...cr.data};dd.tasks=strip(cr.data.tasks||[]);
- if(PL.cOnly){const {error:e3}=await sb.rpc('pl_consult_save',{pid:cr.id,p_tasks:dd.tasks});if(e3)return msg(e3.message);if(q!==false)await openCR(cr.id);return}
+const tkJ=x=>{const o={...x};delete o._d;delete o._ne;delete o.eb;return JSON.stringify(o)};
+function snapTasks(){const m={};(cr.data.tasks||[]).forEach(x=>m[x.id]=tkJ(x));PL.snap=m;PL.snapK=cr.id+':'+(cr.updated_at||'')}
+function stampEdits(){if(!cr||!me)return;const ts=cr.data.tasks||[];if(!PL.snap||PL.snapK!=cr.id+':'+(cr.updated_at||''))snapTasks();
+ const kids=new Set();ts.forEach(x=>{if(x.p)kids.add(x.p)});
+ ts.forEach(x=>{const o=PL.snap[x.id];const hasKid=(M&&M[x.id]&&M[x.id].kids&&M[x.id].kids.length)||kids.has(x.id);if(o===undefined||o!==tkJ(x)){if(o===undefined||!hasKid)x.eb=me.id}});
+ const cur=new Set(ts.map(x=>x.id)),del=(cr.data._del||[]).filter(r=>!cur.has(r.id));
+ let base={};(cr.data._base||[]).forEach(b=>base[b.id]=b);
+ Object.keys(PL.snap).forEach(id=>{if(!cur.has(id)&&!del.some(r=>r.id==id)){let n='';try{n=JSON.parse(PL.snap[id]).n||''}catch(_){}del.push({id,n,by:me.id,at:new Date().toISOString()})}});
+ cr.data._del=del.slice(-60)}
+async function save(q){if(!cr)return;norm();rollup();stampEdits();const dd={...cr.data};dd.tasks=strip(cr.data.tasks||[]);
+ if(PL.cOnly){const {error:e3}=await sb.rpc('pl_consult_save',{pid:cr.id,p_tasks:dd.tasks,p_del:dd._del||[]});if(e3)return msg(e3.message);snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.rvEd){const {error:e2}=await sb.rpc('pl_review_save',{pid:cr.id,p_tasks:dd.tasks});if(e2)return msg(e2.message);if(q!==false)await openCR(cr.id);return}
- const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
+ const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));snapTasks();if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();msg(t('draftSaved'))}
 let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
 async function revisePlan(skip){if(!skip&&!confirm(t('pl_reviseAsk')))return;const {error}=await sb.rpc('pl_revise',{pid:cr.id});if(error)return msg(error.message);ftab='plan';await openCR(cr.id);msg(t('pl_revised'))}
@@ -2147,13 +2158,13 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
 // ---- changes since approved version ----
 function diffTasks(){const base=cr.data._base||[],cur=T(),bm={},cm={},out=[];base.forEach(b=>bm[b.id]=b);cur.forEach(c=>cm[c.id]=c);
  const nm=id=>users[id]?users[id].full_name:'';
- cur.forEach(c=>{const b=bm[c.id];if(!b){out.push({k:'add',n:(M[c.id]?M[c.id].w:'')+' '+(c.n||'')});return}
+ cur.forEach(c=>{const b=bm[c.id];if(!b){out.push({k:'add',by:nm(c.eb),n:(M[c.id]?M[c.id].w:'')+' '+(c.n||'')});return}
   const ch=[];if((b.n||'')!=(c.n||''))ch.push(`${t('pl_name')}: ${b.n||'—'} → ${c.n||'—'}`);if(b.s!=c.s||b.e!=c.e)ch.push(`${b.s||'—'}→${b.e||'—'}  ⇒  ${c.s||'—'}→${c.e||'—'}`);
   if((b.w||b.wn||'')!=(c.w||c.wn||''))ch.push(`${t('pl_who')}: ${nm(b.w)||b.wn||'—'} → ${nm(c.w)||c.wn||'—'}`);if((+b.wt||0)!=(+c.wt||0))ch.push(`${t('pl_wLbl')}: ${b.wt||0} → ${c.wt||0}`);
-  if(ch.length)out.push({k:'chg',n:(M[c.id]?M[c.id].w:'')+' '+(c.n||''),ch})});
- base.forEach(b=>{if(!cm[b.id])out.push({k:'del',n:b.n||'—'})});return out}
+  if(ch.length)out.push({k:'chg',by:nm(c.eb),n:(M[c.id]?M[c.id].w:'')+' '+(c.n||''),ch})});
+ base.forEach(b=>{if(!cm[b.id]){const dl=(cr.data._del||[]).find(r=>r.id==b.id);out.push({k:'del',by:dl?nm(dl.by):'',n:b.n||'—'})}});return out}
 function diffH(){if(!cr||cr.version<2||!Array.isArray(cr.data._base)||!cr.data._base.length||cr.status=='Approved')return '';const df=diffTasks();
- return `<details class="vsum"><summary>🔁 ${t('pl_diffT')} (${ad(df.length)})</summary>${df.length?df.map(r=>`<div class="vd ${r.k}"><b>${t(r.k=='add'?'pl_dAdd':r.k=='del'?'pl_dDel':'pl_dChg')}:</b> ${esc(r.n)}${r.ch?`<div class="mut">${r.ch.map(esc).join('<br>')}</div>`:''}</div>`).join(''):`<div class="mut">${t('pl_dNone')}</div>`}</details>`}
+ return `<details class="vsum"><summary>🔁 ${t('pl_diffT')} (${ad(df.length)})</summary>${df.length?df.map(r=>`<div class="vd ${r.k}"><b>${t(r.k=='add'?'pl_dAdd':r.k=='del'?'pl_dDel':'pl_dChg')}:</b> ${esc(r.n)}${r.by?` <span class="mut">· ${t('pl_dBy')}: <b>${esc(r.by)}</b></span>`:''}${r.ch?`<div class="mut">${r.ch.map(esc).join('<br>')}</div>`:''}</div>`).join(''):`<div class="mut">${t('pl_dNone')}</div>`}</details>`}
 // ---- print / PDF ----
 function printPlan(){norm();rollup();cpm();const d=cr.data,css=[...document.styleSheets].map(s=>{try{return[...s.cssRules].map(r=>r.cssText).join('\n')}catch(_){return ''}}).join('\n');
  const keep={view:PL.view,zoom:PL.zoom,gfs:PL.gfs,lm:PL.lm,sel:PL.sel,ed:PL.ed,rh:PL.rh};PL.view='gantt';PL.zoom='auto';PL.gfs=false;PL.lm=0;PL.ed=null;PL.rh=28;
@@ -2310,7 +2321,8 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  const now=Date.now(),cl=new Date(pc.closes_at).getTime(),open=cl>now,inv=pc.invitees||[];
  const can=open&&(mgr||inv.includes(me.id)||me.role=='admin');
  const by={};cm.forEach(c=>{by[c.user_id]=(by[c.user_id]||0)+1});
- const done=inv.filter(i=>by[i]).length;
+ const eb={};(cr.data.tasks||[]).forEach(x=>{if(x.eb)eb[x.eb]=(eb[x.eb]||0)+1});(cr.data._del||[]).forEach(r=>{if(r.by)eb[r.by]=(eb[r.by]||0)+1});
+ const done=inv.filter(i=>by[i]||eb[i]).length;
  const tk=(cr.data.tasks||[]).map(x=>`<option value="${esc(x.id)}">${esc(x.n||'')}</option>`).join('');
  box.innerHTML=`<div class="sec">${t('cs_h')} <span class="qh" tabindex="0" data-tip="${esc(t('cs_help'))}">?</span></div>
  <div class="sig" style="margin-bottom:8px">${open?'🟢 '+t('cs_state_open'):'🔴 '+t('cs_state_closed')}: <b>${fd(pc.closes_at)}</b>${pc.note?`<div style="margin-top:4px">${esc(pc.note)}</div>`:''}
@@ -2318,7 +2330,7 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  ${open&&mgr?csAddBox(inv):''}
  ${can?`<label>${t('cs_task')}</label><select id="cs_t"><option value="">${t('cs_gen')}</option>${tk}</select><label>${t('cs_comm')}</label><textarea id="cs_b" style="min-height:70px"></textarea><div class="row" style="margin-top:6px"><button class="p" onclick="csComment()">${t('cs_send')}</button></div>`:`<div class="mut">${open?t('cs_ro'):t('cs_cl')}</div>`}
  <div class="sec" style="margin-top:12px">${t('cs_part')} — ${done} ${t('cs_of')} ${inv.length}</div>
- ${inv.map(i=>`<div class="srow"><div>${by[i]?'✅':'⏳'} <b>${nm(i)}</b></div><div class="mut">${by[i]?by[i]+' '+t('cs_cnt'):t('cs_wait')}</div></div>`).join('')||'<div class="mut">—</div>'}
+ ${inv.map(i=>`<div class="srow"><div>${by[i]||eb[i]?'✅':'⏳'} <b>${nm(i)}</b></div><div class="mut">${by[i]||eb[i]?`${ad(eb[i]||0)} ${t('cs_edits')} · ${ad(by[i]||0)} ${t('cs_cnt')}`:t('cs_wait')}</div></div>`).join('')||'<div class="mut">—</div>'}
  <div class="sec" style="margin-top:12px">💬 (${cm.length})</div>
  ${cm.map(c=>`<div class="sig" style="margin-bottom:6px"><b>${esc(c.user_name||'')}</b> · <span class="mut">${fd(c.created_at)}</span>${c.task_name?`<div class="mut">↳ ${esc(c.task_name)}</div>`:''}<div style="margin-top:3px;white-space:pre-wrap">${esc(c.body)}</div></div>`).join('')||`<div class="mut">${t('cs_empty')}</div>`}`}
 function csFilt(){const q=(document.getElementById('cs_q').value||'').trim().toLowerCase();document.querySelectorAll('.cs_r').forEach(r=>{r.style.display=!q||r.dataset.n.includes(q)?'flex':'none'})}
