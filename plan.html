@@ -1076,6 +1076,7 @@ const W=[
 ["l_consultedit", "Edited the plan during group planning", "تعديل الخطة أثناء التخطيط الجماعي"],
 ["pl_dBy", "by", "بواسطة"],
 ["cs_edits", "edits", "تعديل"],
+["a_consult", "Group planning: add your input on the draft", "التخطيط الجماعي: أضف مدخلاتك على المسودة"],
 ["cs_search", "Search users…", "ابحث عن مستخدم…"],
 ["cs_sel", "Selected", "المحدّدون"],
 ["cs_none", "Group planning has not been opened. You can publish the draft to the concerned people for a limited period to collect their notes before approval.", "لم يُفتح التخطيط الجماعي بعد. يمكنك نشر المسودة للمعنيين لمدة محددة لجمع ملاحظاتهم قبل الاعتماد."],
@@ -1263,7 +1264,8 @@ const waitDays=d=>{const a=new Date(d);if(isNaN(a))return 0;const e=new Date(),p
 async function loadAll(){
  const [a,b,c,dp]=await Promise.all([sb.from('plans').select('id,code,doc_no,status,version,created_by,created_at,stage_at,archived,comment,cr_link,charter_id,issued_at,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname').order('id',{ascending:false}),sb.from('plan_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('plan_audit').select('cr_id,action,at').like('action','status|%'),loadDelP()]);
  const all=(a.data||[]).map(r=>Object.assign(r,{data:{pname:r.pn,sector:r.sc,ptype:r.pt,pmname:r.pm}}));
- return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[],dp}}
+ const ci=new Set();try{const q9=await sb.from('plan_consult').select('plan_id,closes_at,invitees');(q9.data||[]).forEach(z=>{if(new Date(z.closes_at)>new Date()&&(z.invitees||[]).includes(me.id))ci.add(z.plan_id)})}catch(_){}
+ return {crs:all.filter(r=>!r.archived),arch:all.filter(r=>r.archived).length,sg:b.data||[],lg:c.data||[],dp,ci}}
 function enrich(){
  const adm=me.role=='admin';DB.by={};
  DB.crs.forEach(r=>DB.by[r.id]={r:r,sg:[],rel:[],act:''});
@@ -1280,6 +1282,7 @@ function enrich(){
   else if(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))x.act='a_approve';
   else if(adm&&st=='Submitted')x.act='a_assignRev';
   else if(adm&&st=='Reviewed')x.act='a_assignApp';
+  else if(st=='Draft'&&DB.ci&&DB.ci.has(r.id)&&r.created_by!=me.id)x.act='a_consult';
   else if(adm&&st=='Office Decision')x.act='a_office';
   x.days=waitDays(r.stage_at||r.created_at);x.late=HOLD.includes(st)?Math.max(0,x.days-SLA):0;
   x.over=x.late>0;
