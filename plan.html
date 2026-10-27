@@ -2804,4 +2804,48 @@ applyStatic();start();
   if(d>0&&ST.includes(sg)&&d!==(SL[sg]!=null?SL[sg]:def(sg))){try{await sb.rpc('set_request_sla',{p_svc:SVC,p_req:cr.id,p_stage:sg,p_days:d});SL[sg]=d}catch(_){}}return r}}
  new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{fetchSla();decorate()},80)}).observe(document.body,{childList:true,subtree:true});
 })();</script>
+<script>/*dual*/
+(function(){
+ if(typeof SVC==='undefined'||typeof sb==='undefined'||!sb)return;
+ const TB={cr:'signatories',charter:'charter_signatories',plan:'plan_signatories',closure:'closure_signatories'}[SVC];
+ const MT={cr:'change_requests',charter:'charters',plan:'plans',closure:'closure_reports'}[SVC];
+ if(!TB||!MT)return;
+ const ar=()=>typeof lang!=='undefined'&&lang=='ar',T=(a,e)=>ar()?a:e;
+ const mineOf=s=>typeof isMine==='function'?isMine(s):s.user_id==me.id;
+ let busy=false,tm=null;
+ function both(){
+  try{if(!cr||!cr.id||cr.archived||cr.status!='PMO Review'||!Array.isArray(sigs))return null;
+   const rv=sigs.filter(s=>s.stage=='reviewed'),ap=sigs.filter(s=>s.stage=='approved');
+   const r=rv.find(s=>mineOf(s)&&s.status=='pending');if(!r)return null;
+   const a=ap.find(s=>s.user_id==r.user_id&&s.status=='pending');if(!a)return null;
+   if(rv.some(s=>s.status=='pending'&&s.id!=r.id))return null;
+   return {r,a}}catch(_){return null}}
+ function decorate(){if(busy)return;busy=true;try{
+  const old=document.getElementById('dualb'),b=both();
+  if(!b){if(old)old.remove();return}
+  if(old)return;
+  const base=[...document.querySelectorAll('button')].find(x=>/^openSign\(/.test(x.getAttribute('onclick')||''));
+  if(!base)return;
+  const n=document.createElement('button');n.id='dualb';n.type='button';n.className=base.className||'g';n.textContent='✍️ '+T('توقيع كمراجع ومعتمِد','Sign as reviewer and approver');
+  n.title=T('يظهر هذا الخيار لأنك مُحدَّد مراجعًا ومعتمِدًا لهذا الطلب. يُسجَّل توقيعك في المرحلتين.','Shown because you are assigned as both reviewer and approver. Your signature is recorded for both stages.');
+  n.onclick=()=>{const x=both();if(!x)return;openSign(x.r.id,'reviewed');pend.both=x.a.id;const t=T('توقيع كمراجع ومعتمِد','Sign as reviewer and approver');document.getElementById('mt').textContent=t;document.getElementById('cfb').textContent=t};
+  base.insertAdjacentElement('afterend',n);
+ }finally{busy=false}}
+ if(typeof confirmSign==='function'){const _c=confirmSign;window.confirmSign=async function(){
+  const bo=(typeof pend!=='undefined'&&pend&&pend.both)?{a:pend.both,r:pend.id}:null;
+  if(bo&&((mode=='d'&&!drawn)||(mode!='d'&&!upImg)))return _c.apply(this,arguments);
+  const res=await _c.apply(this,arguments);if(!bo)return res;
+  try{
+   const rr=(await sb.from(TB).select('status,signature_img').eq('id',bo.r).single()).data;if(!rr||rr.status!='signed')return res;
+   const st=(await sb.from(MT).select('status').eq('id',cr.id).single()).data;if(!st||st.status!='Awaiting Approval')return res;
+   const ar0=(await sb.from(TB).select('user_id').eq('id',bo.a).single()).data;
+   await sb.from(TB).update({status:'signed',signature_img:rr.signature_img,signed_at:new Date().toISOString(),...(ar0&&ar0.user_id!=me.id?{signed_by:me.id}:{})}).eq('id',bo.a);
+   try{await lg(cr.id,'signed|approved|dual')}catch(_){}
+   const all=(await sb.from(TB).select('stage,status').eq('cr_id',cr.id)).data||[];const ap=all.filter(x=>x.stage=='approved');
+   if(ap.length&&ap.every(x=>x.status=='signed'))await setStatus('Approved');
+   await openCR(cr.id);
+  }catch(e){if(typeof msg==='function')msg(T('تم توقيع المراجعة، وتعذّر إكمال توقيع الاعتماد. وقّعه من زر الاعتماد: ','Review signed, but the approval signature failed. Sign it with the approve button: ')+(e.message||e))}
+  return res}}
+ new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(decorate,80)}).observe(document.body,{childList:true,subtree:true});
+})();</script>
 </body></html>
