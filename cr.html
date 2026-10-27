@@ -1288,4 +1288,34 @@ applyStatic();start();
   b.onclick=function(e){e.preventDefault();e.stopPropagation();show(k,lb.textContent.replace('*','').trim())};lb.after(b)})}
  var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,120)}).observe(document.body,{childList:true,subtree:true});scan();
 })();</script>
+<script>/*slafix*/
+(function(){
+ if(typeof SVC==='undefined'||typeof sb==='undefined'||!sb)return;
+ const ST=['reviewed','approved'],IDX={reviewed:1,approved:2};
+ let SL={},ld=null,busy=false,tm=null;
+ const ar=()=>typeof lang!=='undefined'&&lang=='ar';
+ const T=(a,e)=>ar()?a:e;
+ const isAdm=()=>typeof me!=='undefined'&&me&&me.role=='admin';
+ const def=st=>{const v=+((typeof SET!=='undefined'&&SET)?SET['sla_'+SVC+'_'+(st=='reviewed'?'rv':'ap')]:0);return v>0?v:3};
+ async function fetchSla(){if(typeof cr==='undefined'||!cr||!cr.id)return;const k=SVC+':'+cr.id;if(ld===k)return;ld=k;SL={};
+  try{const r=await sb.from('request_sla').select('stage,days').eq('svc',SVC).eq('req_id',cr.id);(r.data||[]).forEach(x=>SL[x.stage]=x.days)}catch(_){}decorate()}
+ function decorate(){if(busy)return;busy=true;try{
+  ST.forEach(st=>{const blk=document.querySelector('.sig.st'+IDX[st]);if(!blk)return;
+   const cur=SL[st]!=null?SL[st]:def(st),custom=SL[st]!=null;
+   let note=blk.querySelector('.slan');
+   const txt=T('مدة الإنجاز: ','Duration: ')+cur+T(' أيام عمل',' working days')+(custom?T(' (مخصصة لهذا الطلب)',' (custom for this request)'):T(' (الافتراضية)',' (default)'));
+   if(!note){note=document.createElement('div');note.className='slan mut';note.style.cssText='margin:4px 0;font-size:12.5px';const h=blk.querySelector('b');if(h&&h.parentNode===blk)h.insertAdjacentElement('afterend',note);else blk.prepend(note)}
+   if(note.textContent!==txt)note.textContent=txt;
+   const sel=document.getElementById('as_'+st);
+   if(sel&&isAdm()&&!document.getElementById('sl_'+st)){const w=document.createElement('span');w.style.cssText='display:inline-flex;align-items:center;gap:4px;font-size:12.5px';
+    w.innerHTML='<span>'+T('المدة (أيام عمل)','Days')+'</span><input id="sl_'+st+'" type="number" min="1" max="60" value="'+cur+'" style="width:64px;direction:ltr"><button type="button" onclick="slaSave(\''+st+'\')">'+T('حفظ المدة','Save duration')+'</button>';
+   sel.insertAdjacentElement('afterend',w)}
+  })}finally{busy=false}}
+ window.slaSave=async function(st){const el=document.getElementById('sl_'+st);const d=+(el&&el.value);if(!(d>0))return;
+  try{const {error}=await sb.rpc('set_request_sla',{p_svc:SVC,p_req:cr.id,p_stage:st,p_days:d});if(error)throw error;SL[st]=d;decorate();if(typeof msg==='function')msg(T('تم حفظ المدة.','Duration saved.'))}
+  catch(e){alert(T('تعذّر حفظ المدة (شغّل ملف التحديث الأخير): ','Could not save (run the latest SQL update): ')+(e.message||e))}};
+ if(typeof addSig==='function'){const _a=addSig;window.addSig=async function(sg){const el=document.getElementById('sl_'+sg);const d=el?+el.value:0;const r=await _a.apply(this,arguments);
+  if(d>0&&ST.includes(sg)&&d!==(SL[sg]!=null?SL[sg]:def(sg))){try{await sb.rpc('set_request_sla',{p_svc:SVC,p_req:cr.id,p_stage:sg,p_days:d});SL[sg]=d}catch(_){}}return r}}
+ new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(()=>{fetchSla();decorate()},80)}).observe(document.body,{childList:true,subtree:true});
+})();</script>
 </body></html>
