@@ -41,6 +41,7 @@ const D={tp_t:['قالب التقرير الشهري (PowerPoint)','Monthly repo
  home:['الخدمات','Services'],title:['إعدادات الإدارة','Admin settings'],
  needLogin:['سجّل الدخول أولًا من أي خدمة ثم ارجع لهذه الصفحة.','Sign in from any service first, then return here.'],
  adminOnly:['هذه الصفحة للأدمن فقط.','This page is for admins only.'],
+ s_jn:['رحلة المتعامل وتقييم الخدمة','Customer journey and service rating'],s_jn_h:['أوقف أو فعّل تبويب «رحلة المتعامل» في الصفحة الرئيسية، أو تقييم الخدمة فقط.','Show or hide the “Customer journey” tab on the home page, or the service rating only.'],s_jn1:['تبويب رحلة المتعامل','Customer journey tab'],s_jn2:['تقييم الخدمة (رضا المتعاملين)','Service rating (customer satisfaction)'],
  s_svc:['الخدمات','Services'],s_svc_h:['أوقف أو فعّل الخدمات في الصفحة الرئيسية.','Show or hide services on the home page.'],
  sv_tasks:['مهامي','My tasks'],sv_charter:['ميثاق المشروع','Project charter'],sv_plan:['خطط المشاريع','Project plans'],sv_cr:['طلبات التغيير','Change requests'],sv_closure:['التقرير الختامي','Closure report'],
  s_att:['المرفقات','Attachments'],att_max:['الحد الأقصى لحجم الملف (ميغابايت)','Max file size (MB)'],att_h:['يُطبَّق على الميثاق وطلبات التغيير والتقرير الختامي.','Applies to charters, change requests and closure reports.'],
@@ -87,6 +88,7 @@ function draw(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  let goals=DEFGOALS;try{const g=JSON.parse(SET.opt_goals||'null');if(Array.isArray(g)&&g.length)goals=g}catch(_){}
  $('app').innerHTML=`
+ <div class="card"><h2>${t('s_jn')}<small>${t('s_jn_h')}</small></h2><label class="tg"><input type="checkbox" id="jn_on" ${on('jny_on','1')?'checked':''}><span>${t('s_jn1')}</span></label><label class="tg"><input type="checkbox" id="jn_rt" ${on('jny_rate','1')?'checked':''}><span>${t('s_jn2')}</span></label><div class="row"><button class="p" onclick="saveJn()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_svc')}<small>${t('s_svc_h')}</small></h2>${SV.map(s=>`<label class="tg"><input type="checkbox" id="sv_${s}" ${on('svc_'+s,'1')?'checked':''}><span>${t('sv_'+s)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveSvc()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_att')}<small>${t('att_h')}</small></h2><label>${t('att_max')}</label><input id="att" type="number" inputmode="decimal" min="1" max="50" value="${esc(SET.att_max_mb||10)}"><div class="row"><button class="p" onclick="saveAtt()">${t('save')}</button></div></div>
  <div class="card"><h2>${t('s_ev')}<small>${t('s_ev_h')}</small></h2>${EV.map(e=>`<label class="tg"><input type="checkbox" id="ev_${e}" ${on('mail_ev_'+e,'1')?'checked':''}><span>${t('ev_'+e)}</span></label>`).join('')}<div class="row"><button class="p" onclick="saveEv()">${t('save')}</button></div></div>
@@ -109,6 +111,7 @@ async function tplUp(i){const f=i.files&&i.files[0];i.value='';if(!f)return;if(!
  try{const r=await sb.storage.from('templates').upload('report-template.pptx',f,{upsert:true,contentType:'application/vnd.openxmlformats-officedocument.presentationml.presentation'});if(r.error)throw r.error;toast(t('tp_ok'));tplInfo()}catch(e){toast(t('err')+(e.message||e))}}
 async function tplDel(){if(!confirm(t('tp_dq')))return;try{const r=await sb.storage.from('templates').remove(['report-template.pptx']);if(r.error)throw r.error;toast(t('saved'));tplInfo()}catch(e){toast(t('err')+(e.message||e))}}
 async function run(fn){try{await fn();toast(t('saved'))}catch(e){toast(t('err')+(e.message||e))}}
+const saveJn=()=>run(async()=>{const a=$('jn_on').checked?'1':'0',b=$('jn_rt').checked?'1':'0';await setS('jny_on',a);SET.jny_on=a;await setS('jny_rate',b);SET.jny_rate=b});
 const saveSvc=()=>run(async()=>{for(const s of SV){const v=$('sv_'+s).checked?'1':'0';await setS('svc_'+s,v);SET['svc_'+s]=v}});
 D.s_wt=['الأوزان','Weights'];D.s_wt_h=['تُستخدم في حساب إنجاز المحفظة والتقارير التنفيذية.','Used to compute portfolio progress and executive reports.'];D.w_ratio=['وزن المشروع الاستراتيجي مقارنة بالتشغيلي (التشغيلي = 1)','Strategic project weight vs operational (operational = 1)'];D.w_sec=['وزن كل قطاع','Weight of each sector'];D.w_note=['وزن مشروع بعينه يُضبط من صفحة «المشاريع». الأنشطة داخل الخطة تُوزَّع بالتساوي أو بأوزان مخصّصة من الخطة نفسها.','A specific project weight is set on the Projects page. Activities inside a plan are split equally or custom-weighted in the plan itself.'];
 const wsec=()=>{let L=null;try{L=JSON.parse(SET.opt_lists||'{}')}catch(_){}const a=L&&Array.isArray(L.sectors)&&L.sectors.length?L.sectors:[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]);return a.map(x=>lang=='ar'?x[0]:x[1])};
