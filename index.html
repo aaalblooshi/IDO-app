@@ -264,14 +264,15 @@ let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
 const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
-  const [a,b,c,pc]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]}),tbl=='plans'?sb.rpc('my_consults'):Promise.resolve({data:[]})]);
+  const [a,b,c,pc,lkr]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]}),tbl=='plans'?sb.rpc('my_consults'):Promise.resolve({data:[]}),sb.rpc('my_links')]);
   const ci=new Set((pc&&!pc.error&&pc.data||[]).map(z=>z.plan_id));
+  const lk=new Set((lkr&&!lkr.error&&lkr.data||[]).filter(z=>z.svc==svc).map(z=>z.id));
   if(a.error)throw a.error;if(b.error)throw b.error;const dp=new Set((c&&c.data||[]).map(x=>x.cr_id));
   const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
   let created=0,action=0,done=0;const adm=me.role=='admin';
   (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
    if(mine)created++;
-   if((st=='Approved'||st=='Rejected')&&(mine||my.length))done++;
+   if((st=='Approved'||st=='Rejected')&&(mine||my.length||lk.has(r.id)))done++;
    const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'))||(tbl=='plans'&&st=='Draft'&&!mine&&ci.has(r.id));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
@@ -419,7 +420,7 @@ const SV={
   ft:[['تقرير موقّع إلكترونيًا','Electronically signed report'],['الأرشفة التلقائية بعد الاعتماد','Automatic archiving after approval'],['سجل كامل لإجراءات الطلب','Full audit trail']],
   end:[['حفظ التقرير المعتمد في الأرشيف وإغلاق المشروع.','The approved report is stored in the archive and the project is closed.'],['يصلك إشعار باعتماد التقرير.','You are notified of the approval.']],go:['إعداد تقرير ختامي','New closure report']}};
 const ORDER=['charter','plan','tasks','cr','closure'];
-const ROLES=[['pm',['مدير المشروع','Project manager']],['rv',['مراجع','Reviewer']],['ap',['معتمِد','Approver']],['tk',['مكلَّف بمهمة','Task owner']],['of',['مكتب التطوير المؤسسي','Institutional Development Office']]];
+const ROLES=[['pm',['مدير المشروع','Project manager']],['rv',['مراجع','Reviewer']],['ap',['معتمِد','Approver']],['tk',['مكلَّف بمهمة','Task owner']],['fl',['متابع أو مشارك','Follower or participant']],['of',['مكتب التطوير المؤسسي','Institutional Development Office']]];
 /* حالة كل خطوة (محايدة) */
 const STATE=[['قيد الإعداد','Being prepared'],['تم التقديم وبانتظار تحديد المراجع','Submitted, awaiting reviewer assignment'],['قيد المراجعة','Under review'],['بانتظار الاعتماد','Awaiting approval'],null];
 const STATE5={charter:['ميثاق معتمد','Approved charter'],plan:['خطة معتمدة قيد التنفيذ','Approved plan in execution'],cr:['صدر القرار','Decision issued'],closure:['تقرير معتمد ومؤرشف','Approved and archived']};
@@ -427,12 +428,13 @@ const TSTATE=[['مهام قادمة','Upcoming tasks'],['مهام حان موع�
 /* دور المستخدم في كل خطوة */
 function roleText(k,i,r){const c=SV[k],n=P(c.n);const none=['لا إجراء مطلوبًا منك في هذه الخطوة.','Nothing is required from you at this step.'];
  if(k=='tasks'){const T={pm:[['اطلع على مهامك القادمة في الخطط المعتمدة.','See your upcoming tasks in approved plans.'],['ابدأ التنفيذ وحدّث نسبة الإنجاز عند الانطلاق.','Start work and update progress when you begin.'],['حدّث نسبة الإنجاز دوريًا مع إضافة ملاحظة عند الحاجة.','Update progress regularly with a note if needed.'],['أنجز المهام المتأخرة أو حدّث وضعها لتوضيح سبب التأخر.','Complete late tasks or update their status to explain the delay.'],['تُحتسب المهام المنجزة في نسبة إنجاز المشروع.','Completed tasks count toward project progress.']]};
-  const x=T.pm[i];return r=='of'?[['متابعة المتأخرات والإنجاز على مستوى المحفظة.','Follow delays and progress across the portfolio.'],['متابعة المهام التي لم تبدأ في موعدها.','Follow tasks not started on time.'],['متابعة نسب الإنجاز في المحفظة.','Follow progress in the portfolio.'],['متابعة المهام المتأخرة وإشعار مديري المشاريع.','Follow late tasks and notify project managers.'],['مراجعة الإنجاز في لوحة الإدارة التنفيذية.','Review progress in the executive dashboard.']][i]:(r=='pm'||r=='tk'?x:none)}
+  const x=T.pm[i];return r=='fl'?none:r=='of'?[['متابعة المتأخرات والإنجاز على مستوى المحفظة.','Follow delays and progress across the portfolio.'],['متابعة المهام التي لم تبدأ في موعدها.','Follow tasks not started on time.'],['متابعة نسب الإنجاز في المحفظة.','Follow progress in the portfolio.'],['متابعة المهام المتأخرة وإشعار مديري المشاريع.','Follow late tasks and notify project managers.'],['مراجعة الإنجاز في لوحة الإدارة التنفيذية.','Review progress in the executive dashboard.']][i]:(r=='pm'||r=='tk'?x:none)}
  const R={
   pm:[['تعبئة بيانات '+'{n}'+' واستكمال المرفقات، ثم توقيعه وتقديمه.','Fill in {n}, add attachments, then sign and submit it.'],['بعد توقيعك يُحال الطلب إلى مكتب التطوير المؤسسي لتحديد المراجع.','After you sign, the request goes to the Office to assign a reviewer.'],['متابعة حالة الطلب، والرد على الملاحظات إن أُعيد إليك.','Follow the status and respond to comments if returned.'],['متابعة قرار الاعتماد.','Follow the approval decision.'],['__end__']],
   rv:[none,none,['مراجعة {n} وإبداء الملاحظات، ثم إحالته للاعتماد أو إعادته لمقدّمه خلال المدة المحددة.','Review {n} and comment, then forward it for approval or return it within the set time.'],none,none],
   ap:[none,none,none,['اعتماد {n} أو رفضه مع بيان السبب خلال المدة المحددة.','Approve or reject {n} with a reason within the set time.'],none],
   tk:[none,none,none,none,none],
+  fl:[['اطلاع على {n} ومتابعة تقدمه، دون إجراء مطلوب منك.','View {n} and follow its progress; no action is required from you.'],['اطلاع على {n}، وتصلك إشعارات المتابعة.','View {n}; you receive follow-up notifications.'],['اطلاع على {n}، وتصلك إشعارات المتابعة.','View {n}; you receive follow-up notifications.'],['اطلاع على {n}، وتصلك إشعارات المتابعة.','View {n}; you receive follow-up notifications.'],['اطلاع على {n} ونتيجته النهائية.','View {n} and its final outcome.']],
   of:[['يمكن للمكتب تعديل المسودة أو إسنادها إلى معدّ آخر.','The Office can edit the draft or assign it to another preparer.'],['تحديد المراجع، مع إمكانية تحديد مدة مخصصة لهذا الطلب.','Assign the reviewer, optionally setting a custom duration for this request.'],['متابعة المراجعة والتأخير، وتحديد المعتمِد بعد اكتمالها.','Follow the review and delays, and assign the approver once it is done.'],['متابعة الاعتماد واتخاذ قرار المكتب عند الحاجة.','Follow the approval and take the Office decision when needed.'],['__end__']]};
  let t=R[r][i];if(t[0]=='__end__')t=c.end[0];return [t[0].replace('{n}',c.n[0]),t[1].replace('{n}',c.n[1])]}
 const OUT=[['حفظ تلقائي للمسودة دون فقدان للبيانات.','The draft is saved automatically.'],['يصلك رقم مرجعي للطلب، ويصل إشعار إلى مكتب التطوير المؤسسي.','You receive a reference number and the Office is notified.'],['إشعار فوري بنتيجة المراجعة.','Instant notice of the review result.'],['إشعار فوري بالاعتماد أو بالإعادة مع بيان السبب.','Instant notice of approval, or of return with the reason.']];
@@ -469,6 +471,7 @@ async function load(){
     return {k,p:s.p,id:r.id,code:r.code,name:r.pn||'',st,stage:stOf(k,st),act,roles,own:mine||my.length>0,at:r.stage_at||r.created_at}})}));
   E.items=res.flat();
   try{const c=await sb.rpc('my_consults');if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.act=true;it.cons=true;it.roles.add('pm')}})}catch(_){}
+  try{const l=await sb.rpc('my_links');if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add('fl');it.lk=z.kind}})}catch(_){}
   /* المهام: ذكيًا من الخطط المعتمدة */
   try{const r=await sb.rpc('my_plans');const td=today();(r.data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));let open=0;
    T.forEach(x=>{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
