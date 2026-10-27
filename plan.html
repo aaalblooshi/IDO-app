@@ -323,6 +323,7 @@ const W=[
 ["x_wait","Preparing…","جارٍ التجهيز…"],
 ["x_fail","Export failed:","تعذّر التصدير:"],
 ["x_formTitle","Change Request Form","نموذج طلب تغيير"],
+["f_pg","Page no.","رقم الصفحة"],["f_dn","Document name","اسم الوثيقة"],["f_dc","Document code","رمز الوثيقة"],["f_ver","Version","رقم الإصدار"],["f_cls","Classification","تصنيف الوثيقة"],["f_clsv","Internal","داخلي"],
 ["x_code","Request no.","رقم الطلب"],
 ["x_status","Status","الحالة"],
 ["x_created","Created on","تاريخ الإنشاء"],
@@ -795,12 +796,24 @@ const W=[
 ["fz_a5", "Financial feasibility (15%)", "الجدوى المالية (15%)"],
 ["fz_a6", "Risks (10%)", "المخاطر (10%)"],
 ["fz_a7", "Sustainability (10%)", "الاستدامة (10%)"],
+["fz_ask", "Return and request a feasibility study", "إرجاع وطلب دراسة جدوى"],
+["fz_askPh", "What should the study cover? (optional)", "ما المطلوب في دراسة الجدوى؟ (اختياري)"],
+["fz_askDef", "Please complete the feasibility study and resubmit.", "يرجى استكمال دراسة الجدوى وإعادة الإرسال."],
+["f_pg", "Page no.", "رقم الصفحة"],
+["f_dn", "Document name", "اسم الوثيقة"],
+["f_dc", "Document code", "رمز الوثيقة"],
+["f_ver", "Version", "رقم الإصدار"],
+["f_cls", "Classification", "تصنيف الوثيقة"],
+["f_dnv", "Unified project plan form", "نموذج خطة المشروع الموحد للمركز"],
+["f_clsv", "Internal", "داخلي"],
 ["planOf", "Project plan", "خطة مشروع"],
 ["pl_tab", "Plan", "الخطة"],
 ["pl_range", "Project period (from the charter, view only)", "فترة المشروع حسب الميثاق (للعرض فقط)"],
 ["pl_crlink", "Linked change request", "مرتبطة بطلب التغيير"],
-["pl_revise", "New version (needs re-approval)", "إصدار جديد (يحتاج اعتمادًا)"],
-["pl_reviseAsk", "Start a new version of this approved plan? It will go through review and approval again.", "بدء إصدار جديد من هذه الخطة المعتمدة؟ سيمر بالمراجعة والاعتماد من جديد."],
+["pl_revise", "Edit plan", "تعديل الخطة"],
+["pl_reviseAsk", "Open this plan for editing? It becomes a new draft version; when you finish, send it to the Institutional Development Office to choose a reviewer or approve it directly. Tasks keep running meanwhile.", "فتح الخطة للتعديل؟ ستتحول إلى مسودة بإصدار جديد، وبعد الانتهاء من التعديل ترسلها إلى مكتب التطوير المؤسسي لتحديد المراجع أو تجاوز المراجعة والاعتماد. تبقى المهام قيد العمل خلال ذلك."],
+["pl_noEdit", "You do not have permission to edit this plan.", "ليست لديك صلاحية تعديل هذه الخطة."],
+["pl_editBusy", "The plan is under review or approval and cannot be edited now.", "الخطة قيد المراجعة أو الاعتماد ولا يمكن تعديلها الآن."],
 ["pl_revised", "New version started", "بدأ إصدار جديد"],
 ["pl_tasks", "activities", "نشاط"],
 ["pl_empty", "No activities yet.", "لا توجد أنشطة بعد."],
@@ -1185,8 +1198,8 @@ async function start(){
  if(hs&&typeof startFor=='function'){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();return startFor(decodeURIComponent(hs[1]))}
  const hm=/^#f=([a-z]+)/.exec(location.hash||'');
  if(hm){H.f=hm[1];try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();const le=$('lst');if(le)le.scrollIntoView({block:'start'});return}
- const om=/^#o=(\d+)/.exec(location.hash||'');
- if(om){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();return openCR(+om[1])}
+ const om=/^#o=(\d+)(&e=1)?/.exec(location.hash||'');
+ if(om){try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();await openCR(+om[1]);if(om[2])await editNow();return}
  homeView();
 }
 function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
@@ -1429,12 +1442,19 @@ function parsePred(txt,self){const out=[],errs=[];String(txt||'').split(/[,;،\n
 function grow(x){}
 function fitRO(){}
 
+// ---- who may edit: IDO office, project manager, creator, or users granted "edit" in project settings ----
+const pmOf=r=>{try{return !!(r&&r.data&&r.data.pmname)&&!!me&&r.data.pmname==me.full_name}catch(e){return false}};
+async function editNow(){if(!cr)return;const st=cr.status;
+ if(st=='Approved'){if(PL.canRvs){if(!confirm(t('pl_reviseAsk')))return;return revisePlan(true)}return msg(t('pl_noEdit'))}
+ if(st=='Draft'||st=='Returned to PM'){if(!PL.canEdit)return msg(t('pl_noEdit'));ftab='plan';showTab('plan');return}
+ msg(t('pl_editBusy'))}
+
 async function openCR(id){
  const [a,b,c,e]=await Promise.all([sb.from('plans').select('*').eq('id',id).single(),sb.from('plan_signatories').select('*').eq('cr_id',id).order('id'),sb.from('plan_audit').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('plan_attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr))&&(st=='Draft'||st=='Returned to PM');
+ const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr)||pmOf(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
  const stage={'Draft':'created','Returned to PM':'created','PMO Review':'reviewed','Awaiting Approval':'approved'}[st]||(st=='Approved'&&!arch&&sigs.some(s=>s.stage=='approved'&&s.status=='pending')?'approved':undefined);
@@ -1463,6 +1483,7 @@ async function openCR(id){
  if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
  if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
+ if(canRet&&typeof retFz=='function'&&d.fz_req!='1'&&d.fz_on!='1')acts+=`<button class="r" onclick="retFz()">${t('fz_ask')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
  acts+=relBtn();
@@ -1481,7 +1502,7 @@ async function openCR(id){
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
  if(PL.view=='gantt'&&!d.tasks.length)PL.view='list';
- const revise=!arch&&st=='Approved'&&(adm||cr.created_by==me.id)?`<button onclick="revisePlan()">✏️ ${t('pl_revise')}</button>`:'';
+ const canRvs=!arch&&st=='Approved'&&(adm||cr.created_by==me.id||pmOf(cr)||gEd(cr));PL.canRvs=canRvs;const revise=canRvs?`<button onclick="revisePlan()">✏️ ${t('pl_revise')}</button>`:'';
  const crM=cr.cr_link?1:0;
  const crl=adm&&!arch?`<div class="crl"><span class="mut">${t('pl_crlink')}:</span><select id="crl_m" onchange="document.getElementById('crl_w').style.display=this.value=='1'?'':'none'"><option value="0" ${crM?'':'selected'}>${t('pl_crNone')}</option><option value="1" ${crM?'selected':''}>${t('pl_crYes')}</option></select><span id="crl_w" style="flex:1;min-width:180px;${crM?'':'display:none'}"><select class="srch" id="crl_c"><option value="">${t('pl_crPick')}</option>${(PL.crs||[]).map(c=>`<option value="${esc(c.code)}" ${cr.cr_link==c.code?'selected':''}>${esc(c.code)} — ${esc(c.pn||'')}</option>`).join('')}${cr.cr_link&&!(PL.crs||[]).some(c=>c.code==cr.cr_link)?`<option value="${esc(cr.cr_link)}" selected>${esc(cr.cr_link)}</option>`:''}</select></span><button class="sm p" onclick="setCrLink()">${t('save')}</button></div>`:`<div class="sig" style="margin-top:8px">🔗 ${t('pl_crlink')}: ${cr.cr_link?`<b dir="ltr">${esc(cr.cr_link)}</b>`:t('pl_crNone')}</div>`;
  app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${t('planOf')}${d.pname?' — '+esc(d.pname):''}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)} · ${t('version')} ${cr.version}</span></div>${pillS(st)}</div>
@@ -1508,7 +1529,7 @@ async function save(q){if(!cr)return;norm();rollup();const dd={...cr.data};dd.ta
  const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();msg(t('draftSaved'))}
 let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
-async function revisePlan(){if(!confirm(t('pl_reviseAsk')))return;const {error}=await sb.rpc('pl_revise',{pid:cr.id});if(error)return msg(error.message);ftab='plan';await openCR(cr.id);msg(t('pl_revised'))}
+async function revisePlan(skip){if(!skip&&!confirm(t('pl_reviseAsk')))return;const {error}=await sb.rpc('pl_revise',{pid:cr.id});if(error)return msg(error.message);ftab='plan';await openCR(cr.id);msg(t('pl_revised'))}
 async function setCrLink(){const m=($('crl_m')||{}).value=='1',v=m?(($('crl_c')||{}).value||'').trim():'';if(m&&!v)return msg(t('pl_crPickErr'));
  const {error}=await sb.rpc('pl_set_crlink',{pid:cr.id,lnk:v});if(error)return msg(error.message);cr.cr_link=v||null;msg(t('saved'));await openCR(cr.id)}
 document.addEventListener('input',e=>{const x=e.target;if(!cr||!x.dataset)return;onPlanInput(x)});
@@ -2381,7 +2402,8 @@ async function admRow(stage){let row=sigs.find(s=>s.user_id==me.id&&s.stage==sta
  if(!row){const {data,error}=await sb.from('plan_signatories').insert({cr_id:cr.id,stage:stage,user_id:me.id}).select().single();if(error){msg(error.message);return null}row=data;sigs.push(row)}return row}
 async function admSign(stage){const row=await admRow(stage);if(!row)return;openSign(row.id,stage,false);pend.adm=true}
 async function proceedSubmit(){
- const mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
+ let mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
+ if(!mine&&me.role!='admin'&&cr.created_by!=me.id&&(gEd(cr)||pmOf(cr))){const r0=await sb.rpc('pl_take_creator',{pid:cr.id});if(r0.error)return msg(r0.error.message);await openCR(cr.id);mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created')}
  if(mine&&mine.status!='signed'){openSign(mine.id,'created',true);return}
  if(!mine&&me.role=='admin'&&cr.created_by!=me.id){const row=await admRow('created');if(!row)return;openSign(row.id,'created',true);pend.adm=true;return}
  if(sigs.filter(s=>s.stage=='created').some(s=>s.status!='signed'))return msg(t('creatorsSign'));
