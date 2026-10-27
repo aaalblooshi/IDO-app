@@ -293,6 +293,11 @@ details.ck{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:
 .wz button{min-width:34px}
 
 .lvnote{display:flex;justify-content:space-between;align-items:center;gap:8px;background:#f3ecdc;border-radius:12px;padding:8px 12px;margin-bottom:8px;font-size:14px}
+
+.qh{position:relative;display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#b8924a;color:#fff;font-size:12px;font-weight:700;cursor:help;margin-inline-start:4px;vertical-align:middle}
+.qh::after{content:attr(data-tip);position:absolute;top:130%;inset-inline-start:50%;transform:translateX(50%);width:250px;max-width:70vw;background:#1c2b3a;color:#fff;font-size:12.5px;font-weight:500;line-height:1.7;padding:9px 12px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.25);z-index:60;display:none;white-space:normal;text-align:start;direction:rtl}
+html[dir=ltr] .qh::after{direction:ltr;transform:translateX(-50%)}
+.qh:hover::after,.qh.on::after,.qh:focus::after{display:block}
 </style></head><body>
 <header id="hd"><div class="hin"><img class="logo" alt="Emirates Center for Strategic Studies and Research | مركز الإمارات للدراسات والبحوث الاستراتيجية" src="data:image/png;base64,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"><div class="hgrp"><a class="hbtn" id="hacc" href="account.html" hidden></a><button class="hbtn" id="lb" onclick="toggleLang()">العربية</button><button class="hbtn" id="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})" hidden></button></div></div><div class="ttl" id="ttl"></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
 <div id="app"></div>
@@ -1053,14 +1058,17 @@ const W=[
 ["pl_critLeg", "Critical path (red)", "المسار الحرج (باللون الأحمر)"],
 ["pl_wbsT", "Work breakdown structure", "هيكل تجزئة العمل"],
 ["pl_wbsPrint", "Print / PDF", "طباعة / PDF"],
-["pl_cs_tab", "Consultation", "المشاورة"],
-["cs_h", "Draft consultation", "مشاورة مسودة الخطة"],
-["cs_none", "The consultation has not been opened. You can publish the draft to the concerned people for a limited period to collect their notes before approval.", "لم تُفتح المشاورة بعد. يمكنك نشر المسودة للمعنيين لمدة محددة لجمع ملاحظاتهم قبل الاعتماد."],
+["pl_cs_tab", "Group planning", "التخطيط الجماعي"],
+["cs_h", "Group planning", "التخطيط الجماعي"],
+["cs_help", "Prepare a draft plan and send it to a work team to add their notes and input before it is sent for review and approval.", "إعداد مسودة خطة وإرسالها لفريق عمل لوضع ملاحظاتهم ومدخلاتهم على الخطة قبل إرسالها للمراجعة والاعتماد"],
+["cs_search", "Search users…", "ابحث عن مستخدم…"],
+["cs_sel", "Selected", "المحدّدون"],
+["cs_none", "Group planning has not been opened. You can publish the draft to the concerned people for a limited period to collect their notes before approval.", "لم يُفتح التخطيط الجماعي بعد. يمكنك نشر المسودة للمعنيين لمدة محددة لجمع ملاحظاتهم قبل الاعتماد."],
 ["cs_days", "Duration (days)", "المدة (أيام)"],
-["cs_inv", "Invited (assignees and approvers)", "المدعوّون (المكلّفون والمعتمدون)"],
+["cs_inv", "Invite team members", "اختر أعضاء فريق العمل"],
 ["cs_note", "Message to participants (optional)", "رسالة للمشاركين (اختياري)"],
 ["cs_open", "Publish for comments", "نشر للملاحظات"],
-["cs_close", "Close the consultation now", "إغلاق المشاورة الآن"],
+["cs_close", "Close group planning now", "إغلاق التخطيط الجماعي الآن"],
 ["cs_state_open", "Open until", "مفتوحة حتى"],
 ["cs_state_closed", "Closed on", "أُغلقت في"],
 ["cs_comm", "Add a note", "إضافة ملاحظة"],
@@ -1074,12 +1082,12 @@ const W=[
 ["cs_of", "of", "من"],
 ["cs_cnt", "notes", "ملاحظة"],
 ["cs_ro", "You are not invited to comment.", "لست ضمن المدعوّين للتعليق."],
-["cs_cl", "The consultation is closed.", "المشاورة مغلقة."],
+["cs_cl", "Group planning is closed.", "التخطيط الجماعي مغلق."],
 ["cs_ok", "Done.", "تم."],
 ["cs_none_inv", "Choose at least one invitee.", "اختر مدعوًّا واحدًا على الأقل."],
 ["l_chgprop", "Date changes proposed", "اقتراح تعديل مواعيد"],
-["l_consultopen", "Consultation opened", "فتح المشاورة"],
-["l_consultclose", "Consultation closed", "إغلاق المشاورة"],
+["l_consultopen", "Group planning opened", "فتح التخطيط الجماعي"],
+["l_consultclose", "Group planning closed", "إغلاق التخطيط الجماعي"],
 ["l_comment", "Note on the draft", "ملاحظة على المسودة"],
 ["pl_addSub", "Add a sub-task under this task", "إضافة مهمة فرعية تحت هذه المهمة"],
 ["pl_zin", "Zoom in", "تكبير"],
@@ -1516,7 +1524,7 @@ async function openCR(id){
  ${d.sdate?`<div class="mut" style="margin-top:6px">📅 ${t('pl_range')}: <b dir="ltr">${esc(d.sdate)} → ${esc(d.edate||'')}</b></div>`:''}
  ${arch?`<div class="sig" style="margin-top:8px">📁 ${t('archBanner')}</div>`:''}
  ${cr.comment?`<div class="sig" style="margin-top:8px"><b>${t('latest')}</b> ${esc(cr.comment)}</div>`:''}${crl}${revise?`<div class="row">${revise}</div>`:''}</div>
- <div class="tabs"><button class="tb ${ftab=='plan'?'on':''}" data-t="plan" onclick="showTab('plan')">${t('pl_tab')}</button><button class="tb ${ftab=='flow'?'on':''}" data-t="flow" onclick="showTab('flow')">${t('workflow')}</button>${(st=='Draft'||st=='Returned to PM')&&!arch?`<button class="tb ${ftab=='consult'?'on':''}" data-t="consult" onclick="showTab('consult');drawConsult()">💬 ${t('pl_cs_tab')}</button>`:''}</div>
+ <div class="tabs"><button class="tb ${ftab=='plan'?'on':''}" data-t="plan" onclick="showTab('plan')">${t('pl_tab')}</button><button class="tb ${ftab=='flow'?'on':''}" data-t="flow" onclick="showTab('flow')">${t('workflow')}</button>${(st=='Draft'||st=='Returned to PM')&&!arch?`<button class="tb ${ftab=='consult'?'on':''}" data-t="consult" onclick="showTab('consult');drawConsult()">💬 ${t('pl_cs_tab')} <span class="qh" data-tip="${esc(t('cs_help'))}" onclick="event.stopPropagation();this.classList.toggle('on')">?</span></button>`:''}</div>
  <div class="card pn ${ftab=='plan'?'on':''}" data-t="plan"><div id="plan"></div></div>
  <div class="card pn ${ftab=='consult'?'on':''}" data-t="consult"><div id="consultbox"></div></div>
  <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}<div id="vhist"></div>${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp,2):''}${more?`<div class="row">${more}</div>`:''}
@@ -2275,7 +2283,7 @@ const _logT0=logT;logT=function(a){const p=String(a).split('|'),k=p[0];
  if(k=='comment')return t('l_comment')+(p[1]?': '+p[1]:'');
  return _logT0(a)};
 let CS=null;
-const csMgr=()=>cr&&me&&(me.role=='admin'||cr.created_by==me.id);
+const csMgr=()=>cr&&me&&(me.role=='admin'||cr.created_by==me.id||pmOf(cr));
 function csInvDefault(){const s=new Set();(sigs||[]).forEach(x=>{if(x.user_id)s.add(x.user_id)});
  const walk=(cr.data.tasks||[]).forEach(x=>{if(x.w)s.add(x.w)});s.delete(cr.created_by);return [...s]}
 async function drawConsult(){const box=document.getElementById('consultbox');if(!box||!cr)return;
@@ -2284,18 +2292,21 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  const nm=i=>esc((users[i]||{}).full_name||'—');
  if(!pc){
   if(!(mgr&&st=='Draft')){box.innerHTML=`<div class="mut">${t('cs_none')}</div>`;return}
-  const inv=csInvDefault();
-  box.innerHTML=`<div class="sec">${t('cs_h')}</div><div class="mut" style="margin-bottom:8px">${t('cs_none')}</div>
+  const dfl=new Set(csInvDefault());
+  const all=Object.values(users).filter(u=>u&&u.id!=cr.created_by&&u.full_name).sort((x,y)=>(x.full_name||'').localeCompare(y.full_name||'','ar'));
+  box.innerHTML=`<div class="sec">${t('cs_h')} <span class="qh" tabindex="0" data-tip="${esc(t('cs_help'))}" onclick="this.classList.toggle('on')">?</span></div><div class="mut" style="margin-bottom:8px">${t('cs_none')}</div>
   <label>${t('cs_days')}</label><input type="number" id="cs_d" min="1" max="60" value="5" style="width:110px;direction:ltr">
-  <label>${t('cs_inv')}</label>${inv.map(i=>`<label style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" class="cs_i" value="${i}" checked style="width:auto"> ${nm(i)}</label>`).join('')||'<div class="mut">—</div>'}
+  <label>${t('cs_inv')}</label><input id="cs_q" placeholder="${t('cs_search')}" oninput="csFilt()" style="margin-bottom:6px">
+  <div id="cs_list" style="max-height:260px;overflow:auto;border:1px solid var(--b,#d9dee5);border-radius:8px;padding:6px">${all.map(u=>`<label class="cs_r" data-n="${esc((u.full_name||'').toLowerCase())}" style="display:flex;gap:8px;align-items:center;font-weight:600;padding:4px 2px"><input type="checkbox" class="cs_i" value="${u.id}" ${dfl.has(u.id)?'checked':''} onchange="csCnt()" style="width:auto"> <span>${esc(u.full_name)}${u.job_title?`<span class="mut" style="font-weight:400"> · ${esc(u.job_title)}</span>`:''}</span></label>`).join('')||'<div class="mut">—</div>'}</div>
+  <div class="mut" id="cs_c" style="margin-top:4px"></div>
   <label>${t('cs_note')}</label><textarea id="cs_n" style="min-height:60px"></textarea>
-  <div class="row" style="margin-top:8px"><button class="p" onclick="csOpen()">${t('cs_open')}</button></div>`;return}
+  <div class="row" style="margin-top:8px"><button class="p" onclick="csOpen()">${t('cs_open')}</button></div>`;csCnt();return}
  const now=Date.now(),cl=new Date(pc.closes_at).getTime(),open=cl>now,inv=pc.invitees||[];
  const can=open&&(mgr||inv.includes(me.id)||me.role=='admin');
  const by={};cm.forEach(c=>{by[c.user_id]=(by[c.user_id]||0)+1});
  const done=inv.filter(i=>by[i]).length;
  const tk=(cr.data.tasks||[]).map(x=>`<option value="${esc(x.id)}">${esc(x.n||'')}</option>`).join('');
- box.innerHTML=`<div class="sec">${t('cs_h')}</div>
+ box.innerHTML=`<div class="sec">${t('cs_h')} <span class="qh" tabindex="0" data-tip="${esc(t('cs_help'))}" onclick="this.classList.toggle('on')">?</span></div>
  <div class="sig" style="margin-bottom:8px">${open?'🟢 '+t('cs_state_open'):'🔴 '+t('cs_state_closed')}: <b>${fd(pc.closes_at)}</b>${pc.note?`<div style="margin-top:4px">${esc(pc.note)}</div>`:''}
  ${open&&mgr?`<div class="row" style="margin-top:6px"><button onclick="csClose()">${t('cs_close')}</button></div>`:''}</div>
  ${can?`<label>${t('cs_task')}</label><select id="cs_t"><option value="">${t('cs_gen')}</option>${tk}</select><label>${t('cs_comm')}</label><textarea id="cs_b" style="min-height:70px"></textarea><div class="row" style="margin-top:6px"><button class="p" onclick="csComment()">${t('cs_send')}</button></div>`:`<div class="mut">${open?t('cs_ro'):t('cs_cl')}</div>`}
@@ -2303,6 +2314,8 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  ${inv.map(i=>`<div class="srow"><div>${by[i]?'✅':'⏳'} <b>${nm(i)}</b></div><div class="mut">${by[i]?by[i]+' '+t('cs_cnt'):t('cs_wait')}</div></div>`).join('')||'<div class="mut">—</div>'}
  <div class="sec" style="margin-top:12px">💬 (${cm.length})</div>
  ${cm.map(c=>`<div class="sig" style="margin-bottom:6px"><b>${esc(c.user_name||'')}</b> · <span class="mut">${fd(c.created_at)}</span>${c.task_name?`<div class="mut">↳ ${esc(c.task_name)}</div>`:''}<div style="margin-top:3px;white-space:pre-wrap">${esc(c.body)}</div></div>`).join('')||`<div class="mut">${t('cs_empty')}</div>`}`}
+function csFilt(){const q=(document.getElementById('cs_q').value||'').trim().toLowerCase();document.querySelectorAll('.cs_r').forEach(r=>{r.style.display=!q||r.dataset.n.includes(q)?'flex':'none'})}
+function csCnt(){const n=document.querySelectorAll('.cs_i:checked').length,e=document.getElementById('cs_c');if(e)e.textContent=t('cs_sel')+': '+n}
 async function csOpen(){const ids=[...document.querySelectorAll('.cs_i:checked')].map(x=>x.value);if(!ids.length)return msg(t('cs_none_inv'));
  const {error}=await sb.rpc('pl_consult_open',{pid:cr.id,p_days:+document.getElementById('cs_d').value||5,p_invitees:ids,p_note:document.getElementById('cs_n').value||null});
  if(error)return msg(error.message);await openCR(cr.id);showTab('consult')}
