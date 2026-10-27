@@ -2340,14 +2340,14 @@ function csAddBox(inv){const ex=new Set(inv);
  if(!all.length)return '';
  return `<div class="sig" style="margin:8px 0"><b>${t('cs_add')}</b><input id="cs_q" placeholder="${t('cs_search')}" oninput="csFilt()" style="margin:6px 0"><div id="cs_list" style="max-height:200px;overflow:auto;border:1px solid var(--b,#d9dee5);border-radius:8px;padding:6px;background:#fff">${all.map(u=>`<label class="cs_r" data-n="${esc((u.full_name||'').toLowerCase())}" style="display:flex;gap:8px;align-items:center;font-weight:600;padding:4px 2px"><input type="checkbox" class="cs_i" value="${u.id}" onchange="csCnt()" style="width:auto"> <span>${esc(u.full_name)}${u.job_title?`<span class="mut" style="font-weight:400"> · ${esc(u.job_title)}</span>`:''}</span></label>`).join('')}</div><div class="mut" id="cs_c" style="margin-top:4px"></div><div class="row" style="margin-top:6px"><button class="p" onclick="csAdd()">${t('cs_addb')}</button></div></div>`}
 async function csAdd(){const ids=[...document.querySelectorAll('.cs_i:checked')].map(x=>x.value);if(!ids.length)return msg(t('cs_none_inv'));
- const {error}=await sb.rpc('pl_consult_add',{pid:cr.id,p_invitees:ids});if(error)return msg(error.message);await openCR(cr.id);showTab('consult')}
+ const {error}=await sb.rpc('pl_consult_add',{pid:cr.id,p_invitees:ids});if(error)return msg(error.message);await openCR(cr.id);showTab('consult');await drawConsult()}
 async function csOpen(){const ids=[...document.querySelectorAll('.cs_i:checked')].map(x=>x.value);if(!ids.length)return msg(t('cs_none_inv'));
  const {error}=await sb.rpc('pl_consult_open',{pid:cr.id,p_days:+document.getElementById('cs_d').value||5,p_invitees:ids,p_note:document.getElementById('cs_n').value||null});
- if(error)return msg(error.message);await openCR(cr.id);showTab('consult')}
-async function csClose(){const {error}=await sb.rpc('pl_consult_close',{pid:cr.id});if(error)return msg(error.message);await openCR(cr.id);showTab('consult')}
+ if(error)return msg(error.message);await openCR(cr.id);showTab('consult');await drawConsult()}
+async function csClose(){const {error}=await sb.rpc('pl_consult_close',{pid:cr.id});if(error)return msg(error.message);await openCR(cr.id);showTab('consult');await drawConsult()}
 async function csComment(){const b=document.getElementById('cs_b').value.trim();if(!b)return;
  const {error}=await sb.rpc('pl_comment',{pid:cr.id,p_task:document.getElementById('cs_t').value||'',p_body:b});
- if(error)return msg(error.message);await openCR(cr.id);showTab('consult')}
+ if(error)return msg(error.message);await openCR(cr.id);showTab('consult');await drawConsult()}
 
 (function(){let q=document.getElementById('qtip');if(!q){q=document.createElement('div');q.id='qtip';document.body.appendChild(q)}
  const show=e=>{const h=e.target.closest&&e.target.closest('.qh');if(!h)return;q.textContent=h.dataset.tip;q.style.display='block';
