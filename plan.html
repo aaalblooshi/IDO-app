@@ -1573,9 +1573,14 @@ async function loadVers(){const el=$('vhist');if(!el||!cr)return;let rows=[];try
 
 // ===== Plan editor: toolbar, table, gantt, sheet =====
 const SNAPS={u:[],r:[]};
-function snap(){SNAPS.u.push(JSON.stringify(cr.data.tasks));if(SNAPS.u.length>60)SNAPS.u.shift();SNAPS.r=[]}
-function undo(){if(!SNAPS.u.length)return;SNAPS.r.push(JSON.stringify(cr.data.tasks));cr.data.tasks=JSON.parse(SNAPS.u.pop());norm();rollup();renderPlan();pSave()}
-function redo(){if(!SNAPS.r.length)return;SNAPS.u.push(JSON.stringify(cr.data.tasks));cr.data.tasks=JSON.parse(SNAPS.r.pop());norm();rollup();renderPlan();pSave()}
+const snapNow=()=>JSON.stringify({t:cr.data.tasks,l:cr.data.levels,w:cr.data.wmode});
+function snapRestore(j){const o=JSON.parse(j);if(o&&Array.isArray(o.t)){cr.data.tasks=o.t;if(o.l===undefined)delete cr.data.levels;else cr.data.levels=o.l;if(o.w===undefined)delete cr.data.wmode;else cr.data.wmode=o.w}else cr.data.tasks=o}
+function snap(){SNAPS.u.push(snapNow());if(SNAPS.u.length>100)SNAPS.u.shift();SNAPS.r=[]}
+function undo(){if(!SNAPS.u.length)return;SNAPS.r.push(snapNow());snapRestore(SNAPS.u.pop());norm();rollup();PL.ed=null;renderPlan();pSave()}
+function redo(){if(!SNAPS.r.length)return;SNAPS.u.push(snapNow());snapRestore(SNAPS.r.pop());norm();rollup();PL.ed=null;renderPlan();pSave()}
+document.addEventListener('keydown',e=>{if(!(e.ctrlKey||e.metaKey)||e.altKey)return;const k=(e.key||'').toLowerCase();if(k!='z'&&k!='y')return;
+ const tg=e.target;if(tg&&/^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName)||tg&&tg.isContentEditable)return;
+ if(!cr||!(PL.canEdit)||document.querySelector('.shov'))return;e.preventDefault();(k=='y'||e.shiftKey)?redo():undo()});
 function mut(fn,keepSheet){snap();fn();norm();rollup();if(!keepSheet)PL.ed=null;renderPlan();pSave()}
 const maxDepth=()=>(cr.data.levels||3)-1;
 const userOpts=sel=>`<option value=""></option>`+Object.values(users).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||'')).map(u=>`<option value="${u.id}" ${sel==u.id?'selected':''}>${esc(u.full_name)}</option>`).join('');
@@ -2132,7 +2137,7 @@ function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest(
 // ---- toolbar ----
 function toolbar(){const d=cr.data,n=d.tasks.length,ed=PL.canEdit,cu=d.wmode=='cu';
  return `<div class="ptb"><div class="seg"><button class="${PL.view=='list'?'on':''}" onclick="setView('list')">☰ ${t('pl_vList')}</button><button class="${PL.view=='gantt'?'on':''}" onclick="setView('gantt')" ${n?'':'disabled'}>▤ ${t('pl_vGantt')}</button><button class="${PL.view=='wbs'?'on':''}" onclick="setView('wbs')" ${n?'':'disabled'}>🌳 ${t('pl_vWbs')}</button></div>
- ${ed?`<div class="seg"><button onclick="undo()" ${SNAPS.u.length?'':'disabled'} title="${t('pl_undo')}">↶</button><button onclick="redo()" ${SNAPS.r.length?'':'disabled'} title="${t('pl_redo')}">↷</button></div>`:''}
+ ${ed?`<div class="seg"><button onclick="undo()" ${SNAPS.u.length?'':'disabled'} title="${t('pl_undo')} (Ctrl+Z)">↶ ${t('pl_undo')}${SNAPS.u.length?' ('+ad(SNAPS.u.length)+')':''}</button><button onclick="redo()" ${SNAPS.r.length?'':'disabled'} title="${t('pl_redo')} (Ctrl+Y)">↷</button></div>`:''}
  <div class="seg"><button onclick="collAll(true)" title="${t('pl_collapse')}">⊟</button><button onclick="collAll(false)" title="${t('pl_expand')}">⊞</button></div>
  <div class="seg"><button class="${PL.adv?'on':''}" onclick="togAdv()" title="${t('pl_advH')}">${PL.adv?t('pl_advOn'):t('pl_advOff')}</button>${ed?`<button class="${cu?'on':''}" onclick="togW()" title="${t('pl_wTip')}">⚖ ${t('pl_wmode')}: ${cu?t('pl_wCu'):t('pl_wEq')}</button>${cu?`<button onclick="evenW()">${t('pl_wEven')}</button>`:''}`:''}</div>
  <div class="seg"><button onclick="xlExport()" title="Excel">📤 Excel</button><button onclick="printPlan()" title="${t('pl_print')}">🖨 PDF</button>${PL.nAtt?`<button onclick="goTab('flow')" title="${t('pl_attN')}">📎 ${ad(PL.nAtt)}</button>`:''}</div>${ed&&d.levels?`<div class="seg"><button class="on" onclick="lvlChange()" title="${t('pl_lvNote')}">🗂 ${t('pl_levels')}: ${ad(d.levels)} ▾</button></div>`:''}</div>`}
