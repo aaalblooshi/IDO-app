@@ -241,6 +241,15 @@ function scan(){document.querySelectorAll('.zb:not([data-zi])').forEach(init)}
 var q=0;new MutationObserver(function(){if(q)return;q=requestAnimationFrame(function(){q=0;scan()})}).observe(document.documentElement,{childList:true,subtree:true});scan()})();
 
 /*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);
+/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
+var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
+var RE=new RegExp('('+D+')\\s*(?:→|←|⟵|⟶)\\s*('+D+')','u');
+var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
+function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('→')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
+ L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
+var q=0;function go(){q=0;try{walk(document.body)}catch(e){}}
+new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
+
 let PC='',CH=null,PLS=[],CRS=[],CLS=[],CFGP=null,MYSG={},LINKS=[],PLR=null,M=null,TAB='ov',VIEW='gantt',COLL={},ZOOM=1;
 const F={ph:'',who:'',st:'',mine:false,late:false,q:''};
 const TABS=[['ov',['نظرة عامة','Overview']],['plan',['الخطة','Plan']],['tasks',['المهام','Tasks']],['req',['الطلبات والتغييرات','Requests & changes']],['log',['الوثائق والسجل','Documents & log']]];
@@ -262,7 +271,7 @@ async function loadHub(){
  const mp=await sb.rpc('my_plans').then(r=>r.data||[],()=>[]);
  if(!PC&&pid0){const m=mp.find(x=>x.id==pid0);if(m)PC=m.pcode;else{const r=await q('plans','id,pc:data->>pcode',x=>x.eq('id',+pid0));if(r[0])PC=r[0].pc||''}}
  if(!PC){$('app').innerHTML='<div class="card lock"><p>'+P(['لم يُحدَّد مشروع.','No project specified.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
- const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>sponsor,sc:data->>sector,pt:data->>ptype',x=>x.eq('code',PC))]);
+ const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,pt:data->>ptype',x=>x.eq('code',PC))]);
  CH=ch[0]||null;
  const pf=x=>CH?x.or('data->>pcode.eq.'+PC+',charter_id.eq.'+CH.id):x.eq('data->>pcode',PC);
  [PLS,CRS,CLS]=await Promise.all([q('plans','id,code,status,version,archived,charter_id,created_by,created_at,stage_at,act:data->>_active',pf),
@@ -423,7 +432,7 @@ async function load(){
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate();me=p;
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
  const [ch,pl,cr,cl,mp,lk]=await Promise.all([
-  q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>sponsor,sc:data->>sector'),
+  q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector'),
   q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
   sb.rpc('my_plans').then(r=>r.data||[],()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
