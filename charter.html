@@ -107,7 +107,7 @@ button,select,input,textarea,a,label,.item,.tile{touch-action:manipulation;-webk
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:520px){.fg3{grid-template-columns:1fr 1fr}.fg3>div:last-child{grid-column:1/-1}}
 .fg3>div{min-width:0}.fg3 input{min-width:0;width:100%;max-width:100%}input[type=date]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none}
 .dur{padding:9px 12px;border-radius:10px;background:var(--g2);color:var(--g);font-weight:800;min-height:42px}
-.fzt{border-collapse:collapse;width:100%;font-size:13px}.fzt th,.fzt td{border:1px solid var(--line);padding:5px;text-align:center}.fzt td:first-child{text-align:start}.fzt th{background:var(--g2)}.fzt input{width:100%;min-width:56px;box-sizing:border-box}
+.fzt{border-collapse:collapse;width:100%;font-size:13px}.fzt th,.fzt td{border:1px solid var(--line);padding:5px;text-align:center}.fzt td:first-child{text-align:start}.fzt th{background:var(--g2)}.fze td:nth-child(3){min-width:130px}.fze textarea{width:100%;box-sizing:border-box;min-height:34px;padding:4px 6px}.fze td{text-align:start}.fzt input{width:100%;min-width:56px;box-sizing:border-box}
 .lrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.sh.acc{padding:0}.sh-h{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}.sh-h .no{min-width:26px;height:26px;border-radius:50%;background:var(--g);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}.sm-t{flex:1;min-width:0;display:flex;flex-direction:column}.sm-t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sm-t .mut{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chv{transition:transform .2s;font-size:18px;color:var(--g)}.sh.acc.open .chv{transform:rotate(180deg)}.sh-b{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.sh.acc.open .sh-b{display:block}.sh.acc.open{border-color:var(--g)}.pbox{border:1px dashed var(--g);border-radius:12px;padding:10px;margin:8px 0;background:#f4faf6}.pbox textarea{width:100%;margin:8px 0;box-sizing:border-box}
 .rk{display:inline-block;padding:3px 14px;border-radius:99px;font-weight:800;color:#fff}.rk.low{background:#0a6b3d}.rk.med{background:#f2c200;color:#1b1d1f}.rk.high{background:#d1101d}.rk.none{background:#e4dfd4;color:#6b6f76}
 </style></head><body>
@@ -591,7 +591,7 @@ const W=[
 ["fz_req", "Make the study mandatory before submission", "جعل دراسة الجدوى إلزامية قبل الإرسال"],
 ["fz_reqn", "Mandatory", "إلزامية"],
 ["fz_ev", "Final evaluation (weights)", "التقييم النهائي (الأوزان)"],
-["fz_score", "Score 0-100", "الدرجة 0-100"],
+["fz_score", "Score", "الدرجة"],
 ["fz_tot", "Total", "المجموع"],
 ["fz_b1", "Recommended to proceed to the detailed project preparation stage", "موصى بالانتقال إلى مرحلة إعداد المشروع التفصيلية"],
 ["fz_b2", "Needs completion / amendment before recommendation", "يحتاج استكمال/تعديل قبل التوصية"],
@@ -1136,7 +1136,7 @@ async function openCR(id){
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
 document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
- if(x.dataset&&x.dataset.num){const v=x.value.replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');if(v!==x.value)x.value=v}
+ if(x.dataset&&x.dataset.num){const v=x.value.replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');if(v!==x.value)x.value=v;if(x.dataset.max&&v!==''&&parseFloat(v)>+x.dataset.max){x.value=x.dataset.max}}
  if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg();if(x.dataset.k=='sdate'||x.dataset.k=='edate'){const u=$('dur');if(u)u.textContent=durTxt()}}
  if(x.dataset.a){const o=cr.data[x.dataset.a],i=+x.dataset.r;if(x.dataset.c){o[i][x.dataset.c]=x.value;{const sm=$('sm_'+x.dataset.a+'_'+i);if(sm&&SUMF[x.dataset.a])sm.innerHTML=SUMF[x.dataset.a](o[i])}if(x.dataset.a=='risks'){const b=$('rk_'+i);if(b)b.outerHTML=riskHTML(o[i],i)}}else o[i]=x.value}
  if(String(x.dataset.k||x.dataset.a||'').indexOf('fz_')==0&&typeof fzCalc=='function')fzCalc();
@@ -1177,10 +1177,10 @@ const fzFin=r=>{const x=fzRowT(r);return x?fzF(x):''};
 const FZSUM={fz_alts:r=>[r.o,[r.c,r.t].filter(Boolean).join(' · ')],fz_bm:r=>[r.o,r.s],fz_orq:r=>[r.r,r.c],fz_osy:r=>[r.r,r.c],fz_ohr:r=>[r.m,[r.n!==''&&r.n!=null?'×'+r.n:'',r.c].filter(Boolean).join(' · ')],fz_cs:r=>[r.b,fzFin(r)],fz_co:r=>[r.b,fzFin(r)],fz_rv:r=>[r.b,fzFin(r)],fz_sv:r=>[r.b,fzFin(r)]};
 function fzTcW(d){let s=0;for(let i=1;i<=FZTC;i++)s+=fzNum(d['fz_tw'+i]);return s}
 function fzTcR(d,j){const w=fzTcW(d);if(!w)return null;let s=0;for(let i=1;i<=FZTC;i++)s+=fzNum(d['fz_tw'+i])*fzNum(d['fz_tv'+i+'_'+j]);return Math.round(s/w*100)/100}
-function fzTot(d){let s=0,n=0;FZW.forEach((w,i)=>{const v=parseFloat(d['fz_s'+(i+1)]);if(!isNaN(v)){s+=Math.max(0,Math.min(100,v))*w/100;n++}});return n?Math.round(s*10)/10:null}
+function fzTot(d){let s=0,n=0;FZW.forEach((w,i)=>{const v=parseFloat(d['fz_s'+(i+1)]);if(!isNaN(v)){s+=Math.max(0,Math.min(w,v));n++}});return n?Math.round(s*10)/10:null}
 function fzBand(v){return v==null?'':v>=80?t('fz_b1'):v>=60?t('fz_b2'):t('fz_b3')}
 function fzCalc(){const d=cr.data,set=(id,h)=>{const e=$(id);if(e)e.innerHTML=h};
- const v=fzTot(d);set('fz_tot',v==null?'—':ad(v)+'% · '+fzBand(v));
+ const v=fzTot(d);set('fz_tot',v==null?'—':ad(v)+' / '+ad(100)+' · '+fzBand(v));
  ['cs','co','rv','sv'].forEach(k=>set('fz_t_'+k,fzF(fzSum(d,'fz_'+k))));
  set('fz_t_cost',fzF(fzSum(d,'fz_cs')+fzSum(d,'fz_co')));set('fz_t_ret',fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv')));
  const w=fzTcW(d);set('fz_tcw',ad(Math.round(w*100)/100)+'%');const we=$('fz_tcw');if(we)we.style.color=(!w||w==100)?'':'#D1101D';
@@ -1201,7 +1201,7 @@ function fzHtml(ed,adm,H){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
   let b='';for(let i=1;i<=FZTC;i++){b+=`<tr><td>${t('fz_tc'+i)}</td><td>${ed?num('fz_tw'+i,60):esc(d['fz_tw'+i]||'')}</td>`;for(let j=1;j<=FZTO;j++)b+=`<td>${ed?num('fz_tv'+i+'_'+j,60):esc(d['fz_tv'+i+'_'+j]||'')}</td>`;b+='</tr>'}
   b+=`<tr><th>${t('fz_tr')}</th><th id="fz_tcw">${ad(Math.round(fzTcW(d)*100)/100)}%</th>`;for(let j=1;j<=FZTO;j++){const r=fzTcR(d,j);b+=`<th id="fz_tcr${j}">${r==null?'—':ad(r)}</th>`}b+='</tr>';
   tc=`<div style="overflow-x:auto"><table class="fzt"><thead>${h}</thead><tbody>${b}</tbody></table></div>`}
- const ev=FZW.map((w,i)=>`<div style="margin:8px 0"><div class="row" style="align-items:center"><b style="flex:1">${t('fz_a'+(i+1))}</b><input data-k="fz_s${i+1}" data-num="1" inputmode="decimal" style="width:90px" placeholder="${t('fz_score')}" value="${esc(d['fz_s'+(i+1)]||'')}" ${dis}></div>${ta('fz_d'+(i+1),1)}</div>`).join('');
+ const ev=`<table class="fzt fze"><tr><th>${t('fz_ev')}</th><th>${t('fz_score')}</th><th>${t('fz_dt')}</th></tr>`+FZW.map((w,i)=>`<tr><td>${t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,'')}<div class="mut">${t('fz_wt')} ${ad(w)}%</div></td><td style="white-space:nowrap"><input data-k="fz_s${i+1}" data-num="1" data-max="${w}" inputmode="decimal" style="width:48px" value="${esc(d['fz_s'+(i+1)]||'')}" ${dis}> / ${ad(w)}</td><td>${ed?`<textarea class="ta" rows="1" data-k="fz_d${i+1}">${esc(d['fz_d'+(i+1)])}</textarea>`:esc(d['fz_d'+(i+1)])||'—'}</td></tr>`).join('')+`<tr><th>${t('fz_tot')}</th><th colspan="2" id="fz_tot">${fzTot(d)==null?'—':ad(fzTot(d))+' / 100 · '+fzBand(fzTot(d))}</th></tr></table>`;
  const v=fzTot(d);
  const rec=(adm||ed)?`<div class="ta-w"><textarea class="ta" rows="3" data-k="fz_rec" onchange="fzRecSave()">${esc(d.fz_rec)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d.fz_rec)||'NA'}</div>`;
  return `<div class="sec">${t('fz_t')}</div><div class="mut" style="margin-bottom:8px">${t('fz_hint')}</div>
@@ -1222,7 +1222,7 @@ function fzHtml(ed,adm,H){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
  ${fin('fz_rv',t('fz_x_rt')+' — '+t('fz_x_rv'))}${fin('fz_sv',t('fz_x_rt')+' — '+t('fz_x_sv'))}
  <div class="row"><b>${t('fz_x_tr')}:</b> <b id="fz_t_ret">${fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv'))}</b></div>
  ${hd(8)}${[1,2,3,4,5].map(i=>fl('fz_i'+i,t('fz_i'+i),2)).join('')}
- ${hd(9)}${ev}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div>
+ ${hd(9)}${ev}
  <table class="fzt" style="margin-top:8px"><tr><th>${t('fz_rl')}</th><th>${t('fz_rt')}</th></tr>${[1,2,3].map(i=>`<tr><td>${t('fz_r'+i)}</td><td>${t('fz_b'+i)}</td></tr>`).join('')}</table>
  ${hd(10)}${rec}
  ${leg.length?`<div class="sec" style="margin-top:18px">${t('fz_leg')}</div>${leg.map(k=>fl('fz_'+k,t('fz_f_'+k),2)).join('')}`:''}`:''}</div>`}
@@ -1507,7 +1507,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
   txt(t('fz_x_tr'),fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv')));
   hd(8);grid([t('fz_h8'),t('fz_dt')],[3200,7000],[1,2,3,4,5].map(i=>[t('fz_i'+i),d['fz_i'+i]]));
   hd(9);const ew=[3200,1000,1200,4800],tv=fzTot(d);
-  kids.push(T([hdrRow([t('fz_ev'),t('fz_wt'),t('fz_score'),t('fz_dt')],ew),...FZW.map((w,i)=>R([C(P(t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,''),{sa:0}),{w:ew[0]}),C(P(w+'%',{sa:0,al:AL.CENTER}),{w:ew[1]}),C(P(d['fz_s'+(i+1)]||'',{sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(d['fz_d'+(i+1)]||'',{sa:0}),{w:ew[3]})])),R([lab(t('fz_tot'),ew[0]),C(P('100%',{b:1,sa:0,al:AL.CENTER}),{w:ew[1]}),C(P(tv==null?'':tv+'%',{b:1,sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(fzBand(tv),{b:1,sa:0}),{w:ew[3]})])],ew));kids.push(gap());
+  kids.push(T([hdrRow([t('fz_ev'),t('fz_wt'),t('fz_score'),t('fz_dt')],ew),...FZW.map((w,i)=>R([C(P(t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,''),{sa:0}),{w:ew[0]}),C(P(w+'%',{sa:0,al:AL.CENTER}),{w:ew[1]}),C(P((d['fz_s'+(i+1)]||'')+(d['fz_s'+(i+1)]?' / '+w:''),{sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(d['fz_d'+(i+1)]||'',{sa:0}),{w:ew[3]})])),R([lab(t('fz_tot'),ew[0]),C(P('100%',{b:1,sa:0,al:AL.CENTER}),{w:ew[1]}),C(P(tv==null?'':tv+' / 100',{b:1,sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(fzBand(tv),{b:1,sa:0}),{w:ew[3]})])],ew));kids.push(gap());
   grid([t('fz_rl'),t('fz_rt')],[2400,7800],[1,2,3].map(i=>[t('fz_r'+i),t('fz_b'+i)]));
   hd(10);txt(t('fz_h10'),d.fz_rec);
   FZF.filter(k=>filled(d['fz_'+k])).forEach(k=>txt(t('fz_f_'+k),d['fz_'+k]))}
