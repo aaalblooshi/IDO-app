@@ -147,8 +147,8 @@ html[dir=ltr] .jn-s{clip-path:polygon(9% 0,100% 0,91% 50%,100% 100%,9% 100%,0 50
 
 body.jnok .vtabs{display:flex}
 /* v2 */
-.jn-st{direction:ltr}.jn-s{direction:rtl}html[dir=ltr] .jn-s{direction:ltr}
-.jn-s{clip-path:polygon(0 0,91% 0,100% 50%,91% 100%,0 100%,9% 50%)!important;padding-inline:14px 22px}
+.jn-st{direction:rtl}.jn-s{direction:rtl}html[dir=ltr] .jn-st,html[dir=ltr] .jn-s{direction:ltr}
+.jn-s{clip-path:polygon(9% 0,100% 0,91% 50%,100% 100%,9% 100%,0 50%)!important;padding-inline:22px 14px}html[dir=ltr] .jn-s{clip-path:polygon(0 0,91% 0,100% 50%,91% 100%,0 100%,9% 50%)!important;padding-inline:14px 22px}
 .jn-state{background:#f3ecdc;border-radius:10px;padding:6px 12px;font-weight:700;font-size:14px;margin:4px 0 6px;display:inline-block}
 .jn-life{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}.jn-life .ar{font-size:24px;color:var(--mut)}
 .jn-nd{font-family:inherit;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:12px 16px;cursor:pointer;text-align:center;min-width:120px;color:var(--ink)}.jn-nd b{display:block;font-size:15px}.jn-nd span{font-size:12.5px;color:var(--mut)}.jn-nd i{display:block;font-style:normal;color:#d1101d;font-weight:800;font-size:12px;margin-top:2px}.jn-nd.opt{border-style:dashed}.jn-nd:hover{border-color:#B39A6B}
@@ -782,6 +782,9 @@ body.cmon main{padding-top:0}
 .cm-dt{display:none;gap:3px;flex-wrap:wrap}.cm-dt b{width:7px;height:7px;border-radius:50%;background:#1d5f8a}
 .cm-agw{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.cm-ag{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eef0f3;text-decoration:none;color:inherit;font-size:13px}.cm-ag:last-child{border:0}.cm-ag b{margin-top:6px}.cm-ag span{font-weight:700;overflow-wrap:anywhere;display:block}.cm-ag small{color:#6b7280;font-size:11.5px}
 @media(max-width:700px){.cm-cd{min-height:46px;align-items:center}.cm-ce{display:none}.cm-dt{display:flex;justify-content:center}.cm-agw{grid-template-columns:1fr}.cm-lg{margin-inline-start:0}}
+
+.cm-it{min-height:66px;box-sizing:border-box}.cm-sla{min-height:66px;box-sizing:border-box}
+.cm-mr{display:flex;gap:6px}.cm-mr .cm-more{flex:1}
 </style><script>/*cmdhome*/
 (function(){
 var CLASSIC=false;try{CLASSIC=localStorage.getItem('idoClassic')=='1'||/[?&]classic=1/.test(location.search)}catch(_){}
@@ -818,7 +821,8 @@ function wire(){
  document.getElementById('cmchips').addEventListener('click',function(e){var b=e.target.closest('[data-f]');if(!b)return;S.f=S.f==b.dataset.f?null:b.dataset.f;S.open={};upd(true)});
  document.getElementById('cmtabs').addEventListener('click',function(e){var b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.sig='';upd(true)});
  document.getElementById('cmcal').addEventListener('click',calClick);
- document.getElementById('cmkb').addEventListener('click',function(e){var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();var k=b.dataset.more;S.open[k]=!S.open[k];upd(true)});
+ document.getElementById('cmkb').addEventListener('click',function(e){var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();S.open[b.dataset.more]=+b.dataset.n;upd(true)});
+ document.getElementById('cmside').addEventListener('click',function(e){var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();S.open[b.dataset.more]=+b.dataset.n;upd(true)});
  document.getElementById('cmrole').addEventListener('change',function(e){window.jnR&&window.jnR(e.target.value);upd(true)});
  document.getElementById('cmall').addEventListener('click',function(e){e.preventDefault();var ax=document.getElementById('axes');if(ax)ax.scrollIntoView({behavior:'smooth'})});
  document.getElementById('cmcl').addEventListener('click',function(){try{localStorage.setItem('idoClassic','1')}catch(_){}location.reload()});
@@ -842,6 +846,11 @@ function search(){var r=document.getElementById('cmres'),q=norm(document.getElem
  if(!q)h='<div class="cm-g">'+P(['جرّب: «ميثاق جديد» أو اسم مشروع أو «المحفظة»','Try: “new charter”, a project name or “portfolio”'])+'</div>';
  else if(!h)h='<div class="cm-g">'+P(['لا نتائج مطابقة','No matches'])+'</div>';
  r.innerHTML=h;r.classList.add('on')}
+var PG=4,PGS=3;
+function moreBtn(key,total,shown){var pg=key.charAt(0)=='c'?PG:PGS;if(total<=pg)return'';var h='';
+ if(shown<total)h+='<button class="cm-more" data-more="'+key+'" data-n="'+(shown+pg)+'">'+P(['عرض المزيد (+'+AR(Math.min(pg,total-shown))+')','Show more (+'+Math.min(pg,total-shown)+')'])+' ▾</button>';
+ if(shown>pg)h+='<button class="cm-more" data-more="'+key+'" data-n="0">'+P(['عرض أقل','Show less'])+' ▴</button>';
+ return'<div class="cm-mr">'+h+'</div>'}
 function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  var cnt={};CH.forEach(function(c){cnt[c[0]]=M.filter(function(m){return m[c[0]]}).length});
  var sig=[E.role,S.f,lang,M.length,cnt.act,cnt.late,cnt.ret,(window.TKD&&window.TKD.a),JSON.stringify(S.open),S.tab,JSON.stringify(S.cal)].join('|');if(!force&&sig==S.sig)return;S.sig=sig;
@@ -859,14 +868,14 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmkt').textContent=P(['رحلتي','My journey']);document.getElementById('cmall').textContent=P(['كل الخدمات ↓','All services ↓']);
  var base=M.filter(function(m){return S.f?m[S.f]:m.x.stage<5});
  document.getElementById('cmkb').innerHTML=window.JNX.ORDER.map(function(k){var L=base.filter(function(m){return m.x.k==k}).sort(function(a,b){return rank(b)-rank(a)});
-  var lim=S.open[k]?L.length:2,sh=L.slice(0,lim);return'<div class="cm-col"><h4>'+esc(P(window.JNX.SV[k].t))+'<i>'+AR(L.length)+'</i></h4>'+(sh.length?sh.map(function(m){var x=m.x,s=m.s,tag=m.late?'⏱ '+(s&&s.left<0?P(['متأخر '+AR(-s.left)+' ي','Late '+(-s.left)+'d']):P(['متأخرة','Late'])):(m.act?'⏳ '+(s?P([AR(s.left)+' ي متبقية',s.left+'d left']):P(['بانتظار إجرائك','Awaiting you'])):'');
-   return'<a class="cm-it '+(m.late?'l':m.act?'a':'')+'" href="'+x.p+'#o='+x.id+'"><b>'+esc(x.name||x.code||'—')+'</b><small>'+esc(st(m))+(tag?' · <em>'+tag+'</em>':'')+'</small>'+(E.role=='all'?rolePill(m):'')+'</a>'}).join(''):'<div class="cm-none">—</div>')+(L.length>2?'<button class="cm-more" data-more="'+k+'">'+(S.open[k]?P(['عرض أقل ▴','Show less ▴']):P(['عرض المزيد (','Show more (']).concat(AR(L.length-2),')')+' ▾')+'</button>':'')+'</div>'}).join('');
- var sl=M.filter(function(m){return m.s&&m.act}).sort(function(a,b){return a.s.left-b.s.left}).slice(0,3);
- var td=today(),tl=M.filter(function(m){return m.x.k=='tasks'&&m.x.stage<5&&m.x.tdue!=null}).map(function(m){m.dl=m.x.tdue-td;return m}).sort(function(a,b){return a.dl-b.dl}).slice(0,3);
+  var lim=Math.max(PG,+S.open['c:'+k]||0),sh=L.slice(0,lim);return'<div class="cm-col"><h4>'+esc(P(window.JNX.SV[k].t))+'<i>'+AR(L.length)+'</i></h4>'+(sh.length?sh.map(function(m){var x=m.x,s=m.s,tag=m.late?'⏱ '+(s&&s.left<0?P(['متأخر '+AR(-s.left)+' ي','Late '+(-s.left)+'d']):P(['متأخرة','Late'])):(m.act?'⏳ '+(s?P([AR(s.left)+' ي متبقية',s.left+'d left']):P(['بانتظار إجرائك','Awaiting you'])):'');
+   return'<a class="cm-it '+(m.late?'l':m.act?'a':'')+'" href="'+x.p+'#o='+x.id+'"><b>'+esc(x.name||x.code||'—')+'</b><small>'+esc(st(m))+(tag?' · <em>'+tag+'</em>':'')+'</small>'+(E.role=='all'?rolePill(m):'')+'</a>'}).join(''):'<div class="cm-none">—</div>')+moreBtn('c:'+k,L.length,lim)+'</div>'}).join('');
+ var sl=M.filter(function(m){return m.s&&m.act}).sort(function(a,b){return a.s.left-b.s.left}),slA=sl.length,sl=sl.slice(0,Math.max(PGS,+S.open['s:r']||0));
+ var td=today(),tl=M.filter(function(m){return m.x.k=='tasks'&&m.x.stage<5&&m.x.tdue!=null}).map(function(m){m.dl=m.x.tdue-td;return m}).sort(function(a,b){return a.dl-b.dl}),tlA=tl.length,tl=tl.slice(0,Math.max(PGS,+S.open['s:t']||0));
  var ring=function(left,d,href,title,sub){var p=left<0?100:Math.max(6,Math.min(100,left/Math.max(1,d)*100)),cc=left<0?'#d9534f':left<=2?'#BF9849':'#3EA3DC';return'<a class="cm-sla" href="'+href+'"><div class="cm-ring" style="--p:'+p+'%;--c:'+cc+'"><span>'+AR(left)+'</span></div><div><b>'+esc(title)+'</b><small>'+esc(sub)+'</small></div></a>'};
  var tk=window.TKD,pr='';if(tk&&tk.nn){var gap=tk.a-tk.e,cc=gap<0?'#d9534f':'#1c7a45';pr='<h3 style="margin-top:14px">'+P(['إنجاز مهامي','My task progress'])+'<a href="tasks.html">›</a></h3><div class="cm-pr"><div class="cm-ring" style="--p:'+Math.min(100,tk.a)+'%;--c:'+cc+'"><span>'+AR(tk.a)+'٪</span></div><div>'+P(['المخطط حتى اليوم: ','Planned to date: '])+AR(tk.e)+'٪<br><b style="color:'+cc+'">'+(gap>=0?'+':'')+AR(gap)+'٪ '+P(['عن المخطط','vs plan'])+'</b></div></div>'}
- document.getElementById('cmside').innerHTML='<h3>'+P(['مواعيد الطلبات','Request deadlines'])+'</h3>'+(sl.length?sl.map(function(m){return ring(m.s.left,m.s.d,m.x.p+'#o='+m.x.id,m.x.name||m.x.code,P(window.JNX.SV[m.x.k].t)+' · '+st(m))}).join(''):'<div class="cm-none">'+P(['لا طلبات بموعد جارٍ','No requests with a running deadline'])+'</div>')
-  +'<h3 style="margin-top:14px">'+P(['مواعيد المهام','Task deadlines'])+'<a href="tasks.html">›</a></h3>'+(tl.length?tl.map(function(m){return ring(m.dl,14,'tasks.html',m.x.name,m.dl<0?P(['متأخرة '+AR(-m.dl)+' يوم','Late '+(-m.dl)+' d']):m.dl==0?P(['تنتهي اليوم','Due today']):P(['تنتهي بعد '+AR(m.dl)+' يوم','Due in '+m.dl+' d']))}).join(''):'<div class="cm-none">'+P(['لا مهام قادمة','No upcoming tasks'])+'</div>')+pr;
+ document.getElementById('cmside').innerHTML='<h3>'+P(['مواعيد الطلبات','Request deadlines'])+'</h3>'+(sl.length?sl.map(function(m){return ring(m.s.left,m.s.d,m.x.p+'#o='+m.x.id,m.x.name||m.x.code,P(window.JNX.SV[m.x.k].t)+' · '+st(m))}).join(''):'<div class="cm-none">'+P(['لا طلبات بموعد جارٍ','No requests with a running deadline'])+'</div>')+moreBtn('s:r',slA,sl.length)
+  +'<h3 style="margin-top:14px">'+P(['مواعيد المهام','Task deadlines'])+'<a href="tasks.html">›</a></h3>'+(tl.length?tl.map(function(m){return ring(m.dl,14,'tasks.html',m.x.name,m.dl<0?P(['متأخرة '+AR(-m.dl)+' يوم','Late '+(-m.dl)+' d']):m.dl==0?P(['تنتهي اليوم','Due today']):P(['تنتهي بعد '+AR(m.dl)+' يوم','Due in '+m.dl+' d']))}).join(''):'<div class="cm-none">'+P(['لا مهام قادمة','No upcoming tasks'])+'</div>')+moreBtn('s:t',tlA,tl.length)+pr;
  document.getElementById('cmfb').textContent='＋ '+P(['إنشاء جديد','Create new']);
  document.getElementById('cmfm').innerHTML=NEW.map(function(z){return'<a href="'+window.JNX.SV[z[0]].p+'">'+esc(P(z[1]))+'</a>'}).join('');
  document.getElementById('cmcl').textContent=P(['العودة إلى العرض السابق','Back to the previous layout'])}
