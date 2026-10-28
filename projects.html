@@ -86,7 +86,7 @@ async function load(){
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate('needLogin');
  me=p;ADM=p.role=='admin';
- try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
+ try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length){SECS=L.sectors;if(Array.isArray(L.depts))DEPS=L.depts}}catch(_){}
  await reload()}
 async function reload(){
  const q=(tb,c)=>sb.from(tb).select(c).then(r=>r.data||[],()=>[]);
@@ -136,7 +136,9 @@ function adm(p){const cf=CFG[p.code]||{},arc=isArc(p),c=p.ch,g=GRS.filter(x=>x.p
  <label>${t('weight')}</label><input id="wt" type="number" min="0" step="0.1" inputmode="decimal" value="${cf.weight==null?'':cf.weight}" style="max-width:160px">
  <div class="row"><button class="p" onclick="saveCfg('${p.code}')">${t('wsave')}</button></div>
  ${p.pl.filter(x=>x.status!='Approved'&&!x.archived).length?`<hr style="border:0;border-top:1px dashed #e4dfd4;margin:12px 0"><b>${t('plAct')}</b><div class="mut">${t('plActH')}</div>${p.pl.filter(x=>x.status!='Approved'&&!x.archived).map(x=>`<div class="gr"><span dir="ltr">${esc(x.code)}</span> <span>${esc(stT(x.status))}${x.act=='true'?' · ✅':''}</span><button class="${x.act=='true'?'r':'p'}" onclick="plAct(${x.id},${x.act=='true'?'false':'true'})">${x.act=='true'?t('plActOff'):t('plActOn')}</button></div>`).join('')}`:''}
- <hr style="border:0;border-top:1px dashed #e4dfd4;margin:12px 0"><b>${t('hoT')}</b>
+ <hr style="border:0;border-top:1px dashed #e4dfd4;margin:12px 0"><b>${lang=='ar'?'نقل المشروع إلى قطاع / إدارة أخرى':'Move to another sector / department'}</b>
+ <div class="g2" style="margin-top:6px"><div><select id="trs" onchange="trFill()"><option value="">${lang=='ar'?'القطاع الجديد':'New sector'}</option>${SECS.map((x,i)=>`<option value="${i+1}" ${c.sc==i+1?'selected':''}>${esc(lang=='ar'?x[0]:x[1])}</option>`).join('')}</select></div><div><select id="trd">${depOpts(+c.sc||0,'')}</select></div></div>
+ <div class="g2"><div><input id="trn" placeholder="${t('hoNote')}"></div><div><button class="p" onclick="trGo('${p.code}')">${lang=='ar'?'نقل':'Move'}</button></div></div> <hr style="border:0;border-top:1px dashed #e4dfd4;margin:12px 0"><b>${t('hoT')}</b>
  <div class="g2" style="margin-top:6px"><div><input id="hot" list="gul" placeholder="${t('hoTo')}"></div><div><input id="hon" placeholder="${t('hoNote')}"></div></div>
  <label class="ck"><span style="display:flex;gap:6px"><input type="checkbox" id="hom" checked> ${t('hoMv')}</span></label>
  <div class="row"><button class="p" onclick="hoGo('${p.code}')">${t('hoBtn')}</button></div>
@@ -163,7 +165,11 @@ const archP=(pc,flag)=>{if(flag&&!confirm(t('archAsk')))return;run(async()=>{con
 const gAdd=pc=>run(async()=>{const nm=$('gu').value.trim().toLowerCase(),u=USR.find(x=>(x.full_name||'').trim().toLowerCase()==nm);if(!u)throw new Error(t('gUnk'));
  const sv=[...document.querySelectorAll('.gs:checked')].map(x=>x.value);if(!sv.length)throw new Error(t('gAll'));
  const {error}=await sb.from('project_grants').upsert({pcode:pc,user_id:u.id,lvl:$('gl').value,svcs:sv.length==5?null:sv},{onConflict:'pcode,user_id'});if(error)throw error;await reload()});
-let HOL={};
+let HOL={},DEPS=[];
+const depName=(s,i)=>{const x=(DEPS[s-1]||[])[i-1];return x?(lang=='ar'?x[0]:x[1])||x[0]:(lang=='ar'?'الإدارة ':'Department ')+i};
+const depOpts=(s,cur)=>'<option value=""></option><option value="na"'+(cur=='na'?' selected':'')+'>'+(lang=='ar'?'لا ينطبق':'Not applicable')+'</option>'+Array.from({length:(s?((DEPS[s-1]||[]).length||5):0)},(_,i)=>'<option value="'+(i+1)+'"'+(String(cur)==String(i+1)?' selected':'')+'>'+esc(depName(s,i+1))+'</option>').join('');
+const trFill=()=>{const s=+$('trs').value;$('trd').innerHTML=s?depOpts(s,''):'<option value=""></option>'};
+const trGo=pc=>run(async()=>{const s=$('trs').value;if(!s)throw new Error(lang=='ar'?'اختر القطاع':'Choose the sector');if(!confirm(lang=='ar'?'نقل المشروع إلى القطاع/الإدارة المحددة؟ سيتغير نطاق من يراه.':'Move the project to the selected sector/department? Who can see it will change.'))return;const {data,error}=await sb.rpc('project_transfer',{p_code:pc,p_sector:s,p_dept:$('trd').value||'',p_note:$('trn').value||''});if(error)throw error;await reload();toast((lang=='ar'?'تم النقل — سجلات محدّثة: ':'Moved — records updated: ')+(data||0))});
 const hoHtml=pc=>{const a=HOL[pc];return a&&a.length?'<b>'+t('hoLog')+'</b>'+a.map(x=>'<div>'+esc((x.at||'').slice(0,10))+' · '+esc(x.from_name||'—')+' ← → '+esc(x.to_name)+(x.note?' · '+esc(x.note):'')+'</div>').join(''):''};
 const hoGo=pc=>run(async()=>{const nm=($('hot').value||'').trim(),u=USR.find(x=>x.full_name==nm);if(!u)throw new Error(t('hoNone'));
  const {data,error}=await sb.rpc('project_handover',{p_code:pc,p_to:u.id,p_note:$('hon').value||'',p_move_tasks:$('hom').checked});if(error)throw error;await reload();toast(t('hoOk')+(data||0))});
@@ -361,4 +367,12 @@ body{background:var(--bg)}
 #hd2{border-bottom:0!important;box-shadow:0 2px 10px rgba(30,60,90,.06)}
 button.p,.btn.p{background:var(--g);border-color:var(--g)}
 </style>
-<script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script></body></html>
+<script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><script>/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
+var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
+var RE=new RegExp('('+D+')\\s*(?:→|←|⟵|⟶)\\s*('+D+')','u');
+var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
+function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('→')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
+ L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
+var q=0;function go(){q=0;try{walk(document.body)}catch(e){}}
+new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
+</script></body></html>
