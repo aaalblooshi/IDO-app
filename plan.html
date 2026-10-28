@@ -2667,7 +2667,7 @@ applyStatic();start();
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function lg(){return ls('lang')=='en'?'en':'ar'}
  function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
- var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['myprojects.html','📂','مشاريعي','My projects','myprojects.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['perf.html','📈','أداء المستخدمين','Users performance','perf.html',3],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['myprojects.html','📂','مشاريعي','My projects','myprojects.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['perf.html','📈','أداء المستخدمين','Users performance','perf.html',3],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة','Help','help.html',0]];
  var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#BF9849}#hd2 .stripe i:nth-child(2){background:#3EA3DC}#hd2 .stripe i:nth-child(3){background:#1d5f8a}#hd2 .stripe i:nth-child(4){background:#c9d6e2}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
  +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#181C32;color:#fff;border-color:#181C32}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e6f2f9;color:#1d5f8a}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
  var built=0;
@@ -2780,7 +2780,7 @@ applyStatic();start();
  var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
  function L(){try{if(typeof lang!='undefined')return lang}catch(e){}return (document.documentElement.lang||'ar').slice(0,2)}
  function show(k,lab){var c=H[k];if(!c)return;var ar=L()=='ar',o=document.createElement('div');o.id='hqs';o.onclick=function(e){if(e.target==o)o.remove()};
-  o.innerHTML='<div><b></b><p></p><a href="help.html">'+(ar?'المساعدة والجولة':'Help & tour')+' ›</a><div style="margin-top:12px"><button>'+(ar?'حسنًا':'OK')+'</button></div></div>';
+  o.innerHTML='<div><b></b><p></p><a href="help.html">'+(ar?'المساعدة':'Help')+' ›</a><div style="margin-top:12px"><button>'+(ar?'حسنًا':'OK')+'</button></div></div>';
   o.querySelector('b').textContent=lab;o.querySelector('p').textContent=c[ar?0:1];o.querySelector('button').onclick=function(){o.remove()};document.body.appendChild(o)}
  function scan(){document.querySelectorAll('.lr[data-fk]').forEach(function(r){if(r.querySelector('.hq'))return;var k=r.getAttribute('data-fk');if(!H[k])return;var lb=r.querySelector('label');if(!lb)return;
   var b=document.createElement('button');b.type='button';b.className='hq';b.textContent='؟';b.setAttribute('aria-label','help');
@@ -2862,10 +2862,22 @@ applyStatic();start();
  new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(decorate,80)}).observe(document.body,{childList:true,subtree:true});
 })();</script>
 <style id="theme2">
-:root{--g:#1d5f8a;--g2:#e6f2f9;--gold:#BF9849;--ch:#181C32;--bg:#eef3f8;--line:#e3eaf0;--r:#d9534f;--blue:#3EA3DC;--gry:#8a96a3}
-body{background:var(--bg)}
-#hd2{border-bottom:0!important;box-shadow:0 2px 10px rgba(30,60,90,.06)}
+:root{--g:#1d5f8a;--g2:#e6f2f9;--gold:#BF9849;--ch:#1d5f8a;--ink:#181C32;--bg:#eef3f8;--line:#e3eaf0;--r:#d9534f;--blue:#3EA3DC;--gry:#8a96a3}
+body{background:radial-gradient(800px 380px at 100% -60px,#d3e8f6 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#f4ecd8 0,transparent 58%),#eef3f8;background-attachment:fixed}
+header .stripe i:nth-child(1){background:#BF9849}header .stripe i:nth-child(2){background:#3EA3DC}header .stripe i:nth-child(3){background:#1d5f8a}header .stripe i:nth-child(4){background:#c9d6e2}
+#hd,#hd2{border-bottom:0!important;box-shadow:0 2px 10px rgba(30,60,90,.06)}
+.hero,.hero.hr2{background:radial-gradient(circle at 100% 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)!important;border-inline-start:0!important;border-radius:22px!important;box-shadow:0 12px 30px rgba(29,95,138,.25)!important}
+html[dir=ltr] .hero,html[dir=ltr] .hero.hr2{background:radial-gradient(circle at 0 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)!important}
+.hero .nw{background:#fff;color:#1d5f8a}
+.card,.item{border-radius:16px;border-color:#e3eaf0}
+#lb{background:#fff;color:#181C32;border-color:#e3eaf0}
 button.p,.btn.p{background:var(--g);border-color:var(--g)}
+.tabs button.on{background:#1d5f8a!important;border-color:#1d5f8a!important;color:#fff!important}
+.bar.pl i{background:#1d5f8a}
+.pgban{border-radius:22px;padding:18px 24px;color:#fff;margin:14px auto 0;background:radial-gradient(circle at 100% 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC);box-shadow:0 12px 30px rgba(29,95,138,.25)}
+html[dir=ltr] .pgban{background:radial-gradient(circle at 0 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)}
+.pgban h1{margin:0;font-size:22px;font-weight:800}.pgban p{margin:4px 0 0;font-size:13.5px;opacity:.9}
+@media(max-width:520px){.pgban{padding:14px;border-radius:18px}.pgban h1{font-size:19px}}
 </style>
 <script>/*zoombox*/(function(){if(window.__zoombox)return;window.__zoombox=1;var ST=window.ZSTATE=window.ZSTATE||{};
 function ar(){return (document.documentElement.lang||'ar')=='ar'}
@@ -2903,4 +2915,8 @@ function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{a
  L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
 var q=0;function go(){q=0;try{walk(document.body)}catch(e){}}
 new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
-</script></body></html>
+</script><script>/*pgban*/(function(){var f=(location.pathname.split('/').pop()||'').replace('.html','');if(window.top!==window.self)return;
+var S={tasks:['مهامي','My tasks','مهامك في خطط المشاريع: أنجزها وتابع مواعيدها','Your tasks in project plans: complete them and follow deadlines'],inbox:['الإشعارات','Notifications','التنبيهات والإجراءات الموجّهة إليك','Alerts and actions directed to you'],projects:['المشاريع','Projects','كل المشاريع وحالة وثائقها وإدارتها','All projects, their documents and management'],portfolio:['المحفظة','Portfolio','إنجاز المشاريع على مستوى القطاعات والمركز','Project delivery across sectors and the center'],archive:['الأرشيف','Archive','الوثائق والمشاريع المؤرشفة','Archived documents and projects'],perf:['أداء المستخدمين','Users performance','مؤشرات أداء المستخدمين ضمن نطاقك','User performance indicators within your scope'],users:['إدارة المستخدمين','User management','الحسابات والأدوار والصلاحيات','Accounts, roles and permissions'],roles:['الأدوار','Roles','أدوار المستخدمين وصلاحياتها','User roles and permissions'],settings:['الإعدادات','Settings','إعدادات المنصة والتنبيهات','Platform and alert settings'],account:['حسابي','My account','بياناتك وتفضيلاتك','Your details and preferences'],help:['المساعدة','Help','دليل استخدام المنصة','Platform guide']};
+if(!S[f])return;function go(){var m=document.querySelector('main');if(!m||document.getElementById('pgban')||document.querySelector('.hero'))return;var ar=(document.documentElement.lang||'ar')=='ar',d=document.createElement('div');d.id='pgban';d.className='pgban';d.innerHTML='<h1></h1><p></p>';m.parentNode.insertBefore(d,m);var cs=getComputedStyle(m),mw=cs.maxWidth;if(mw&&mw!='none'){d.style.maxWidth=(parseFloat(mw)-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0))+'px'}d.style.width='calc(100% - 32px)';upd()}
+function upd(){var d=document.getElementById('pgban');if(!d)return;var ar=(document.documentElement.lang||'ar')=='ar',s=S[f];d.firstChild.textContent=ar?s[0]:s[1];d.lastChild.textContent=ar?s[2]:s[3]}
+document.addEventListener('DOMContentLoaded',go);if(document.readyState!='loading')go();new MutationObserver(function(){go();upd()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});})();</script></body></html>
