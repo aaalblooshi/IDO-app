@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1d5f8a">
-<title>مشاريعي</title>
+<title>مشاريعي</title><link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -66,6 +66,13 @@ h3.h{margin:0 0 8px;font-size:16px}
 .kc{background:#fff;border-radius:10px;padding:6px 9px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-inline-start:4px solid var(--b);font-size:12.5px}.kc small{display:block;color:var(--mut)}
 .lg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:8px}.lg b{display:inline-block;width:11px;height:11px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
 @media(max-width:900px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.kb{display:flex;overflow-x:auto}.kb>div{min-width:230px;flex:none}.kpi{grid-template-columns:1fr 1fr}.gl{width:150px}}
+
+.sit{--k:var(--b);border-inline-start:5px solid var(--k);background:color-mix(in srgb,var(--k) 9%,#fff);border-radius:12px;padding:7px 11px;margin:9px 0;font-size:13px;line-height:1.5}.sit b{display:block;color:#1b1d1f}.sit small{display:block;color:#4b5563;font-size:12px}
+.sit.big{margin:12px 0 0;padding:10px 14px;font-size:14.5px;border-radius:14px}
+.p3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px;background:#f3f6f9;border-radius:12px;padding:7px 8px;text-align:center}.p3 small{display:block;color:var(--mut);font-size:11px;line-height:1.3}.p3 b{font-size:17px;line-height:1.3}
+.p3f{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--mut);font-weight:700;flex-wrap:wrap}
+.hl{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:var(--k);border:1.5px solid var(--k);border-radius:50px;padding:0 9px;white-space:nowrap;flex:none}.hl i{width:8px;height:8px;border-radius:50%;background:var(--k)}
+
 .chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .pc{padding:14px;border-radius:16px;background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--b);display:flex;flex-direction:column;min-width:0}.pc.l{border-inline-start-color:var(--r)}.pc.d{border-inline-start-color:var(--ok)}.pc.a{border-inline-start-color:var(--gold)}
@@ -77,11 +84,12 @@ h3.h{margin:0 0 8px;font-size:16px}
 @media(max-width:640px){.grid{grid-template-columns:1fr}.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.chip{white-space:nowrap}}
 
 </style></head><body>
-<header class="top"><div class="in"><a class="btn" id="bk" href="./"></a><b id="ttl"></b><a class="btn" href="account.html">👤</a><button id="lb" onclick="toggleLang()">EN</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
+<header class="top"><div class="in"><a class="btn" id="bk" href="./"></a><b id="ttl"></b><a class="btn" href="account.html">👤</a><button id="lb" onclick="toggleLang()">EN</button></div></header>
 <main id="app"></main><div id="toast"></div>
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let me=null;
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -132,7 +140,208 @@ function planModel(tasks,uid){
 const clr={done:'var(--ok)',late:'var(--r)',prog:'var(--b)',due:'var(--w)',todo:'#c9d2db'};
 const stT={done:['منجزة','Done'],late:['متأخرة','Late'],prog:['جارية','In progress'],due:['حان موعد بدئها','Due to start'],todo:['لم تبدأ','Not started']};
 
-let me=null,PJ=[],SG={},LK=[],FLT='all',VW='cards',Q='',LV='ph',EXPP={};
+const mkTxt=id=>{let h=0;String(id).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%97);return '█'.repeat(5+h%9)+' '+'█'.repeat(3+h%5)};
+/* ---------- الوضع الراهن للمشروع (يغطي كل السيناريوهات) ---------- */
+const SIT_C={done:'var(--ok)',ok:'var(--b)',wait:'var(--gold)',bad:'var(--r)',n:'#6b7280'};
+function docState(kind,st){const d=kind=='charter'?P(['الميثاق','The charter']):kind=='plan'?P(['الخطة','The plan']):P(['التقرير الختامي','The closure report']);
+ const M={Draft:['مسودة — لم يُقدَّم بعد','a draft — not yet submitted','يُكمل مدير المشروع الإعداد ثم يوقّع ويقدّم','The project manager completes, signs and submits','wait'],
+  'Returned to PM':['أُعيد للتعديل','returned for edits','يعدّل مدير المشروع ثم يعيد الإرسال','The project manager edits and resubmits','bad'],Returned:['أُعيد للتعديل','returned for edits','يعدّل مدير المشروع ثم يعيد الإرسال','The project manager edits and resubmits','bad'],
+  Submitted:['قُدّم ويُنتظر المراجعة','submitted, awaiting review','بانتظار مراجعة مكتب التطوير','Awaiting the development office review','wait'],
+  'PMO Review':['قيد المراجعة','under review','بانتظار اكتمال المراجعة','Waiting for the review to complete','wait'],
+  Reviewed:['تمت المراجعة','reviewed','بانتظار الاعتماد','Waiting for approval','wait'],'Awaiting Approval':['بانتظار الاعتماد','awaiting approval','بانتظار توقيع المعتمِد','Waiting for the approver’s signature','wait'],
+  'Office Decision':['بانتظار قرار المكتب','awaiting the office decision','يقرر المكتب بعد اعتراض المراجع أو المعتمِد','The office decides after a reviewer/approver rejection','wait'],
+  Rejected:['مرفوض','rejected','يلزم قرار جديد أو إعادة التقديم','A new decision or resubmission is needed','bad'],Cancelled:['ملغى','cancelled','—','—','n']}[st]||[st||'—',st||'—','','','wait'];
+ return {t:d+' '+P([M[0],M[1]]),s:P([M[2],M[3]]),k:M[4]}}
+function situ(c){const ch=c.ch,pl=c.pl,M=c.M,cls=(c.cls||[]).filter(x=>!x.archived),crs=(c.crs||[]).filter(x=>!x.archived),td=today(),R=(a,b)=>P([a,b]);
+ const pend=crs.filter(x=>x.status=='Awaiting Approval'||x.status=='PMO Review').length;
+ const add=(o)=>{if(pend&&o.k!='done')o.s+=' · '+R('يوجد '+pend+' طلب تغيير بانتظار الإجراء',pend+' change request(s) pending');return o};
+ const lv=M?M.leaves.length:0,since=d=>{const n=dn(String(d||'').slice(0,10));return n==null?'':td-n};
+ if(c.restricted&&!ch)return {k:'ok',t:R('مشروع سري — تظهر لك مهامك فقط','Confidential project — only your tasks are visible'),s:lv?R('لديك '+M.mine+' مهمة'+(M.mineLate?' ('+M.mineLate+' متأخرة)':''),'You have '+M.mine+' task(s)'+(M.mineLate?' ('+M.mineLate+' late)':'')):''};
+ const clx=cls.sort((a,b)=>b.id-a.id)[0];
+ if(clx){if(clx.status=='Approved')return {k:'done',t:R('المشروع مغلق','Project closed'),s:R('اعتُمد التقرير الختامي','The closure report is approved')};const d=docState('closure',clx.status);return add({k:d.k,t:d.t,s:d.s})}
+ if(ch&&ch.status!='Approved'){const d=docState('charter',ch.status);return add({k:d.k,t:d.t,s:d.s+(ch.created_at?' · '+R('منذ '+since(ch.stage_at||ch.created_at)+' يوم','for '+since(ch.stage_at||ch.created_at)+' d'):'')})}
+ const planOk=pl&&(pl.status=='Approved'||pl.act=='true'||(pl.data&&pl.data._active=='true'));
+ if(!pl){const n=ch?since(ch.stage_at||ch.created_at):'';return add({k:n>14?'bad':'wait',t:R('الميثاق معتمد — لم تُرفع خطة بعد','Charter approved — no plan yet'),s:R('الخطوة التالية: مدير المشروع يُعدّ الخطة','Next: the project manager prepares the plan')+(n!==''?' · '+R('منذ '+n+' يوم من الاعتماد','for '+n+' d since approval'):'')})}
+ if(!planOk){const d=docState('plan',pl.status);return add({k:d.k,t:d.t,s:d.s})}
+ if(!lv)return add({k:'wait',t:R('الخطة معتمدة — لا مهام فيها بعد','Plan approved — it has no tasks yet'),s:R('أضف المهام وكلّف المسؤولين','Add tasks and assign owners')});
+ const started=M.leaves.some(x=>x._pc>0||x.as),first=Math.min.apply(0,M.leaves.map(x=>x._s).filter(v=>v!=null));
+ if(!started){if(first>td)return add({k:'ok',t:R('الخطة معتمدة — لم يبدأ التنفيذ بعد','Plan approved — execution has not started'),s:R('تبدأ أول مهمة في '+fd(first)+' (بعد '+(first-td)+' يوم)','The first task starts on '+fd(first)+' (in '+(first-td)+' d)')});
+  return add({k:'bad',t:R('الخطة معتمدة — لم تبدأ أول مهمة رغم حلول موعدها','Plan approved — the first task has not started although it is due'),s:R('كان مخططًا في '+fd(first)+' — تأخّر البدء '+(td-first)+' يوم','Planned for '+fd(first)+' — start delayed by '+(td-first)+' d')})}
+ if(M.done==lv)return add({k:'wait',t:R('اكتملت كل المهام — بانتظار التقرير الختامي','All tasks done — closure report pending'),s:R('الخطوة التالية: مدير المشروع يرفع التقرير الختامي','Next: the project manager submits the closure report')});
+ const gap=Math.round(M.pct-M.exp);
+ return add({k:M.late||gap<=-10?'bad':gap<=-3?'wait':'ok',t:R('التنفيذ جارٍ','Execution in progress'),s:R('أُنجز '+Math.round(M.pct)+'% من '+Math.round(M.exp)+'% كان مخططًا حتى اليوم'+(M.late?' · '+M.late+' مهمة متأخرة':''),Math.round(M.pct)+'% done of '+Math.round(M.exp)+'% planned to date'+(M.late?' · '+M.late+' late task(s)':''))})}
+/* ---------- صحة المشروع ---------- */
+function health(M){if(!M||!M.leaves.length)return null;const gap=M.pct-M.exp,lt=M.late/M.leaves.length;
+ if(M.late>=3||gap<=-20||lt>=.25)return {k:'r',c:'var(--r)',t:P(['حرج','Critical'])};if(M.late>0||gap<=-5)return {k:'a',c:'var(--w)',t:P(['يحتاج انتباه','Needs attention'])};return {k:'g',c:'var(--ok)',t:P(['جيد','Healthy'])}}
+const HLP=()=>P(['حرج: ٣ مهام متأخرة فأكثر، أو تأخر ٢٠ نقطة فأكثر. يحتاج انتباه: أي مهمة متأخرة أو تأخر ٥ نقاط. جيد: غير ذلك.','Critical: 3+ late tasks or 20+ points behind. Needs attention: any late task or 5+ points behind. Healthy: otherwise.']);
+/* مقاييس ثابتة: المخطط ← الفعلي ← الفارق */
+function prog3(M){if(!M||!M.leaves.length)return '<div class="bar"><i style="width:0"></i></div><small class="mut">'+P(['لا مهام في الخطة بعد','No tasks in the plan yet'])+'</small>';
+ const pl=Math.round(M.exp),ac=Math.round(M.pct),gap=ac-pl,gc=gap<=-5?'var(--r)':gap>=5?'var(--ok)':'#374151',lab=gap<=-5?P(['متأخر عن المخطط','Behind plan']):gap>=5?P(['متقدّم عن المخطط','Ahead of plan']):P(['على المسار','On track']);
+ return '<div class="p3" title="'+esc(P(['المخطط = ما كان يجب إنجازه حتى اليوم حسب تواريخ الخطة · الفعلي = ما أُنجز فعلًا · الفارق = الفعلي − المخطط','Planned = what should be done by today per plan dates · Actual = what is done · Gap = actual − planned']))+'"><div><small>'+P(['المخطط حتى اليوم','Planned to date'])+'</small><b>'+pl+'%</b></div><div><small>'+P(['الفعلي','Actual'])+'</small><b>'+ac+'%</b></div><div><small>'+P(['الفارق','Gap'])+'</small><b style="color:'+gc+'" dir="ltr">'+(gap>0?'+':gap<0?'−':'')+Math.abs(gap)+'</b></div></div><div class="bar"><i style="width:'+ac+'%;'+(gap<=-5?'background:var(--r)':'')+'"></i><u style="inset-inline-start:'+pl+'%"></u></div><div class="p3f"><span style="color:'+gc+'">● '+lab+'</span><span>'+(M.late?'<b style="color:var(--r)">'+M.late+'</b> '+P(['متأخرة','late'])+' / ':'')+M.leaves.length+' '+P(['مهمة','tasks'])+'</span></div>'}
+
+let PC='',CH=null,PLS=[],CRS=[],CLS=[],CFGP=null,MYSG={},LINKS=[],PLR=null,M=null,TAB='ov',VIEW='gantt',COLL={},ZOOM=1;
+const F={ph:'',who:'',st:'',mine:false,late:false,q:''};
+const TABS=[['ov',['نظرة عامة','Overview']],['plan',['الخطة','Plan']],['tasks',['المهام','Tasks']],['req',['الطلبات والتغييرات','Requests & changes']],['log',['الوثائق والسجل','Documents & log']]];
+const VIEWS=[['gantt',['الجدول الزمني','Timeline']],['wbs',['الهيكل (WBS)','Structure (WBS)']],['who',['حسب المكلّف','By assignee']],['list',['قائمة','List']],['kb',['لوحة (كانبان)','Board']]];
+const ROLEN={pm:['مدير المشروع','Project manager'],ow:['مالك المشروع','Project owner'],tk:['مكلّف بمهام','Task assignee'],fl:['متابع','Follower'],pt:['مشارك بالتخطيط','Planning participant'],of:['مكتب التطوير المؤسسي','Corporate development office'],vw:['اطّلاع','Viewer']};
+function myRoles(){const r=[];if(!me)return r;if(CH&&(CH.created_by==me.id||(CH.pm&&CH.pm==me.full_name)))r.push('pm');else if(PLR&&PLR.created_by==me.id)r.push('pm');
+ if(CH&&CH.sp&&CH.sp==me.full_name)r.push('ow');if(M&&M.mine)r.push('tk');if(LINKS.some(l=>l.kind=='follower'))r.push('fl');if(LINKS.some(l=>l.kind=='participant'))r.push('pt');
+ if(r.includes('pm')||r.includes('ow'))['fl','pt'].forEach(k=>{const i=r.indexOf(k);if(i>=0)r.splice(i,1)});
+ if(me.role=='admin'||me.role=='pmo')r.push('of');if(!r.length)r.push('vw');return r}
+const tabsOn=()=>TABS.filter(t=>(t[0]!='plan'&&t[0]!='tasks')||(M&&M.tasks.length));
+const pName=()=>(CH&&CH.pn)||(PLR&&PLR.data&&PLR.data.pname)||PC;
+async function loadHub(){
+ applyLang();if(!sb)return gate();
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate();
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate();me=p;
+ const u=new URL(location.href);PC=u.searchParams.get('pc')||'';const pid0=u.searchParams.get('plan');
+ TAB=(location.hash||'').replace('#','').split('&')[0];if(!TABS.some(t=>t[0]==TAB))TAB='ov';window._tab0=TAB;
+ const q=(tb,c,f)=>{let r=sb.from(tb).select(c);r=f(r);return r.then(x=>x.data||[],()=>[])};
+ const mp=await sb.rpc('my_plans').then(r=>r.data||[],()=>[]);
+ if(!PC&&pid0){const m=mp.find(x=>x.id==pid0);if(m)PC=m.pcode;else{const r=await q('plans','id,pc:data->>pcode',x=>x.eq('id',+pid0));if(r[0])PC=r[0].pc||''}}
+ if(!PC){$('app').innerHTML='<div class="card lock"><p>'+P(['لم يُحدَّد مشروع.','No project specified.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
+ const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>sponsor,sc:data->>sector,pt:data->>ptype',x=>x.eq('code',PC))]);
+ CH=ch[0]||null;
+ const pf=x=>CH?x.or('data->>pcode.eq.'+PC+',charter_id.eq.'+CH.id):x.eq('data->>pcode',PC);
+ [PLS,CRS,CLS]=await Promise.all([q('plans','id,code,status,version,archived,charter_id,created_by,created_at,stage_at,act:data->>_active',pf),
+  q('change_requests','id,code,status,archived,created_at,stage_at,created_by,pn:data->>pname',x=>x.eq('data->>pcode',PC)),
+  q('closure_reports','id,code,status,archived,created_at,stage_at,created_by',x=>x.eq('data->>pcode',PC))]);
+ try{const r=await sb.from('project_cfg').select('*').eq('pcode',PC).maybeSingle();CFGP=r.data||null}catch(_){}
+ try{const r=await sb.rpc('my_links');LINKS=(r.data||[]).filter(l=>(l.svc=='charter'&&CH&&l.id==CH.id)||(l.svc=='plan'&&PLS.some(p=>p.id==l.id)))}catch(_){}
+ await Promise.all(Object.keys(SVC).map(async k=>{const s=SVC[k];const r=await sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id).eq('status','pending').then(x=>x.data||[],()=>[]);MYSG[k]=r}));
+ const live=PLS.filter(x=>!x.archived);
+ const pick=live.filter(x=>x.status=='Approved').sort((a,b)=>b.id-a.id)[0]||live.filter(x=>x.act=='true').sort((a,b)=>b.id-a.id)[0]||live.sort((a,b)=>b.id-a.id)[0]||null;
+ let pid=pick&&pick.id;if(!pid){const m=mp.find(x=>x.pcode==PC);if(m)pid=m.id}
+ if(pid){let r=await sb.rpc('pl_view',{pid}).then(x=>x,()=>({error:1}));
+  if(r&&!r.error&&r.data)PLR=r.data;
+  else{const row=pick&&await sb.from('plans').select('id,code,status,version,archived,charter_id,created_by,data').eq('id',pid).single().then(x=>x.data,()=>null);
+   if(row)PLR=Object.assign({},row,{restricted:false});else{const m=mp.find(x=>x.id==pid);if(m)PLR={id:m.id,code:m.code,status:'Approved',created_by:m.created_by,restricted:true,data:{pcode:m.pcode,pname:m.pname,sector:m.sector,pmname:m.pm,tasks:m.tasks}}}}}
+ M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id);
+ if(!CH&&!PLR){$('app').innerHTML='<div class="card lock"><p>'+P(['المشروع غير موجود أو لا تملك صلاحية عرضه.','Project not found or you have no access.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
+
+ if(!tabsOn().some(t=>t[0]==TAB))TAB='ov';
+ draw()}
+/* ---------- الرحلة ---------- */
+function journey(){const doc=a=>a.filter(x=>!x.archived).sort((x,y)=>y.id-x.id);
+ const pl=PLR&&{status:PLR.status,stage_at:PLR.stage_at||''}, cl=doc(CLS)[0], crs=doc(CRS);
+ const done=s=>s=='Approved',pend=crs.filter(x=>x.status=='Awaiting Approval'||x.status=='PMO Review').length;
+ const chD=CH&&done(CH.status),plD=PLR&&(done(PLR.status)||(PLR.data&&PLR.data._active=='true')),clD=cl&&done(cl.status);
+ const S=[];
+ if(CH)S.push({k:'ch',t:['الميثاق','Charter'],s:chD?'d':'',sub:chD?P(['معتمد ','Approved '])+fdl(String(CH.stage_at||'').slice(0,10)):stN(CH.status)});
+ S.push({k:'pl',t:['الخطة','Plan'],s:plD?'d':'',sub:PLR?(done(PLR.status)?P(['معتمدة','Approved']):stN(PLR.status)):P(['لم تُرفع','Not submitted'])});
+ const ex=M&&M.leaves.length;
+ S.push({k:'ex',t:['التنفيذ','Execution'],s:clD?'d':'',sub:ex?Math.round(M.pct)+'%'+(M.late?' · '+M.late+' '+P(['متأخرة','late']):''):P(['لم يبدأ','Not started'])});
+ if(CH){S.push({k:'cr',t:['طلبات التغيير','Change requests'],s:'n',sub:pend?pend+' '+P(['بانتظار الإجراء','pending']):crs.length?crs.length+' '+P(['طلب','request(s)']):P(['لا طلبات','None'])});
+  S.push({k:'cl',t:['التقرير الختامي','Closure'],s:clD?'d':'',sub:cl?stN(cl.status):P(['لم يبدأ','Not started'])})}
+ const cu=S.filter(x=>x.k!='cr').find(x=>x.s!='d');if(cu)cu.s='c';
+ const cls=x=>x.s=='d'?'d':x.s=='c'?'c':x.s=='n'?'n':'';
+ return '<div class="jr">'+S.map(x=>'<div class="st '+cls(x)+'"><i></i>'+esc(P(x.t))+'<small>'+esc(x.sub)+'</small></div>').join('')+'</div>'}
+/* ---------- رأس ---------- */
+function head(){const roles=myRoles(),ch=CH||{};
+ const meta=[ch.code||PC,CH?stN(ch.status):'',ch.pm?P(['مدير المشروع: ','PM: '])+ch.pm:(PLR&&PLR.data&&PLR.data.pmname?P(['مدير المشروع: ','PM: '])+PLR.data.pmname:''),ch.sp?P(['المالك: ','Owner: '])+ch.sp:''].filter(Boolean).join(' · ');
+ const h=health(M),sit=situ({ch:CH,pl:PLR&&Object.assign({},PLR,{act:PLR.data&&PLR.data._active}),M,crs:CRS,cls:CLS,restricted:PLR&&PLR.restricted});
+ return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p>'+esc(meta)+'</p></div><div class="row">'+(h?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الصحة: ','Health: ']))+esc(h.t)+'</span>':'')+roles.map(r=>'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
+ '<div class="sit big" style="--k:'+SIT_C[sit.k]+'"><b>'+P(['الوضع الآن: ','Now: '])+esc(sit.t)+'</b>'+(sit.s?'<small>'+esc(sit.s)+'</small>':'')+'</div>'+
+ '<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
+function goTab(t){TAB=t;history.replaceState(null,'','#'+t);draw()}
+/* ---------- ما يحتاج انتباهك ---------- */
+function attention(){const A=[],td=today();
+ const my=(k,rows,pre)=>rows.filter(r=>!r.archived).forEach(r=>{const sg=(MYSG[k]||[]).filter(s=>s.cr_id==r.id),mine=r.created_by==me.id;
+  const ap=r.status=='Awaiting Approval'&&sg.some(s=>s.stage=='approved'),rv=r.status=='PMO Review'&&sg.some(s=>s.stage=='reviewed');
+  const lab=ap?['اعتماد','Approve']:rv?['مراجعة','Review']:mine&&r.status=='Draft'?['إكمال وتقديم','Complete & submit']:mine&&r.status=='Returned to PM'?['تعديل وإعادة إرسال','Edit & resubmit']:null;
+  if(lab)A.push({c:ap?'#2e8b57':rv?'#3EA3DC':'#d9534f',l:lab,n:P(SVC[k].t)+' · '+(r.code||''),h:SVC[k].p+'#o='+r.id,d:''})});
+ if(CH)my('charter',[CH]);my('plan',PLS);my('cr',CRS);my('closure',CLS);
+ if(M){M.leaves.filter(x=>x._me&&x._st!='done'&&x._e!=null).sort((a,b)=>a._e-b._e).slice(0,6).forEach(x=>{const dl=x._e-td;if(x._st=='late'||dl<=14)A.push({c:'#BF9849',l:['مهمتي','My task'],n:x.n,h:'tasks.html',d:dl<0?P(['متأخرة '+(-dl)+' يوم','Late '+(-dl)+' d']):dl==0?P(['تنتهي اليوم','Due today']):P(['تنتهي بعد '+dl+' يوم','Due in '+dl+' d']),late:dl<0})});
+  const others=M.late-M.mineLate;if(others>0&&!PLR.restricted)A.push({c:'#d9534f',l:['تنبيه','Alert'],n:P([others+' مهمة متأخرة في المشروع',others+' late task(s) in the project']),h:'#plan',d:'',go:'late'})}
+ return A}
+function attHtml(){const A=attention();return A.length?A.map(a=>'<div class="att"><span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span><div class="t">'+(a.mk?'<span class="mk">'+esc(a.n)+'</span>':esc(a.n))+(a.d?'<small'+(a.late?' style="color:var(--r)"':'')+'>'+esc(a.d)+'</small>':'')+'</div>'+(a.go?'<button onclick="F.late=true;goTab(\'plan\')">'+P(['عرض','View'])+'</button>':'<a class="btn p" href="'+a.h+'">'+P(['فتح','Open'])+'</a>')+'</div>').join(''):'<div class="none">'+P(['لا شيء بانتظار إجرائك في هذا المشروع.','Nothing awaits your action in this project.'])+'</div>'}
+/* ---------- نظرة عامة ---------- */
+function overview(){const td=today();
+ const k=M&&M.leaves.length?'<div class="card" style="box-shadow:none;background:#f9fbfd;margin:12px 0">'+prog3(M)+'</div>'+'<div class="kpi" style="grid-template-columns:repeat(3,1fr)"><div><b>'+M.done+' / '+M.leaves.length+'</b><small>'+P(['مهام منجزة','Tasks done'])+'</small></div><div><b style="color:'+(M.late?'var(--r)':'var(--ok)')+'">'+M.late+'</b><small>'+P(['مهام متأخرة','Late tasks'])+'</small></div><div><b>'+(M.end!=null?(M.end<td?'—':(M.end-td)+' '+P(['يوم','d'])):'—')+'</b><small>'+P(['المتبقي حتى الانتهاء المخطط','Remaining to planned end'])+'</small></div</div></div>':'';
+ const team='<table>'+[[P(ROLEN.pm),(CH&&CH.pm)||(PLR&&PLR.data.pmname)||'—'],[P(ROLEN.ow),(CH&&CH.sp)||'—'],[P(['المكلّفون بمهام','Task assignees']),M?new Set(M.leaves.filter(x=>x.w).map(x=>x.w)).size+(PLR&&PLR.restricted?' ('+P(['تظهر مهامك فقط','your tasks only'])+')':''):'—'],[P(['الإصدار','Plan version']),PLR?('v'+(PLR.version||1)):'—']].map(r=>'<tr><td class="mut">'+esc(r[0])+'</td><td><b>'+esc(r[1])+'</b></td></tr>').join('')+'</table>';
+ const ev=[];if(CH){ev.push({d:String(CH.created_at||'').slice(0,10),t:P(['أُنشئ الميثاق','Charter created'])});if(CH.status=='Approved')ev.push({d:String(CH.stage_at||'').slice(0,10),t:P(['اعتُمد الميثاق','Charter approved'])})}
+ PLS.filter(x=>!x.archived).forEach(x=>{ev.push({d:String(x.created_at||'').slice(0,10),t:P(['أُنشئت الخطة ','Plan created '])+(x.code||'')});if(x.status=='Approved')ev.push({d:String(x.stage_at||'').slice(0,10),t:P(['اعتُمدت الخطة','Plan approved'])})});
+ CRS.filter(x=>!x.archived).forEach(x=>ev.push({d:String(x.stage_at||x.created_at||'').slice(0,10),t:P(['طلب تغيير ','Change request '])+(x.code||'')+' · '+stN(x.status)}));
+ CLS.filter(x=>!x.archived).forEach(x=>ev.push({d:String(x.stage_at||x.created_at||'').slice(0,10),t:P(['التقرير الختامي · ','Closure · '])+stN(x.status)}));
+ ev.sort((a,b)=>a.d<b.d?1:-1);
+ const phases=M?M.tasks.filter(x=>!x._par).slice(0,8):[];
+ return '<div class="g2"><div class="card"><h3 class="h">'+P(['ما الذي يحتاج انتباهك الآن','What needs your attention now'])+'</h3>'+attHtml()+k+(phases.length&&M.start!=null?'<h3 class="h" style="margin-top:6px">'+P(['لقطة من الخطة (المراحل)','Plan snapshot (phases)'])+'</h3>'+gantt(phases,true)+'<div class="row noprint" style="margin-top:10px"><button class="p" onclick="goTab(\'plan\')">'+P(['فتح الخطة كاملة ↗','Open full plan ↗'])+'</button></div>':'<div class="none">'+P(['لا توجد خطة بمهام بعد.','No plan with tasks yet.'])+(CH&&CH.status=='Approved'&&myRoles().includes('pm')?'<div style="margin-top:8px"><a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a></div>':'')+'</div>')+'</div>'+
+ '<div><div class="card"><h3 class="h">'+P(['الفريق والأدوار','Team & roles'])+'</h3>'+team+'</div><div class="card" style="margin-top:14px"><h3 class="h">'+P(['آخر الأحداث','Latest events'])+'</h3>'+(ev.length?ev.slice(0,6).map(e=>'<div class="mut" style="padding:3px 0">● '+fdl(e.d)+' · '+esc(e.t)+'</div>').join(''):'<div class="none">—</div>')+'</div></div></div>'}
+/* ---------- المرشّحات ---------- */
+function passes(x){if(F.ph&&x._top!=F.ph)return false;if(F.who){if(F.who=='__me'){if(!x._me)return false}else if(x.w!=F.who)return false}
+ if(F.st){const s=x._st;if(F.st=='prog'?!(s=='prog'||s=='due'):s!=F.st)return false}
+ if(F.mine&&!x._me)return false;if(F.late&&x._st!='late')return false;
+ if(F.q&&(x._m||String(x.n||'').toLowerCase().indexOf(F.q.toLowerCase())<0))return false;return true}
+const fOn=()=>!!(F.ph||F.who||F.st||F.mine||F.late||F.q);
+function visSet(){if(!fOn())return null;const s=new Set();M.leaves.filter(passes).forEach(x=>{let c=x;while(c){s.add(c.id);c=c._par?M.by[c._par]:null}});return s}
+function filters(){const phs=M.tasks.filter(x=>!x._par),ws=[...new Map(M.leaves.filter(x=>x.w&&!x._m).map(x=>[x.w,x.wn||x.w])).entries()];
+ return '<div class="fl noprint"><select onchange="F.ph=this.value;draw()"><option value="">'+P(['المرحلة: الكل','Phase: all'])+'</option>'+phs.map(p=>'<option value="'+esc(p.id)+'" '+(F.ph==p.id?'selected':'')+'>'+(p._m?'—':esc(p.n||''))+'</option>').join('')+'</select>'+
+ '<select onchange="F.who=this.value;draw()"><option value="">'+P(['المكلّف: الكل','Assignee: all'])+'</option><option value="__me" '+(F.who=='__me'?'selected':'')+'>'+P(['أنا','Me'])+'</option>'+ws.filter(w=>w[0]!=me.id).map(w=>'<option value="'+esc(w[0])+'" '+(F.who==w[0]?'selected':'')+'>'+esc(w[1])+'</option>').join('')+'</select>'+
+ '<select onchange="F.st=this.value;draw()"><option value="">'+P(['الحالة: الكل','Status: all'])+'</option>'+[['late',stT.late],['prog',['جارية','In progress']],['todo',stT.todo],['done',stT.done]].map(s=>'<option value="'+s[0]+'" '+(F.st==s[0]?'selected':'')+'>'+P(s[1])+'</option>').join('')+'</select>'+
+ '<button class="f '+(F.mine?'on':'')+'" onclick="F.mine=!F.mine;draw()">👤 '+P(['مهامي فقط','My tasks only'])+'</button><button class="f '+(F.late?'on':'')+'" onclick="F.late=!F.late;draw()">⏱ '+P(['المتأخرة فقط','Late only'])+'</button>'+
+ '<input id="fq" placeholder="'+P(['بحث في المهام…','Search tasks…'])+'" value="'+esc(F.q)+'" oninput="F.q=this.value;clearTimeout(window._fq);window._fq=setTimeout(()=>{draw();const e=$(\'fq\');e.focus();e.setSelectionRange(9999,9999)},350)">'+(fOn()?'<button class="f" onclick="Object.assign(F,{ph:\'\',who:\'\',st:\'\',mine:false,late:false,q:\'\'});draw()">✕ '+P(['مسح','Clear'])+'</button>':'')+'</div>'}
+/* ---------- أسماء مموّهة ---------- */
+const nm=x=>x._m?'<span class="mk">'+mkTxt(x.id)+'</span>':esc(x.n||'—');
+const who=x=>x._m?'<span class="mk">████ ███</span>':esc(x.wn||x.w||'—');
+/* ---------- الجدول الزمني ---------- */
+function gantt(rows,mini){if(M.start==null)return '<div class="none">'+P(['لا توجد تواريخ للمهام.','No task dates.'])+'</div>';
+ const td=today(),s0=M.start-3,e0=Math.max(M.end,td)+3,tot=e0-s0,W=mini?900:Math.max(900,tot*3.2*ZOOM),base=PLR&&PLR.data&&PLR.data._base;const bm={};(base||[]).forEach(b=>bm[b.id]=b);
+ const pct=d=>((d-s0)/tot*100),side='inset-inline-start';
+ const mo=[];{let d=new Date(Date.UTC(...(()=>{const t=new Date(s0*DAY);return[t.getUTCFullYear(),t.getUTCMonth(),1]})()));while(Math.floor(d.getTime()/DAY)<e0){const a=Math.floor(d.getTime()/DAY);mo.push({a,l:new Intl.DateTimeFormat(LOC(),{month:'short',year:'2-digit',timeZone:'UTC'}).format(d)});d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1))}}
+ const mh=mo.map((m,i)=>{const nx=mo[i+1]?mo[i+1].a:e0;const wd=(nx-Math.max(m.a,s0))/tot*100;return '<div class="mo" style="'+side+':'+pct(Math.max(m.a,s0))+'%">'+(wd>(mini?7:3)?esc(m.l):'')+'</div>'}).join(''),grid=mo.map(m=>'<div class="mo" style="'+side+':'+pct(Math.max(m.a,s0))+'%"></div>').join('');
+ const vs=mini?null:visSet(),tl='<i class="tdl" style="'+side+':'+pct(td)+'%"></i>';
+ const rowsH=rows.filter(x=>!vs||vs.has(x.id)).filter(x=>{if(mini)return true;let c=x;while(c._par){if(COLL[c._par])return false;c=M.by[c._par]}return true}).map(x=>{
+  const lf=!x._k,c=x._k?'#9ccdea':clr[x._st],b=bm[x.id];
+  const bar=x._s==null||x._e==null?'':x.ms==1||x.ms===true?'<i class="ms" style="'+side+':'+pct(x._e)+'%;background:'+c+'"></i>':'<div class="bk '+(x._k?'ph':'')+(x._crit?' crit':'')+'" style="'+side+':'+pct(x._s)+'%;width:'+Math.max(.6,(x._e-x._s+1)/tot*100)+'%;background:'+(x._k?'#cfe4f2':c+'33')+';border:1.5px solid '+(x._k?'#5fa8d3':c)+'"><i style="width:'+Math.min(100,x._pc)+'%;background:'+(x._k?'#5fa8d3':c)+'"></i></div>';
+  const bs=b&&b.s&&b.e&&!mini?'<i class="bs" style="'+side+':'+pct(dn(b.s))+'%;width:'+Math.max(.6,(dn(b.e)-dn(b.s)+1)/tot*100)+'%"></i>':'';
+  return '<div class="gr"><div class="gl '+(x._k?'p':'')+'" style="padding-inline-start:'+(8+x._d*12)+'px">'+(!mini&&x._k?'<button class="tg" onclick="tgl(\''+esc(x.id)+'\')">'+(COLL[x.id]?'▸':'▾')+'</button>':'')+'<span class="w">'+x._w+'</span><span class="nm" title="">'+nm(x)+(!mini&&lf?'<span class="mut"> · '+who(x)+'</span>':'')+'</span></div><div class="gt">'+grid+tl+bar+bs+'</div></div>'}).join('');
+ return '<div class="gw"><div class="gi" style="min-width:'+(mini?0:W+250)+'px"><div class="gr h"><div class="gl">'+P(['المهمة · المكلّف','Task · assignee'])+'</div><div class="gt">'+mh+'</div></div>'+rowsH+'</div></div>'+
+ '<div class="lg"><span><b style="background:var(--ok)"></b>'+P(stT.done)+'</span><span><b style="background:var(--b)"></b>'+P(stT.prog)+'</span><span><b style="background:var(--r)"></b>'+P(stT.late)+'</span><span><b style="background:#c9d2db"></b>'+P(stT.todo)+'</span>'+(base&&!mini?'<span><b style="background:#9aa4af"></b>'+P(['الخط الأساسي','Baseline'])+'</span>':'')+(M.crit.length&&!mini?'<span><b style="background:#fff;border:2px solid #181C32"></b>'+P(['حرجة','Critical'])+'</span>':'')+'<span style="margin-inline-start:auto">│ '+P(['الخط الأحمر = اليوم','Red line = today'])+'</span></div>'}
+function tgl(id){COLL[id]=!COLL[id];draw()}
+/* ---------- بقية العروض ---------- */
+function stBadge(x){return '<span class="dot" style="background:'+clr[x._st]+'"></span>'+esc(P(stT[x._st]))}
+function wbs(){const vs=visSet();const rows=M.tasks.filter(x=>(!vs||vs.has(x.id))).filter(x=>{let c=x;while(c._par){if(COLL[c._par])return false;c=M.by[c._par]}return true});
+ return '<div class="tw"><table><thead><tr><th>WBS</th><th>'+P(['المهمة','Task'])+'</th><th>'+P(['المكلّف','Assignee'])+'</th><th>'+P(['البداية','Start'])+'</th><th>'+P(['النهاية','End'])+'</th><th>%</th><th>'+P(['الحالة','Status'])+'</th></tr></thead><tbody>'+rows.map(x=>'<tr style="'+(x._k?'background:#f7fafc;font-weight:700':'')+'"><td class="mut" style="white-space:nowrap">'+x._w+'</td><td style="padding-inline-start:'+(8+x._d*16)+'px">'+(x._k?'<button class="tg" onclick="tgl(\''+esc(x.id)+'\')">'+(COLL[x.id]?'▸':'▾')+'</button>':'<span class="ind" style="width:22px"></span>')+(x.ms?'◆ ':'')+nm(x)+'</td><td>'+(x._k?'':who(x))+'</td><td>'+fd(x._s)+'</td><td>'+fd(x._e)+'</td><td>'+Math.round(x._pc)+'</td><td>'+stBadge(x)+'</td></tr>').join('')+'</tbody></table></div>'}
+function plistV(rows){const L=(rows||M.leaves).filter(passes).sort((a,b)=>(a._e==null)-(b._e==null)||a._e-b._e);
+ return '<div class="tw"><table><thead><tr><th>#</th><th>'+P(['المهمة','Task'])+'</th><th>'+P(['المرحلة','Phase'])+'</th><th>'+P(['المكلّف','Assignee'])+'</th><th>'+P(['البداية','Start'])+'</th><th>'+P(['النهاية','End'])+'</th><th>%</th><th>'+P(['الحالة','Status'])+'</th></tr></thead><tbody>'+(L.length?L.map(x=>{const ph=M.by[x._top];return '<tr><td class="mut">'+x._w+'</td><td>'+(x._me?'⭐ ':'')+nm(x)+(x._crit?' <span class="pill" style="background:#181C32">'+P(['حرجة','critical'])+'</span>':'')+'</td><td class="mut">'+(ph&&!ph._m?esc(ph.n):'')+'</td><td>'+who(x)+'</td><td>'+fd(x._s)+'</td><td>'+fd(x._e)+'</td><td>'+Math.round(x._pc)+'</td><td>'+stBadge(x)+'</td></tr>'}).join(''):'<tr><td colspan="8" class="none">'+P(['لا مهام مطابقة','No matching tasks'])+'</td></tr>')+'</tbody></table></div>'}
+function whoV(){const g={},L=M.leaves.filter(passes);L.forEach(x=>{const k=x._m?'__mask':(x.w||'__none');(g[k]=g[k]||{n:x._m?P(['مكلّفون آخرون (مخفي)','Other assignees (hidden)']):(x.wn||x.w||P(['بلا مكلّف','Unassigned'])),a:[]}).a.push(x)});
+ const ks=Object.keys(g).sort((a,b)=>(a==me.id?-1:b==me.id?1:g[b].a.length-g[a].a.length));
+ return ks.length?ks.map(k=>{const G=g[k],tw=G.a.reduce((s,x)=>s+x._dur,0)||1,pc=G.a.reduce((s,x)=>s+x._pc*x._dur,0)/tw,lt=G.a.filter(x=>x._st=='late').length;
+  return '<div class="card ag"><h4>'+(k=='__mask'?'<span class="mk">████ ███</span>':esc(G.n))+(k==me.id?' <span class="pill" style="background:var(--gold)">'+P(['أنا','Me'])+'</span>':'')+'<span class="mut">'+G.a.length+' '+P(['مهمة','tasks'])+(lt?' · <b style="color:var(--r)">'+lt+' '+P(['متأخرة','late'])+'</b>':'')+' · '+Math.round(pc)+'%</span></h4><div class="bar"><i style="width:'+Math.round(pc)+'%"></i></div>'+plistV(G.a).replace('<div class="tw">','<div class="tw" style="margin-top:8px">')+'</div>'}).join(''):'<div class="none">'+P(['لا مهام مطابقة','No matching tasks'])+'</div>'}
+function kbV(){const L=M.leaves.filter(passes),cols=[['late',stT.late],['prog',['جارية','In progress']],['todo',stT.todo],['done',stT.done]];
+ return '<div class="kb">'+cols.map(c=>{const a=L.filter(x=>c[0]=='prog'?(x._st=='prog'||x._st=='due'):x._st==c[0]).sort((a,b)=>(a._e||0)-(b._e||0));return '<div><h4>'+P(c[1])+'<span>'+a.length+'</span></h4>'+a.slice(0,40).map(x=>'<div class="kc" style="border-color:'+clr[x._st]+'"><b>'+nm(x)+'</b><small>'+who(x)+' · '+fd(x._e)+' · '+Math.round(x._pc)+'%</small></div>').join('')+(a.length>40?'<div class="mut">+'+(a.length-40)+'</div>':'')+'</div>'}).join('')+'</div>'}
+/* ---------- تبويب الخطة ---------- */
+function planTab(){if(!PLR||!M.tasks.length)return '<div class="card"><div class="none">'+P(['لا توجد خطة بمهام لهذا المشروع بعد.','This project has no plan with tasks yet.'])+'</div>'+(CH&&CH.created_by==me.id?'<div style="text-align:center"><a class="btn p" href="plan.html">'+P(['إعداد خطة','Prepare a plan'])+'</a></div>':'')+'</div>';
+ const d=PLR.data,sub=[PLR.status=='Approved'?P(['معتمدة','Approved']):stN(PLR.status),M.tasks.filter(x=>!x._par).length+' '+P(['مراحل','phases']),M.leaves.length+' '+P(['مهمة','tasks']),new Set(M.leaves.filter(x=>x.w).map(x=>x.w)).size+' '+P(['مكلّفين','assignees'])].join(' · ');
+ const bnr=PLR.restricted?'<div class="mkb">🔒 '+P(['هذا المشروع سري: تظهر لك المهام المكلّف بها فقط، وباقي الخانات مموّهة (تبقى تواريخها ونسبها).','This project is confidential: you only see the tasks assigned to you; the other rows are blurred (dates and progress remain).'])+'</div>':'';
+ let body=VIEW=='gantt'?gantt(M.tasks):VIEW=='wbs'?wbs():VIEW=='who'?whoV():VIEW=='list'?plistV():kbV();
+ const crit=M.hasDeps?(M.crit.length?M.crit.slice(0,5).map(x=>'<div class="att"><div class="t">'+nm(x)+'<small>'+who(x)+' · '+fd(x._e)+'</small></div></div>').join(''):'<div class="none">'+P(['لا مسار حرج محدد.','No critical path found.'])+'</div>'):'<div class="none">'+P(['لم تُحدَّد اعتماديات بين المهام.','No task dependencies defined.'])+'</div>';
+ const imp=M.leaves.filter(x=>x._st=='late'&&x._imp>0).sort((a,b)=>b._imp-a._imp).slice(0,3).map(x=>'<div class="mut" style="padding:3px 0">⏱ '+nm(x)+' → '+P(['يؤخّر ','delays '])+x._imp+' '+P(['مهمة لاحقة','later task(s)'])+'</div>').join('');
+ const ld={};M.leaves.filter(x=>!x._m&&x.w).forEach(x=>{const k=x.wn||x.w;(ld[k]=ld[k]||{n:0,l:0}).n++;if(x._st=='late')ld[k].l++});
+ const lds=Object.entries(ld).sort((a,b)=>b[1].n-a[1].n).slice(0,5).map(([k,v])=>'<div class="att"><div class="t">'+esc(k)+'</div><span class="mut">'+v.n+' '+P(['مهام','tasks'])+(v.l?' · <b style="color:var(--r)">'+v.l+' '+P(['متأخرة','late'])+'</b>':'')+'</span></div>').join('')||'<div class="none">—</div>';
+ const base=d._base,bm={};(base||[]).forEach(b=>bm[b.id]=b);let bend=null,shift=0;if(base&&base.length){const be=base.map(b=>dn(b.e)).filter(v=>v!=null);bend=be.length?Math.max.apply(0,be):null;shift=M.leaves.filter(x=>bm[x.id]&&bm[x.id].e&&dn(bm[x.id].e)!=x._e).length}
+ const bcard=bend!=null&&M.end!=null?'<div class="mut" style="line-height:2">'+P(['نهاية المشروع عند الاعتماد: ','End at approval: '])+'<b>'+fd(bend)+'</b><br>'+P(['النهاية الحالية: ','Current end: '])+'<b>'+fd(M.end)+'</b><br>'+P(['الانحراف: ','Variance: '])+'<b style="color:'+(M.end>bend?'var(--r)':'var(--ok)')+'">'+(M.end-bend>0?'+':'')+(M.end-bend)+' '+P(['يوم','d'])+'</b><br>'+shift+' '+P(['مهمة تغيّرت نهايتها','task(s) with changed end date'])+'</div>':'<div class="none">'+P(['لا خط أساسي بعد (يُحفظ عند الاعتماد).','No baseline yet (saved at approval).'])+'</div>';
+ return '<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><div><div style="font-size:19px;font-weight:800">'+P(['خطة: ','Plan: '])+esc(pName())+'</div><div class="mut">'+esc(sub)+'</div></div><div class="row noprint"><button onclick="window.print()">🖨 '+P(['طباعة','Print'])+'</button><button onclick="expCsv()">⬇ '+P(['تصدير','Export'])+'</button><button onclick="shareLink()">🔗 '+P(['مشاركة رابط','Share link'])+'</button>'+(PLR.id?'<a class="btn" href="plan.html#o='+PLR.id+'">✎ '+P(['محرر الخطة','Plan editor'])+'</a>':'')+'</div></div>'+bnr+
+ '<div class="row noprint" style="margin-top:10px"><span class="seg">'+VIEWS.map(v=>'<button class="'+(VIEW==v[0]?'on':'')+'" onclick="VIEW=\''+v[0]+'\';draw()">'+P(v[1])+'</button>').join('')+'</span>'+(VIEW=='gantt'?'<span class="row"><button onclick="ZOOM=Math.max(.5,ZOOM/1.3);draw()">－</button><button onclick="ZOOM=Math.min(4,ZOOM*1.3);draw()">＋</button></span>':'')+'</div>'+filters()+body+'</div>'+
+ '<div class="g3"><div class="card"><h3 class="h">'+P(['الاعتماديات والمسار الحرج','Dependencies & critical path'])+'</h3>'+crit+imp+'</div><div class="card"><h3 class="h">'+P(['حمل المكلّفين','Assignee load'])+'</h3>'+lds+'</div><div class="card"><h3 class="h">'+P(['مقارنة بالخط الأساسي','Baseline comparison'])+'</h3>'+bcard+'</div></div>'}
+function shareLink(){const u=location.origin+location.pathname+'?pc='+encodeURIComponent(PC)+'#plan';(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast(P(['تم نسخ الرابط','Link copied'])),()=>toast(u))}
+function expCsv(){const L=M.leaves.filter(passes),q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+ const rows=[['WBS',P(['المهمة','Task']),P(['المكلّف','Assignee']),P(['البداية','Start']),P(['النهاية','End']),'%',P(['الحالة','Status'])]].concat(L.map(x=>[x._w,x._m?'***':x.n,x._m?'***':(x.wn||x.w||''),x.s||'',x.e||'',Math.round(x._pc),P(stT[x._st])]));
+ const b=new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(PC||'plan')+'-plan.csv';a.click()}
+/* ---------- المهام / الطلبات / السجل ---------- */
+function tasksTab(){if(!M||!M.leaves.length)return '<div class="card"><div class="none">'+P(['لا مهام بعد.','No tasks yet.'])+'</div></div>';
+ return '<div class="card"><div class="row noprint"><span class="seg"><button class="'+(F.mine?'on':'')+'" onclick="F.mine=true;draw()">'+P(['مهامي','My tasks'])+' ('+M.mine+')</button><button class="'+(!F.mine?'on':'')+'" onclick="F.mine=false;draw()">'+P(['كل المهام','All tasks'])+'</button></span><a class="btn p" href="tasks.html" style="margin-inline-start:auto">'+P(['تحديث الإنجاز في «مهامي»','Update progress in “My tasks”'])+'</a></div>'+filters()+plistV()+'</div>'}
+function reqTab(){const R=[];const add=(k,r)=>R.push({k,r,pc:null});if(CH)add('charter',CH);PLS.forEach(r=>add('plan',r));CRS.forEach(r=>add('cr',r));CLS.forEach(r=>add('closure',r));
+ return '<div class="card"><div class="tw"><table><thead><tr><th>'+P(['الخدمة','Service'])+'</th><th>'+P(['الرمز','Code'])+'</th><th>'+P(['الحالة','Status'])+'</th><th>'+P(['آخر تحديث','Updated'])+'</th><th></th></tr></thead><tbody>'+(R.length?R.sort((a,b)=>b.r.id-a.r.id).map(x=>'<tr style="'+(x.r.archived?'opacity:.55':'')+'"><td><b>'+esc(P(SVC[x.k].t))+'</b>'+(x.r.version>1?' <span class="mut">v'+x.r.version+'</span>':'')+'</td><td dir="ltr" style="text-align:start">'+esc(x.r.code||'')+'</td><td><span class="pill" style="background:'+stCol(x.r.status)+'">'+esc(stN(x.r.status))+'</span></td><td class="mut">'+fdl(String(x.r.stage_at||x.r.created_at||'').slice(0,10))+'</td><td><a class="btn" href="'+SVC[x.k].p+'#o='+x.r.id+'">'+P(['فتح','Open'])+'</a></td></tr>').join(''):'<tr><td colspan="5" class="none">'+P(['لا طلبات.','No requests.'])+'</td></tr>')+'</tbody></table></div>'+(CH&&CH.created_by==me.id?'<div class="row noprint" style="margin-top:12px"><a class="btn p" href="cr.html">＋ '+P(['طلب تغيير','Change request'])+'</a><a class="btn" href="closure.html">＋ '+P(['تقرير ختامي','Closure report'])+'</a></div>':'')+'</div>'}
+function logTab(){const ev=[];const add=(k,r)=>{ev.push({d:String(r.created_at||'').slice(0,10),t:P(SVC[k].t)+' '+(r.code||'')+' · '+P(['أُنشئ','created'])});if(r.stage_at&&String(r.stage_at).slice(0,10)!=String(r.created_at||'').slice(0,10)||r.status!='Draft')ev.push({d:String(r.stage_at||r.created_at||'').slice(0,10),t:P(SVC[k].t)+' '+(r.code||'')+' · '+stN(r.status),h:SVC[k].p+'#o='+r.id})};
+ if(CH)add('charter',CH);PLS.forEach(r=>add('plan',r));CRS.forEach(r=>add('cr',r));CLS.forEach(r=>add('closure',r));ev.sort((a,b)=>a.d<b.d?1:-1);
+ return '<div class="card"><h3 class="h">'+P(['السجل الزمني للوثائق','Documents timeline'])+'</h3>'+(ev.length?ev.map(e=>'<div class="att"><span class="mut" style="width:96px;flex:none">'+fdl(e.d)+'</span><div class="t">'+esc(e.t)+'</div>'+(e.h?'<a class="btn" href="'+e.h+'">'+P(['فتح','Open'])+'</a>':'')+'</div>').join(''):'<div class="none">—</div>')+'</div>'}
+function drawHub(){applyLang();$('bk').href='myprojects.html';document.title=pName()+' — '+P(['ملف المشروع','Project file']);$('ttl').textContent=pName();$('bk').textContent='⬅ '+P(['مشاريعي','My projects']);
+ const body=TAB=='ov'?overview():TAB=='plan'?planTab():TAB=='tasks'?tasksTab():TAB=='req'?reqTab():logTab();
+ $('app').innerHTML=head()+body}
+window.addEventListener('hashchange',()=>{const t=(location.hash||'').replace('#','');if(M&&tabsOn().some(x=>x[0]==t)&&t!=TAB){TAB=t;draw()}});
+
+let PJ=[],SG={},LK=[],FLT='all',VW='cards',Q='',LV='ph',EXPP={};
 try{FLT=localStorage.getItem('myFlt')||'all';VW=localStorage.getItem('myVw')||'cards';LV=localStorage.getItem('myLv')||'ph'}catch(_){}
 const sv=(k,v)=>{try{localStorage.setItem(k,v)}catch(_){}};
 const RN={pm:['أديرها','I manage'],ow:['أملكها','I own'],tk:['مكلّف بمهام','My tasks'],fl:['أتابعها','Following'],pt:['مشارك','Participant']};
@@ -163,7 +372,7 @@ function enrich(p){const live=p.pls,act=live.filter(x=>x.status=='Approved').sor
  if(LK.some(l=>l.kind=='participant'&&p.pls.some(x=>x.id==l.id)))r.push('pt');
  if(r.includes('pm')||r.includes('ow')){['fl','pt'].forEach(k=>{const i=r.indexOf(k);if(i>=0)r.splice(i,1)})}
  p.roles=r;p.rel=!!r.length;if(me.role=='admin'||me.role=='pmo')r.push('of');if(!r.length)r.push('vw');
- p.att=attOf(p);p.stage=stageOf(p);return p}
+ p.att=attOf(p);p.stage=stageOf(p);p.sit=sitOf(p);p.h=health(p.M);return p}
 function stageOf(p){const cl=p.cls[0],pl=p.pl,c=p.ch;if(cl&&cl.status=='Approved')return 4;if(pl&&(pl.status=='Approved'||pl.act=='true'))return 2;if(c&&c.status=='Approved')return 1;return 0}
 function attOf(p){const out=[];const chk=(k,r,mine)=>{const sg=(SG[k]||[]).filter(s=>s.cr_id==r.id);
   if(r.status=='Awaiting Approval'&&sg.some(s=>s.stage=='approved'))out.push({c:'#2e8b57',l:['اعتماد','Approve']});
@@ -175,19 +384,21 @@ function attOf(p){const out=[];const chk=(k,r,mine)=>{const sg=(SG[k]||[]).filte
  return out}
 const isLate=p=>p.M.late>0&&(p.roles.some(r=>r=='pm'||r=='ow'||r=='of')||p.M.mineLate>0);
 function match(p){const q=Q.trim().toLowerCase();if(q&&!((p.name||'')+' '+p.code).toLowerCase().includes(q))return false;
- if(FLT=='all')return true;if(FLT=='act')return p.att.length>0;if(FLT=='late')return isLate(p);return p.roles.includes(FLT)}
+ if(FLT=='all')return true;if(FLT=='act')return p.att.length>0;if(FLT=='late')return isLate(p);if(FLT=='red')return p.h&&p.h.k=='r';if(FLT=='stuck')return p.sit.k=='bad'||p.sit.k=='wait';return p.roles.includes(FLT)}
 function jr(p){const S=[[P(['ميثاق','Charter']),p.ch?(p.ch.status=='Approved'?'d':''):'n'],[P(['خطة','Plan']),p.stage>=2?'d':''],[P(['تنفيذ','Execution']),p.stage>=4?'d':''],[P(['إغلاق','Closure']),p.stage>=4?'d':'']];
  const vis=p.ch?S:S.slice(1,3);let c=vis.findIndex(x=>x[1]=='');if(p.stage>=2&&p.stage<4&&p.ch)c=2;else if(p.stage>=2&&p.stage<4&&!p.ch)c=1;
  return '<div class="jr">'+vis.map((x,i)=>'<div class="st '+(x[1]=='d'?'d':i==c?'c':'')+'"><i></i>'+esc(x[0])+'</div>').join('')+'</div>'}
-function card(p){const M=p.M,hasT=M.leaves.length,late=isLate(p),cls=late?'l':p.att.length?'a':p.stage>=4?'d':'';
- const st=p.ch?stN(p.ch.status):(p.pl?stN(p.pl.status):'');
- const prog=hasT?'<div class="bar"><i style="width:'+Math.round(M.pct)+'%'+(M.late?';background:var(--r)':'')+'"></i><u style="inset-inline-start:'+Math.round(M.exp)+'%"></u></div><small style="'+(M.pct+1<M.exp?'color:var(--r);font-weight:700':'color:var(--ok);font-weight:700')+'">'+P(['إنجاز ','Progress '])+Math.round(M.pct)+'%'+(M.exp-M.pct>=1?P([' · متأخر ',' · behind '])+Math.round(M.exp-M.pct)+'%':M.pct-M.exp>=1?P([' · متقدّم ',' · ahead '])+Math.round(M.pct-M.exp)+'%':'')+(M.late?' · '+M.late+' '+P(['مهام متأخرة','late']):'')+'</small>':'<div class="bar"><i style="width:0"></i></div><small>'+P(['لم يبدأ التنفيذ بعد','Execution not started'])+'</small>';
+function sitOf(p){return situ({ch:p.ch,pl:p.pl,M:p.M,crs:p.crs,cls:p.cls,restricted:p.pl&&p.pl.restricted})}
+const sitHtml=s=>'<div class="sit" style="--k:'+SIT_C[s.k]+'"><b>'+esc(s.t)+'</b>'+(s.s?'<small>'+esc(s.s)+'</small>':'')+'</div>';
+const hBadge=h=>h?'<span class="hl" title="'+esc(HLP())+'" style="--k:'+h.c+'"><i></i>'+esc(P(['الصحة: ','Health: ']))+esc(h.t)+'</span>':'';
+function card(p){const M=p.M,hasT=M.leaves.length,late=isLate(p),sit=p.sit,h=health(M),cls=sit.k=='bad'||(h&&h.k=='r')?'l':p.att.length?'a':sit.k=='done'?'d':'';
  const nxt=M.mine?M.leaves.filter(x=>x._me&&x._st!='done'&&x._e!=null).sort((a,b)=>a._e-b._e)[0]:null;
- return '<div class="pc '+cls+'"><a class="tt" href="project.html?pc='+encodeURIComponent(p.code)+'"><h4>'+esc(p.name)+'</h4></a><small><span dir="ltr">'+esc(p.code)+'</span>'+(st?' · '+esc(st):'')+'</small>'+
+ const u='myprojects.html?pc='+encodeURIComponent(p.code);
+ return '<div class="pc '+cls+'"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><a class="tt" href="'+u+'"><h4>'+esc(p.name)+'</h4></a>'+hBadge(h)+'</div><small><span dir="ltr">'+esc(p.code)+'</span></small>'+
  '<div class="row" style="margin-top:7px">'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+(r=='tk'?' ('+M.mine+')':'')+'</span>').join('')+p.att.map(a=>'<span class="pill" style="background:'+a.c+'">⏳ '+esc(P(a.l))+'</span>').join('')+'</div>'+
- jr(p)+prog+(nxt?'<small>'+P(['أقرب مهامك: ','Next task of yours: '])+(p.pl&&p.pl.restricted?esc(nxt.n):esc(nxt.n))+' · '+fd(nxt._e)+'</small>':'')+
- '<div class="row" style="margin-top:auto;padding-top:10px">'+(hasT?'<a class="btn p" href="project.html?pc='+encodeURIComponent(p.code)+'#plan">'+P(['عرض الخطة','View plan'])+'</a>':(p.ch&&p.ch.status=='Approved'&&p.roles.includes('pm')?'<a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a>':'<a class="btn p" href="project.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح المشروع','Open project'])+'</a>'))+(M.mine?'<a class="btn" href="project.html?pc='+encodeURIComponent(p.code)+'#tasks">'+P(['مهامي','My tasks'])+'</a>':'')+(p.ch?'<a class="btn" href="project.html?pc='+encodeURIComponent(p.code)+'#req">'+P(['الطلبات','Requests'])+'</a>':'')+'</div></div>'}
-function listV(L){return '<div class="tw"><table><thead><tr><th>'+P(['المشروع','Project'])+'</th><th>'+P(['الحالة','Status'])+'</th><th>'+P(['دوري','My role'])+'</th><th>'+P(['الإنجاز','Progress'])+'</th><th>'+P(['متأخرة','Late'])+'</th><th>'+P(['بانتظار إجرائي','Awaiting me'])+'</th><th></th></tr></thead><tbody>'+L.map(p=>'<tr><td><b>'+esc(p.name)+'</b><div class="mut" dir="ltr" style="text-align:start">'+esc(p.code)+'</div></td><td>'+esc(p.ch?stN(p.ch.status):'')+'</td><td>'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+'</span>').join(' ')+'</td><td>'+(p.M.leaves.length?Math.round(p.M.pct)+'% <span class="mut">/ '+Math.round(p.M.exp)+'%</span>':'—')+'</td><td>'+(p.M.late?'<b style="color:var(--r)">'+p.M.late+'</b>':'0')+'</td><td>'+(p.att.map(a=>'<span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span>').join(' ')||'—')+'</td><td><a class="btn p" href="project.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح','Open'])+'</a></td></tr>').join('')+'</tbody></table></div>'}
+ sitHtml(sit)+jr(p)+(hasT?prog3(M):'')+(nxt?'<small>'+P(['أقرب مهامك: ','Your next task: '])+esc(nxt.n)+' · '+fd(nxt._e)+'</small>':'')+
+ '<div class="row" style="margin-top:auto;padding-top:10px">'+(hasT?'<a class="btn p" href="'+u+'#plan">'+P(['عرض الخطة','View plan'])+'</a>':(p.ch&&p.ch.status=='Approved'&&p.roles.includes('pm')&&!p.pl?'<a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a>':'<a class="btn p" href="'+u+'">'+P(['فتح المشروع','Open project'])+'</a>'))+(M.mine?'<a class="btn" href="'+u+'#tasks">'+P(['مهامي','My tasks'])+'</a>':'')+(p.ch?'<a class="btn" href="'+u+'#req">'+P(['الطلبات','Requests'])+'</a>':'')+'</div></div>'}
+function listV(L){return '<div class="tw"><table><thead><tr><th>'+P(['المشروع','Project'])+'</th><th>'+P(['الوضع الآن','Current status'])+'</th><th>'+P(['دوري','My role'])+'</th><th>'+P(['مخطط / فعلي / فارق','Planned / actual / gap'])+'</th><th>'+P(['الصحة','Health'])+'</th><th>'+P(['بانتظار إجرائي','Awaiting me'])+'</th><th></th></tr></thead><tbody>'+L.map(p=>{const M=p.M,pl=Math.round(M.exp),ac=Math.round(M.pct),g=ac-pl;return '<tr><td><b>'+esc(p.name)+'</b><div class="mut" dir="ltr" style="text-align:start">'+esc(p.code)+'</div></td><td>'+sitHtml(p.sit)+'</td><td>'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+'</span>').join(' ')+'</td><td>'+(M.leaves.length?pl+'% / '+ac+'% / <b dir="ltr" style="color:'+(g<=-5?'var(--r)':g>=5?'var(--ok)':'inherit')+'">'+(g>0?'+':g<0?'−':'')+Math.abs(g)+'</b>':'—')+'</td><td>'+(hBadge(p.h)||'—')+'</td><td>'+(p.att.map(a=>'<span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span>').join(' ')||'—')+'</td><td><a class="btn p" href="myprojects.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح','Open'])+'</a></td></tr>'}).join('')+'</tbody></table></div>'}
 function timeV(L){const R=L.filter(p=>p.M.start!=null);if(!R.length)return '<div class="card"><div class="none">'+P(['لا توجد خطط بتواريخ.','No plans with dates.'])+'</div></div>';
  const td=today(),s0=Math.min.apply(0,R.map(p=>p.M.start))-5,e0=Math.max(Math.max.apply(0,R.map(p=>p.M.end)),td)+5,tot=e0-s0,pct=d=>(d-s0)/tot*100,side='inset-inline-start';
  const mo=[],qs=[];{const t=new Date(s0*DAY);let d=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),1));while(Math.floor(d.getTime()/DAY)<e0){const a=Math.floor(d.getTime()/DAY);mo.push({a,l:new Intl.DateTimeFormat(LOC(),{month:'short',timeZone:'UTC'}).format(d)});if(d.getUTCMonth()%3==0||!qs.length)qs.push({a,l:'Q'+(Math.floor(d.getUTCMonth()/3)+1)+' '+d.getUTCFullYear()});d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1))}}
@@ -197,20 +408,118 @@ function timeV(L){const R=L.filter(p=>p.M.start!=null);if(!R.length)return '<div
  const rows=[];
  R.forEach(p=>{const M=p.M,c=M.late?'var(--r)':'var(--b)',open=LV=='all'||EXPP[p.code],ph=LV=='ph'&&!EXPP[p.code]?false:false;
   const ms=M.leaves.filter(x=>(x.ms==1||x.ms===true)&&x._e!=null).map(x=>'<i class="ms" title="'+(x._m?'':esc(x.n))+'" style="'+side+':'+pct(x._e)+'%;background:#181C32;top:12px;width:10px;height:10px;margin-inline-start:-5px;z-index:2"></i>').join('');
-  rows.push('<div class="gr" style="background:#fbfdff"><div class="gl p"><button class="tg" onclick="EXPP[\''+esc(p.code)+'\']=!EXPP[\''+esc(p.code)+'\'];draw()">'+(open||LV=='ph'?'▾':'▸')+'</button><span class="nm"><a href="project.html?pc='+encodeURIComponent(p.code)+'#plan" style="text-decoration:none">'+esc(p.name)+'</a></span></div><div class="gt">'+grid+tl+bar(M.start,M.end,c,M.pct,true)+ms+'</div></div>');
+  rows.push('<div class="gr" style="background:#fbfdff"><div class="gl p"><button class="tg" onclick="EXPP[\''+esc(p.code)+'\']=!EXPP[\''+esc(p.code)+'\'];draw()">'+(open||LV=='ph'?'▾':'▸')+'</button><span class="nm"><a href="myprojects.html?pc='+encodeURIComponent(p.code)+'#plan" style="text-decoration:none">'+esc(p.name)+'</a></span></div><div class="gt">'+grid+tl+bar(M.start,M.end,c,M.pct,true)+ms+'</div></div>');
   if(LV=='ph'||open){const list=open?M.tasks:M.tasks.filter(x=>!x._par);list.forEach(x=>{const cc=x._k?'#5fa8d3':clr[x._st];rows.push('<div class="gr"><div class="gl '+(x._k?'p':'')+'" style="padding-inline-start:'+(26+x._d*12)+'px"><span class="w">'+x._w+'</span><span class="nm">'+(x._m?'<span class="mk">'+mkTxt(x.id)+'</span>':esc(x.n||'—'))+'</span></div><div class="gt">'+grid+tl+(x.ms==1||x.ms===true?'<i class="ms" style="'+side+':'+pct(x._e)+'%;background:'+cc+'"></i>':bar(x._s,x._e,cc,x._pc,x._k))+'</div></div>')})}});
  return '<div class="row noprint" style="margin-bottom:8px"><span class="seg">'+[['p',['المشاريع','Projects']],['ph',['المراحل','Phases']],['all',['كل الأنشطة','All activities']]].map(v=>'<button class="'+(LV==v[0]?'on':'')+'" onclick="LV=\''+v[0]+'\';EXPP={};sv(\'myLv\',LV);draw()">'+P(v[1])+'</button>').join('')+'</span><span class="mut">'+P(['اضغط ▸ بجانب أي مشروع لتوسيعه وحده','Click ▸ next to a project to expand it alone'])+'</span></div>'+
  '<div class="gw"><div class="gi" style="min-width:'+Math.max(900,tot*1.6+250)+'px"><div class="gr h" style="height:24px"><div class="gl"></div><div class="gt">'+lab(qs,6)+'</div></div><div class="gr h" style="top:24px"><div class="gl">'+P(['المشروع / النشاط','Project / activity'])+'</div><div class="gt">'+lab(mo,2.5)+'</div></div>'+rows.join('')+'</div></div><div class="lg"><span><b style="background:var(--b)"></b>'+P(['في المسار','On track'])+'</span><span><b style="background:var(--r)"></b>'+P(['فيه مهام متأخرة','Has late tasks'])+'</span><span><b style="background:#181C32;transform:rotate(45deg)"></b>'+P(['معلم (Milestone)','Milestone'])+'</span><span style="margin-inline-start:auto">│ '+P(['الخط الأحمر = اليوم','Red line = today'])+'</span></div>'}
-const mkTxt=id=>{let h=0;String(id).split('').forEach(c=>h=(h*31+c.charCodeAt(0))%97);return '█'.repeat(5+h%9)+' '+'█'.repeat(3+h%5)};
-function draw(){applyLang();document.title=P(['مشاريعي','My projects']);$('ttl').textContent=P(['مشاريعي','My projects']);$('bk').textContent='⬅ '+P(['الرئيسية','Home']);
- const cnt=f=>PJ.filter(p=>f=='all'||(f=='act'?p.att.length:f=='late'?isLate(p):p.roles.includes(f))).length;
- const CH=[['all',['الكل','All']],['pm',RN.pm],['ow',RN.ow],['tk',RN.tk],['fl',RN.fl],['pt',RN.pt],['act',['تحتاج إجرائي','Need my action']],['late',['متأخرة','Late']]].filter(c=>c[0]=='all'||c[0]=='act'||c[0]=='late'||cnt(c[0])>0);
+function drawList(){applyLang();document.title=P(['مشاريعي','My projects']);$('ttl').textContent=P(['مشاريعي','My projects']);$('bk').textContent='⬅ '+P(['الرئيسية','Home']);$('bk').href='./';
+ const cnt=f=>PJ.filter(p=>f=='all'||(f=='act'?p.att.length:f=='late'?isLate(p):f=='red'?(p.h&&p.h.k=='r'):f=='stuck'?(p.sit.k=='bad'||p.sit.k=='wait'):p.roles.includes(f))).length;
+ const CH=[['all',['الكل','All']],['pm',RN.pm],['ow',RN.ow],['tk',RN.tk],['fl',RN.fl],['pt',RN.pt],['act',['تحتاج إجرائي','Need my action']],['late',['متأخرة','Late']],['red',['صحة حرجة','Critical health']],['stuck',['متوقفة عند خطوة','Waiting on a step']]].filter(c=>c[0]=='all'||c[0]=='act'||c[0]=='late'||c[0]=='red'||c[0]=='stuck'||cnt(c[0])>0);
  if(!CH.some(c=>c[0]==FLT))FLT='all';
  const L=PJ.filter(match).sort((a,b)=>(b.att.length>0)-(a.att.length>0)||(isLate(b)-isLate(a))||String(a.name).localeCompare(String(b.name),'ar'));
  const body=!PJ.length?'<div class="card"><div class="none">'+P(['لا توجد مشاريع مرتبطة بك بعد.','No projects linked to you yet.'])+'</div></div>':!L.length?'<div class="card"><div class="none">'+P(['لا مشاريع مطابقة.','No matching projects.'])+'</div></div>':VW=='cards'?'<div class="grid">'+L.map(card).join('')+'</div>':VW=='list'?listV(L):timeV(L);
  const ac=PJ.filter(p=>p.att.length).length;
  $('app').innerHTML='<div class="ban"><h1>'+P(['مشاريعي','My projects'])+'</h1><p>'+P(['كل المشاريع التي لك فيها دور — في مكان واحد','Every project you have a role in — in one place'])+(ac?' · '+P([ac+' بانتظار إجرائك',ac+' need your action']):'')+'</p><div class="chips">'+CH.map(c=>'<button class="chip '+(FLT==c[0]?'on':'')+(c[0]!='all'&&!cnt(c[0])?' z':'')+'" onclick="FLT=\''+c[0]+'\';sv(\'myFlt\',FLT);draw()"><b>'+cnt(c[0])+'</b>'+esc(P(c[1]))+'</button>').join('')+'</div></div>'+
  '<div class="sb"><span class="tabs">'+[['cards','▦ '+P(['بطاقات','Cards'])],['list','☰ '+P(['قائمة','List'])],['time','🗺 '+P(['خارطة الطريق','Roadmap'])]].map(v=>'<button class="'+(VW==v[0]?'p':'')+'" onclick="VW=\''+v[0]+'\';sv(\'myVw\',VW);draw()">'+v[1]+'</button>').join('')+'</span><input id="sq" placeholder="'+P(['🔎 ابحث باسم المشروع أو رمزه…','🔎 Search project name or code…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{draw();const e=$(\'sq\');e.focus();e.setSelectionRange(9999,9999)},300)"></div>'+body}
-load();
 
-</script></body></html>
+const HUB=(()=>{const u=new URL(location.href);return u.searchParams.get('pc')||u.searchParams.get('plan')||''})();
+function draw(){HUB?drawHub():drawList()}
+HUB?loadHub():load();
+
+</script>
+<script>/*pwareg*/
+(function(){
+ if('serviceWorker' in navigator)window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}});
+ var f=location.pathname.split('/').pop()||'index.html';if(f!=='index.html'&&f!=='')return;
+ var st=window.navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches);
+ var ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ try{if(st||!ios||localStorage.getItem('pwa_hint')=='1')return}catch(e){return}
+ function show(){var d=document.createElement('div');d.style.cssText='position:fixed;left:10px;right:10px;bottom:10px;z-index:99;background:#23272b;color:#fff;border-radius:14px;padding:12px 14px;font:600 14px/1.6 Cairo,system-ui,sans-serif;direction:rtl;box-shadow:0 6px 24px rgba(0,0,0,.3)';
+  d.innerHTML='<b>ثبّت التطبيق على هاتفك</b><br>اضغط زر المشاركة <span style="font-size:18px">⎋</span> في أسفل Safari ثم «إضافة إلى الشاشة الرئيسية».<br><button style="margin-top:8px;background:#b39a6b;color:#fff;border:0;border-radius:8px;padding:6px 16px;font:inherit">حسنًا</button>';
+  d.querySelector('button').onclick=function(){try{localStorage.setItem('pwa_hint','1')}catch(e){}d.remove()};document.body.appendChild(d)}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',show);else show();
+})();
+</script>
+<script>/*navfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self)return}catch(e){}
+ function lg(){try{return localStorage.getItem('lang')||'ar'}catch(e){return 'ar'}}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function logo(){var l=document.querySelector('header .logo,#hd .logo');if(!l||l.getAttribute('data-home'))return;l.setAttribute('data-home','1');l.style.cursor='pointer';l.setAttribute('role','link');l.addEventListener('click',function(){location.href='index.html'})}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',logo);else logo();
+ setTimeout(logo,800);setTimeout(logo,2500);
+ if(f=='index.html'||f=='')return;
+ function build(){
+  if(document.getElementById('gnav'))return;var ar=lg()=='ar';
+  var items=[['./','🏠',ar?'الرئيسية':'Home','index'],['tasks.html','✅',ar?'مهامي':'Tasks','tasks'],['inbox.html','🔔',ar?'الإشعارات':'Alerts','inbox'],['myprojects.html','📂',ar?'مشاريعي':'My projects','myprojects']];
+  if(ls('hdrRole')=='admin'||ls('hdrScope')=='1')items.push(['portfolio.html','📊',ar?'المحفظة':'Portfolio','portfolio']);
+  var n=document.createElement('nav');n.id='gnav';
+  var h='';
+  if(history.length>1&&((document.referrer&&document.referrer.indexOf(location.origin)==0)||window.navigator.standalone))h+='<a href="#" id="gback" class="gnb"><i>↩</i><span>'+(ar?'رجوع':'Back')+'</span></a>';
+  items.forEach(function(i){h+='<a href="'+i[0]+'" class="gnb'+(f.replace('.html','')==i[3]?' on':'')+'"><i>'+i[1]+'</i><span>'+i[2]+'</span></a>'});
+  n.innerHTML=h;document.body.appendChild(n);
+  var b=document.getElementById('gback');if(b)b.onclick=function(e){e.preventDefault();history.back()};
+  var s=document.createElement('style');s.textContent='#gnav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:12;justify-content:space-around;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #e4dfd4;padding:6px 6px calc(max(env(safe-area-inset-bottom),0px) + 18px);direction:'+(ar?'rtl':'ltr')+'}@media (max-width:700px){#gnav{display:flex}}@media (display-mode:standalone){#gnav{display:flex}}#gnav .gnb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-decoration:none;color:#6b6f76;font:700 13px/1.4 Cairo,system-ui,sans-serif;padding:8px 2px;min-height:54px;border-radius:12px;min-width:0}#gnav .gnb i{position:static;background:none;width:auto;height:auto;font-style:normal;font-size:26px;line-height:1.2}#gnav .gnb.on{color:#0a6b3d;background:#e5f2ea}#gnav .gnb span{width:auto;font-size:13px;color:inherit;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}body.hasnav .actbar{bottom:var(--gnh,0px)!important}body.hasnav{padding-bottom:var(--pb,110px)!important}@media print{#gnav{display:none!important}body{padding-bottom:0!important}}';document.head.appendChild(s);
+  var q=0;function fit(){q=0;var vis=getComputedStyle(n).display!='none';document.body.classList.toggle('hasnav',vis);var g=vis?n.offsetHeight:0;var ab=document.querySelector('.actbar');var a=(vis&&ab&&ab.offsetParent!==null)?ab.offsetHeight:0;var r=document.documentElement.style;r.setProperty('--gnh',g+'px');r.setProperty('--pb',(g+a+24)+'px')}
+  function sched(){if(!q){q=1;requestAnimationFrame(fit)}}
+  fit();window.addEventListener('resize',sched);window.addEventListener('orientationchange',sched);
+  try{new MutationObserver(sched).observe(document.body,{childList:true,subtree:true})}catch(e){}
+ }
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',build);else build();
+})();
+</script>
+<script>/*hdrfix*/
+(function(){
+ var f=location.pathname.split('/').pop()||'index.html';
+ try{if(window.top!==window.self){var es=document.createElement('style');es.textContent='#hd,#hd2,#gnav,.top,#tkfab,.fab,.hm{display:none!important}body{padding-bottom:0!important}';document.head.appendChild(es);document.documentElement.classList.add('emb');return}}catch(e){}
+ function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function lg(){return ls('lang')=='en'?'en':'ar'}
+ function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['myprojects.html','📂','مشاريعي','My projects','myprojects.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['perf.html','📈','أداء المستخدمين','Users performance','perf.html',3],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
+ var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#BF9849}#hd2 .stripe i:nth-child(2){background:#3EA3DC}#hd2 .stripe i:nth-child(3){background:#1d5f8a}#hd2 .stripe i:nth-child(4){background:#c9d6e2}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
+ +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#181C32;color:#fff;border-color:#181C32}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e6f2f9;color:#1d5f8a}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
+ var built=0;
+ function mk(){
+  var hd=document.getElementById('hd'),top=document.querySelector('.top'),hin;
+  if(!hd&&!top)return;
+  if(!document.getElementById('hmcss')){var s=document.createElement('style');s.id='hmcss';s.textContent=CSS;document.head.appendChild(s)}
+  if(hd){hin=hd.querySelector('.hin');if(!hin)return;
+   Array.prototype.forEach.call(hin.children,function(c){if(c.tagName=='IMG'||c.id=='hm')return;c.setAttribute('data-hid','1');c.style.display='none'});
+  }else{
+   if(document.getElementById('hd2'))return;
+   top.style.display='none';
+   var h=document.createElement('header');h.id='hd2';h.innerHTML='<div class="hin"><img class="logo" alt="" src="data:image/png;base64,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"></div><div class="stripe"><i></i><i></i><i></i><i></i></div><div class="ttl" id="hd2t"></div>';
+   top.parentNode.insertBefore(h,top);hin=h.querySelector('.hin');
+  }
+  if(!hin.querySelector('#hm')){
+   var m=document.createElement('div');m.className='hm';m.id='hm';m.innerHTML='<button class="hmb" id="hm_l"></button><button class="hmb" id="hm_o" style="display:none"></button><div class="hmw"><button class="hmb hmm" id="hm_m"></button><div class="hmp" id="hm_p" hidden></div></div>';
+   hin.appendChild(m);
+   m.querySelector('#hm_l').onclick=function(){try{toggleLang()}catch(e){}setTimeout(sync,60)};
+   m.querySelector('#hm_o').onclick=function(){try{localStorage.removeItem('hdrRole');localStorage.removeItem('hdrScope')}catch(e){}try{sb.auth.signOut().then(function(){location.href='./'})}catch(e){location.href='./'}};
+   m.querySelector('#hm_m').onclick=function(e){e.stopPropagation();var p=document.getElementById('hm_p');p.hidden=!p.hidden};
+   document.addEventListener('click',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
+  }
+  var lo=hin.querySelector('img.logo');if(lo&&!lo.getAttribute('data-home')){lo.setAttribute('data-home','1');lo.style.cursor='pointer';lo.onclick=function(){location.href='index.html'}}
+  built=1;sync();try{setHH()}catch(e){}
+ }
+ var last='';
+ function sync(){
+  var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
+  var key=[ar,role,sc,ls('hdrPerf'),sess()].join();
+  var l=document.getElementById('hm_l');if(!l)return;
+  l.textContent=ar?'EN':'عربي';
+  var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
+  document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
+  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;if(i[5]==3&&role!='admin'&&ls('hdrPerf')!='1')return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
+  var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
+  var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
+  var hdh=document.getElementById('hd2');if(hdh)hdh.setAttribute('dir',ar?'rtl':'ltr');
+ }
+ function go(){mk();sync()}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',go);else go();
+ var n=0,iv=setInterval(function(){mk();sync();if(++n>40&&built)clearInterval(iv)},400);
+ setInterval(sync,1500);
+})();
+</script>
+</body></html>
