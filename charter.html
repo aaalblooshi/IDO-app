@@ -1458,7 +1458,7 @@ applyStatic();start();
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function lg(){return ls('lang')=='en'?'en':'ar'}
  function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
- var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['perf.html','📈','أداء المستخدمين','Users performance','perf.html',3],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
  var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
  +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
  var built=0;
@@ -1488,12 +1488,12 @@ applyStatic();start();
  var last='';
  function sync(){
   var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
-  var key=[ar,role,sc,sess()].join();
+  var key=[ar,role,sc,ls('hdrPerf'),sess()].join();
   var l=document.getElementById('hm_l');if(!l)return;
   l.textContent=ar?'EN':'عربي';
   var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
   document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
-  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
+  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;if(i[5]==3&&role!='admin'&&ls('hdrPerf')!='1')return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
   var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
   var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
   var hdh=document.getElementById('hd2');if(hdh)hdh.setAttribute('dir',ar?'rtl':'ltr');
@@ -1651,5 +1651,38 @@ applyStatic();start();
   }catch(e){if(typeof msg==='function')msg(T('تم توقيع المراجعة، وتعذّر إكمال توقيع الاعتماد. وقّعه من زر الاعتماد: ','Review signed, but the approval signature failed. Sign it with the approve button: ')+(e.message||e))}
   return res}}
  new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(decorate,80)}).observe(document.body,{childList:true,subtree:true});
+})();</script>
+<script>/*evalbtn*/
+(function(){
+ if(typeof SVC==='undefined'||SVC!=='charter'||typeof sb==='undefined'||!sb)return;
+ const ar=()=>typeof lang!=='undefined'&&lang=='ar',T=(a,e)=>ar()?a:e;
+ const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+ let F=null,AX=[],ANS={},ST=0,BUSY=false,RES=null,tm=null;
+ const css=document.createElement('style');css.textContent='#evo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center}@media(min-width:700px){#evo{align-items:center}}#evb{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px 20px}@media(min-width:700px){#evb{border-radius:18px}}#evb h3{margin:0 0 4px;font-size:18px}#evb .evq{margin:14px 0 6px;font-weight:700;line-height:1.7}#evb .evo{display:flex;gap:8px;flex-wrap:wrap}#evb .evo button{flex:1 1 auto;min-width:96px;padding:10px 12px;border:1.5px solid #d9d4c7;background:#fff;border-radius:12px;font:inherit;font-weight:700;cursor:pointer}#evb .evo button.on{background:#0a6b3d;border-color:#0a6b3d;color:#fff}#evb .evp{height:8px;border-radius:9px;background:#e9e6dd;overflow:hidden;margin:8px 0 4px}#evb .evp i{display:block;height:100%;background:#B39A6B}#evb .evr{text-align:center;padding:18px 8px}#evb .evr b{display:block;font-size:26px;margin:8px 0}#evb .evf{display:flex;gap:8px;justify-content:space-between;margin-top:16px;flex-wrap:wrap}#evb .evm{color:#6b665c;font-size:13.5px}';
+ document.head.appendChild(css);
+ function ptSel(){return document.querySelector('select[data-k="ptype"]')}
+ function decorate(){
+  try{const s=ptSel();if(!s||s.disabled||typeof cr==='undefined'||!cr||!cr.id){const o=document.getElementById('evbtn');if(o&&(!s||s.disabled))o.remove();return}
+   if(document.getElementById('evbtn'))return;
+   const w=document.createElement('div');w.id='evbtn';w.style.cssText='margin:6px 0 2px';
+   w.innerHTML='<button type="button" class="g" onclick="evOpen()">🧮 '+T('تقييم المشروع (اختياري)','Project assessment (optional)')+'</button><div class="evm" style="margin-top:2px;font-size:12.5px;color:#6b665c">'+T('أجب عن أسئلة قصيرة لتعرف إن كان المشروع استراتيجيًا أم تشغيليًا.','Answer a few short questions to see whether the project is strategic or operational.')+'</div>';
+   s.insertAdjacentElement('afterend',w)}catch(_){}}
+ async function load(){if(F)return true;const r=await sb.rpc('eval_form');if(r.error||!Array.isArray(r.data)){alert(T('تعذّر تحميل نموذج التقييم (شغّل ملف التحديث الأخير): ','Could not load the assessment form (run the latest SQL update): ')+(r.error?r.error.message:''));return false}
+  F=r.data;AX=[];F.forEach(q=>{let a=AX.find(x=>x.ax==q.ax);if(!a){a={ax:q.ax,axe:q.axe,qs:[]};AX.push(a)}a.qs.push(q)});return true}
+ window.evOpen=async function(){if(!(await load()))return;ANS={};ST=0;RES=null;let o=document.getElementById('evo');if(o)o.remove();o=document.createElement('div');o.id='evo';o.innerHTML='<div id="evb"></div>';document.body.appendChild(o);o.onclick=e=>{if(e.target==o&&!BUSY)o.remove()};draw()};
+ function draw(){const b=document.getElementById('evb');if(!b)return;
+  if(RES){const st=RES.cls=='strategic';b.innerHTML='<div class="evr"><div class="evm">'+T('التوصية المبدئية','Preliminary recommendation')+'</div><b>'+(st?T('مشروع استراتيجي','Strategic project'):T('مشروع تشغيلي','Operational project'))+'</b><div class="evm">'+(RES.approved?T('تم اعتماد التقييم وتحديث نوع المشروع.','The assessment was approved and the project type updated.'):T('هذه توصية مبدئية، وتخضع لمراجعة واعتماد مكتب التطوير المؤسسي.','This is preliminary and is subject to review and approval by the Institutional Development Office.'))+'</div></div><div class="evf"><button type="button" class="p" onclick="evUse()">'+T('استخدام التوصية في حقل نوع المشروع','Use it in the project type field')+'</button><button type="button" onclick="evClose()">'+T('إغلاق','Close')+'</button></div>';return}
+  const a=AX[ST],last=ST==AX.length-1,done=a.qs.every(q=>ANS[q.id]!=null),tot=F.length,ans=Object.keys(ANS).length;
+  b.innerHTML='<h3>🧮 '+T('تقييم المشروع','Project assessment')+'</h3><div class="evm">'+T('المحور','Axis')+' '+(ST+1)+' '+T('من','of')+' '+AX.length+' — '+E(ar()?a.ax:a.axe)+'</div><div class="evp"><i style="width:'+Math.round(100*ans/tot)+'%"></i></div>'
+   +a.qs.map(q=>'<div class="evq">'+E(ar()?q.q:q.qe)+'</div><div class="evo">'+q.opts.map((o,i)=>'<button type="button" class="'+(ANS[q.id]===i?'on':'')+'" onclick="evAns(\''+q.id+'\','+i+')">'+E(ar()?o.ar:o.en)+'</button>').join('')+'</div>').join('')
+   +'<div class="evf"><button type="button" onclick="'+(ST?'evPrev()':'evClose()')+'">'+(ST?T('السابق','Back'):T('إلغاء','Cancel'))+'</button><button type="button" class="p" '+(done&&!BUSY?'':'disabled style="opacity:.5"')+' onclick="'+(last?'evSend()':'evNext()')+'">'+(last?T('إرسال وعرض التوصية','Submit and see the recommendation'):T('التالي','Next'))+'</button></div>';
+  const bb=b.parentNode;if(bb)b.scrollTop=0}
+ window.evAns=(id,i)=>{ANS[id]=i;draw()};window.evNext=()=>{ST++;draw()};window.evPrev=()=>{ST--;draw()};window.evClose=()=>{const o=document.getElementById('evo');if(o)o.remove()};
+ window.evSend=async function(){if(BUSY)return;BUSY=true;draw();
+  try{const r=await sb.rpc('eval_submit',{p_charter:cr.id,p_answers:ANS});if(r.error)throw r.error;RES=r.data;if(RES&&RES.approved)evUse(true)}
+  catch(e){alert(T('تعذّر إرسال التقييم: ','Could not submit the assessment: ')+(e.message||e))}
+  BUSY=false;draw()};
+ window.evUse=function(silent){const s=ptSel();if(s&&RES){s.value=RES.cls;s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}))}if(silent!==true)evClose()};
+ new MutationObserver(()=>{clearTimeout(tm);tm=setTimeout(decorate,80)}).observe(document.body,{childList:true,subtree:true});decorate();
 })();</script>
 </body></html>
