@@ -1088,6 +1088,7 @@ async function openCR(id){
  const nbar=canNote?`<div class="nbar"><button class="${noteMode?'p':''}" onclick="toggleNoteMode()">💬 ${noteMode?t('noteModeOn'):t('noteMode')}</button>${noteMode?`<div class="mut">${t('noteHint')}</div>`:''}</div>`:'';
  // --- controls
  const sel=(k,list,blank)=>`<select data-k="${k}" ${dis}><option value="">${blank||''}</option>${list.map(([v,l])=>`<option value="${v}" ${String(d[k])==String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select>`;
+ const uinp=k=>`<input data-k="${k}" data-u="1" list="ulist" autocomplete="off" placeholder="${lang=='ar'?'ابحث واختر من المستخدمين':'Search and pick a user'}" value="${esc(d[k])}" ${dis}>`+(k=='pmname'?`<datalist id="ulist">${Object.values(users).filter(u=>u.full_name).sort((a,b)=>a.full_name.localeCompare(b.full_name,'ar')).map(u=>`<option value="${esc(u.full_name)}">${esc(u.job_title||'')}</option>`).join('')}</datalist>`:'');
  const inp=(k,type)=>`<input data-k="${k}" type="${type=='number'?'text':(type||'text')}" ${type=='number'?'inputmode="decimal" data-num="1"':''} value="${esc(d[k])}" ${dis}>`;
  const cell=(a,i,col,v)=>{const at=`data-a="${a}" data-r="${i}" data-c="${col.c}"`;
   if(col.sel)return `<select ${at} ${dis}><option value=""></option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${v==n?'selected':''}>${ad(n)}</option>`).join('')}</select>`;
@@ -1120,8 +1121,8 @@ async function openCR(id){
   ${fld('gov',`<div class="gv">${sel('gov',[['yes',t('yes')],['no',t('no')]])}<div id="govw" style="${d.gov=='yes'?'':'display:none'}">${ed?`<div class="ta-w"><textarea class="ta" data-k="govtxt" placeholder="${t('f_govtxt')}">${esc(d.govtxt)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d.govtxt)||'—'}</div>`}</div></div>`,'full')}
   ${fld('purpose',tx('purpose'),'full')}
   ${fld('dur',`<div class="fg3"><div><label>${t('f_sdate')}</label><input data-k="sdate" type="date" value="${esc(d.sdate)}" ${dis}></div><div><label>${t('f_edate')}</label><input data-k="edate" type="date" value="${esc(d.edate)}" ${dis}></div><div><label>${t('f_months')}</label><div class="dur" id="dur">${durTxt()}</div></div></div>`,'full')}
-  ${fld('owner',inp('owner'))}
-  ${fld('pmname',inp('pmname'))}
+  ${fld('owner',uinp('owner'))}
+  ${fld('pmname',uinp('pmname'))}
   ${fld('sector',sel('sector',LST.sectors.map((_,i)=>[i+1,secL(i+1)])))}
   ${fld('dept',`<select data-k="dept" ${dis||(d.sector?'':'disabled')}><option value=""></option>${deptOpts.map(([v,l])=>`<option value="${v}" ${String(d.dept)==String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select>`)}
   ${fld('budget',inp('budget','number'),'full')}
@@ -1143,6 +1144,7 @@ document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
  if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}
  if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;
+ if(x.dataset.u&&x.value&&!Object.values(users).some(u=>u.full_name===x.value)){const old=(cr.data[x.dataset.k]||'');msg(lang=='ar'?'اختر اسمًا من قائمة المستخدمين.':'Pick a name from the users list.');x.value=Object.values(users).some(u=>u.full_name===old)?old:'';cr.data[x.dataset.k]=x.value;return}
  if(x.dataset.k=='sector'){cr.data.sector=x.value;cr.data.dept='';fillDept()}
  if(x.dataset.k=='gov'){const g=$('govw');if(g){g.style.display=x.value=='yes'?'':'none';fit()}}
  if(x.dataset.a&&x.dataset.c=='i'||x.dataset.c=='x'){const b=$('rk_'+x.dataset.r);if(b&&cr.data.risks[+x.dataset.r])b.outerHTML=riskHTML(cr.data.risks[+x.dataset.r],+x.dataset.r)}
@@ -1864,4 +1866,12 @@ body{background:var(--bg)}
 #hd2{border-bottom:0!important;box-shadow:0 2px 10px rgba(30,60,90,.06)}
 button.p,.btn.p{background:var(--g);border-color:var(--g)}
 </style>
-<script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script></body></html>
+<script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><script>/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
+var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
+var RE=new RegExp('('+D+')\\s*(?:→|←|⟵|⟶)\\s*('+D+')','u');
+var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
+function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('→')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
+ L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
+var q=0;function go(){q=0;try{walk(document.body)}catch(e){}}
+new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
+</script></body></html>
