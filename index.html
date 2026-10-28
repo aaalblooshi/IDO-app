@@ -185,6 +185,7 @@ const AXES=[
   title:{ar:'إدارة المشاريع',en:'Project Management'},
   desc:{ar:'خدمات دورة حياة المشروع من الإطلاق حتى الإغلاق',en:'Services across the project life cycle, from launch to closure'},
   services:[
+   {icon:'layers',status:'live',href:'myprojects.html',title:{ar:'مشاريعي',en:'My projects'},desc:{ar:'كل المشاريع التي لك فيها دور: الرحلة والخطة والجدول الزمني والمهام والطلبات في مكان واحد.',en:'Every project you have a role in: journey, plan, timeline, tasks and requests in one place.'}},
    {icon:'check',status:'live',href:'tasks.html',stats:'tk',title:{ar:'مهامي',en:'My tasks'},desc:{ar:'مهامك في خطط المشاريع: التنفيذ والإنجاز والمرفقات والمتابعة.',en:'Your tasks in project plans: execution, progress, attachments and follow-up.'}},
    {icon:'plus',status:'live',href:'charter.html',stats:'ch',title:{ar:'المشاريع (ميثاق المشروع)',en:'Projects (Charter)'},desc:{ar:'إعداد ميثاق المشروع ومراجعته واعتماده إلكترونيًا مع التواقيع والمتابعة.',en:'Prepare, review and approve the project charter electronically, with signatures and tracking.'}},
    {icon:'file',status:'live',href:'plan.html',stats:'pl',title:{ar:'خطط المشاريع',en:'Project Plans'},desc:{ar:'بناء خطة المشروع بأنشطة ومهام ومخطط جانت تفاعلي مع المراجعة والاعتماد.',en:'Build the project plan with activities, tasks and an interactive Gantt chart, with review and approval.'}},
@@ -861,7 +862,7 @@ function search(){var r=document.getElementById('cmres'),q=norm(document.getElem
  if(its.length)h+='<div class="cm-g">'+P(['طلباتي ومشاريعي','My requests'])+' ('+AR(its.length)+')</div>'+its.map(function(m){return'<a href="'+m.x.p+'#o='+m.x.id+'">'+esc(m.x.name||m.x.code)+'<small>'+esc(P(window.JNX.SV[m.x.k].t))+' · '+esc(st(m))+'</small></a>'}).join('');
  var sv=[];(window.AXES||[]).forEach(function(a){a.services.forEach(function(s){if(s.status=='live'&&q&&norm(s.title.ar+' '+s.title.en+' '+s.desc.ar).indexOf(q)>=0)sv.push(s)})});
  if(sv.length)h+='<div class="cm-g">'+P(['الخدمات','Services'])+'</div>'+sv.slice(0,5).map(function(s){return'<a href="'+esc(s.href)+'">'+esc(s.title[lang]||s.title.ar)+'</a>'}).join('');
- var pg=[['inbox.html',['الإشعارات','Notifications']],['projects.html',['المشاريع','Projects']],['tasks.html',['مهامي','My tasks']],['portfolio.html',['المحفظة','Portfolio']],['archive.html',['الأرشيف','Archive']],['help.html',['المساعدة','Help']]].filter(function(z){return q&&norm(P(z[1])).indexOf(q)>=0});
+ var pg=[['myprojects.html',['مشاريعي','My projects']],['inbox.html',['الإشعارات','Notifications']],['projects.html',['المشاريع','Projects']],['tasks.html',['مهامي','My tasks']],['portfolio.html',['المحفظة','Portfolio']],['archive.html',['الأرشيف','Archive']],['help.html',['المساعدة','Help']]].filter(function(z){return q&&norm(P(z[1])).indexOf(q)>=0});
  if(pg.length)h+='<div class="cm-g">'+P(['صفحات','Pages'])+'</div>'+pg.map(function(z){return'<a href="'+z[0]+'">'+esc(P(z[1]))+'</a>'}).join('');
  if(!q)h='<div class="cm-g">'+P(['جرّب: «ميثاق جديد» أو اسم مشروع أو «المحفظة»','Try: “new charter”, a project name or “portfolio”'])+'</div>';
  else if(!h)h='<div class="cm-g">'+P(['لا نتائج مطابقة','No matches'])+'</div>';
