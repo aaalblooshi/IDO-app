@@ -733,7 +733,7 @@ cfg()
   b.onclick=function(e){e.preventDefault();e.stopPropagation();show(k,lb.textContent.replace('*','').trim())};lb.after(b)})}
  var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,120)}).observe(document.body,{childList:true,subtree:true});scan();
 })();</script>
-<style>/*cmdhome-css*/
+<script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><style>/*cmdhome-css*/
 body.cmon .hero{display:none}
 body.cmon{overflow-x:clip;--bg:#eef3f8;--line:#dbe4ec;background:radial-gradient(800px 380px at 100% -60px,#d3e8f6 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#f4ecd8 0,transparent 58%),#eef3f8;background-attachment:fixed}
 body.cmon #hd,body.cmon #hd2{border-bottom:0}body.cmon header .stripe i:nth-child(1){background:#BF9849}body.cmon header .stripe i:nth-child(2){background:#3EA3DC}body.cmon header .stripe i:nth-child(3){background:#1d5f8a}body.cmon header .stripe i:nth-child(4){background:#c9d6e2}
