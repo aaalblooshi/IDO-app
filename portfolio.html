@@ -183,9 +183,10 @@ async function start(){
  GRP={};gr.forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRP[x.pcode]=1});
  CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
  ss.forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
+ try{const wr=await sb.rpc('project_weights');WM={};if(!wr.error)(wr.data||[]).forEach(x=>WM[x.pcode]=+x.weight)}catch(_){}
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||p.id>best[k].id)best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,an=analyze(p.tasks||[],p.wm),c=CFG[k]||{};
-  return {k,id:p.id,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+  return {k,id:p.id,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
  PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
  draw()}
 const wavg=(arr,f)=>{const W=arr.reduce((s,p)=>s+p.w,0);return W?arr.reduce((s,p)=>s+f(p)*p.w,0)/W:0};
@@ -205,10 +206,11 @@ function draw(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
  const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
- $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${['exe','sum','tree','wbs','gantt','rec','rep'].map(tab).join('')}</div>
+ $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${['exe','sum','tree','wbs','gantt','rec','rep'].concat(ADM?['wts']:[]).map(tab).join('')}</div>
  <div class="row" style="margin-top:0"><select id="fs" style="flex:1"><option value="">${t('allSec')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select>
  <select id="fp" style="flex:2"><option value="">${t('allP')}</option>${PL.filter(p=>!FS||p.sc==FS).map(p=>`<option value="${esc(p.k)}" ${FP==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><div id="body"></div>`;
  $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
+ if(TAB=='wts'&&ADM)return vWts();
  if(!PL.length){$('body').innerHTML=`<div class="card mut">${t('none')}</div>`;return}
  ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec})[TAB]()}
 /* ---- executive summary ---- */
@@ -604,6 +606,59 @@ async function repPptx(){
 
 boot();
 
+/* ===== أوزان المشاريع (منهجية التقييم) ===== */
+Object.assign(D,{tWts:['الأوزان','Weights'],
+ w_t:['أوزان المشاريع','Project weights'],w_h:['وزن كل مشروع اعتُمد ميثاقه = نتيجته بعد التصنيف ÷ مجموع النتائج. تتغير الأوزان تلقائيًا بإضافة المشاريع وإلغائها، ويمكن تثبيت وزن يدوي لمشروع.','Each chartered project’s weight = its adjusted score ÷ the total. Weights update automatically as projects are added or cancelled; a manual weight can be fixed per project.'],
+ w_p:['المشروع','Project'],w_ev:['التقييم','Assessment'],w_cat:['الفئة','Category'],w_adj:['النتيجة بعد التصنيف','Adjusted score'],w_w:['الوزن %','Weight %'],w_man:['وزن يدوي %','Manual %'],w_act:['إجراء','Action'],
+ w_def:['افتراضي','Default'],w_noeval:['بلا تقييم','Not assessed'],w_unc:['غير مصنّف: تُحتسب فئة افتراضية','Unclassified: default category applies'],w_chg:['الخطة عُدّلت بعد آخر تقييم','Plan changed since last assessment'],
+ w_do:['تقييم','Assess'],w_re:['إعادة تقييم','Reassess'],w_rev:['مراجعة','Review'],w_pend:['تقييمات بانتظار اعتمادك','Assessments awaiting your approval'],w_by:['بواسطة','by'],
+ w_tot:['مجموع الأوزان','Total weights'],w_n:['المشاريع','Projects'],w_nc:['غير مصنّفة','Unclassified'],w_none:['لا توجد مشاريع معتمدة الميثاق بعد.','No projects with an approved charter yet.'],w_err:['تعذّر تحميل الأوزان (شغّل ملف التحديث الأخير).','Could not load weights (run the latest SQL update).'],
+ w_dl:['تنزيل (Excel)','Download (Excel)'],w_ap:['اعتماد','Approve'],w_sv:['حفظ التقييم','Save assessment'],w_del:['حذف التقييم','Delete assessment'],w_cl:['إغلاق','Close'],w_pick:['— اختر —','— choose —'],w_all:['أجب عن كل الأسئلة.','Answer all questions.'],w_pre:['النتيجة المتوقعة','Expected result'],w_st:['استراتيجي','Strategic'],w_op:['تشغيلي','Operational'],w_ok:['تم','Done'],w_cdel:['حذف هذا التقييم نهائيًا؟','Delete this assessment permanently?'],w_dash:['—','—']});
+let WM={},WL=null,WPEND=[],EMOD=null,EFRM=null,EVD=null;
+const wN=(x,d)=>x==null?'—':(Math.round(x*Math.pow(10,d||1))/Math.pow(10,d||1)).toLocaleString('en');
+let WBUSY=false;
+async function wLoad(){WBUSY=true;
+ try{const r=await sb.rpc('weights_list');if(r.error)throw r.error;WL=r.data||[];
+  const p=await sb.from('project_evals').select('*').eq('status','pending').order('created_at',{ascending:false});WPEND=p.data||[]}
+ catch(e){WL=false}
+ WBUSY=false;draw()}
+function vWts(){const B=$('body');if(WL==null){if(!WBUSY)wLoad();B.innerHTML=`<div class="card mut">${t('loading')}</div>`;return}
+ if(WL===false){B.innerHTML=`<div class="card mut">${t('w_err')}</div>`;return}
+ const L=WL||[],cats=(EMOD&&EMOD.cats)||[],cn=k=>{const c=cats.find(x=>x.k==k);return c?(lang=='ar'?c.ar:c.en):k||''};
+ if(!EMOD&&!EVD){wModel().then(()=>draw());}
+ const tot=L.reduce((a,x)=>a+(+x.weight||0),0),unc=L.filter(x=>!x.cat_set&&x.score==null).length,mx=Math.max(1,...L.map(x=>+x.weight||0));
+ const pend=WPEND.map(e=>{const pr=L.find(x=>x.pcode==e.pcode);return `<div class="tk"><b>${esc(pr?pr.name||e.pcode:e.pcode)}</b> <span class="mut num">${esc(e.pcode)}</span><div class="mut">${t('w_by')} ${esc(e.by_name||'')} · <span class="num">${fd(e.created_at)}</span> · <span class="num">${wN(e.score)}%</span> · ${t(e.cls=='strategic'?'w_st':'w_op')}</div><div class="pb"><button class="p" onclick="wOpen('${e.pcode}',${e.id})">${t('w_rev')}</button></div></div>`}).join('');
+ const rows=L.map((x,i)=>`<tr><td class="num">${i+1}</td><td style="min-width:150px"><b>${esc(x.name||x.pcode)}</b><div class="mut num">${esc(x.pcode)}</div>${x.changed?`<div class="chp o" title="${t('w_chg')}">⚠ ${t('w_chg')}</div>`:''}${x.pending?`<div class="chp b">${x.pending}</div>`:''}</td>
+ <td>${x.score!=null?`<b class="num">${wN(x.score)}%</b><div class="mut">${t(x.cls=='strategic'?'w_st':'w_op')} · <span class="num">${fd(x.eval_at)}</span></div>`:`<span class="mut">${t('w_noeval')}</span><div class="mut">${t('w_def')}: <span class="num">${wN(x.base)}</span></div>`}</td>
+ <td><select onchange="wCat('${x.pcode}',this.value)"><option value="" ${!x.cat_set?'selected':''}>${x.cat_set?'—':cn(x.cat)+' ('+t('w_def')+')'}</option>${cats.map(c=>`<option value="${c.k}" ${x.cat_set&&x.cat==c.k?'selected':''}>${esc(lang=='ar'?c.ar:c.en)}</option>`).join('')}</select></td>
+ <td class="num">${wN(x.adj)}</td><td style="min-width:110px"><b class="num">${wN(x.weight,2)}%</b><div class="bar"><i style="width:${Math.round(100*(+x.weight||0)/mx)}%;background:#B39A6B"></i></div></td>
+ <td><input type="number" step="any" min="0" max="100" style="width:72px;direction:ltr" value="${x.w_manual==null?'':x.w_manual}" onchange="wMan('${x.pcode}',this.value)"></td>
+ <td><button onclick="wOpen('${x.pcode}')">${x.score!=null?t('w_re'):t('w_do')}</button></td></tr>`).join('');
+ B.innerHTML=`<div class="card"><h2 class="xs">${t('w_t')}</h2><div class="mut">${t('w_h')}</div>
+ <div class="kp" style="margin-top:8px"><div><b class="num">${L.length}</b><span>${t('w_n')}</span></div><div><b class="num">${wN(tot,1)}%</b><span>${t('w_tot')}</span></div><div><b class="num ${unc?'wa':''}">${unc}</b><span>${t('w_nc')}</span></div><div><b class="num">${WPEND.length}</b><span>${t('w_pend')}</span></div></div>
+ <div class="row" style="margin-top:8px"><button onclick="wDl()">${t('w_dl')}</button></div></div>
+ ${WPEND.length?`<div class="card"><h2 class="xs">${t('w_pend')}</h2>${pend}</div>`:''}
+ <div class="card" style="overflow:auto">${L.length?`<table class="xt" style="min-width:760px"><tr><th>#</th><th>${t('w_p')}</th><th>${t('w_ev')}</th><th>${t('w_cat')}</th><th>${t('w_adj')}</th><th>${t('w_w')}</th><th>${t('w_man')}</th><th>${t('w_act')}</th></tr>${rows}</table>`:`<div class="mut">${t('w_none')}</div>`}</div>${EVD?wModal():''}`}
+async function wModel(){try{const r=await sb.from('eval_model').select('model').eq('id',1).maybeSingle();EMOD=r.data?r.data.model:{items:[],sets:{},cats:[],thr:70}}catch(_){EMOD={items:[],sets:{},cats:[],thr:70}}}
+const wCat=(pc,v)=>run(async()=>{const r=await sb.rpc('eval_set_cat',{p_code:pc,p_cat:v||''});if(r.error)throw r.error;await wLoad()});
+const wMan=(pc,v)=>run(async()=>{const n=v===''?null:Math.max(0,Math.min(100,+v));const r=await sb.rpc('eval_set_manual',{p_code:pc,p_w:n});if(r.error)throw r.error;await wLoad()});
+async function wOpen(pc,evId){if(!EFRM){const r=await sb.rpc('eval_form');if(r.error)return toast(t('err')+r.error.message);EFRM=r.data}
+ if(!EMOD)await wModel();const pr=(WL||[]).find(x=>x.pcode==pc);let ans={};if(evId){const e=WPEND.find(x=>x.id==evId);if(e)ans={...e.answers}}
+ EVD={pc,evId:evId||null,cid:pr?pr.charter_id:null,name:pr?pr.name:pc,ans};draw()}
+function wScore(ans){const m=EMOD;if(!m||!m.items)return null;let tot=0,mx=0;m.items.forEach(it=>{const s=m.sets[it.set]||[],i=ans[it.id];if(i==null||i==='')return;tot+=(+it.w||0)*(+(s[i]||[])[2]||0);mx+=(+it.w||0)*Math.max(...s.map(o=>+o[2]||0))});return mx?Math.round(tot/mx*1000)/10:0}
+function wModal(){const d=EVD,a=lang=='ar',ans=d.ans,cnt=Object.keys(ans).filter(k=>ans[k]!=='').length,all=cnt==EFRM.length,sc=all?wScore(ans):null;let ax='';
+ const qs=EFRM.map(q=>{let h='';if(q.ax!=ax){ax=q.ax;h=`<h3 style="margin:12px 0 2px;font-size:14px;color:#7a6330">${esc(a?q.ax:q.axe)}</h3>`}return h+`<div style="margin:4px 0"><div style="font-size:13px">${esc(a?q.q:q.qe)}</div><select onchange="EVD.ans['${q.id}']=this.value===''?'':+this.value;draw2()"><option value="">${t('w_pick')}</option>${q.opts.map((o,i)=>`<option value="${i}" ${ans[q.id]===i?'selected':''}>${esc(a?o.ar:o.en)}</option>`).join('')}</select></div>`}).join('');
+ return `<div class="sov" onclick="if(event.target==this){EVD=null;draw()}"><div class="sbx"><h3>${esc(d.name)}</h3><div class="mut num">${esc(d.pc)}</div>${qs}
+ <div class="card" style="margin-top:10px">${sc==null?`<span class="mut">${t('w_all')} (${cnt}/${EFRM.length})</span>`:`${t('w_pre')}: <b class="num">${wN(sc)}%</b> — ${t(sc>=(+EMOD.thr||70)?'w_st':'w_op')}`}</div>
+ <div class="row" style="margin-top:10px"><button class="p" ${all?'':'disabled style="opacity:.5"'} onclick="wSave()">${d.evId?t('w_ap'):t('w_sv')}</button>${d.evId?`<button onclick="wDelEv()" style="color:#d1101d">${t('w_del')}</button>`:''}<button onclick="EVD=null;draw()">${t('w_cl')}</button></div></div></div>`}
+function draw2(){const y=(document.querySelector('.sbx')||{}).scrollTop||0;draw();const e=document.querySelector('.sbx');if(e)e.scrollTop=y}
+const wSave=()=>run(async()=>{const d=EVD;if(d.evId){const r=await sb.rpc('eval_approve',{p_id:d.evId,p_answers:d.ans});if(r.error)throw r.error}else{if(!d.cid)throw new Error('charter');const r=await sb.rpc('eval_submit',{p_charter:d.cid,p_answers:d.ans});if(r.error)throw r.error}EVD=null;await wLoad()},t('w_ok'));
+const wDelEv=()=>run(async()=>{if(!confirm(t('w_cdel')))return;const r=await sb.from('project_evals').delete().eq('id',EVD.evId);if(r.error)throw r.error;EVD=null;await wLoad()},t('w_ok'));
+function wDl(){const a=lang=='ar',q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',L=WL||[],cn=k=>{const c=((EMOD||{}).cats||[]).find(x=>x.k==k);return c?(a?c.ar:c.en):k||''};
+ const head=a?['رمز المشروع','المشروع','نسبة التقييم','التصنيف','تاريخ التقييم','الفئة','القيمة المعتمدة','النتيجة بعد التصنيف','الوزن %','وزن يدوي %']:['Code','Project','Assessment %','Class','Assessed on','Category','Base value','Adjusted score','Weight %','Manual %'];
+ const rows=L.map(x=>[x.pcode,x.name||'',x.score==null?'':x.score,x.cls?t(x.cls=='strategic'?'w_st':'w_op'):'',x.eval_at?fd(x.eval_at):'',cn(x.cat),x.base,x.adj,x.weight,x.w_manual==null?'':x.w_manual]);
+ const csv='﻿'+[head,...rows].map(r=>r.map(q).join(',')).join('\r\n'),u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),l=document.createElement('a');l.href=u;l.download='project-weights-'+ds(TODAY)+'.csv';document.body.appendChild(l);l.click();setTimeout(()=>{URL.revokeObjectURL(u);l.remove()},500)}
+
 </script><script>/*pwareg*/
 (function(){
  if('serviceWorker' in navigator)window.addEventListener('load',function(){try{navigator.serviceWorker.register('sw.js').catch(function(){})}catch(e){}});
@@ -653,7 +708,7 @@ boot();
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  function lg(){return ls('lang')=='en'?'en':'ar'}
  function sess(){try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(/^sb-.*-auth-token$/.test(k))return true}}catch(e){}return false}
- var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
+ var ITEMS=[['./','🏠','الرئيسية','Home','index.html',0],['tasks.html','✅','مهامي','My tasks','tasks.html',0],['inbox.html','🔔','الإشعارات','Notifications','inbox.html',0],['projects.html','📁','المشاريع','Projects','projects.html',0],['portfolio.html','📊','المحفظة','Portfolio','portfolio.html',2],['perf.html','📈','أداء المستخدمين','Users performance','perf.html',3],['account.html','👤','حسابي','My account','account.html',0],['settings.html','⚙','الإعدادات','Settings','settings.html',1],['users.html','🛠','إدارة المستخدمين','User management','users.html',1],['archive.html','🗂','الأرشيف','Archive','archive.html',1],['help.html','❓','المساعدة والجولة','Help & tour','help.html',0]];
  var CSS='#hd2{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid #e4dfd4}#hd2 .hin{max-width:1200px;margin:0 auto;padding:7px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}#hd2 .logo{height:44px;width:auto;display:block;cursor:pointer}#hd2 .stripe{display:flex;height:4px}#hd2 .stripe i{flex:1}#hd2 .stripe i:nth-child(1){background:#d1101d}#hd2 .stripe i:nth-child(2){background:#0a6b3d}#hd2 .stripe i:nth-child(3){background:#1b1d1f}#hd2 .stripe i:nth-child(4){background:#a8a7a7}#hd2 .ttl{max-width:1200px;margin:0 auto;padding:4px 14px 7px;font-weight:800;font-size:17px;color:#23272b;display:flex;align-items:center;gap:8px}'
  +'.hm{display:flex;gap:6px;align-items:center;position:relative}.hm .hmb{padding:7px 12px;border-radius:99px;border:1px solid #e4dfd4;background:#fff;font:700 13px/1.2 Cairo,system-ui,sans-serif;color:#23272b;white-space:nowrap;cursor:pointer;min-height:36px}.hm .hmm{background:#23272b;color:#fff;border-color:#23272b}.hmw{position:relative}.hmp{position:absolute;top:calc(100% + 6px);inset-inline-end:0;min-width:210px;background:#fff;border:1px solid #e4dfd4;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;z-index:60}.hmp a{display:flex;gap:10px;align-items:center;padding:11px 12px;border-radius:10px;color:#23272b;text-decoration:none;font:700 14.5px/1.3 Cairo,system-ui,sans-serif;white-space:nowrap}.hmp a:active,.hmp a:hover{background:#f1efe8}.hmp a.on{background:#e5f2ea;color:#0a6b3d}.hmp a i{font-style:normal;width:22px;text-align:center}.hmp[hidden]{display:none}@media print{#hd2,.hm{display:none!important}}';
  var built=0;
@@ -683,12 +738,12 @@ boot();
  var last='';
  function sync(){
   var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
-  var key=[ar,role,sc,sess()].join();
+  var key=[ar,role,sc,ls('hdrPerf'),sess()].join();
   var l=document.getElementById('hm_l');if(!l)return;
   l.textContent=ar?'EN':'عربي';
   var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
   document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
-  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
+  var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;if(i[5]==3&&role!='admin'&&ls('hdrPerf')!='1')return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
   var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
   var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
   var hdh=document.getElementById('hd2');if(hdh)hdh.setAttribute('dir',ar?'rtl':'ltr');
