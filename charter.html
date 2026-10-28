@@ -446,7 +446,7 @@ const W=[
 ["noteHint","Optional. Open a tab, tap 💬 beside any field and write a note. Notes reach the requester when you return the request. Leave fields empty if no note.","اختياري. افتح أي تبويب واضغط 💬 بجانب الحقل واكتب ملاحظتك. تصل الملاحظات لمقدّم الطلب عند إعادة الطلب. اترك الحقل فارغاً إن لم تكن هناك ملاحظة."],
 ["notePh","Note for the requester on this field…","ملاحظة لمقدّم الطلب على هذا الحقل…"],
 ["noteTitle","Note from","ملاحظة من"],
-["noteBannerRet","This request was returned with notes on {n} field(s). Each note appears in red under its field.","أُعيد هذا الطلب مع ملاحظات على {n} حقل. تظهر كل ملاحظة بإطار أحمر تحت الحقل المعني."],
+["noteBannerRet","This request was returned with notes on {n} field(s). Each note appears in red under its field.","أُعيد هذا الطلب مع ملاحظات على الحقول المعلَّمة (العدد: {n}). تظهر كل ملاحظة بإطار أحمر تحت الحقل المعني."],
 ["noteBannerOld","Notes from the previous return (version {v}) are shown under the fields.","ملاحظات الإعادة السابقة (الإصدار {v}) ظاهرة تحت الحقول."]
 ,
 ["appTitle", "Project Charter Preparation", "إعداد ميثاق المشروع"],
@@ -478,7 +478,7 @@ const W=[
 ["confirmCancel", "Cancel this charter? It will be closed and no longer processed.", "هل تريد إلغاء هذا الميثاق؟ سيتم إغلاقه ولن تتم معالجته."],
 ["noteHint", "Optional. Open a tab, tap 💬 beside any field and write a note. Notes reach the preparer when you return the charter. Leave fields empty if no note.", "اختياري. افتح أي تبويب واضغط 💬 بجانب أي حقل واكتب ملاحظة. تصل الملاحظات إلى المُعِدّ عند إعادة الميثاق. اترك الحقول فارغة إن لم تكن لديك ملاحظة."],
 ["notePh", "Note for the preparer on this field…", "ملاحظة للمُعِدّ على هذا الحقل…"],
-["noteBannerRet", "This charter was returned with notes on {n} field(s). Each note appears in red under its field.", "أُعيد هذا الميثاق مع ملاحظات على {n} حقل. تظهر كل ملاحظة بإطار أحمر تحت حقلها."],
+["noteBannerRet", "This charter was returned with notes on {n} field(s). Each note appears in red under its field.", "أُعيد هذا الميثاق مع ملاحظات على الحقول المعلَّمة (العدد: {n}). تظهر كل ملاحظة بإطار أحمر تحت حقلها."],
 ["noteBannerOld", "Notes from the previous return (version {v}) are shown under the fields.", "ملاحظات الإعادة السابقة (الإصدار {v}) ظاهرة تحت الحقول."],
 ["x_formTitle", "Project Charter", "ميثاق مشروع"],
 ["x_code", "Project code", "رمز المشروع"],
@@ -725,6 +725,7 @@ const W=[
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
 let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
+const ARN=s=>{if(lang!='ar')return s;const F={'أيام عمل':['يوم عمل واحد','يوما عمل','أيام عمل','يوم عمل'],'يوم عمل':['يوم عمل واحد','يوما عمل','أيام عمل','يوم عمل'],'يوم':['يوم واحد','يومان','أيام','يومًا']};return String(s).replace(/(\d+) (أيام عمل|يوم عمل|يوم)(?![\u0621-\u064a])/g,(m,n,w)=>{n=+n;const f=F[w];return n==1?f[0]:n==2?f[1]:n+' '+((n>=3&&n<=10)||n==0?f[2]:f[3])})};
 /* ===== configurable lists (sectors, departments, goals, types...) and roles ===== */
 let SET={},ROLES={},LST={};
 const adg=n=>String(n).replace(/\d/g,c=>'0123456789'[c]);
@@ -900,7 +901,7 @@ function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.s
  if(st=='Awaiting Approval')return nm('approved');
  return ''}
 function rowH(x,rem){const r=x.r,s=STEP[r.status],f=FIN(r.status);
- return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${x.del?delB():''}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${x.days} ${t('wdayW')}${HOLD.includes(r.status)?` <span class="sla ${x.late?'late':''}">${x.late?t('slaLate').replace('{n}',x.late):t('slaOk').replace('{n}',SLA)}</span>`:''}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
+ return `<div class="item"><div class="top"><b>${esc(r.code)} · ${esc(r.data.pname||'')}</b><span class="pls">${pillS(r.status)}${x.del?delB():''}</span></div><div class="pg">${[0,1,2,3,4].map(i=>`<i class="${i<=s?'on':''}"></i>`).join('')}</div><div class="mut">${t('createdCol')}: ${esc(users[r.created_by]?.full_name||'')}${f?'':` · ${t('with')}: ${esc(whoOf(x))} · ${ARN(x.days+' '+t('wdayW'))}${HOLD.includes(r.status)?` <span class="sla ${x.late?'late':''}">${x.late?ARN(t('slaLate').replace('{n}',x.late)):ARN(t('slaOk').replace('{n}',SLA))}</span>`:''}`}${x.rel.length?` · ${x.rel.map(k=>t('r_'+k)).join(' / ')}`:''}</div><div class="row" style="margin-top:6px">${x.act?`<span class="pill act">${t(x.act)}</span>`:''}<button class="sm" onclick="openCR(${r.id})">${t('open')}</button></div></div>`}
 function passF(x,f){const r=x.r,adm=me.role=='admin';
  if(!f)return true;
  if(f=='action')return !!x.act;
@@ -1879,14 +1880,16 @@ html[dir=ltr] .pgban{background:radial-gradient(circle at 0 0,rgba(255,255,255,.
 @media(max-width:520px){.pgban{padding:14px;border-radius:18px}.pgban h1{font-size:19px}}
 </style>
 <script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><script>/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
-var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
+var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{4}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
 var RE=new RegExp('('+D+')\\s*(?:→|←|⟵|⟶)\\s*('+D+')','u');
 var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
 function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('→')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
  L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
-var q=0;function go(){q=0;try{walk(document.body)}catch(e){}}
-new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
-</script><script>/*pgban*/(function(){var f=(location.pathname.split('/').pop()||'').replace('.html','');if(window.top!==window.self)return;
+var S1=/(?:\d{4}-\d{2}-\d{2}|[\d\u0660-\u0669]{1,2}\/[\d\u0660-\u0669]{1,2}\/[\d\u0660-\u0669]{4})/;
+function walk1(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||!S1.test(n.nodeValue))return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON|SELECT|text|tspan)$/.test(p.tagName)||p.closest('.dr,svg,[contenteditable],.no-dr,#toast'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
+ L.forEach(function(n){var s=n.nodeValue,m=S1.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr dr1';sp.textContent=m[0];f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
+var q=0;function go(){q=0;try{walk(document.body);walk1(document.body)}catch(e){}}
+new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();</script><script>/*pgban*/(function(){var f=(location.pathname.split('/').pop()||'').replace('.html','');if(window.top!==window.self)return;
 var S={tasks:['مهامي','My tasks','مهامك في خطط المشاريع: أنجزها وتابع مواعيدها','Your tasks in project plans: complete them and follow deadlines'],inbox:['الإشعارات','Notifications','التنبيهات والإجراءات الموجّهة إليك','Alerts and actions directed to you'],projects:['المشاريع','Projects','كل المشاريع وحالة وثائقها وإدارتها','All projects, their documents and management'],portfolio:['المحفظة','Portfolio','إنجاز المشاريع على مستوى القطاعات والمركز','Project delivery across sectors and the center'],archive:['الأرشيف','Archive','الوثائق والمشاريع المؤرشفة','Archived documents and projects'],perf:['أداء المستخدمين','Users performance','مؤشرات أداء المستخدمين ضمن نطاقك','User performance indicators within your scope'],users:['إدارة المستخدمين','User management','الحسابات والأدوار والصلاحيات','Accounts, roles and permissions'],roles:['الأدوار','Roles','أدوار المستخدمين وصلاحياتها','User roles and permissions'],settings:['الإعدادات','Settings','إعدادات المنصة والتنبيهات','Platform and alert settings'],account:['حسابي','My account','بياناتك وتفضيلاتك','Your details and preferences'],help:['المساعدة','Help','دليل استخدام المنصة','Platform guide']};
 if(!S[f])return;function go(){var m=document.querySelector('main');if(!m||document.getElementById('pgban')||document.querySelector('.hero'))return;var ar=(document.documentElement.lang||'ar')=='ar',d=document.createElement('div');d.id='pgban';d.className='pgban';d.innerHTML='<h1></h1><p></p>';m.parentNode.insertBefore(d,m);var cs=getComputedStyle(m),mw=cs.maxWidth;if(mw&&mw!='none'){d.style.maxWidth=(parseFloat(mw)-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0))+'px'}d.style.width='calc(100% - 32px)';upd()}
 function upd(){var d=document.getElementById('pgban');if(!d)return;var ar=(document.documentElement.lang||'ar')=='ar',s=S[f];d.firstChild.textContent=ar?s[0]:s[1];d.lastChild.textContent=ar?s[2]:s[3]}
