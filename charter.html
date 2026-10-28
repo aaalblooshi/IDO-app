@@ -107,6 +107,7 @@ button,select,input,textarea,a,label,.item,.tile{touch-action:manipulation;-webk
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}@media(max-width:520px){.fg3{grid-template-columns:1fr 1fr}.fg3>div:last-child{grid-column:1/-1}}
 .fg3>div{min-width:0}.fg3 input{min-width:0;width:100%;max-width:100%}input[type=date]{min-width:0;max-width:100%;-webkit-appearance:none;appearance:none}
 .dur{padding:9px 12px;border-radius:10px;background:var(--g2);color:var(--g);font-weight:800;min-height:42px}
+.fzt{border-collapse:collapse;width:100%;font-size:13px}.fzt th,.fzt td{border:1px solid var(--line);padding:5px;text-align:center}.fzt td:first-child{text-align:start}.fzt th{background:var(--g2)}.fzt input{width:100%;min-width:56px;box-sizing:border-box}
 .lrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}.sh.acc{padding:0}.sh-h{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}.sh-h .no{min-width:26px;height:26px;border-radius:50%;background:var(--g);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}.sm-t{flex:1;min-width:0;display:flex;flex-direction:column}.sm-t b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sm-t .mut{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.chv{transition:transform .2s;font-size:18px;color:var(--g)}.sh.acc.open .chv{transform:rotate(180deg)}.sh-b{display:none;padding:0 12px 12px;border-top:1px solid var(--line)}.sh.acc.open .sh-b{display:block}.sh.acc.open{border-color:var(--g)}.pbox{border:1px dashed var(--g);border-radius:12px;padding:10px;margin:8px 0;background:#f4faf6}.pbox textarea{width:100%;margin:8px 0;box-sizing:border-box}
 .rk{display:inline-block;padding:3px 14px;border-radius:99px;font-weight:800;color:#fff}.rk.low{background:#0a6b3d}.rk.med{background:#f2c200;color:#1b1d1f}.rk.high{background:#d1101d}.rk.none{background:#e4dfd4;color:#6b6f76}
 </style></head><body>
@@ -583,7 +584,7 @@ const W=[
 ["assignTo", "User who will complete the charter", "المستخدم الذي سيُكمل الميثاق"],
 ["extraAppNote", "The document stays approved. To get an additional approval, add the approver above; he/she will see a sign button and the document is not affected.", "تبقى الوثيقة معتمدة. لطلب اعتماد إضافي أضف المعتمد أعلاه فيظهر له زر الاعتماد دون أن تتأثر حالة الوثيقة."],
 ["tab_fz", "Feasibility study", "دراسة الجدوى"],
-["fz_t", "Feasibility study (form IDO-01-FM03 · v1.0)", "نموذج دراسة الجدوى (IDO-01-FM03 · الإصدار 1.0)"],
+["fz_t", "Feasibility study form", "نموذج دراسة الجدوى"],
 ["fz_on", "Attach a feasibility study to this charter", "إرفاق دراسة جدوى بهذا الميثاق"],
 ["fz_no", "No (optional)", "لا (اختيارية)"],
 ["fz_yes", "Yes", "نعم"],
@@ -592,10 +593,10 @@ const W=[
 ["fz_ev", "Final evaluation (weights)", "التقييم النهائي (الأوزان)"],
 ["fz_score", "Score 0-100", "الدرجة 0-100"],
 ["fz_tot", "Total", "المجموع"],
-["fz_b1", "Recommended", "موصى به"],
-["fz_b2", "Needs completion", "يحتاج استكمالًا"],
-["fz_b3", "Not recommended", "غير موصى به"],
-["fz_miss", "The feasibility study is mandatory: complete the executive summary and all seven scores.", "دراسة الجدوى إلزامية: أكمل الملخص التنفيذي والدرجات السبع."],
+["fz_b1", "Recommended to proceed to the detailed project preparation stage", "موصى بالانتقال إلى مرحلة إعداد المشروع التفصيلية"],
+["fz_b2", "Needs completion / amendment before recommendation", "يحتاج استكمال/تعديل قبل التوصية"],
+["fz_b3", "Not recommended in its current form", "لا يوصى بالمشروع في صورته الحالية"],
+["fz_miss", "The feasibility study is mandatory: complete the executive summary and all seven scores.", "دراسة الجدوى إلزامية: أكمل الملخص التنفيذي (فكرة المشروع) والدرجات السبع."],
 ["fz_hint", "The reviewer may return the charter together with this study. An administrator can bypass this requirement.", "يمكن للمعتمد إرجاع الميثاق مع هذه الدراسة للمُعِد. وللمدير تجاوز هذا الشرط."],
 ["fz_f_cur", "Current situation summary", "ملخص الوضع الراهن"],
 ["fz_f_exec", "Executive summary", "الملخص التنفيذي"],
@@ -609,15 +610,110 @@ const W=[
 ["fz_f_rsk", "Risks and constraints", "المخاطر والقيود"],
 ["fz_f_note", "Evaluator remarks", "ملاحظات المقيِّم"],
 ["fz_a1", "Strategic link (15%)", "الارتباط الاستراتيجي (15%)"],
-["fz_a2", "Clarity of the challenge (15%)", "وضوح التحدي (15%)"],
-["fz_a3", "Impact (20%)", "الأثر (20%)"],
-["fz_a4", "Operational feasibility (15%)", "الجدوى التشغيلية (15%)"],
+["fz_a2", "Clarity of the challenge and need (15%)", "وضوح التحدي والحاجة (15%)"],
+["fz_a3", "Impact and added value (20%)", "الأثر والقيمة المضافة (20%)"],
+["fz_a4", "Operational and technical feasibility (15%)", "الجدوى التشغيلية والفنية (15%)"],
 ["fz_a5", "Financial feasibility (15%)", "الجدوى المالية (15%)"],
-["fz_a6", "Risks (10%)", "المخاطر (10%)"],
+["fz_a6", "Risks and executability (10%)", "المخاطر وقابلية التنفيذ (10%)"],
 ["fz_a7", "Sustainability (10%)", "الاستدامة (10%)"],
 ["fz_ask", "Return and request a feasibility study", "إرجاع وطلب دراسة جدوى"],
 ["fz_askPh", "What should the study cover? (optional)", "ما المطلوب في دراسة الجدوى؟ (اختياري)"],
 ["fz_askDef", "Please complete the feasibility study and resubmit.", "يرجى استكمال دراسة الجدوى وإعادة الإرسال."],
+["fz_nsrc", "Project data, stakeholders, risks and constraints are taken from the charter tabs.", "بيانات المشروع وأصحاب المصلحة والمخاطر والقيود تؤخذ من تبويبات الميثاق نفسها."],
+["fz_h1", "Current situation summary", "ملخص الوضع الحالي"],
+["fz_h2", "Project executive summary", "الملخص التنفيذي الخاص بالمشروع"],
+["fz_h3", "Alternatives", "البدائل / الحلول البديلة"],
+["fz_h4", "Benchmarking and solution comparison", "المقارنة المعيارية ومقارنة الحلول"],
+["fz_h5", "Technical solutions comparison (digital systems)", "مقارنة الحلول التقنية (خاص بالأنظمة الرقمية)"],
+["fz_h6", "Operational and technical feasibility", "الجدوى التشغيلية والفنية"],
+["fz_h7", "Financial feasibility", "الجدوى المالية"],
+["fz_h8", "Benefits and impact analysis", "تحليل المنافع والأثر"],
+["fz_h9", "Final project evaluation", "التقييم النهائي للمشروع"],
+["fz_h10", "IDO recommendations", "توصيات مكتب التطوير المؤسسي"],
+["fz_c1", "Current situation description (briefly explain how work is done now and the existing environment)", "وصف الوضع الحالي (اشرح بإيجاز كيف تتم الأعمال حاليًا وما البيئة القائمة)"],
+["fz_c2", "Problem / gap (state the actual problem, not phrased as a required solution)", "المشكلة / الفجوة (حدد المشكلة الفعلية دون صياغتها على شكل حل مطلوب)"],
+["fz_c3", "Evidence and data (figures, complaints, processing times, costs, errors, audit results or any supporting evidence)", "الأدلة والبيانات (أرقام، شكاوى، أوقات معالجة، تكاليف، أخطاء، نتائج تدقيق أو أي دليل داعم)"],
+["fz_c4", "Scope of impact (number of beneficiaries, users)", "نطاق التأثير (عدد المستفيدين، المستخدمين)"],
+["fz_c5", "Root causes (main causes of the problem, if known)", "الأسباب الجذرية (حدد الأسباب الرئيسية للمشكلة إن كانت معروفة)"],
+["fz_c6", "Impact of leaving the situation unchanged (operational, financial, strategic, regulatory impacts or expected risks)", "أثر عدم تغيير الوضع الحالي (وضح الآثار التشغيلية، المالية، الاستراتيجية، التنظيمية أو المخاطر المتوقعة)"],
+["fz_c7", "Importance level (low / medium / high / critical, with the reason)", "درجة الأهمية (منخفضة / متوسطة / مرتفعة / حرجة، مع توضيح سبب التصنيف)"],
+["fz_e1", "Project idea", "فكرة المشروع"],
+["fz_e2", "The challenge the project addresses", "التحدي الذي يعالجه المشروع"],
+["fz_e3", "Expected results / added value", "النتائج المتوقعة للمشروع / القيمة المضافة"],
+["fz_q1", "What alternative options could be taken if the project is not approved?", "ما هي الخيارات البديلة التي يمكن القيام بها في حال عدم اعتماد المشروع؟"],
+["fz_q2", "Are there current initiatives or projects that can be leveraged instead of starting a new project?", "هل يوجد مبادرات أو مشاريع حالية يمكن الاستفادة منها بدلاً من بدء مشروع جديد؟"],
+["fz_k_o", "Option", "الخيار"],
+["fz_k_d", "Description", "الوصف"],
+["fz_k_c", "Estimated cost", "التكلفة التقديرية"],
+["fz_k_t", "Duration", "المدة"],
+["fz_k_p", "Pros", "المزايا"],
+["fz_k_n", "Cons", "العيوب"],
+["fz_k_r", "Risks", "المخاطر"],
+["fz_m_o", "Reference entity", "الجهة المرجعية"],
+["fz_m_s", "Solution used", "الحل المستخدم"],
+["fz_m_u", "Scope of use", "نطاق الاستخدام"],
+["fz_m_f", "Key features", "أبرز المميزات"],
+["fz_m_n", "Notes / challenges", "الملاحظات / التحديات"],
+["fz_m_x", "Source of information", "مصدر المعلومات"],
+["fz_dig", "Is the project a digital system?", "هل المشروع نظام رقمي؟"],
+["fz_n0", "No", "لا"],
+["fz_tc1", "Requirements coverage", "تغطية المتطلبات"],
+["fz_tc2", "Ease of use", "سهولة الاستخدام"],
+["fz_tc3", "Integration", "التكامل"],
+["fz_tc4", "Cybersecurity", "الأمن السيبراني"],
+["fz_tc5", "Data hosting", "استضافة البيانات"],
+["fz_tc6", "Customizability", "قابلية التخصيص"],
+["fz_tc7", "Reporting and analytics", "التقارير والتحليلات"],
+["fz_tc8", "Technical support", "الدعم الفني"],
+["fz_tc9", "Implementation time", "مدة التطبيق"],
+["fz_tc10", "Total cost", "التكلفة الكلية"],
+["fz_tc11", "Scalability", "قابلية التوسع"],
+["fz_tc12", "Vendor experience", "خبرة المورد"],
+["fz_tcl", "Criterion", "المعيار"],
+["fz_tw", "Weight %", "الوزن %"],
+["fz_to", "Option", "الخيار"],
+["fz_tr", "Weighted result", "النتيجة المرجحة"],
+["fz_th", "Score each option from 1 to 5. The weights should total 100%.", "قيّم كل خيار من 1 إلى 5، ويجب أن يكون مجموع الأوزان 100%."],
+["fz_twn", "Weights total", "مجموع الأوزان"],
+["fz_o1", "Implementation requirements (from other sectors and departments)", "متطلبات التنفيذ (من القطاعات والإدارات الأخرى)"],
+["fz_o1h", "Provide details of the requirements requested from the Center's departments and sectors to deliver the project (if any)", "يرجى تقديم تفاصيل المتطلبات المطلوبة من قبل إدارات وقطاعات المركز لإنجاز المشروع (إن وجدت)"],
+["fz_o2", "Human resources required for the project", "الموارد البشرية المطلوبة للمشروع"],
+["fz_o3", "Systems / technologies / infrastructure", "الأنظمة / التقنيات / البنية التحتية"],
+["fz_o4", "Dependence on external parties", "الاعتماد على الجهات الخارجية"],
+["fz_o4h", "Explain any existing or planned contracts, purchase contracts or MoUs that may set conditions or constraints for the project", "يرجى توضيح أي عقود، عقود شراء أو اتفاقيات تفاهم قائمة أو مخطط توقيعها قد تحدد شروطًا أو قيودًا للمشروع"],
+["fz_r_r", "Requirement", "المتطلبات"],
+["fz_r_d", "Details", "التفاصيل"],
+["fz_r_c", "Expected cost", "التكلفة المتوقعة"],
+["fz_r_m", "Tasks", "المهام"],
+["fz_r_n", "Count", "العدد"],
+["fz_h7h", "To understand the project's impact on the Center and support decision-making, provide the project cost details", "من أجل فهم تأثير المشروع على المركز وتسهيل عملية اتخاذ القرار، يرجى تقديم تفاصيل تكاليف المشروع"],
+["fz_x_ct", "Project costs", "تكاليف المشروع"],
+["fz_x_rt", "Expected financial return", "العائد المالي المتوقع"],
+["fz_x_cs", "Setup costs", "تكاليف التأسيس"],
+["fz_x_co", "Operating costs (annual)", "التكاليف التشغيلية (سنوي)"],
+["fz_x_rv", "Expected revenues (if any)", "الإيرادات المتوقعة (إن وجدت)"],
+["fz_x_sv", "Reduction of current expenses (if any)", "تقليل النفقات الحالية (إن وجدت)"],
+["fz_x_b", "Statement", "البيان"],
+["fz_x_n", "Quantity", "العدد"],
+["fz_x_u", "Unit", "الوحدة"],
+["fz_x_uc", "Unit cost", "كلفة الوحدة"],
+["fz_x_t", "Total", "الإجمالي"],
+["fz_x_tc", "Total cost (AED)", "مجموع الكلفة (درهم)"],
+["fz_x_tr", "Total return (AED)", "المجموع (درهم)"],
+["fz_x_src", "Funding source", "مصدر التمويل"],
+["fz_i1", "Financial impact", "الأثر المالي"],
+["fz_i2", "Operational impact", "الأثر التشغيلي"],
+["fz_i3", "Impact on service / product quality", "الأثر على جودة الخدمات / المنتجات"],
+["fz_i4", "Impact on beneficiaries", "الأثر على المستفيدين"],
+["fz_i5", "Institutional and strategic impact", "الأثر المؤسسي والاستراتيجي"],
+["fz_dt", "Details", "التفاصيل"],
+["fz_wt", "Weight", "الوزن"],
+["fz_rl", "Result", "النتيجة"],
+["fz_rt", "Recommendation", "التوصية"],
+["fz_r1", "80 – 100 %", "80 – 100 %"],
+["fz_r2", "60 – 79 %", "60 – 79 %"],
+["fz_r3", "Below 60%", "أقل من 60%"],
+["fz_leg", "Notes from the previous version of the form", "ملاحظات من النسخة السابقة من النموذج"],
 ["f_pg", "Page no.", "رقم الصفحة"],
 ["f_dn", "Document name", "اسم الوثيقة"],
 ["f_dc", "Document code", "رمز الوثيقة"],
@@ -914,6 +1010,12 @@ const COLS={
  risks:[{c:'d',l:'k_desc',area:1},{c:'p',l:'k_when'},{c:'o',l:'k_owner'},{c:'i',l:'k_imp',sel:5},{c:'x',l:'k_prob',sel:5}]
 };
 const BLANK={acts:{a:'',d:'',t:''},reqs:{r:'',dp:'',d:'',n:'',c:''},team:{j:'',n:'',e:'',m:''},risks:{d:'',p:'',o:'',i:'',x:''},stk_int:'',stk_ext:'',agr:'',appr:''};
+const FZA=['fz_alts','fz_bm','fz_orq','fz_ohr','fz_osy','fz_cs','fz_co','fz_rv','fz_sv'];
+{const fin=[{c:'b',l:'fz_x_b',area:1},{c:'n',l:'fz_x_n',type:'number'},{c:'u',l:'fz_x_u'},{c:'uc',l:'fz_x_uc',type:'number'}],rq=[{c:'r',l:'fz_r_r',area:1},{c:'d',l:'fz_r_d',area:1},{c:'c',l:'fz_r_c',type:'number'}];
+ Object.assign(COLS,{fz_alts:[{c:'o',l:'fz_k_o'},{c:'d',l:'fz_k_d',area:1},{c:'c',l:'fz_k_c',type:'number'},{c:'t',l:'fz_k_t'},{c:'p',l:'fz_k_p',area:1},{c:'n',l:'fz_k_n',area:1},{c:'r',l:'fz_k_r',area:1}],
+  fz_bm:[{c:'o',l:'fz_m_o'},{c:'s',l:'fz_m_s'},{c:'u',l:'fz_m_u',area:1},{c:'f',l:'fz_m_f',area:1},{c:'n',l:'fz_m_n',area:1},{c:'x',l:'fz_m_x'}],
+  fz_orq:rq,fz_osy:rq,fz_ohr:[{c:'m',l:'fz_r_m',area:1},{c:'n',l:'fz_r_n',type:'number'},{c:'c',l:'fz_r_c',type:'number'}],fz_cs:fin,fz_co:fin,fz_rv:fin,fz_sv:fin});
+ const bl=o=>Object.fromEntries(o.map(c=>[c.c,'']));FZA.forEach(k=>{BLANK[k]=bl(COLS[k])})}
 let ftab='gen',ftabKey='';const OPEN={},SUMF={};
 const COLL=76;
 function grow(x){if(!x.offsetParent)return;x.style.height='auto';const full=x.scrollHeight+2,foc=document.activeElement===x,h=foc?Math.max(full,COLL):Math.min(Math.max(full,46),COLL);x.style.height=h+'px';x.parentNode.classList.toggle('clamped',!foc&&full>COLL+2)}
@@ -946,7 +1048,7 @@ async function openCR(id){
  const canRet=!arch&&((adm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))||(inStage&&['PMO Review','Awaiting Approval'].includes(st)));
  const mine=arch?null:sigs.find(s=>isMine(s)&&s.stage==stage&&s.status=='pending');
  const d=cr.data||(cr.data={}),dis=ed?'':'disabled';
- const ARR=['stk_int','stk_ext','agr','appr','acts','reqs','team','risks'];ARR.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});if(ed)ARR.forEach(k=>{if(!d[k].length){d[k].push(typeof BLANK[k]=='object'?{...BLANK[k]}:'');if(typeof BLANK[k]=='object'&&OPEN[k]===undefined)OPEN[k]=0}});
+ const ARR=['stk_int','stk_ext','agr','appr','acts','reqs','team','risks'].concat(FZA);ARR.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});if(ed)ARR.forEach(k=>{if(!d[k].length&&(k.indexOf('fz_')!=0||d.fz_on=='1')){d[k].push(typeof BLANK[k]=='object'?{...BLANK[k]}:'');if(typeof BLANK[k]=='object'&&OPEN[k]===undefined&&k.indexOf('fz_')!=0)OPEN[k]=0}});
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
@@ -993,7 +1095,7 @@ async function openCR(id){
   return `<input ${at} type="${col.type=='number'?'text':(col.type||'text')}" ${col.type=='number'?'inputmode="decimal" data-num="1"':''} ${col.type=='email'?'dir="ltr"':''} value="${esc(v)}" ${dis}>`};
  const SUM={acts:r=>[r.a,r.t],reqs:r=>[r.r,[r.dp,r.n!==''&&r.n!=null?'×'+r.n:'',r.c!==''&&r.c!=null?r.c:''].filter(Boolean).join(' · ')],team:r=>[r.n||r.j,r.n?r.j:''],risks:r=>[r.d,score(r)?ad(score(r))+' · '+t('lv_'+lvl(score(r))):'']};
  const sumH=(a,r)=>{const [m,s]=SUM[a](r);return `<b>${esc(String(m||'').replace(/\s+/g,' ').slice(0,70))||'<i class="mut">'+t('emptyRow')+'</i>'}</b>${s?`<span class="mut">${esc(String(s).replace(/\s+/g,' ').slice(0,60))}</span>`:''}`};
- for(const k in SUM)SUMF[k]=r=>sumH(k,r);
+ Object.assign(SUM,FZSUM);for(const k in SUM)SUMF[k]=r=>sumH(k,r);
  const rowsEd=a=>{const arr=d[a],op=OPEN[a];return (arr.length?`<div class="row" style="margin:0 0 6px"><button class="sm" onclick="allRows('${a}',1)">${t('expandAll')}</button><button class="sm" onclick="allRows('${a}',0)">${t('collapseAll')}</button></div>`+arr.map((r,i)=>`<div class="sh acc ${op===i||op==='all'?'open':''}" data-acc="${a}" data-i="${i}"><div class="sh-h" onclick="togRow('${a}',${i})"><span class="no">${ad(i+1)}</span><span class="sm-t" id="sm_${a}_${i}">${sumH(a,r)}</span><span class="chv">⌄</span></div><div class="sh-b"><div class="fg">${COLS[a].map((col,j)=>`<div class="${col.area||j==0?'full':''}"><label>${t(col.l)}</label>${cell(a,i,col,r[col.c])}</div>`).join('')}${a=='risks'?`<div class="full"><label>${t('k_score')}</label>${riskHTML(r,i)}</div>`:''}</div>${ed?`<div class="row" style="margin-top:8px"><button class="sm" onclick="mvRow('${a}',${i},-1)">▲</button><button class="sm" onclick="mvRow('${a}',${i},1)">▼</button><button class="sm" onclick="delRow('${a}',${i})">✕ ${t('delRow')}</button></div>`:''}</div></div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addRow')}</button><button onclick="pasteBox('${a}')">📋 ${t('pasteX')}</button></div>${pbox(a,COLS[a].map(c=>t(c.l)).join(' | '))}`:'')};
  const pbox=(a,h)=>`<div class="pbox" id="pb_${a}" style="display:none"><div class="mut">${t('pasteHint')} ${h?'<br><b>'+esc(h)+'</b>':''}</div><textarea id="pt_${a}" rows="5" placeholder="${t('pasteHolder')}"></textarea><div class="row"><button class="p" onclick="pasteGo('${a}')">${t('pasteGo')}</button><button onclick="pasteBox('${a}')">${t('cancel')}</button></div></div>`;
  const listEd=a=>{const arr=d[a];return (arr.length?arr.map((v,i)=>`<div class="lrow">${ed?`<div class="ta-w" style="flex:1"><textarea class="ta" rows="1" data-a="${a}" data-r="${i}">${esc(v)}</textarea></div>`:`<div class="ro" style="flex:1" onclick="this.classList.toggle('open');fitRO()">${esc(v)||'—'}</div>`}${ed?`<button class="sm" onclick="delRow('${a}',${i})">✕</button>`:''}</div>`).join(''):(ed?'':'<div class="mut">—</div>'))+(ed?`<div class="row"><button onclick="addRow('${a}')">${t('addItem')}</button><button onclick="pasteBox('${a}')">📋 ${t('pasteX')}</button></div>${pbox(a,'')}`:'')};
@@ -1028,7 +1130,7 @@ async function openCR(id){
  <div class="card pn ${ftab=='stk'?'on':''}" data-t="stk"><div class="sec">${t('s_stk')}</div>${fld('stk_int',listEd('stk_int'))}${fld('stk_ext',listEd('stk_ext'))}<div class="sec" style="margin-top:14px">${t('s_acts')}</div>${fld('acts',rowsEd('acts'))}${pnav('ctx','res')}</div>
  <div class="card pn ${ftab=='res'?'on':''}" data-t="res"><div class="sec">${t('s_res')}</div>${fld('reqs',rowsEd('reqs'),'',t('reqs_hint'))}${fld('team',rowsEd('team'),'',t('team_hint'))}<div class="sec" style="margin-top:14px">${t('s_agr')}</div>${fld('agr',listEd('agr'))}${pnav('stk','rsk')}</div>
  <div class="card pn ${ftab=='rsk'?'on':''}" data-t="rsk"><div class="sec">${t('s_rsk')}</div>${fld('risks',rowsEd('risks'),'',t('risks_hint'))}${tf('assume')}${tf('constr')}<div class="sec" style="margin-top:14px">${t('s_appr')}</div>${fld('appr',listEd('appr'))}${pnav('res','fz')}</div>
-<div class="card pn ${ftab=='fz'?'on':''}" data-t="fz">${fzHtml(ed,adm)}${pnav('rsk','flow')}</div>
+<div class="card pn ${ftab=='fz'?'on':''}" data-t="fz">${fzHtml(ed,adm,{rowsEd})}${pnav('rsk','flow')}</div>
  <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp||extraApp,2):''}${extraApp?`<div class="mut" style="margin:6px 0">${t('extraAppNote')}</div>`:''}${more?`<div class="row">${more}</div>`:''}${pnav('rsk','')}
  <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
@@ -1037,6 +1139,7 @@ document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
  if(x.dataset&&x.dataset.num){const v=x.value.replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');if(v!==x.value)x.value=v}
  if(x.dataset.k){cr.data[x.dataset.k]=x.value;updProg();if(x.dataset.k=='sdate'||x.dataset.k=='edate'){const u=$('dur');if(u)u.textContent=durTxt()}}
  if(x.dataset.a){const o=cr.data[x.dataset.a],i=+x.dataset.r;if(x.dataset.c){o[i][x.dataset.c]=x.value;{const sm=$('sm_'+x.dataset.a+'_'+i);if(sm&&SUMF[x.dataset.a])sm.innerHTML=SUMF[x.dataset.a](o[i])}if(x.dataset.a=='risks'){const b=$('rk_'+i);if(b)b.outerHTML=riskHTML(o[i],i)}}else o[i]=x.value}
+ if(String(x.dataset.k||x.dataset.a||'').indexOf('fz_')==0&&typeof fzCalc=='function')fzCalc();
  if(x.dataset.n){const o=NOTES[cr.id]=NOTES[cr.id]||{};o[x.dataset.n]=x.value;const bt=document.querySelector('[data-nb="'+x.dataset.n+'"]');if(bt)bt.classList.toggle('has',x.value.trim()!=='')}
  if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;
@@ -1065,21 +1168,65 @@ async function save(q){const m=monthsBetween(cr.data.sdate,cr.data.edate);if(m!=
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
 
 // ===== Feasibility study (optional, can be made mandatory by an admin) =====
-const FZW=[15,15,20,15,15,10,10],FZF=['cur','exec','stk','alt','bench','cmp','ops','fin','ben','rsk','note'];
+const FZW=[15,15,20,15,15,10,10],FZF=['cur','exec','stk','alt','bench','cmp','ops','fin','ben','rsk','note'],FZTC=12,FZTO=3;
+const fzNum=v=>{const x=parseFloat(String(v==null?'':v).replace(/,/g,''));return isNaN(x)?0:x};
+const fzF=v=>ad((Math.round(v*100)/100).toLocaleString('en-US'));
+const fzRowT=r=>fzNum(r&&r.n)*fzNum(r&&r.uc);
+const fzSum=(d,k)=>(d[k]||[]).reduce((s,r)=>s+fzRowT(r),0);
+const fzFin=r=>{const x=fzRowT(r);return x?fzF(x):''};
+const FZSUM={fz_alts:r=>[r.o,[r.c,r.t].filter(Boolean).join(' · ')],fz_bm:r=>[r.o,r.s],fz_orq:r=>[r.r,r.c],fz_osy:r=>[r.r,r.c],fz_ohr:r=>[r.m,[r.n!==''&&r.n!=null?'×'+r.n:'',r.c].filter(Boolean).join(' · ')],fz_cs:r=>[r.b,fzFin(r)],fz_co:r=>[r.b,fzFin(r)],fz_rv:r=>[r.b,fzFin(r)],fz_sv:r=>[r.b,fzFin(r)]};
+function fzTcW(d){let s=0;for(let i=1;i<=FZTC;i++)s+=fzNum(d['fz_tw'+i]);return s}
+function fzTcR(d,j){const w=fzTcW(d);if(!w)return null;let s=0;for(let i=1;i<=FZTC;i++)s+=fzNum(d['fz_tw'+i])*fzNum(d['fz_tv'+i+'_'+j]);return Math.round(s/w*100)/100}
 function fzTot(d){let s=0,n=0;FZW.forEach((w,i)=>{const v=parseFloat(d['fz_s'+(i+1)]);if(!isNaN(v)){s+=Math.max(0,Math.min(100,v))*w/100;n++}});return n?Math.round(s*10)/10:null}
 function fzBand(v){return v==null?'':v>=80?t('fz_b1'):v>=60?t('fz_b2'):t('fz_b3')}
-function fzCalc(){const v=fzTot(cr.data),e=$('fz_tot');if(e)e.innerHTML=v==null?'—':ad(v)+'% · '+fzBand(v)}
-function fzToggle(v){cr.data.fz_on=v;const b=$('fzbody');if(b)b.style.display=v=='1'?'':'none';fit();updProg()}
+function fzCalc(){const d=cr.data,set=(id,h)=>{const e=$(id);if(e)e.innerHTML=h};
+ const v=fzTot(d);set('fz_tot',v==null?'—':ad(v)+'% · '+fzBand(v));
+ ['cs','co','rv','sv'].forEach(k=>set('fz_t_'+k,fzF(fzSum(d,'fz_'+k))));
+ set('fz_t_cost',fzF(fzSum(d,'fz_cs')+fzSum(d,'fz_co')));set('fz_t_ret',fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv')));
+ const w=fzTcW(d);set('fz_tcw',ad(Math.round(w*100)/100)+'%');const we=$('fz_tcw');if(we)we.style.color=(!w||w==100)?'':'#D1101D';
+ for(let j=1;j<=FZTO;j++){const r=fzTcR(d,j);set('fz_tcr'+j,r==null?'—':ad(r))}}
+function fzToggle(v){cr.data.fz_on=v;save(true)}
+function fzDig(v){cr.data.fz_dig=v;const b=$('fzdig');if(b)b.style.display=v=='1'?'':'none';fit()}
 function fzReq(v){cr.data.fz_req=v}
-function fzHtml(ed,adm){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
- const f=FZF.map(k=>`<div><div class="lr"><label>${t('fz_f_'+k)}</label></div>${ed?`<div class="ta-w"><textarea class="ta" rows="2" data-k="fz_${k}">${esc(d['fz_'+k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d['fz_'+k])||'NA'}</div>`}</div>`).join('');
- const sc=FZW.map((w,i)=>`<div class="row" style="align-items:center;margin:4px 0"><span style="flex:1">${t('fz_a'+(i+1))}</span><input data-k="fz_s${i+1}" data-num="1" inputmode="decimal" style="width:90px" placeholder="${t('fz_score')}" value="${esc(d['fz_s'+(i+1)]||'')}" ${dis} oninput="setTimeout(fzCalc,0)"></div>`).join('');
+async function fzRecSave(){if(editing||!cr)return;const {data:cur}=await sb.from('charters').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data),fz_rec:cr.data.fz_rec||''};await sb.from('charters').update({data:nd}).eq('id',cr.id)}
+function fzHtml(ed,adm,H){const d=cr.data,on=d.fz_on=='1',dis=ed?'':'disabled';
+ const ta=(k,rows)=>ed?`<div class="ta-w"><textarea class="ta" rows="${rows||2}" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'NA'}</div>`;
+ const fl=(k,lbl,rows,hint)=>`<div style="margin:8px 0"><div class="lr"><label>${lbl}</label></div>${hint?`<div class="mut">${hint}</div>`:''}${ta(k,rows)}</div>`;
+ const hd=n=>`<div class="sec" style="margin-top:18px">${t('fz_h'+n)}</div>`;
+ const num=(k,w)=>`<input data-k="${k}" data-num="1" inputmode="decimal" style="width:${w||70}px;max-width:100%" value="${esc(d[k]||'')}" ${dis}>`;
+ const fin=(k,ttl)=>`<div style="margin:10px 0"><div class="lr"><label><b>${ttl}</b></label></div>${H.rowsEd(k)}<div class="row" style="margin-top:6px"><b>${t('fz_x_t')}:</b> <b id="fz_t_${k.slice(3)}">${fzF(fzSum(d,k))}</b></div></div>`;
+ const leg=FZF.filter(k=>filled(d['fz_'+k]));
+ let tc='';
+ {let h=`<tr><th>${t('fz_tcl')}</th><th>${t('fz_tw')}</th>`;for(let j=1;j<=FZTO;j++)h+=`<th>${ed?`<input data-k="fz_tn${j}" placeholder="${t('fz_to')} ${ad(j)}" value="${esc(d['fz_tn'+j]||'')}">`:esc(d['fz_tn'+j]||t('fz_to')+' '+ad(j))}</th>`;h+='</tr>';
+  let b='';for(let i=1;i<=FZTC;i++){b+=`<tr><td>${t('fz_tc'+i)}</td><td>${ed?num('fz_tw'+i,60):esc(d['fz_tw'+i]||'')}</td>`;for(let j=1;j<=FZTO;j++)b+=`<td>${ed?num('fz_tv'+i+'_'+j,60):esc(d['fz_tv'+i+'_'+j]||'')}</td>`;b+='</tr>'}
+  b+=`<tr><th>${t('fz_tr')}</th><th id="fz_tcw">${ad(Math.round(fzTcW(d)*100)/100)}%</th>`;for(let j=1;j<=FZTO;j++){const r=fzTcR(d,j);b+=`<th id="fz_tcr${j}">${r==null?'—':ad(r)}</th>`}b+='</tr>';
+  tc=`<div style="overflow-x:auto"><table class="fzt"><thead>${h}</thead><tbody>${b}</tbody></table></div>`}
+ const ev=FZW.map((w,i)=>`<div style="margin:8px 0"><div class="row" style="align-items:center"><b style="flex:1">${t('fz_a'+(i+1))}</b><input data-k="fz_s${i+1}" data-num="1" inputmode="decimal" style="width:90px" placeholder="${t('fz_score')}" value="${esc(d['fz_s'+(i+1)]||'')}" ${dis}></div>${ta('fz_d'+(i+1),1)}</div>`).join('');
  const v=fzTot(d);
+ const rec=(adm||ed)?`<div class="ta-w"><textarea class="ta" rows="3" data-k="fz_rec" onchange="fzRecSave()">${esc(d.fz_rec)}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d.fz_rec)||'NA'}</div>`;
  return `<div class="sec">${t('fz_t')}</div><div class="mut" style="margin-bottom:8px">${t('fz_hint')}</div>
  <div class="row" style="align-items:center"><label style="flex:1">${t('fz_on')}</label><select data-k="fz_on" ${dis} onchange="fzToggle(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${on?'selected':''}>${t('fz_yes')}</option></select></div>
  ${(adm||ed)?`<div class="row" style="align-items:center"><label style="flex:1">${t('fz_req')}</label><select data-k="fz_req" onchange="fzReq(this.value)"><option value="">${t('fz_no')}</option><option value="1" ${d.fz_req=='1'?'selected':''}>${t('fz_reqn')}</option></select></div>`:(d.fz_req=='1'?`<div class="mut">⚠ ${t('fz_reqn')}</div>`:'')}
- <div id="fzbody" style="${on?'':'display:none'}">${f}<div class="sec" style="margin-top:14px">${t('fz_ev')}</div>${sc}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div></div>`}
-function fzMissing(d){if(d.fz_req!='1'||(me.role=='admin'&&cr.created_by!=me.id))return false;if(d.fz_on!='1')return true;if(!String(d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
+ <div id="fzbody" style="${on?'':'display:none'}"><div class="mut" style="margin:6px 0">${t('fz_nsrc')}</div>
+ ${on?`${hd(1)}${[1,2,3,4,5,6,7].map(i=>fl('fz_c'+i,t('fz_c'+i),2)).join('')}
+ ${hd(2)}${[1,2,3].map(i=>fl('fz_e'+i,t('fz_e'+i),2)).join('')}
+ ${hd(3)}${fl('fz_q1',t('fz_q1'),2)}${fl('fz_q2',t('fz_q2'),2)}${H.rowsEd('fz_alts')}
+ ${hd(4)}${H.rowsEd('fz_bm')}
+ ${hd(5)}<div class="row" style="align-items:center"><label style="flex:1">${t('fz_dig')}</label><select data-k="fz_dig" ${dis} onchange="fzDig(this.value)"><option value="">${t('fz_n0')}</option><option value="1" ${d.fz_dig=='1'?'selected':''}>${t('fz_yes')}</option></select></div><div id="fzdig" style="${d.fz_dig=='1'?'':'display:none'}"><div class="mut" style="margin:6px 0">${t('fz_th')}</div>${tc}</div>
+ ${hd(6)}<div class="lr"><label><b>${t('fz_o1')}</b></label></div><div class="mut">${t('fz_o1h')}</div>${H.rowsEd('fz_orq')}
+ <div class="lr" style="margin-top:12px"><label><b>${t('fz_o2')}</b></label></div>${H.rowsEd('fz_ohr')}
+ <div class="lr" style="margin-top:12px"><label><b>${t('fz_o3')}</b></label></div>${H.rowsEd('fz_osy')}
+ ${fl('fz_oext',`<b>${t('fz_o4')}</b>`,2,t('fz_o4h'))}
+ ${hd(7)}<div class="mut">${t('fz_h7h')}</div>${fin('fz_cs',t('fz_x_ct')+' — '+t('fz_x_cs'))}${fin('fz_co',t('fz_x_ct')+' — '+t('fz_x_co'))}
+ <div class="row"><b>${t('fz_x_tc')}:</b> <b id="fz_t_cost">${fzF(fzSum(d,'fz_cs')+fzSum(d,'fz_co'))}</b></div>${fl('fz_fsrc',t('fz_x_src'),1)}
+ ${fin('fz_rv',t('fz_x_rt')+' — '+t('fz_x_rv'))}${fin('fz_sv',t('fz_x_rt')+' — '+t('fz_x_sv'))}
+ <div class="row"><b>${t('fz_x_tr')}:</b> <b id="fz_t_ret">${fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv'))}</b></div>
+ ${hd(8)}${[1,2,3,4,5].map(i=>fl('fz_i'+i,t('fz_i'+i),2)).join('')}
+ ${hd(9)}${ev}<div class="row" style="margin-top:8px"><b>${t('fz_tot')}:</b> <b id="fz_tot">${v==null?'—':ad(v)+'% · '+fzBand(v)}</b></div>
+ <table class="fzt" style="margin-top:8px"><tr><th>${t('fz_rl')}</th><th>${t('fz_rt')}</th></tr>${[1,2,3].map(i=>`<tr><td>${t('fz_r'+i)}</td><td>${t('fz_b'+i)}</td></tr>`).join('')}</table>
+ ${hd(10)}${rec}
+ ${leg.length?`<div class="sec" style="margin-top:18px">${t('fz_leg')}</div>${leg.map(k=>fl('fz_'+k,t('fz_f_'+k),2)).join('')}`:''}`:''}</div>`}
+function fzMissing(d){if(d.fz_req!='1'||(me.role=='admin'&&cr.created_by!=me.id))return false;if(d.fz_on!='1')return true;if(!String(d.fz_e1||d.fz_exec||'').trim())return true;return FZW.some((w,i)=>isNaN(parseFloat(d['fz_s'+(i+1)])))}
 
 function retFz(){askNote(t('fz_ask'),t('fz_askPh'),t('fz_ask'),async c=>{
  await sb.from('charter_signatories').update({status:'pending',signature_img:null,signed_at:null}).eq('cr_id',cr.id);
@@ -1335,9 +1482,35 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  kids.push(sec(7,t('s_appr')));
  kids.push(listTbl(A('appr').filter(x=>String(x).trim()),t('f_appr')));
  if(d.fz_on=='1'){kids.push(sec(8,t('fz_t'),1));
-  FZF.forEach(k=>{kids.push(T([R([lab(t('fz_f_'+k),W)]),R([C(P(d['fz_'+k],{sa:0}),{w:W})])],[W]));kids.push(gap())});
-  const fw=[6200,2000,2000],tv=fzTot(d);
-  kids.push(T([hdrRow([t('fz_ev'),t('fz_score'),'%'],fw),...FZW.map((w,i)=>R([C(P(t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,''),{sa:0}),{w:fw[0]}),C(P(d['fz_s'+(i+1)]||'',{sa:0,al:AL.CENTER}),{w:fw[1]}),C(P(w+'%',{sa:0,al:AL.CENTER}),{w:fw[2]})])),R([lab(t('fz_tot'),fw[0]),C(P(tv==null?'':tv+'%',{b:1,sa:0,al:AL.CENTER}),{w:fw[1]}),C(P(fzBand(tv),{b:1,sa:0,al:AL.CENTER}),{w:fw[2]})])],fw))}
+  const FA=k=>(d[k]||[]).filter(filled),hd=n=>kids.push(P(t('fz_h'+n),{b:1,size:26,sb:200,sa:80,kn:true}));
+  const txt=(lbl,v)=>{kids.push(T([R([lab(lbl,W)]),R([C(P(v,{sa:0}),{w:W})])],[W]));kids.push(gap())};
+  const grid=(heads,ws,rows)=>{kids.push(T([hdrRow(heads,ws),...(rows.length?rows:[heads.map(()=>'')]).map(r=>R(r.map((v,j)=>C(P(v==null?'':String(v),{sa:0}),{w:ws[j]}))))],ws));kids.push(gap())};
+  hd(1);for(let i=1;i<=7;i++)txt(t('fz_c'+i),d['fz_c'+i]);
+  hd(2);for(let i=1;i<=3;i++)txt(t('fz_e'+i),d['fz_e'+i]);
+  hd(3);txt(t('fz_q1'),d.fz_q1);txt(t('fz_q2'),d.fz_q2);
+  grid(['o','d','c','t','p','n','r'].map(c=>t('fz_k_'+c)),[1300,1700,1100,900,1700,1700,1800],FA('fz_alts').map(r=>[r.o,r.d,r.c,r.t,r.p,r.n,r.r]));
+  hd(4);grid(['o','s','u','f','n','x'].map(c=>t('fz_m_'+c)),[1700,1700,1600,1800,1800,1600],FA('fz_bm').map(r=>[r.o,r.s,r.u,r.f,r.n,r.x]));
+  if(d.fz_dig=='1'){hd(5);const tw=[3600,1400,1700,1750,1750],hs=[t('fz_tcl'),t('fz_tw')];for(let j=1;j<=FZTO;j++)hs.push(d['fz_tn'+j]||t('fz_to')+' '+j);
+   const rows=[];for(let i=1;i<=FZTC;i++){const r=[t('fz_tc'+i),d['fz_tw'+i]||''];for(let j=1;j<=FZTO;j++)r.push(d['fz_tv'+i+'_'+j]||'');rows.push(r)}
+   const rr=[t('fz_tr'),fzTcW(d)?String(Math.round(fzTcW(d)*100)/100)+'%':''];for(let j=1;j<=FZTO;j++){const x=fzTcR(d,j);rr.push(x==null?'':String(x))}rows.push(rr);grid(hs,tw,rows)}
+  hd(6);kids.push(P(t('fz_o1'),{b:1,sa:60,kn:true}));grid(['r','d','c'].map(c=>t('fz_r_'+c)),[3800,4000,2400],FA('fz_orq').map(r=>[r.r,r.d,r.c]));
+  kids.push(P(t('fz_o2'),{b:1,sa:60,kn:true}));grid(['m','n','c'].map(c=>t('fz_r_'+c)),[5200,2400,2600],FA('fz_ohr').map(r=>[r.m,r.n,r.c]));
+  kids.push(P(t('fz_o3'),{b:1,sa:60,kn:true}));grid(['r','d','c'].map(c=>t('fz_r_'+c)),[3800,4000,2400],FA('fz_osy').map(r=>[r.r,r.d,r.c]));
+  txt(t('fz_o4'),d.fz_oext);
+  hd(7);const fh=['b','n','u','uc'].map(c=>t('fz_x_'+c)).concat([t('fz_x_t')]),fw5=[3400,1300,1400,2000,2100];
+  const fr=k=>FA(k).map(r=>[r.b,r.n,r.u,r.uc,fzFin(r)]);
+  kids.push(P(t('fz_x_ct')+' — '+t('fz_x_cs'),{b:1,sa:60,kn:true}));grid(fh,fw5,fr('fz_cs'));
+  kids.push(P(t('fz_x_ct')+' — '+t('fz_x_co'),{b:1,sa:60,kn:true}));grid(fh,fw5,fr('fz_co'));
+  txt(t('fz_x_tc'),fzF(fzSum(d,'fz_cs')+fzSum(d,'fz_co')));txt(t('fz_x_src'),d.fz_fsrc);
+  kids.push(P(t('fz_x_rt')+' — '+t('fz_x_rv'),{b:1,sa:60,kn:true}));grid(fh,fw5,fr('fz_rv'));
+  kids.push(P(t('fz_x_rt')+' — '+t('fz_x_sv'),{b:1,sa:60,kn:true}));grid(fh,fw5,fr('fz_sv'));
+  txt(t('fz_x_tr'),fzF(fzSum(d,'fz_rv')+fzSum(d,'fz_sv')));
+  hd(8);grid([t('fz_h8'),t('fz_dt')],[3200,7000],[1,2,3,4,5].map(i=>[t('fz_i'+i),d['fz_i'+i]]));
+  hd(9);const ew=[3200,1000,1200,4800],tv=fzTot(d);
+  kids.push(T([hdrRow([t('fz_ev'),t('fz_wt'),t('fz_score'),t('fz_dt')],ew),...FZW.map((w,i)=>R([C(P(t('fz_a'+(i+1)).replace(/ \(\d+%\)$/,''),{sa:0}),{w:ew[0]}),C(P(w+'%',{sa:0,al:AL.CENTER}),{w:ew[1]}),C(P(d['fz_s'+(i+1)]||'',{sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(d['fz_d'+(i+1)]||'',{sa:0}),{w:ew[3]})])),R([lab(t('fz_tot'),ew[0]),C(P('100%',{b:1,sa:0,al:AL.CENTER}),{w:ew[1]}),C(P(tv==null?'':tv+'%',{b:1,sa:0,al:AL.CENTER}),{w:ew[2]}),C(P(fzBand(tv),{b:1,sa:0}),{w:ew[3]})])],ew));kids.push(gap());
+  grid([t('fz_rl'),t('fz_rt')],[2400,7800],[1,2,3].map(i=>[t('fz_r'+i),t('fz_b'+i)]));
+  hd(10);txt(t('fz_h10'),d.fz_rec);
+  FZF.filter(k=>filled(d['fz_'+k])).forEach(k=>txt(t('fz_f_'+k),d['fz_'+k]))}
  const fl=(rel,off,vrel,voff)=>({horizontalPosition:{relative:rel,offset:off},verticalPosition:{relative:vrel,offset:voff},behindDocument:false,allowOverlap:true,wrap:{type:D.TextWrappingType.NONE}});
  const head=new D.Header({children:[new D.Paragraph({children:[new D.ImageRun({type:'png',data:ib('head'),transformation:{width:84,height:60},floating:fl(D.HorizontalPositionRelativeFrom.PAGE,540000,D.VerticalPositionRelativeFrom.PAGE,200000)})]})]});
  const fcols=[1100,3300,1900,1300,1400],flab=[t('f_pg'),t('f_dn'),t('f_dc'),t('f_ver'),t('f_cls')];
