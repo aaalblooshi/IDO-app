@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1d5f8a">
+<title>مشاريعي</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--b:#3EA3DC;--bd:#1d5f8a;--gold:#BF9849;--n:#181C32;--ink:#1b1d1f;--mut:#6b7280;--line:#e3eaf0;--bg:#eef3f8;--ok:#2e8b57;--r:#d9534f;--w:#e9a23b;--fnt:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;color:var(--ink);font:14.5px/1.6 var(--fnt);background:var(--bg)}
+a{color:inherit}
+header.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1215px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;align-items:center}
+.top b{font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stripe{display:flex;height:4px}.stripe i{flex:1}.stripe i:nth-child(1){background:#BF9849}.stripe i:nth-child(2){background:#3EA3DC}.stripe i:nth-child(3){background:#1d5f8a}.stripe i:nth-child(4){background:#c8d3dc}
+main{max-width:1215px;margin:0 auto;padding:14px 16px 80px}
+button,.btn{font:inherit;font-weight:700;font-size:13px;cursor:pointer;border:1.5px solid var(--line);background:#fff;border-radius:50px;padding:5px 14px;color:var(--bd);text-decoration:none;display:inline-block;line-height:1.5}
+button.p,.btn.p{background:var(--bd);border-color:var(--bd);color:#fff}button.on{background:var(--b);border-color:var(--b);color:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 10px rgba(30,60,90,.06)}
+.ban{border-radius:22px;padding:20px 24px;color:#fff;background:radial-gradient(circle at 100% 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)}
+html[dir=ltr] .ban{background:radial-gradient(circle at 0 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)}
+.ban h1{margin:0 0 2px;font-size:24px;line-height:1.3}.ban p{margin:0;opacity:.93;font-size:13px}
+.chip{display:inline-block;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);border-radius:50px;padding:5px 14px;font-weight:700;font-size:13px;color:#fff;cursor:pointer;font-family:inherit}.chip b{font-size:17px;margin-inline-end:6px;flex:none}.chip.on{background:#fff;color:var(--bd)}.chip.z{opacity:.55}
+.pill{display:inline-block;border-radius:50px;padding:1px 10px;font-size:11.5px;font-weight:800;color:#fff;background:#6b7280;white-space:nowrap}
+.tabs{display:flex;gap:6px;margin:14px 0;flex-wrap:wrap;overflow-x:auto}.tabs button{padding:8px 18px;font-size:13.5px;white-space:nowrap}
+.mut{color:var(--mut);font-size:12.5px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bar{height:7px;background:#e8eef4;border-radius:50px;margin:8px 0 3px;overflow:hidden;position:relative}.bar i{display:block;height:100%;background:var(--b);border-radius:50px}.bar u{position:absolute;top:0;bottom:0;width:2px;background:var(--n)}
+.jr{display:flex;margin:6px 0 2px}.st{flex:1;text-align:center;position:relative;padding-top:24px;font-size:12px;font-weight:700;color:var(--mut);min-width:0}.st:before{content:"";position:absolute;top:8px;inset-inline:0;height:4px;background:#dbe4ec}.st:first-child:before{inset-inline-start:50%}.st:last-child:before{inset-inline-end:50%}.st i{position:absolute;top:0;inset-inline-start:50%;margin-inline-start:-10px;width:20px;height:20px;border-radius:50%;background:#dbe4ec;border:3px solid #fff;box-shadow:0 0 0 1px #dbe4ec;z-index:1}
+.st.d{color:var(--ok)}.st.d:before{background:var(--ok)}.st.d i{background:var(--ok);box-shadow:0 0 0 1px var(--ok)}.st.c{color:var(--bd)}.st.c i{background:var(--b);box-shadow:0 0 0 4px rgba(62,163,220,.3)}.st.c:before{background:linear-gradient(to var(--tow),var(--ok),#dbe4ec)}.st small{display:block;font-weight:500;font-size:11px;color:var(--mut)}
+html[dir=rtl]{--tow:left}html[dir=ltr]{--tow:right}
+.ban .st{color:#fff}.ban .st small{color:#e3f2fb}.ban .st:before{background:rgba(255,255,255,.35)}.ban .st i{border-color:#2a78a6;box-shadow:0 0 0 1px rgba(255,255,255,.5);background:rgba(255,255,255,.5)}.ban .st.d:before{background:#7fe0a8}.ban .st.d i{background:#2e8b57;box-shadow:0 0 0 1px #7fe0a8}.ban .st.c i{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.35)}.ban .st.c:before{background:linear-gradient(to var(--tow),#7fe0a8,rgba(255,255,255,.35))}
+.ban .st.n{opacity:.75}
+table{border-collapse:collapse;width:100%}td,th{padding:7px 8px;border-bottom:1px solid #eef0f3;text-align:start;font-size:13px;vertical-align:middle}th{color:var(--mut);font-weight:700;font-size:11.5px;white-space:nowrap}
+.none{color:#9ca3af;font-size:13px;padding:10px 0;text-align:center}
+#toast{position:fixed;inset-inline:14px;bottom:18px;background:var(--n);color:#fff;padding:11px 14px;border-radius:12px;display:none;z-index:99;text-align:center}
+.lock{max-width:420px;margin:60px auto;text-align:center}
+@media(max-width:700px){main{padding:10px 10px 80px}.ban{padding:16px 14px;border-radius:18px}.ban h1{font-size:20px}}
+@media print{header.top,.noprint,.tabs{display:none!important}body{background:#fff}main{max-width:none;padding:0}.card{box-shadow:none;border:0;padding:0}}
 
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}.kpi div{background:#f3f6f9;border-radius:12px;padding:10px}.kpi b{font-size:20px;display:block;line-height:1.3}.kpi small{color:var(--mut);font-size:11.5px}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px}.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px}
+.att{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f3}.att:last-child{border:0}.att .t{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:700}.att small{color:var(--mut);display:block;font-weight:400;font-size:12px}
+h3.h{margin:0 0 8px;font-size:16px}
+.seg{display:inline-flex;background:#e8eef4;border-radius:50px;padding:3px;flex-wrap:wrap}.seg button{border:0;background:none;border-radius:50px;padding:6px 15px;color:#374151}.seg button.on{background:var(--bd);color:#fff}
+.fl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}.fl select,.fl input{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:50px;padding:5px 12px;background:#fff;color:var(--ink);max-width:170px}.fl input{max-width:200px}
+.fl button.f{padding:5px 12px}
+.gw{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:72vh}
+.gi{position:relative}.gr{display:flex;border-bottom:1px solid #f1f4f7;height:32px;align-items:stretch}.gr.h{position:sticky;top:0;z-index:3;background:#fafcfd;height:30px;border-bottom:1px solid var(--line)}
+.gl{flex:none;width:250px;position:sticky;inset-inline-start:0;background:#fff;z-index:2;padding:0 8px;display:flex;align-items:center;gap:5px;font-size:12.5px;border-inline-end:1px solid var(--line);overflow:hidden;white-space:nowrap}.gr.h .gl{background:#fafcfd;font-weight:700;color:var(--mut)}
+.gl.p{font-weight:800}.gl .w{color:var(--mut);font-size:11px;flex:none;min-width:24px}.gl .nm{overflow:hidden;text-overflow:ellipsis;flex:1}
+.gt{flex:1;position:relative}.mo{position:absolute;top:0;bottom:0;border-inline-start:1px solid #eef1f4;font-size:11px;color:var(--mut);padding:5px 4px;white-space:nowrap}
+.bk{position:absolute;top:8px;height:16px;border-radius:5px;overflow:hidden}.bk i{display:block;height:100%;background:rgba(0,0,0,.28)}.bk.ph{top:6px;height:20px;border-radius:4px;opacity:.9}.bk.crit{box-shadow:0 0 0 2px #181C32}
+.bs{position:absolute;top:26px;height:4px;border-radius:3px;background:#9aa4af;opacity:.7}.ms{position:absolute;top:8px;width:16px;height:16px;transform:rotate(45deg);margin-inline-start:-8px;border-radius:2px}
+.tdl{position:absolute;top:0;bottom:0;width:2px;background:var(--r);z-index:1;pointer-events:none}
+.mk{filter:blur(5px);user-select:none;color:#556;pointer-events:none}
+.mkb{background:#fff8e6;border:1.5px solid var(--gold);border-radius:12px;padding:8px 12px;margin:10px 0;font-size:13px}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}
+.tw table th{position:sticky;top:0;background:#fafcfd}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-end:5px;flex:none}
+.ind{display:inline-block}
+.tg{border:0;background:none;padding:0 4px;color:var(--mut);font-size:13px;cursor:pointer}
+.ag{margin:12px 0}.ag h4{margin:0 0 4px;font-size:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.kb{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kb>div{background:#f3f6f9;border-radius:14px;padding:8px;min-height:120px}.kb h4{margin:0 0 8px;font-size:13px;display:flex;justify-content:space-between}
+.kc{background:#fff;border-radius:10px;padding:6px 9px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-inline-start:4px solid var(--b);font-size:12.5px}.kc small{display:block;color:var(--mut)}
+.lg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--mut);margin-top:8px}.lg b{display:inline-block;width:11px;height:11px;border-radius:3px;margin-inline-end:4px;vertical-align:-1px}
+@media(max-width:900px){.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr}.kb{display:flex;overflow-x:auto}.kb>div{min-width:230px;flex:none}.kpi{grid-template-columns:1fr 1fr}.gl{width:150px}}
+.chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.pc{padding:14px;border-radius:16px;background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--b);display:flex;flex-direction:column;min-width:0}.pc.l{border-inline-start-color:var(--r)}.pc.d{border-inline-start-color:var(--ok)}.pc.a{border-inline-start-color:var(--gold)}
+.pc h4{margin:0 0 2px;font-size:15px;line-height:1.4;overflow-wrap:anywhere}.pc a.tt{text-decoration:none}.pc small{color:var(--mut);font-size:12px}
+.pc .jr .st{font-size:11px;padding-top:22px}
+.sb{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}.sb input,.sb select{font:inherit;font-size:13.5px;border:1.5px solid var(--line);border-radius:50px;padding:7px 16px;background:#fff;color:var(--ink)}.sb input{flex:1;min-width:180px;max-width:360px}
+.sb .tabs{margin:0}
+@media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.grid{grid-template-columns:1fr}.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.chip{white-space:nowrap}}
+
+</style></head><body>
+<header class="top"><div class="in"><a class="btn" id="bk" href="./"></a><b id="ttl"></b><a class="btn" href="account.html">👤</a><button id="lb" onclick="toggleLang()">EN</button></div><div class="stripe"><i></i><i></i><i></i><i></i></div></header>
+<main id="app"></main><div id="toast"></div>
+<script>
+const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const A=()=>lang=='ar',P=a=>A()?a[0]:a[1];
+function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=A()?'rtl':'ltr';const b=$('lb');if(b)b.textContent=A()?'EN':'ع'}
+function toggleLang(){lang=A()?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}applyLang();draw()}
+function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
+const DAY=864e5;
+const dn=s=>{if(!s)return null;const m=/^(\d{4})-(\d\d)-(\d\d)/.exec(String(s));return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/DAY):null};
+const today=()=>Math.floor((Date.now()+4*3600e3)/DAY);
+const LOC=()=>(A()?'ar-AE':'en-GB')+'-u-nu-latn-ca-gregory';
+const fd=(n,o)=>n==null?'—':new Intl.DateTimeFormat(LOC(),o||{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(n*DAY));
+const fdl=s=>s?fd(dn(s)):'—';
+const ST={Draft:['مسودة','Draft'],Submitted:['مقدّم','Submitted'],'PMO Review':['قيد المراجعة','In review'],Reviewed:['تمت المراجعة','Reviewed'],'Awaiting Approval':['بانتظار الاعتماد','Awaiting approval'],Approved:['معتمد','Approved'],'Returned to PM':['أُعيد للتعديل','Returned'],Returned:['أُعيد للتعديل','Returned'],Rejected:['مرفوض','Rejected'],'Office Decision':['قرار المكتب','Office decision'],Cancelled:['ملغى','Cancelled'],Closed:['مغلق','Closed']};
+const stN=s=>P(ST[s]||[s||'—',s||'—']);
+const stCol=s=>s=='Approved'?'var(--ok)':(s=='Rejected'||s=='Cancelled')?'var(--r)':(s=='Returned to PM'||s=='Returned')?'var(--r)':s=='Draft'?'#7a6740':'var(--b)';
+const SVC={charter:{p:'charter.html',t:['ميثاق المشروع','Charter'],tb:'charters',sg:'charter_signatories'},plan:{p:'plan.html',t:['خطة المشروع','Plan'],tb:'plans',sg:'plan_signatories'},cr:{p:'cr.html',t:['طلب تغيير','Change request'],tb:'change_requests',sg:'signatories'},closure:{p:'closure.html',t:['التقرير الختامي','Closure report'],tb:'closure_reports',sg:'closure_signatories'}};
+function gate(k){$('app').innerHTML='<div class="card lock"><p>'+P(['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return to this page.'])+'</p><button class="p" onclick="location.href=\'cr.html\'">'+P(['تسجيل الدخول','Sign in'])+'</button></div>'}
+/* ---- حساب إحصاءات الخطة من المهام ---- */
+function planModel(tasks,uid){
+ const T=(tasks||[]).map((x,i)=>Object.assign({},x,{_i:i}));const by={},kids={};
+ T.forEach(x=>{by[x.id]=x});T.forEach(x=>{const p=x.p&&by[x.p]?x.p:'';(kids[p]=kids[p]||[]).push(x)});
+ const td=today(),out=[];let seq=0;
+ const walk=(p,d,pre)=>{(kids[p]||[]).forEach((x,i)=>{const w=pre?pre+'.'+(i+1):String(i+1);x._w=w;x._d=d;x._k=(kids[x.id]||[]).length;x._o=seq++;x._par=p;out.push(x);walk(x.id,d+1,w)})};walk('',0,'');
+ const leaves=out.filter(x=>!x._k);
+ const info=x=>{const s=dn(x.s),e=dn(x.e),pc=+x.pc||0;x._s=s;x._e=e;x._pc=pc;x._dur=s!=null&&e!=null?Math.max(1,e-s+1):1;return x};
+ out.forEach(info);
+ const rollup=x=>{if(!x._k)return x;const ch=out.filter(y=>y._par==x.id);ch.forEach(rollup);const ss=ch.map(y=>y._s).filter(v=>v!=null),ee=ch.map(y=>y._e).filter(v=>v!=null);
+  x._s=ss.length?Math.min.apply(0,ss):x._s;x._e=ee.length?Math.max.apply(0,ee):x._e;const tw=ch.reduce((a,y)=>a+y._dur,0)||1;x._dur=tw;x._pc=ch.reduce((a,y)=>a+y._pc*y._dur,0)/tw;return x};
+ out.filter(x=>!x._par).forEach(rollup);
+ out.forEach(x=>{const done=x._pc>=100,late=!done&&x._e!=null&&x._e<td;x._st=done?'done':late?'late':(x._s!=null&&x._s<=td&&x._pc>0)||x._pc>0?'prog':x._s!=null&&x._s<=td?'due':'todo';
+  x._me=!!uid&&x.w==uid;x._top=x._par?null:x.id});
+ const top=x=>{let c=x;while(c._par&&by[c._par])c=by[c._par];return c};out.forEach(x=>x._top=top(x).id);
+ const tw=leaves.reduce((a,x)=>a+x._dur,0)||1,pct=leaves.reduce((a,x)=>a+x._pc*x._dur,0)/tw;
+ const exp=leaves.reduce((a,x)=>{const f=x._s==null||x._e==null?0:Math.max(0,Math.min(1,(td-x._s+1)/Math.max(1,x._e-x._s+1)));return a+f*100*x._dur},0)/tw;
+ const ss=leaves.map(x=>x._s).filter(v=>v!=null),ee=leaves.map(x=>x._e).filter(v=>v!=null);
+ const M={tasks:out,by,leaves,pct,exp,late:leaves.filter(x=>x._st=='late').length,done:leaves.filter(x=>x._st=='done').length,
+  start:ss.length?Math.min.apply(0,ss):null,end:ee.length?Math.max.apply(0,ee):null,mine:leaves.filter(x=>x._me).length,mineLate:leaves.filter(x=>x._me&&x._st=='late').length};
+ /* الاعتماديات: المسار الحرج (باستخدام التواريخ المخططة) + الأثر اللاحق */
+ const succ={};leaves.forEach(x=>(x.dep||[]).forEach(d=>{const t=(typeof d=='object'?d.t:d);if(by[t]){(succ[t]=succ[t]||[]).push({id:x.id,y:(d.y||'FS'),l:+d.l||0})}}));
+ const LF={},seen={};const lf=id=>{if(LF[id]!=null)return LF[id];if(seen[id])return M.end;seen[id]=1;const x=by[id];let v=M.end;(succ[id]||[]).forEach(s=>{const y=by[s.id];if(y&&y._s!=null){const ls=lf(s.id)-(y._e-y._s);v=Math.min(v,ls-1-s.l)}});return LF[id]=v};
+ leaves.forEach(x=>{x._slack=x._e!=null&&M.end!=null?lf(x.id)-x._e:null;x._crit=x._slack!=null&&x._slack<=0&&(succ[x.id]||[]).length+(x.dep||[]).length>0});
+ const imp=id=>{const s=new Set(),st=[id];while(st.length){const c=st.pop();(succ[c]||[]).forEach(z=>{if(!s.has(z.id)){s.add(z.id);st.push(z.id)}})}return s.size};
+ leaves.forEach(x=>x._imp=imp(x.id));
+ M.crit=leaves.filter(x=>x._crit);M.hasDeps=leaves.some(x=>(x.dep||[]).length);
+ return M}
+const clr={done:'var(--ok)',late:'var(--r)',prog:'var(--b)',due:'var(--w)',todo:'#c9d2db'};
+const stT={done:['منجزة','Done'],late:['متأخرة','Late'],prog:['جارية','In progress'],due:['حان موعد بدئها','Due to start'],todo:['لم تبدأ','Not started']};
+
+let me=null,PJ=[],SG={},LK=[],FLT='all',VW='cards',Q='';
+const RN={pm:['أديرها','I manage'],ow:['أملكها','I own'],tk:['مكلّف بمهام','My tasks'],fl:['أتابعها','Following'],pt:['مشارك','Participant']};
+const RC={pm:'var(--bd)',ow:'#8e6bbf',tk:'var(--gold)',fl:'#6b7280',pt:'#8e6bbf',of:'#1d5f8a',vw:'#6b7280'};
+const RL={pm:['مدير المشروع','Project manager'],ow:['مالك المشروع','Owner'],tk:['مكلّف بمهام','Task assignee'],fl:['متابع','Follower'],pt:['مشارك','Participant'],of:['مكتب التطوير','Dev. office'],vw:['اطّلاع','Viewer']};
+async function load(){
+ applyLang();if(!sb)return gate();
+ const {data:{session}}=await sb.auth.getSession();if(!session)return gate();
+ const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate();me=p;
+ const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
+ const [ch,pl,cr,cl,mp,lk]=await Promise.all([
+  q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>sponsor,sc:data->>sector'),
+  q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
+  q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
+  sb.rpc('my_plans').then(r=>r.data||[],()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
+ LK=lk;
+ await Promise.all(Object.keys(SVC).map(async k=>{const s=SVC[k];SG[k]=await sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id).eq('status','pending').then(x=>x.data||[],()=>[])}));
+ const by={},idc={};
+ ch.filter(c=>!c.archived).forEach(c=>{by[c.code]={code:c.code,ch:c,pls:[],crs:[],cls:[]};idc[c.id]=c.code});
+ pl.filter(x=>!x.archived).forEach(x=>{const k=x.pc||idc[x.charter_id];if(!k)return;if(!by[k])by[k]={code:k,ch:null,pls:[],crs:[],cls:[]};by[k].pls.push(x)});
+ mp.forEach(m=>{const k=m.pcode;if(!k)return;if(!by[k])by[k]={code:k,ch:null,pls:[],crs:[],cls:[]};if(!by[k].pls.some(x=>x.id==m.id))by[k].pls.push({id:m.id,code:m.code,status:'Approved',created_by:m.created_by,tasks:m.tasks,pn:m.pname,sc:m.sector,pmn:m.pm,restricted:true})});
+ cr.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].crs.push(x)});cl.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].cls.push(x)});
+ PJ=Object.values(by).map(enrich);draw()}
+function enrich(p){const live=p.pls,act=live.filter(x=>x.status=='Approved').sort((a,b)=>b.id-a.id)[0]||live.filter(x=>x.act=='true').sort((a,b)=>b.id-a.id)[0]||live.sort((a,b)=>b.id-a.id)[0]||null;
+ p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;p.M=planModel(act&&act.tasks||[],me.id);
+ const r=[];const c=p.ch;if((c&&(c.created_by==me.id||c.pm==me.full_name))||(act&&act.created_by==me.id))r.push('pm');if(c&&c.sp&&c.sp==me.full_name)r.push('ow');if(p.M.mine)r.push('tk');
+ if(LK.some(l=>l.kind=='follower'&&((l.svc=='charter'&&c&&l.id==c.id)||(l.svc=='plan'&&p.pls.some(x=>x.id==l.id)))))r.push('fl');
+ if(LK.some(l=>l.kind=='participant'&&p.pls.some(x=>x.id==l.id)))r.push('pt');
+ p.roles=r;p.rel=!!r.length;if(me.role=='admin'||me.role=='pmo')r.push('of');if(!r.length)r.push('vw');
+ p.att=attOf(p);p.stage=stageOf(p);return p}
+function stageOf(p){const cl=p.cls[0],pl=p.pl,c=p.ch;if(cl&&cl.status=='Approved')return 4;if(pl&&(pl.status=='Approved'||pl.act=='true'))return 2;if(c&&c.status=='Approved')return 1;return 0}
+function attOf(p){const out=[];const chk=(k,r,mine)=>{const sg=(SG[k]||[]).filter(s=>s.cr_id==r.id);
+  if(r.status=='Awaiting Approval'&&sg.some(s=>s.stage=='approved'))out.push({c:'#2e8b57',l:['اعتماد','Approve']});
+  else if(r.status=='PMO Review'&&sg.some(s=>s.stage=='reviewed'))out.push({c:'#3EA3DC',l:['مراجعة','Review']});
+  else if(r.created_by==me.id&&r.status=='Draft')out.push({c:'#7a6740',l:['إكمال وتقديم','Complete & submit']});
+  else if(r.created_by==me.id&&r.status=='Returned to PM')out.push({c:'#d9534f',l:['تعديل وإعادة إرسال','Edit & resubmit']})};
+ if(p.ch)chk('charter',p.ch);p.pls.forEach(x=>{if(!x.restricted)chk('plan',x)});p.crs.forEach(x=>chk('cr',x));p.cls.forEach(x=>chk('closure',x));
+ if(p.M.mineLate)out.push({c:'#d9534f',l:['مهام متأخرة ('+p.M.mineLate+')','Late tasks ('+p.M.mineLate+')']});
+ return out}
+const isLate=p=>p.M.late>0&&(p.roles.some(r=>r=='pm'||r=='ow'||r=='of')||p.M.mineLate>0);
+function match(p){const q=Q.trim().toLowerCase();if(q&&!((p.name||'')+' '+p.code).toLowerCase().includes(q))return false;
+ if(FLT=='all')return true;if(FLT=='act')return p.att.length>0;if(FLT=='late')return isLate(p);return p.roles.includes(FLT)}
+function jr(p){const S=[[P(['ميثاق','Charter']),p.ch?(p.ch.status=='Approved'?'d':''):'n'],[P(['خطة','Plan']),p.stage>=2?'d':''],[P(['تنفيذ','Execution']),p.stage>=4?'d':''],[P(['إغلاق','Closure']),p.stage>=4?'d':'']];
+ const vis=p.ch?S:S.slice(1,3);let c=vis.findIndex(x=>x[1]=='');if(p.stage>=2&&p.stage<4&&p.ch)c=2;else if(p.stage>=2&&p.stage<4&&!p.ch)c=1;
+ return '<div class="jr">'+vis.map((x,i)=>'<div class="st '+(x[1]=='d'?'d':i==c?'c':'')+'"><i></i>'+esc(x[0])+'</div>').join('')+'</div>'}
+function card(p){const M=p.M,hasT=M.leaves.length,late=isLate(p),cls=late?'l':p.att.length?'a':p.stage>=4?'d':'';
+ const st=p.ch?stN(p.ch.status):(p.pl?stN(p.pl.status):'');
+ const prog=hasT?'<div class="bar"><i style="width:'+Math.round(M.pct)+'%'+(M.late?';background:var(--r)':'')+'"></i><u style="inset-inline-start:'+Math.round(M.exp)+'%"></u></div><small style="'+(M.pct+1<M.exp?'color:var(--r);font-weight:700':'color:var(--ok);font-weight:700')+'">'+P(['إنجاز ','Progress '])+Math.round(M.pct)+'%'+(M.exp-M.pct>=1?P([' · متأخر ',' · behind '])+Math.round(M.exp-M.pct)+'%':M.pct-M.exp>=1?P([' · متقدّم ',' · ahead '])+Math.round(M.pct-M.exp)+'%':'')+(M.late?' · '+M.late+' '+P(['مهام متأخرة','late']):'')+'</small>':'<div class="bar"><i style="width:0"></i></div><small>'+P(['لم يبدأ التنفيذ بعد','Execution not started'])+'</small>';
+ const nxt=M.mine?M.leaves.filter(x=>x._me&&x._st!='done'&&x._e!=null).sort((a,b)=>a._e-b._e)[0]:null;
+ return '<div class="pc '+cls+'"><a class="tt" href="project.html?pc='+encodeURIComponent(p.code)+'"><h4>'+esc(p.name)+'</h4></a><small><span dir="ltr">'+esc(p.code)+'</span>'+(st?' · '+esc(st):'')+'</small>'+
+ '<div class="row" style="margin-top:7px">'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+(r=='tk'?' ('+M.mine+')':'')+'</span>').join('')+p.att.map(a=>'<span class="pill" style="background:'+a.c+'">⏳ '+esc(P(a.l))+'</span>').join('')+'</div>'+
+ jr(p)+prog+(nxt?'<small>'+P(['أقرب مهامك: ','Next task of yours: '])+(p.pl&&p.pl.restricted?esc(nxt.n):esc(nxt.n))+' · '+fd(nxt._e)+'</small>':'')+
+ '<div class="row" style="margin-top:auto;padding-top:10px"><a class="btn p" href="project.html?pc='+encodeURIComponent(p.code)+'#plan">'+P(['عرض الخطة','View plan'])+'</a>'+(M.mine?'<a class="btn" href="project.html?pc='+encodeURIComponent(p.code)+'#tasks">'+P(['مهامي','My tasks'])+'</a>':'')+(p.ch?'<a class="btn" href="project.html?pc='+encodeURIComponent(p.code)+'#req">'+P(['الطلبات','Requests'])+'</a>':'')+'</div></div>'}
+function listV(L){return '<div class="tw"><table><thead><tr><th>'+P(['المشروع','Project'])+'</th><th>'+P(['الحالة','Status'])+'</th><th>'+P(['دوري','My role'])+'</th><th>'+P(['الإنجاز','Progress'])+'</th><th>'+P(['متأخرة','Late'])+'</th><th>'+P(['بانتظار إجرائي','Awaiting me'])+'</th><th></th></tr></thead><tbody>'+L.map(p=>'<tr><td><b>'+esc(p.name)+'</b><div class="mut" dir="ltr" style="text-align:start">'+esc(p.code)+'</div></td><td>'+esc(p.ch?stN(p.ch.status):'')+'</td><td>'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+'</span>').join(' ')+'</td><td>'+(p.M.leaves.length?Math.round(p.M.pct)+'% <span class="mut">/ '+Math.round(p.M.exp)+'%</span>':'—')+'</td><td>'+(p.M.late?'<b style="color:var(--r)">'+p.M.late+'</b>':'0')+'</td><td>'+(p.att.map(a=>'<span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span>').join(' ')||'—')+'</td><td><a class="btn p" href="project.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح','Open'])+'</a></td></tr>').join('')+'</tbody></table></div>'}
+function timeV(L){const R=L.filter(p=>p.M.start!=null);if(!R.length)return '<div class="card"><div class="none">'+P(['لا توجد خطط بتواريخ.','No plans with dates.'])+'</div></div>';
+ const td=today(),s0=Math.min.apply(0,R.map(p=>p.M.start))-5,e0=Math.max(Math.max.apply(0,R.map(p=>p.M.end)),td)+5,tot=e0-s0,pct=d=>(d-s0)/tot*100,side='inset-inline-start';
+ const mo=[];{const t=new Date(s0*DAY);let d=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),1));while(Math.floor(d.getTime()/DAY)<e0){mo.push({a:Math.floor(d.getTime()/DAY),l:new Intl.DateTimeFormat(LOC(),{month:'short',year:'2-digit',timeZone:'UTC'}).format(d)});d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1))}}
+ const mh=mo.map((m,i)=>{const nx=mo[i+1]?mo[i+1].a:e0,wd=(nx-Math.max(m.a,s0))/tot*100;return '<div class="mo" style="'+side+':'+pct(Math.max(m.a,s0))+'%">'+(wd>4?esc(m.l):'')+'</div>'}).join(''),grid=mo.map(m=>'<div class="mo" style="'+side+':'+pct(Math.max(m.a,s0))+'%"></div>').join('');
+ const tl='<i class="tdl" style="'+side+':'+pct(td)+'%"></i>';
+ return '<div class="gw"><div class="gi" style="min-width:'+Math.max(900,tot*1.6+250)+'px"><div class="gr h"><div class="gl">'+P(['المشروع','Project'])+'</div><div class="gt">'+mh+'</div></div>'+R.map(p=>{const c=p.M.late?'var(--r)':'var(--b)',M=p.M;return '<div class="gr"><div class="gl"><span class="nm"><a href="project.html?pc='+encodeURIComponent(p.code)+'#plan" style="text-decoration:none">'+esc(p.name)+'</a></span></div><div class="gt">'+grid+tl+'<div class="bk" style="'+side+':'+pct(M.start)+'%;width:'+Math.max(.8,(M.end-M.start+1)/tot*100)+'%;background:'+c+'33;border:1.5px solid '+c+'"><i style="width:'+Math.round(M.pct)+'%;background:'+c+'"></i></div></div></div>'}).join('')+'</div></div><div class="lg"><span><b style="background:var(--b)"></b>'+P(['في المسار','On track'])+'</span><span><b style="background:var(--r)"></b>'+P(['فيه مهام متأخرة','Has late tasks'])+'</span><span style="margin-inline-start:auto">│ '+P(['الخط الأحمر = اليوم','Red line = today'])+'</span></div>'}
+function draw(){applyLang();document.title=P(['مشاريعي','My projects']);$('ttl').textContent=P(['مشاريعي','My projects']);$('bk').textContent='⬅ '+P(['الرئيسية','Home']);
+ const cnt=f=>PJ.filter(p=>f=='all'||(f=='act'?p.att.length:f=='late'?isLate(p):p.roles.includes(f))).length;
+ const CH=[['all',['الكل','All']],['pm',RN.pm],['ow',RN.ow],['tk',RN.tk],['fl',RN.fl],['pt',RN.pt],['act',['تحتاج إجرائي','Need my action']],['late',['متأخرة','Late']]].filter(c=>c[0]=='all'||c[0]=='act'||c[0]=='late'||cnt(c[0])>0);
+ if(!CH.some(c=>c[0]==FLT))FLT='all';
+ const L=PJ.filter(match).sort((a,b)=>(b.att.length>0)-(a.att.length>0)||(isLate(b)-isLate(a))||String(a.name).localeCompare(String(b.name),'ar'));
+ const body=!PJ.length?'<div class="card"><div class="none">'+P(['لا توجد مشاريع مرتبطة بك بعد.','No projects linked to you yet.'])+'</div></div>':!L.length?'<div class="card"><div class="none">'+P(['لا مشاريع مطابقة.','No matching projects.'])+'</div></div>':VW=='cards'?'<div class="grid">'+L.map(card).join('')+'</div>':VW=='list'?listV(L):timeV(L);
+ const ac=PJ.filter(p=>p.att.length).length;
+ $('app').innerHTML='<div class="ban"><h1>'+P(['مشاريعي','My projects'])+'</h1><p>'+P(['كل المشاريع التي لك فيها دور — في مكان واحد','Every project you have a role in — in one place'])+(ac?' · '+P([ac+' بانتظار إجرائك',ac+' need your action']):'')+'</p><div class="chips">'+CH.map(c=>'<button class="chip '+(FLT==c[0]?'on':'')+(c[0]!='all'&&!cnt(c[0])?' z':'')+'" onclick="FLT=\''+c[0]+'\';draw()"><b>'+cnt(c[0])+'</b>'+esc(P(c[1]))+'</button>').join('')+'</div></div>'+
+ '<div class="sb"><span class="tabs">'+[['cards','▦ '+P(['بطاقات','Cards'])],['list','☰ '+P(['قائمة','List'])],['time','📅 '+P(['جدول زمني','Timeline'])]].map(v=>'<button class="'+(VW==v[0]?'p':'')+'" onclick="VW=\''+v[0]+'\';draw()">'+v[1]+'</button>').join('')+'</span><input id="sq" placeholder="'+P(['🔎 ابحث باسم المشروع أو رمزه…','🔎 Search project name or code…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{draw();const e=$(\'sq\');e.focus();e.setSelectionRange(9999,9999)},300)"></div>'+body}
+load();
+
+</script></body></html>
