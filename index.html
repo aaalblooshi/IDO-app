@@ -785,6 +785,10 @@ body.cmon main{padding-top:0}
 
 .cm-it{min-height:66px;box-sizing:border-box}.cm-sla{min-height:66px;box-sizing:border-box}
 .cm-mr{display:flex;gap:6px}.cm-mr .cm-more{flex:1}
+
+.cm-main{align-items:stretch}.cm-main>*{align-self:stretch}.cm-col{align-self:stretch!important}.cm-kb{align-items:stretch}
+.cm-it{height:106px;overflow:hidden}.cm-it small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cm-rp{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:top}
+#cmres.on{max-height:60vh;overflow-y:auto}
 </style><script>/*cmdhome*/
 (function(){
 var CLASSIC=false;try{CLASSIC=localStorage.getItem('idoClassic')=='1'||/[?&]classic=1/.test(location.search)}catch(_){}
@@ -837,8 +841,8 @@ function search(){var r=document.getElementById('cmres'),q=norm(document.getElem
  var D=data(),h='',n=0;
  var acts=NEW.filter(function(z){var t=norm(P(z[1])+' '+P(window.JNX.SV[z[0]].t));return !q||q.indexOf('جديد')>=0||q.indexOf('new')>=0||q.indexOf('انشاء')>=0||t.indexOf(q)>=0||q.split(' ').every(function(w){return !w||t.indexOf(w)>=0})});
  if(q&&acts.length&&(q.indexOf('جديد')>=0||q.indexOf('new')>=0||q.indexOf('انشاء')>=0||acts.length<4)){h+='<div class="cm-g">'+P(['إنشاء','Create'])+'</div>'+acts.map(function(z){return'<a href="'+window.JNX.SV[z[0]].p+'">＋ '+esc(P(z[1]))+'<small>'+P(['خدمة','Service'])+'</small></a>'}).join('')}
- var its=D.meta.filter(function(m){return q&&norm((m.x.name||'')+' '+(m.x.code||'')).indexOf(q)>=0}).slice(0,6);
- if(its.length)h+='<div class="cm-g">'+P(['طلباتي ومشاريعي','My requests'])+'</div>'+its.map(function(m){return'<a href="'+m.x.p+'#o='+m.x.id+'">'+esc(m.x.name||m.x.code)+'<small>'+esc(P(window.JNX.SV[m.x.k].t))+' · '+esc(st(m))+'</small></a>'}).join('');
+ var its=D.meta.filter(function(m){return q&&norm((m.x.name||'')+' '+(m.x.code||'')).indexOf(q)>=0});
+ if(its.length)h+='<div class="cm-g">'+P(['طلباتي ومشاريعي','My requests'])+' ('+AR(its.length)+')</div>'+its.map(function(m){return'<a href="'+m.x.p+'#o='+m.x.id+'">'+esc(m.x.name||m.x.code)+'<small>'+esc(P(window.JNX.SV[m.x.k].t))+' · '+esc(st(m))+'</small></a>'}).join('');
  var sv=[];(window.AXES||[]).forEach(function(a){a.services.forEach(function(s){if(s.status=='live'&&q&&norm(s.title.ar+' '+s.title.en+' '+s.desc.ar).indexOf(q)>=0)sv.push(s)})});
  if(sv.length)h+='<div class="cm-g">'+P(['الخدمات','Services'])+'</div>'+sv.slice(0,5).map(function(s){return'<a href="'+esc(s.href)+'">'+esc(s.title[lang]||s.title.ar)+'</a>'}).join('');
  var pg=[['inbox.html',['الإشعارات','Notifications']],['projects.html',['المشاريع','Projects']],['tasks.html',['مهامي','My tasks']],['portfolio.html',['المحفظة','Portfolio']],['archive.html',['الأرشيف','Archive']],['help.html',['المساعدة','Help']]].filter(function(z){return q&&norm(P(z[1])).indexOf(q)>=0});
