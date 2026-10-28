@@ -130,14 +130,16 @@ const VIEWS=[['gantt',['الجدول الزمني','Timeline']],['wbs',['اله�
 const ROLEN={pm:['مدير المشروع','Project manager'],ow:['مالك المشروع','Project owner'],tk:['مكلّف بمهام','Task assignee'],fl:['متابع','Follower'],pt:['مشارك بالتخطيط','Planning participant'],of:['مكتب التطوير المؤسسي','Corporate development office'],vw:['اطّلاع','Viewer']};
 function myRoles(){const r=[];if(!me)return r;if(CH&&(CH.created_by==me.id||(CH.pm&&CH.pm==me.full_name)))r.push('pm');else if(PLR&&PLR.created_by==me.id)r.push('pm');
  if(CH&&CH.sp&&CH.sp==me.full_name)r.push('ow');if(M&&M.mine)r.push('tk');if(LINKS.some(l=>l.kind=='follower'))r.push('fl');if(LINKS.some(l=>l.kind=='participant'))r.push('pt');
+ if(r.includes('pm')||r.includes('ow'))['fl','pt'].forEach(k=>{const i=r.indexOf(k);if(i>=0)r.splice(i,1)});
  if(me.role=='admin'||me.role=='pmo')r.push('of');if(!r.length)r.push('vw');return r}
+const tabsOn=()=>TABS.filter(t=>(t[0]!='plan'&&t[0]!='tasks')||(M&&M.tasks.length));
 const pName=()=>(CH&&CH.pn)||(PLR&&PLR.data&&PLR.data.pname)||PC;
 async function load(){
  applyLang();if(!sb)return gate();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate();
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate();me=p;
  const u=new URL(location.href);PC=u.searchParams.get('pc')||'';const pid0=u.searchParams.get('plan');
- TAB=(location.hash||'').replace('#','').split('&')[0];if(!TABS.some(t=>t[0]==TAB))TAB='ov';
+ TAB=(location.hash||'').replace('#','').split('&')[0];if(!TABS.some(t=>t[0]==TAB))TAB='ov';window._tab0=TAB;
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);r=f(r);return r.then(x=>x.data||[],()=>[])};
  const mp=await sb.rpc('my_plans').then(r=>r.data||[],()=>[]);
  if(!PC&&pid0){const m=mp.find(x=>x.id==pid0);if(m)PC=m.pcode;else{const r=await q('plans','id,pc:data->>pcode',x=>x.eq('id',+pid0));if(r[0])PC=r[0].pc||''}}
@@ -160,6 +162,8 @@ async function load(){
    if(row)PLR=Object.assign({},row,{restricted:false});else{const m=mp.find(x=>x.id==pid);if(m)PLR={id:m.id,code:m.code,status:'Approved',created_by:m.created_by,restricted:true,data:{pcode:m.pcode,pname:m.pname,sector:m.sector,pmname:m.pm,tasks:m.tasks}}}}}
  M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id);
  if(!CH&&!PLR){$('app').innerHTML='<div class="card lock"><p>'+P(['المشروع غير موجود أو لا تملك صلاحية عرضه.','Project not found or you have no access.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
+
+ if(!tabsOn().some(t=>t[0]==TAB))TAB='ov';
  draw()}
 /* ---------- الرحلة ---------- */
 function journey(){const doc=a=>a.filter(x=>!x.archived).sort((x,y)=>y.id-x.id);
@@ -180,7 +184,7 @@ function journey(){const doc=a=>a.filter(x=>!x.archived).sort((x,y)=>y.id-x.id);
 function head(){const roles=myRoles(),ch=CH||{};
  const meta=[ch.code||PC,CH?stN(ch.status):'',ch.pm?P(['مدير المشروع: ','PM: '])+ch.pm:(PLR&&PLR.data&&PLR.data.pmname?P(['مدير المشروع: ','PM: '])+PLR.data.pmname:''),ch.sp?P(['المالك: ','Owner: '])+ch.sp:''].filter(Boolean).join(' · ');
  return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p>'+esc(meta)+'</p></div><div class="row">'+roles.map(r=>'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
- '<div class="tabs">'+TABS.map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
+ '<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
 function goTab(t){TAB=t;history.replaceState(null,'','#'+t);draw()}
 /* ---------- ما يحتاج انتباهك ---------- */
 function attention(){const A=[],td=today();
@@ -203,7 +207,7 @@ function overview(){const td=today();
  CLS.filter(x=>!x.archived).forEach(x=>ev.push({d:String(x.stage_at||x.created_at||'').slice(0,10),t:P(['التقرير الختامي · ','Closure · '])+stN(x.status)}));
  ev.sort((a,b)=>a.d<b.d?1:-1);
  const phases=M?M.tasks.filter(x=>!x._par).slice(0,8):[];
- return '<div class="g2"><div class="card"><h3 class="h">'+P(['ما الذي يحتاج انتباهك الآن','What needs your attention now'])+'</h3>'+attHtml()+k+(phases.length&&M.start!=null?'<h3 class="h" style="margin-top:6px">'+P(['لقطة من الخطة (المراحل)','Plan snapshot (phases)'])+'</h3>'+gantt(phases,true)+'<div class="row noprint" style="margin-top:10px"><button class="p" onclick="goTab(\'plan\')">'+P(['فتح الخطة كاملة ↗','Open full plan ↗'])+'</button></div>':'<div class="none">'+P(['لا توجد خطة بمهام بعد.','No plan with tasks yet.'])+'</div>')+'</div>'+
+ return '<div class="g2"><div class="card"><h3 class="h">'+P(['ما الذي يحتاج انتباهك الآن','What needs your attention now'])+'</h3>'+attHtml()+k+(phases.length&&M.start!=null?'<h3 class="h" style="margin-top:6px">'+P(['لقطة من الخطة (المراحل)','Plan snapshot (phases)'])+'</h3>'+gantt(phases,true)+'<div class="row noprint" style="margin-top:10px"><button class="p" onclick="goTab(\'plan\')">'+P(['فتح الخطة كاملة ↗','Open full plan ↗'])+'</button></div>':'<div class="none">'+P(['لا توجد خطة بمهام بعد.','No plan with tasks yet.'])+(CH&&CH.status=='Approved'&&myRoles().includes('pm')?'<div style="margin-top:8px"><a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a></div>':'')+'</div>')+'</div>'+
  '<div><div class="card"><h3 class="h">'+P(['الفريق والأدوار','Team & roles'])+'</h3>'+team+'</div><div class="card" style="margin-top:14px"><h3 class="h">'+P(['آخر الأحداث','Latest events'])+'</h3>'+(ev.length?ev.slice(0,6).map(e=>'<div class="mut" style="padding:3px 0">● '+fdl(e.d)+' · '+esc(e.t)+'</div>').join(''):'<div class="none">—</div>')+'</div></div></div>'}
 /* ---------- المرشّحات ---------- */
 function passes(x){if(F.ph&&x._top!=F.ph)return false;if(F.who){if(F.who=='__me'){if(!x._me)return false}else if(x.w!=F.who)return false}
@@ -278,7 +282,7 @@ function logTab(){const ev=[];const add=(k,r)=>{ev.push({d:String(r.created_at||
 function draw(){applyLang();document.title=pName()+' — '+P(['ملف المشروع','Project file']);$('ttl').textContent=pName();$('bk').textContent='⬅ '+P(['مشاريعي','My projects']);
  const body=TAB=='ov'?overview():TAB=='plan'?planTab():TAB=='tasks'?tasksTab():TAB=='req'?reqTab():logTab();
  $('app').innerHTML=head()+body}
-window.addEventListener('hashchange',()=>{const t=(location.hash||'').replace('#','');if(TABS.some(x=>x[0]==t)&&t!=TAB){TAB=t;if(M)draw()}});
+window.addEventListener('hashchange',()=>{const t=(location.hash||'').replace('#','');if(M&&tabsOn().some(x=>x[0]==t)&&t!=TAB){TAB=t;draw()}});
 load();
 
 </script></body></html>
