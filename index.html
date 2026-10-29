@@ -795,7 +795,7 @@ new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.doc
  window.addEventListener('message',function(e){if(e.data&&e.data.chatClose)close()});
  document.addEventListener('keydown',function(e){if(e.key=='Escape'&&pan.classList.contains('on'))close()});
  function init(){document.body.appendChild(fab);document.body.appendChild(pan);
-  var t0=0;(function w(){if(typeof sb!=='undefined'&&sb){sb.rpc('chat_on').then(function(r){ON=!!(r&&r.data===true);show()}).catch(function(){})}else if(t0++<30)setTimeout(w,500)})();
+  var t0=0;(function w(){if(typeof sb!=='undefined'&&sb){sb.auth.getSession().then(function(g){if(!(g&&g.data&&g.data.session))return;return sb.rpc('chat_on').then(function(r){ON=!!(r&&r.data===true);show()})}).catch(function(){})}else if(t0++<30)setTimeout(w,500)})();
   setInterval(show,1500);setInterval(place,300);addEventListener('resize',place);try{new MutationObserver(place).observe(document.body,{attributes:true,subtree:true,attributeFilter:['class','style']})}catch(e){}place();setInterval(badge,30000)}
  if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
 })();
