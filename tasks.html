@@ -288,7 +288,7 @@ function draw(){
   <div class="row" style="margin-top:0"><select id="fp" style="flex:2"><option value="">${t('allP')}</option>${ps.map(([c,n])=>`<option value="${esc(c)}" ${FP==c?'selected':''}>${esc(n)}</option>`).join('')}</select>
   ${MODE=='team'?`<select id="fs" style="flex:1"><option value="">${t('allS')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select><select id="fu" style="flex:1"><option value="">${t('allU')}</option><option value="-" ${FU=='-'?'selected':''}>${t('unas')}</option>${us.map(u=>`<option value="${esc(u)}" ${FU==u?'selected':''}>${esc(UN[u]||u)}</option>`).join('')}</select>
   <select id="fst" style="flex:1"><option value="">${t('stAll')}</option>${['open','late','prog','fut','done'].map(k=>`<option value="${k}" ${FST==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select>`:''}</div>
-  <div class="row" style="margin-top:6px"><button class="p" onclick="addOpen()">＋ ${t('addT')}</button>${MODE=='me'?`<button onclick="icsOut()">${t('ics')}</button>`:''}<button onclick="csvOut()">${t('csv')}</button><button onclick="CUST=!CUST;draw()">${t('cust')}</button><button onclick="info('prioT','prioTxt')">❔ ${t('prioT')}</button></div>
+  <div class="row" style="margin-top:6px"><button class="p" onclick="addOpen()">＋ ${t('addT')}</button>${MODE=='me'?`<button onclick="icsOpen()">${t('ics')}</button>`:''}<button onclick="csvOut()">${t('csv')}</button><button onclick="CUST=!CUST;draw()">${t('cust')}</button><button onclick="info('prioT','prioTxt')">❔ ${t('prioT')}</button></div>
   ${CUST?`<div class="card" style="margin-top:8px">${['sum','pts','prio','deps','wkd','wbs','cmp'].map(k=>`<label class="tg" style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" style="width:auto" ${CFG[k]?'checked':''} onchange="CFG.${k}=this.checked?1:0;saveCfg();draw()"> ${t('c_'+k)}</label>`).join('')}</div>`:''}
   ${legend()}
  </div><div id="body"></div>`;
@@ -506,10 +506,30 @@ function dl(name,mime,body){const b=new Blob([body],{type:mime}),a=document.crea
 const icsKey=()=>'tk_ics_'+(ME?ME.id:'');
 const icsSig=r=>[r.x.n,r.x.s,r.x.e].join('|');
 const myOpen=()=>ALLR.filter(r=>r.mine&&r.leaf&&!isDone(r)&&r.s!=null&&r.e!=null);
-function icsBuild(list,gone){const seq=Math.floor(Date.now()/1000),L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//IDO//Tasks//AR','CALSCALE:GREGORIAN','METHOD:PUBLISH'],st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),dd=n=>ds(n).replace(/-/g,'');
- list.forEach(z=>L.push('BEGIN:VEVENT','UID:'+z.pr.pid+'-'+z.id+'@ido','DTSTAMP:'+st,'LAST-MODIFIED:'+st,'SEQUENCE:'+seq,'DTSTART;VALUE=DATE:'+dd(z.s),'DTEND;VALUE=DATE:'+dd(z.e+1),'SUMMARY:'+icsEsc((z.x.ms?'◆ ':'')+z.x.n),'DESCRIPTION:'+icsEsc(z.pr.pname+' ('+z.pr.pcode+')'),'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(z.x.n),'TRIGGER:-P1D','END:VALARM','END:VEVENT'));
+function icsBuild(list,gone,o){o=o||{mode:'span',al:'-P1D'};const seq=Math.floor(Date.now()/1000),L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//IDO//Tasks//AR','CALSCALE:GREGORIAN','METHOD:PUBLISH'],st=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,''),dd=n=>ds(n).replace(/-/g,'');
+ const al=o.al&&o.al!='none'?['BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:IDO','TRIGGER:'+o.al,'END:VALARM']:[];
+ const ev=(uid,z,a,b,pre)=>L.push('BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+st,'LAST-MODIFIED:'+st,'SEQUENCE:'+seq,'DTSTART;VALUE=DATE:'+dd(a),'DTEND;VALUE=DATE:'+dd(b+1),'SUMMARY:'+icsEsc((pre||'')+(z.x.ms?'◆ ':'')+z.x.n),'DESCRIPTION:'+icsEsc(z.pr.pname+' ('+z.pr.pcode+')'),...al,'END:VEVENT');
+ const AR_=lang=='ar';
+ list.forEach(z=>{const u=z.pr.pid+'-'+z.id+'@ido';
+  if(o.mode=='se'){ev(u+'-s',z,z.s,z.s,AR_?'بداية: ':'Start: ');ev(u+'-e',z,z.e,z.e,AR_?'نهاية: ':'End: ')}
+  else if(o.mode=='due'){ev(u,z,z.e,z.e,AR_?'موعد التسليم: ':'Due: ')}
+  else ev(u,z,z.s,z.e,'')});
  (gone||[]).forEach(u=>L.push('BEGIN:VEVENT','UID:'+u,'DTSTAMP:'+st,'SEQUENCE:'+seq,'DTSTART;VALUE=DATE:'+dd(TODAY),'DTEND;VALUE=DATE:'+dd(TODAY+1),'SUMMARY:—','STATUS:CANCELLED','END:VEVENT'));
  L.push('END:VCALENDAR');return L.join('\r\n')}
+function icsOpen(){closeSheet();const AR_=lang=='ar',T=(a,e)=>AR_?a:e;const all=ALLR.filter(r=>r.mine&&r.leaf&&r.s!=null&&r.e!=null);const ps={};all.forEach(r=>ps[r.pr.pid]=r.pr.pname);
+ const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
+ o.innerHTML=`<div class="sbx"><h3>📅 ${T('تصدير المهام إلى التقويم','Export tasks to calendar')}</h3><div class="mut" style="margin-bottom:6px">${T('يعمل الملف مع أي تقويم: Google وApple وOutlook وتقويم الهاتف.','The file works with any calendar: Google, Apple, Outlook and your phone calendar.')}</div>
+ <label>${T('أي المهام؟','Which tasks?')}</label><select id="ic_f"><option value="open">${T('المتبقية (غير المنجزة)','Remaining (not completed)')} (${AR_?'افتراضي':'default'})</option><option value="late">${T('المتأخرة فقط','Late only')}</option><option value="prog">${T('قيد التنفيذ','In progress')}</option><option value="fut">${T('القادمة (لم تبدأ)','Upcoming (not started)')}</option><option value="done">${T('المنجزة','Completed')}</option><option value="all">${T('الكل','All')}</option></select>
+ <label>${T('المشروع','Project')}</label><select id="ic_p"><option value="">${T('كل المشاريع','All projects')}</option>${Object.entries(ps).map(([k,v])=>`<option value="${esc(k)}">${esc(v)}</option>`).join('')}</select>
+ <label>${T('كيف تظهر المهمة في التقويم؟','How should a task appear?')}</label><select id="ic_m"><option value="span">${T('حدث واحد يغطي فترة المهمة (من البداية إلى النهاية)','One event spanning the task period (start to end)')}</option><option value="se">${T('حدثان: يوم البداية ويوم النهاية','Two events: start day and end day')}</option><option value="due">${T('موعد النهاية فقط (التسليم)','End date only (due)')}</option></select>
+ <label>${T('التذكير','Reminder')}</label><select id="ic_a"><option value="-P1D">${T('قبل يوم','1 day before')}</option><option value="-PT0S">${T('في اليوم نفسه','Same day')}</option><option value="-P3D">${T('قبل ٣ أيام','3 days before')}</option><option value="none">${T('بدون تذكير','No reminder')}</option></select>
+ <div class="mut" id="ic_n" style="margin-top:8px"></div>
+ <div class="row" style="margin-top:10px"><button class="p" onclick="icsRun()">⬇ ${T('تصدير','Export')}</button><button onclick="closeSheet()">${T('إلغاء','Cancel')}</button></div></div>`;
+ const upd=()=>{$('ic_n').textContent=T('عدد المهام: ','Tasks: ')+icsPick().length};['ic_f','ic_p'].forEach(i=>$(i).onchange=upd);upd()}
+function icsPick(){const f=$('ic_f').value,p=$('ic_p').value;return ALLR.filter(r=>r.mine&&r.leaf&&r.s!=null&&r.e!=null&&(!p||String(r.pr.pid)==p)&&(f=='all'||(f=='open'?!isDone(r):stOf(r)==f)))}
+function icsRun(){const list=icsPick(),o={mode:$('ic_m').value,al:$('ic_a').value};if(!list.length)return toast(t('none'));
+ const def=$('ic_f').value=='open'&&!$('ic_p').value&&o.mode=='span'&&o.al=='-P1D';if(def){closeSheet();return icsOut()}
+ dl('my-tasks.ics','text/calendar;charset=utf-8',icsBuild(list,[],o));closeSheet()}
 function icsOut(){const list=myOpen();let old={};try{old=(JSON.parse(localStorage.getItem(icsKey())||'{}').items)||{}}catch(_){}
  const cur={};list.forEach(r=>cur[r.pr.pid+'-'+r.id+'@ido']=icsSig(r));const gone=Object.keys(old).filter(u=>!(u in cur));
  if(!list.length&&!gone.length)return toast(t('none'));
