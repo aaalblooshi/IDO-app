@@ -311,6 +311,7 @@ details.ck{margin:8px 0;border:1px solid var(--line);border-radius:10px;padding:
 .ufab button i{position:absolute;top:-4px;inset-inline-end:-4px;background:#b8924a;color:#fff;font-size:10px;font-style:normal;font-weight:700;border-radius:9px;min-width:17px;padding:1px 4px;line-height:1.3}
 @media(max-width:520px){.ufab{bottom:134px}
 @media(max-width:700px){.ufab{bottom:calc(var(--pb,100px) + 4px);inset-inline-start:12px}body:has(.actbar.open) .ufab{display:none}}}
+@media(max-width:899px){.grl .nm{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.25;font-size:12.5px}.grl.d1 .wb,.grl.d2 .wb,.grl.d3 .wb,.grl.d4 .wb{margin-inline-start:0}.grl.d1 .gcn,.grl.d2 .gcn,.grl.d3 .gcn,.grl.d4 .gcn{padding-inline-start:4px}}
 </style><style>/*zoombox*/.zb{position:relative;overflow:hidden;border:1px solid #e3eaf0;border-radius:12px;background:#f7fafc;height:72vh;min-height:320px;touch-action:none;cursor:grab;direction:ltr;user-select:none;-webkit-user-select:none}
 .zb.zdrag{cursor:grabbing}.zb:fullscreen,.zb.zfs{height:100vh!important;border-radius:0;background:#f7fafc}.zb.zfs{position:fixed;inset:0;z-index:9999}
 .zb .zi{width:max-content;position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
@@ -862,8 +863,8 @@ const W=[
 ["pl_xlImport", "Import from Excel", "استيراد من Excel"],
 ["pl_name", "Activity", "النشاط"],
 ["pl_namePh", "Activity name", "اسم النشاط"],
-["pl_start", "Start", "البداية"],
-["pl_end", "End", "النهاية"],
+["pl_start", "Planned start", "البداية المخططة"],
+["pl_end", "Planned end", "النهاية المخططة"],
 ["pl_dur", "Days", "الأيام"],
 ["pl_days", "working days", "يوم عمل"],
 ["pl_who", "Assigned to", "المكلّف"],
@@ -1365,7 +1366,7 @@ function adminBlock(){
  const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
  return acc(t('pipe'),`<div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div>`,true)
  +acc(`${t('overdue')} (${over.length})`,over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`,over.length>0)
- +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
+ +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${typeof ad=='function'?ad(ap):ap}/${A.length}</b>${lang=='ar'?'معتمدة من الإجمالي':'Approved of total'}</div><div class="k" title="${lang=='ar'?'المعتمد ÷ (المعتمد + المرفوض)':'Approved ÷ (approved + rejected)'}"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${lang=='ar'?'نسبة الاعتماد من القرارات النهائية':'Approval rate of final decisions'}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${lang=='ar'?'نسبة الرفض من القرارات النهائية':'Rejection rate of final decisions'}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
  +acc(t('x_expTitle'),expBtns(),false)
  +acc(t('workload'),`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div>`,false)
  +acc(t('ch_month')+' / '+t('ch_type')+' / '+t('ch_sector'),`<h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_type')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_sector')}</h2>${bars(dp)}`,false)}
@@ -1537,7 +1538,7 @@ async function openCR(id){
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
  if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
- if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
+ if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'||(!arch&&((st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))||(st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))))?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(canRet&&typeof retFz=='function'&&d.fz_req!='1'&&d.fz_on!='1')acts+=`<button class="r" onclick="retFz()">${t('fz_ask')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
@@ -1910,7 +1911,8 @@ function openSheet(id){PL.ed=id;const x=byId(id);PL.shDeps=x?JSON.parse(JSON.str
 function closeSheet(){PL.ed=null;renderPlan()}
 function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const m=M[x.id],leaf=!m.kids.length,ed=PL.canEdit,trk=PL.trk,dis=ed?'':'disabled',adv=PL.adv;
  const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select class="srch" id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input type="hidden" id="sd_l${i}" value="${e.l||0}">`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
- return `<div class="shov" onclick="if(event.target==this)closeSheet()"><div class="shb" id="shbox"><div class="top"><b>${m.w} · ${t('pl_task')}</b><button class="sm" onclick="closeSheet()">✕</button></div>
+ return `<div class="shov" onclick="if(event.target==this)closeSheet()"><div class="shb" id="shbox"><div class="top"><b>${m.w} · ${t('pl_task')}${x.n?' — '+esc(x.n):''}</b><button class="sm" onclick="closeSheet()">✕</button></div>
+ ${(!ed&&me.role=='admin'&&!PL.arch&&!['Draft','Returned to PM','Cancelled'].includes(PL.st))?`<div class="mut" style="background:#fff8e6;border:1px dashed #BF9849;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px">${lang=='ar'?'الخطة في وضع القراءة ('+esc(PL.st||'')+'). لتعديل بيانات المهمة بصفة الأدمن فعّل «تعديل بصفة الأدمن» من أعلى الخطة، أو اطلب تغييرًا رسميًا عبر طلب تغيير.':'The plan is read-only ('+esc(PL.st||'')+'). To edit this task as admin, enable admin edit at the top of the plan, or raise a change request.'} <button class="sm" type="button" onclick="closeSheet();adminEditStart()">${lang=='ar'?'تفعيل التعديل بصفة الأدمن':'Enable admin edit'}</button></div>`:''}
  <label>${t('pl_name')}</label><input id="sh_n" value="${esc(x.n)}" ${dis}>
  ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><label>${t('pl_durD')}</label><input id="sh_du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${dis} style="max-width:140px"><div class="mut" id="sh_d" style="margin-top:4px"></div>
  <label class="tg2"><input type="checkbox" id="sh_ms" ${x.ms?'checked':''} ${dis}> ${t('pl_ms')}</label>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
@@ -2266,8 +2268,8 @@ const GDEF={w:50,n:170,s:96,e:96,d:52,a:104,wt:60,p:100,pc:52};
 const gAvail=()=>window.innerWidth>=900?Math.min(1400,window.innerWidth-24):window.innerWidth-28;
 const gcw=k=>Math.max(40,Math.round(ccLoad().g[k]||GDEF[k]||80));
 function gcolList(wide){if(!wide)return PL.trk?['w','n','pc']:['w','n'];const a=['w','n'];['s','e','d','a','wt','p'].forEach(k=>{if(!ccLoad().goff.includes(k))a.push(k)});if(PL.trk)a.push('pc');return a}
-function gcolsCss(gc,wide){if(!wide)return PL.trk?'34px 1fr 38px':'34px 1fr';return gc.map(k=>gcw(k)+'px').join(' ')}
-function gLW(gc,wide){if(!wide)return PL.trk?150:136;return gc.reduce((a,k)=>a+gcw(k)+6,14)}
+function gcolsCss(gc,wide){if(!wide){const w0=PL.canEdit?'78px':'56px';return PL.trk?w0+' 1fr 38px':w0+' 1fr'}return gc.map(k=>gcw(k)+'px').join(' ')}
+function gLW(gc,wide){if(!wide)return(PL.trk?240:210)+(PL.canEdit?22:0);return gc.reduce((a,k)=>a+gcw(k)+6,14)}
 function gHead(gc,wide){return `<div class="glh">${gc.map(k=>{const L=CDEF[k].l;return `<div class="hc" data-ck="${k}">${k=='w'?'#':(L?t(L):'')}${wide?`<i class="rz" data-k="${k}"></i>`:''}</div>`}).join('')}</div>`}
 function gCell(k,x,m,leaf,ed,wide){const dis=ed?'':'disabled',ld=(!ed||!leaf)?'disabled':'';
  if(k=='w')return `<div class="gcw">${m.kids.length?`<button class="cl" data-tc="${x.id}">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span>${ed&&wide?`<span class="dg" data-dg="${x.id}" title="${t('pl_dragRow')}">⠿</span>`:''}${ed?`<button class="pls" title="${t('pl_addSub')}" data-ad="${x.id}">＋</button>`:''}</div>`;
@@ -2301,7 +2303,7 @@ document.addEventListener('pointerdown',ev=>{const h=ev.target.closest&&ev.targe
 (function(){let tip=null;const hide=()=>{if(tip){tip.remove();tip=null}};
  document.addEventListener('mouseover',e=>{if(!matchMedia('(hover:hover) and (pointer:fine)').matches)return;const el=e.target.closest&&e.target.closest('.gx .bar,.gx .blb,.gx .grl .nm,.gx .grl input[data-pk=n],.gx .gm');if(!el||!cr||!cr.data)return;
   const row=el.closest('[data-id]');const id=row&&row.dataset.id,x=id&&byId(id);if(!x)return;hide();const m=M[id];
-  tip=document.createElement('div');tip.className='gtip';tip.innerHTML=`<b>${esc(m.w)} ${esc(x.n||'—')}</b><div dir="ltr">${esc(x.s||'—')} → ${esc(x.e||'—')}${isLeaf(x)&&!isNaN(dn(x.s))&&!isNaN(dn(x.e))?' · '+durOf(x)+' '+t('pl_days'):''}</div>${whoName(x)?`<div>👤 ${esc(whoName(x))}</div>`:''}<div>📈 ${x.pc||0}% · ⚖ ${Math.round((m.pw||0)*10)/10}%</div>${(x.dep||[]).length?`<div class="mut">${t('pl_after')}: ${esc(predText(x))}</div>`:''}${x.rn?`<div>💬 ${esc(x.rn)}</div>`:''}`;
+  tip=document.createElement('div');tip.className='gtip';tip.innerHTML=`<b>${esc(m.w)} ${esc(x.n||'—')}</b><div>${t('pl_start')}: <span dir="ltr">${esc(x.s||'—')}</span></div><div>${t('pl_end')}: <span dir="ltr">${esc(x.e||'—')}</span></div>${isLeaf(x)&&!isNaN(dn(x.s))&&!isNaN(dn(x.e))?'<div>'+t('pl_dur')+': '+durOf(x)+' '+t('pl_days')+'</div>':''}${whoName(x)?`<div>👤 ${esc(whoName(x))}</div>`:''}<div>📈 ${x.pc||0}% · ⚖ ${Math.round((m.pw||0)*10)/10}%</div>${(x.dep||[]).length?`<div class="mut">${t('pl_after')}: ${(x.dep||[]).map(e=>{const q=byId(e.t);return esc((wbsOf(e.t)||'?')+(q&&q.n?' '+q.n:''))+((e.y&&e.y!='FS')||e.l?' ('+(e.y||'FS')+(e.l?(e.l>0?'+':'')+e.l:'')+')':'')}).join('، ')}</div>`:''}${x.rn?`<div>💬 ${esc(x.rn)}</div>`:''}`;
   document.body.appendChild(tip);const mvT=ev=>{if(!tip)return;const w=tip.offsetWidth,h2=tip.offsetHeight;let l=ev.clientX+14,tp=ev.clientY+16;if(l+w>window.innerWidth-8)l=ev.clientX-w-14;if(tp+h2>window.innerHeight-8)tp=ev.clientY-h2-14;tip.style.left=Math.max(4,l)+'px';tip.style.top=Math.max(4,tp)+'px'};mvT(e);el._mv=mvT;el.addEventListener('mousemove',mvT);
   el.addEventListener('mouseleave',()=>{hide();el.removeEventListener('mousemove',mvT)},{once:true})});
  document.addEventListener('scroll',hide,true);['touchstart','pointerdown','keydown'].forEach(n=>document.addEventListener(n,hide,true))})();
