@@ -655,7 +655,7 @@ async function repPptx(){
  }catch(e){console.error(e);alert(t('rPptF')+' '+(e&&e.message||''))}}
 
 boot();
-(async()=>{for(let i=0;i<40&&!(PL&&PL.length);i++)await new Promise(r=>setTimeout(r,500));snapSave()})();
+(async()=>{for(let i=0;i<40&&!(PL&&PL.length);i++)await new Promise(r=>setTimeout(r,500));await snapSave();SNP=null;await snapLoad();await snapBackfill()})();
 
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
 
@@ -741,14 +741,21 @@ Object.assign(D,{tAtt:['انتباه اليوم','Today'],tDeg:['التدهور'
 function tkAt(tasks,d){const kids=new Set(tasks.map(x=>x.p).filter(Boolean));return tasks.map(x=>{if(kids.has(x.id))return x;const e=dn(x.e),as=dn(x.as),ae=dn(x.ae),pc=+x.pc||0;let v=0;
   if(d>=TODAY)v=pc;else if(pc>=100){const en=ae!=null?ae:e;const st=as!=null?as:dn(x.s);v=en==null||d>=en?100:(st!=null&&d>=st&&en>st?Math.min(99,(d-st+1)/(en-st+1)*100):0)}
   else if(as!=null&&d>=as&&TODAY>as)v=pc*(d-as)/(TODAY-as);return {...x,pc:v}})}
-function trdPoints(L){let a=Infinity,b=-Infinity;L.forEach(p=>(p.tasks||[]).forEach(x=>{const s=dn(x.s),e=dn(x.e);if(s!=null)a=Math.min(a,s);if(e!=null)b=Math.max(b,e)}));if(!isFinite(a))return[];b=Math.max(b,TODAY);const n=26,st=Math.max(7,Math.ceil((b-a)/n)),P=[];for(let d=a;d<b;d+=st)P.push(d);P.push(b);return P}
+function trdPoints(L){let a=Infinity,b=-Infinity;L.forEach(p=>(p.tasks||[]).forEach(x=>{const s=dn(x.s),e=dn(x.e);if(s!=null)a=Math.min(a,s);if(e!=null)b=Math.max(b,e)}));if(!isFinite(a))return[];b=Math.max(b,TODAY);const cu=TRF!=null||TRT!=null;if(TRF!=null)a=TRF;if(TRT!=null)b=TRT;if(b<=a)b=a+1;const n=26,st=Math.max(cu?1:7,Math.ceil((b-a)/n)),P=[];for(let d=a;d<b;d+=st)P.push(d);P.push(b);return P}
 function trdSeries(L,P){return P.map(d=>{const items=L.map(p=>{const an=analyze(tkAt(p.tasks||[],d),p.wm,d);return {sc:p.sc,a:an.a,ex:an.ex,lateN:an.lateN,w:p.w}});const A=agg(items);return {d,a:d<=TODAY?A.a:null,ex:A.ex}})}
-let TRK='',SNP=null;
+let TRK='',SNP=null,TRF=null,TRT=null;
+function trSet(v){if(v=='all'){TRF=null;TRT=null}else{TRF=TODAY-30*(+v);TRT=TODAY}vTrd()}
+function trCus(){const a=$('trf').value,b=$('trt').value;TRF=a?dn(a):null;TRT=b?dn(b):null;vTrd()}
 /* لقطات يومية حقيقية (للأدمن): تُسجَّل مرة كل يوم عند فتح المحفظة، فيصبح المسار التاريخي حقيقيًا من اليوم فصاعدًا */
-async function snapSave(){if(!ADM||!PL.length)return;const k='snp'+TODAY;try{if(localStorage.getItem(k))return}catch(_){}
+async function snapSave(){try{const r=await sb.rpc('snap_ensure');if(!r.error)return}catch(_){}if(!ADM||!PL.length)return;const k='snp'+TODAY;try{if(localStorage.getItem(k))return}catch(_){}
  try{const rows=PL.map(p=>({snap_date:ds(TODAY),code:p.k,actual:Math.round(p.a*10)/10,planned:Math.round((p.ex||0)*10)/10,late:(p.an&&p.an.lateN)||p.lateN||0}));const r=await sb.from('portfolio_snapshots').upsert(rows,{onConflict:'snap_date,code'});if(!r.error)try{localStorage.setItem(k,'1')}catch(_){}}catch(_){}}
-async function snapLoad(){try{const r=await sb.from('portfolio_snapshots').select('snap_date,code,actual,planned,late').order('snap_date');if(r.error)throw r.error;SNP=r.data||[]}catch(e){SNP=false}if(TAB=='trd')vTrd()}
-function snapSeries(L){if(!SNP)return[];const ks=new Set(L.map(p=>p.k)),by={};SNP.forEach(z=>{if(ks.has(z.code))(by[z.snap_date]=by[z.snap_date]||[]).push(z)});
+/* بناء السجل التاريخي تلقائيًا (تقديري من تواريخ المهام، أسبوعيًا) مرة واحدة، ولا يستبدل أي لقطة حقيقية */
+async function snapBackfill(){if(!ADM||!PL.length||!Array.isArray(SNP))return;let k='bf2';try{if(localStorage.getItem(k))return}catch(_){}
+ let a=Infinity;PL.forEach(p=>(p.tasks||[]).forEach(x=>{const s0=dn(x.s);if(s0!=null)a=Math.min(a,s0)}));if(!isFinite(a))return;a=Math.max(a,TODAY-730);const rows=[];
+ for(let d=a;d<TODAY;d+=7){PL.forEach(p=>{const an=analyze(tkAt(p.tasks||[],d),p.wm,d);rows.push({snap_date:ds(d),code:p.k,actual:Math.round(an.a*10)/10,planned:Math.round(an.ex*10)/10,late:an.lateN||0,est:true})})}
+ try{for(let i=0;i<rows.length;i+=500){const r=await sb.from('portfolio_snapshots').upsert(rows.slice(i,i+500),{onConflict:'snap_date,code',ignoreDuplicates:true});if(r.error)throw r.error}try{localStorage.setItem(k,'1')}catch(_){}SNP=null;snapLoad()}catch(_){}}
+async function snapLoad(){try{const r=await sb.from('portfolio_snapshots').select('snap_date,code,actual,planned,late,est').order('snap_date');if(r.error)throw r.error;SNP=r.data||[]}catch(e){SNP=false}if(TAB=='trd')vTrd()}
+function snapSeries(L){if(!SNP)return[];const ks=new Set(L.map(p=>p.k)),by={};SNP.forEach(z=>{if(!z.est&&ks.has(z.code))(by[z.snap_date]=by[z.snap_date]||[]).push(z)});
  return Object.keys(by).sort().map(d=>{const it=by[d].map(z=>{const p=L.find(q=>q.k==z.code);return {sc:p.sc,a:+z.actual,ex:+z.planned,lateN:z.late,w:p.w}});return {d:dn(d),a:agg(it).a}})}
 function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TRK?all.filter(p=>p.k==TRK):all;if(SNP==null){SNP=false;snapLoad()}
  if(!L.length){B.innerHTML=`<div class="card mut">${t('none')}</div>`;return}
@@ -761,7 +768,7 @@ function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TR
  const SS=snapSeries(L).filter(z=>z.d>=a0&&z.d<=a1),recL=SS.length?`<polyline points="${SS.map(z=>X(z.d).toFixed(1)+','+Y(z.a).toFixed(1)).join(' ')}" fill="none" stroke="#1c7a45" stroke-width="3"/>`+SS.map(z=>`<circle cx="${X(z.d).toFixed(1)}" cy="${Y(z.a).toFixed(1)}" r="3.5" fill="#1c7a45"/>`).join(''):'';
  const last=S.filter(z=>z.a!=null).slice(-1)[0]||{a:0,ex:0},m30=S.filter(z=>z.a!=null&&z.d<=TODAY-30).slice(-1)[0];
  const rows=L.map(p=>{const an=p.an,p30=analyze(tkAt(p.tasks||[],TODAY-30),p.wm,TODAY-30);const dl=an.a-p30.a;return `<tr><td>${esc(p.name)}</td><td class="num">${Math.round(an.ex)}%</td><td class="num">${Math.round(an.a)}%</td><td class="num" style="color:${an.a-an.ex<-5?'#d1101d':'#1c7a45'}">${an.a-an.ex>0?'+':''}${Math.round(an.a-an.ex)}</td><td class="num" style="color:${dl>0?'#1c7a45':'#a8761a'}">${dl>0?'▲ ':''}${Math.round(dl)}</td></tr>`}).join('');
- B.innerHTML=`<div class="card"><div class="row" style="margin:0 0 8px"><select id="trk" style="flex:1" onchange="TRK=this.value;vTrd()"><option value="">${T('كل المشاريع المعروضة','All shown projects')}</option>${all.map(p=>`<option value="${esc(p.k)}" ${TRK==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select>${hpBtn()}</div>
+ B.innerHTML=`<div class="card"><div class="row" style="margin:0 0 8px"><select onchange="trSet(this.value)" style="width:auto"><option value="all">${T('كل الفترة','All time')}</option>${[[1,'آخر شهر','Last month'],[3,'آخر 3 أشهر','Last 3 months'],[6,'آخر 6 أشهر','Last 6 months'],[12,'آخر سنة','Last year']].map(z=>`<option value="${z[0]}" ${TRF!=null&&TRT==TODAY&&TRF==TODAY-30*z[0]?'selected':''}>${T(z[1],z[2])}</option>`).join('')}</select><label style="font-size:12.5px">${T('من','From')} <input id="trf" type="date" value="${TRF!=null?ds(TRF):''}" onchange="trCus()"></label><label style="font-size:12.5px">${T('إلى','To')} <input id="trt" type="date" value="${TRT!=null?ds(TRT):''}" onchange="trCus()"></label></div><div class="row" style="margin:0 0 8px"><select id="trk" style="flex:1" onchange="TRK=this.value;vTrd()"><option value="">${T('كل المشاريع المعروضة','All shown projects')}</option>${all.map(p=>`<option value="${esc(p.k)}" ${TRK==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select>${hpBtn()}</div>
   <div class="row" style="margin:0 0 6px"><span class="chp b">${T('المخطط الآن','Planned now')}: <b class="num">${Math.round(last.ex)}%</b></span><span class="chp g">${T('الفعلي الآن','Actual now')}: <b class="num">${Math.round(last.a)}%</b></span>${m30?`<span class="chp o">${T('تغيّر الفعلي في ٣٠ يومًا','Actual change in 30 days')}: <b class="num">${Math.round(last.a-m30.a)}</b></span>`:''}</div>
   <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;direction:ltr">${grid}<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H-pb}" stroke="#d1101d" stroke-width="1.5"/>${line('ex','#BF9849',1)}${line('a','#3D96C7',0)}${recL}${xl}</svg>
   <div class="stp"><span style="--c:#BF9849">${T('المخطط','Planned')}</span><span style="--c:#3D96C7">${T('الفعلي (تقديري من تواريخ الإنجاز)','Actual (estimated from completion dates)')}</span><span style="--c:#1c7a45">${T('المسجَّل فعليًا ('+SS.length+' لقطة يومية)','Recorded ('+SS.length+' daily snapshots)')}</span><span style="--c:#d1101d">${T('اليوم','Today')}</span></div>
@@ -785,7 +792,8 @@ function vFil(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=scoped();
    ${z.at.length?`<div class="row" style="margin-top:8px">${z.at.map(a=>`<button onclick="filOpen('${esc(a.path)}')">📎 ${esc(a.title||'file')}</button>`).join('')}</div>`:''}</div>`).join(''):`<div class="card mut">${t('none')}</div>`}`}
 
 /* ---- خارطة طريق المشاريع (للأدمن): الترابط بين المشاريع يُحدَّد هنا فقط ---- */
-let PLK=null,RMPX=0,RMBUSY=false;
+let PLK=null,RMPX=0,RMBUSY=false,RMSEL='';
+function rmSel(k){RMSEL=RMSEL==k?'':k;vRmap()}
 async function rmLoad(){RMBUSY=true;try{const r=await sb.from('project_links').select('*').order('id');if(r.error)throw r.error;PLK=r.data||[]}catch(e){PLK=false}RMBUSY=false;draw()}
 function rmCycle(links,a,b){const adj={};links.forEach(l=>(adj[l.from_code]=adj[l.from_code]||[]).push(l.to_code));(adj[a]=adj[a]||[]).push(b);const seen=new Set();const go=u=>{if(u==a)return true;if(seen.has(u))return false;seen.add(u);return(adj[u]||[]).some(go)};return go(b)}
 async function rmAdd(){const a=$('rm_a').value,b=$('rm_b').value,ty=$('rm_t').value,lag=parseInt($('rm_l').value)||0,AR_=lang=='ar';
@@ -810,12 +818,23 @@ function vRmap(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e;
  const X=d=>AR_?CW-Math.round((d-m0)*PX):Math.round((d-m0)*PX),idx={};rows.forEach((p,i)=>idx[p.k]=i);
  const col=p=>({ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'})[health(p.an.gap,p.an.lateN)];
  const bar=p=>{const a=p.an,x1=X(a.s),x2=X(a.e+1),l=Math.min(x1,x2),w=Math.max(6,Math.abs(x2-x1)),c=col(p),y=HH+idx[p.k]*RH+RH/2-13;return `<div class="rmb" title="${esc(p.name)}" style="left:${l}px;width:${w}px;top:${y}px;border-color:${c};background:${c}22"><i style="width:${Math.round(p.a)}%;background:${c};${AR_?'right:0':'left:0'}"></i><span>${Math.round(p.a)}%</span></div>`};
- const arr=links.map(l=>{const A=by[l.from_code],Bp=by[l.to_code],sl=slack(l),c=sl<0?'#d1101d':crit.has(l.id)?'#181C32':'#8a93a0',ya=HH+idx[A.k]*RH+RH/2,yb=HH+idx[Bp.k]*RH+RH/2;
-  const xa=l.typ=='ss'?X(A.an.s):X(A.an.e+1),xb=X(Bp.an.s),dir=AR_?-1:1;
-  return `<path d="M${xa},${ya} C${xa+dir*30},${ya} ${xb-dir*30},${yb} ${xb},${yb}" fill="none" stroke="${c}" stroke-width="${crit.has(l.id)?2.6:1.8}" ${sl<0?'stroke-dasharray="5 3"':''} marker-end="url(#ah${sl<0?'r':crit.has(l.id)?'k':'g'})"/>`}).join('');
+ const BR={};rows.forEach(p=>{const x1=X(p.an.s),x2=X(p.an.e+1);BR[p.k]=[Math.min(x1,x2),Math.max(x1,x2)]});
+ const dir=AR_?-1:1,lanesU={};
+ const arr=links.map((l,li)=>{const A=by[l.from_code],Bp=by[l.to_code],sl=slack(l),c=sl<0?'#d1101d':crit.has(l.id)?'#181C32':'#6b7686',ia=idx[A.k],ib=idx[Bp.k],ya=HH+ia*RH+RH/2,yb=HH+ib*RH+RH/2,dn_=ib>ia?1:-1,off=(li%3)*3;
+  const xa=l.typ=='ss'?X(A.an.s):X(A.an.e+1),xb=X(Bp.an.s),xs=xa+(l.typ=='ss'?-dir:dir)*(10+off),xt=xb-dir*(10+off),yc1=ya+dn_*(RH/2-3-off),yc2=yb-dn_*(RH/2-3-off);
+  // ممر عمودي حر بين الصفين: لا يقطع أي شريط في الصفوف الوسطى
+  let xl=xt;const lo=Math.min(ia,ib)+1,hi=Math.max(ia,ib)-1;
+  if(hi>=lo){const mid=rows.slice(lo,hi+1).map(p=>BR[p.k]),free=x=>mid.every(b=>x<b[0]-8||x>b[1]+8);
+   const cand=[xs,xt,4,CW-4];mid.forEach(b=>{cand.push(b[0]-12,b[1]+12)});
+   const ok=cand.filter(x=>x>=2&&x<=CW-2&&free(x));const tgt=(xs+xt)/2;xl=ok.length?ok.sort((p,q)=>Math.abs(p-tgt)-Math.abs(q-tgt))[0]:xt;
+   xl+=((li%4)-1.5)*3}
+  const pts=[[xa,ya],[xs,ya],[xs,yc1],[xl,yc1],[xl,yc2],[xt,yc2],[xt,yb],[xb,yb]];
+  const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' L');
+  const on=!RMSEL||l.from_code==RMSEL||l.to_code==RMSEL;
+  return `<g opacity="${on?1:.12}"><path d="${d}" fill="none" stroke="${c}" stroke-width="${crit.has(l.id)?2.8:2}" stroke-linejoin="round" ${sl<0?'stroke-dasharray="6 4"':''} marker-end="url(#ah${sl<0?'r':crit.has(l.id)?'k':'g'})"><title>${esc(A.name)} ← ${esc(Bp.name)}</title></path><circle cx="${xa.toFixed(1)}" cy="${ya}" r="4.5" fill="${c}"/></g>`}).join('');
  const mo=[];{const t0=new Date(m0*DAY);let d=new Date(Date.UTC(t0.getUTCFullYear(),t0.getUTCMonth(),1));while(d.getTime()/DAY<m1){const n=Math.round(d.getTime()/DAY);if(n>=m0)mo.push(n);d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1))}}
  const mstep=Math.max(1,Math.ceil(62/(30.4*PX))),mh=mo.filter((n,i)=>i%mstep==0).map(n=>`<div class="rmm" style="left:${X(n)}px;${AR_?'transform:translateX(-100%)':''}">${new Date(n*DAY).toLocaleDateString(AR_?'ar-AE-u-nu-latn':'en',{month:'short',year:'2-digit',timeZone:'UTC'})}</div>`).join('');
- const lab=rows.map(p=>`<div class="rml" style="height:${RH}px"><span class="chp" style="background:${LC[(p.sc-1)%LC.length]}22;color:#444">${esc(secN(p.sc))}</span><b>${esc(p.name)}</b>${(succs[p.k]||[]).length&&(p.an.lateN>0)?`<small class="rmw2">⚠ ${T('يعطّل','blocks')} ${down(p.k)}</small>`:''}</div>`).join('');
+ const lab=rows.map(p=>`<div class="rml" onclick="rmSel('${esc(p.k)}')" style="height:${RH}px;cursor:pointer;${RMSEL==p.k?'background:#eaf5fc':''}"><span class="chp" style="background:${LC[(p.sc-1)%LC.length]}22;color:#444">${esc(secN(p.sc))}</span><b>${esc(p.name)}</b>${(succs[p.k]||[]).length&&(p.an.lateN>0)?`<small class="rmw2">⚠ ${T('يعطّل','blocks')} ${down(p.k)}</small>`:''}</div>`).join('');
  const conf=links.filter(l=>slack(l)<0),tight=links.filter(l=>slack(l)>=0&&slack(l)<=7);
  const opts=all.slice().sort((a,b)=>a.name.localeCompare(b.name,'ar')).map(p=>`<option value="${esc(p.k)}">${esc(p.name)}</option>`).join('');
  const lt=PLK.map(l=>{const sl=by[l.from_code]&&by[l.to_code]?slack(l):null;return `<div class="rmr"><span>${esc(nameOf(l.from_code))} <b>${AR_?'←':'→'}</b> ${esc(nameOf(l.to_code))}</span><span class="mut">${l.typ=='ss'?T('بداية ببداية','Start-to-start'):T('نهاية ببداية','Finish-to-start')}${l.lag?' · '+(l.lag>0?'+':'')+l.lag+' '+T('يوم','d'):''}${sl==null?'':sl<0?` · <b style="color:#d1101d">${T('تعارض','Conflict')} ${-sl} ${T('يوم','d')}</b>`:` · ${T('انزلاق','Slack')} ${sl} ${T('يوم','d')}`}</span><button class="r" onclick="rmDel(${l.id})">${T('حذف','Delete')}</button></div>`}).join('');
@@ -824,8 +843,8 @@ function vRmap(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e;
   <div class="row" style="margin:6px 0"><span class="chp g">${T('ترابطات','Links')}: <b class="num">${links.length}</b></span><span class="chp r">${T('تعارضات','Conflicts')}: <b class="num">${conf.length}</b></span><span class="chp o">${T('ضيّقة (≤٧ أيام)','Tight (≤7d)')}: <b class="num">${tight.length}</b></span>${hpBtn()}<button onclick="RMPX=Math.min(8,(RMPX||${PX.toFixed(3)})*1.4);vRmap()">＋</button><button onclick="RMPX=Math.max(.3,(RMPX||${PX.toFixed(3)})/1.4);vRmap()">－</button></div>
   ${rows.length?`<div class="rmw" id="rmw"><div class="rmi"><div class="rmlc" style="width:${LW}px"><div class="rmh" style="height:${HH}px">${T('المشروع','Project')}</div>${lab}</div>
   <div class="rmcv" style="width:${CW}px;height:${HH+rows.length*RH}px"><div class="rmh" style="height:${HH}px;width:${CW}px">${mh}</div>${rows.map((p,i)=>`<div class="rmrow" style="top:${HH+i*RH}px;height:${RH}px;width:${CW}px"></div>`).join('')}${mo.map(n=>`<i class="rmg" style="left:${X(n)}px;top:${HH}px;height:${rows.length*RH}px"></i>`).join('')}<i class="rmt" style="left:${todayX}px;top:0;height:${HH+rows.length*RH}px"></i>${rows.map(bar).join('')}
-  <svg width="${CW}" height="${HH+rows.length*RH}" style="position:absolute;left:0;top:0;pointer-events:none"><defs>${[['g','#8a93a0'],['k','#181C32'],['r','#d1101d']].map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join('')}</defs>${arr}</svg></div></div></div>
-  <div class="row mut" style="font-size:12px;gap:14px"><span><b style="color:#181C32">━</b> ${T('المسار الحرج','Critical path')}</span><span><b style="color:#8a93a0">━</b> ${T('ترابط عادي','Normal link')}</span><span><b style="color:#d1101d">╍</b> ${T('تعارض: اللاحق يبدأ قبل انتهاء السابق','Conflict')}</span><span><b style="color:#d1101d">│</b> ${T('اليوم','Today')}</span></div>`:`<div class="mut">${T('لا توجد مشاريع بتواريخ ضمن المعروض.','No dated projects shown.')}</div>`}</div>
+  <svg width="${CW}" height="${HH+rows.length*RH}" style="position:absolute;left:0;top:0;pointer-events:none"><defs>${[['g','#8a93a0'],['k','#181C32'],['r','#d1101d']].map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join('')}</defs>${arr}</svg></div></div></div>
+  <div class="row mut" style="font-size:12px;gap:14px"><span>● ${T('بداية السهم: نهاية السابق','Arrow starts: predecessor end')}</span><span>▶ ${T('نهاية السهم: بداية اللاحق','Arrow ends: successor start')}</span><span><b style="color:#181C32">━</b> ${T('المسار الحرج','Critical path')}</span><span><b style="color:#8a93a0">━</b> ${T('ترابط عادي','Normal link')}</span><span><b style="color:#d1101d">╍</b> ${T('تعارض: اللاحق يبدأ قبل انتهاء السابق','Conflict')}</span><span><b style="color:#d1101d">│</b> ${T('اليوم','Today')}</span></div>`:`<div class="mut">${T('لا توجد مشاريع بتواريخ ضمن المعروض.','No dated projects shown.')}</div>`}</div>
   <div class="card"><b>＋ ${T('إضافة ترابط بين مشروعين','Add a link between two projects')}</b>
   <div class="rmf"><label>${T('المشروع السابق (يجب أن يسبق)','Predecessor')}<select id="rm_a"><option value="">—</option>${opts}</select></label><label>${T('المشروع اللاحق (يعتمد عليه)','Successor (depends on it)')}<select id="rm_b"><option value="">—</option>${opts}</select></label>
   <label>${T('نوع الترابط','Type')}<select id="rm_t"><option value="fs">${T('نهاية ببداية: يبدأ اللاحق بعد نهاية السابق','Finish-to-start')}</option><option value="ss">${T('بداية ببداية: يبدآن معًا','Start-to-start')}</option></select></label>
