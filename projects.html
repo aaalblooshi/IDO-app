@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -406,11 +406,18 @@ if(!S[f])return;function go(){var m=document.querySelector('main');if(!m||docume
 function upd(){var d=document.getElementById('pgban');if(!d)return;var ar=(document.documentElement.lang||'ar')=='ar',s=S[f];d.firstChild.textContent=ar?s[0]:s[1];d.lastChild.textContent=ar?s[2]:s[3]}
 document.addEventListener('DOMContentLoaded',go);if(document.readyState!='loading')go();new MutationObserver(function(){go();upd()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});})();</script><script>/*nightnav*/
 (function(){
- var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}';document.head.appendChild(st);
+ var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb.ico{flex:0 0 46px}body #gnav .gnb.ico span{display:none}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}body #gnav .gnb{position:relative}body #gnav .gnb .cb{position:absolute;top:2px;inset-inline-end:2px;min-width:18px;padding:0 5px;border-radius:99px;background:#d1101d;color:#fff;font:800 11px/16px Cairo,sans-serif;text-align:center}';document.head.appendChild(st);
+ var cur=(location.pathname.split('/').pop()||'index.html').replace('.html','');
+ function perms(n){try{if(typeof sb==='undefined'||!sb)return;sb.rpc('my_perms').then(function(r){var pg=r&&r.data&&r.data.pages;if(!pg)return;
+   if(n)n.querySelectorAll('a.gnb[href]').forEach(function(a){var f=(a.getAttribute('href')||'').replace('.html','');if(pg[f]===false)a.style.display='none'});
+   if(pg[cur]===false&&cur!='index'&&cur!='account'&&cur!='help')location.replace('index.html')}).catch(function(){})}catch(e){}}
+ function chat(n){try{if(typeof sb==='undefined'||!sb||document.getElementById('chb'))return;sb.rpc('chat_on').then(function(r){if(!r||r.data!==true||document.getElementById('chb'))return;
+   var a=document.createElement('a');a.className='gnb ico'+(cur=='chat'?' on':'');a.id='chb';a.href='chat.html';a.innerHTML='<i>💬</i><span>chat</span>';n.insertBefore(a,document.getElementById('nmb'));
+   sb.rpc('chat_unread').then(function(u){var c=((u&&u.data)||[]).reduce(function(x,y){return x+(+y.n||0)},0);if(c){var b=document.createElement('b');b.className='cb';b.textContent=c;a.appendChild(b)}})}).catch(function(){})}catch(e){}}
  function add(){var n=document.getElementById('gnav');if(!n||document.getElementById('nmb'))return !!n;var ar=true;try{ar=(localStorage.getItem('lang')||'ar')=='ar'}catch(e){}
-  var b=document.createElement('a');b.className='gnb';b.id='nmb';b.href='#';b.innerHTML='<i>🌙</i><span>'+(ar?'ليلي':'Night')+'</span>';
-  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);return true}
- if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000)}
+  var b=document.createElement('a');b.className='gnb ico';b.id='nmb';b.href='#';b.title=ar?'الوضع الليلي':'Night mode';b.innerHTML='<i>🌙</i><span>night</span>';
+  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);chat(n);perms(n);return true}
+ if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000);perms(null)}
 })();
 </script>
 </body></html>
