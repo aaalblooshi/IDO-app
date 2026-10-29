@@ -250,8 +250,9 @@ const dtx=n=>n==null?'':(CFG.wkd?wdn(n)+' ':'')+'<span class="num">'+fd(ds(n))+'
 function prChip(r){if(!CFG.prio||isDone(r))return '';const p=prio(r),w=prioWhy(r);return p==3?`<span class="chp r">${t('p_hi')}: ${t(w)}</span>`:p==2?`<span class="chp o">${t('p_md')}: ${t(w)}</span>`:''}
 const stChip=r=>{const k=stOf(r);return `<span class="chp" style="background:${SCOL[k]}22;color:${SCOL[k]}">● ${t('st_'+k)}</span>`}
 function depChips(r){if(!CFG.deps||isDone(r))return '';let h='';
- if(r.blocked)h+=`<span class="chp o" title="${esc(r.waits.map(d=>d.x.n).join('، '))}">🔒 ${t('blocked')}: ${esc(r.waits[0].x.n.slice(0,28))}${r.waits.length>1?' +'+(r.waits.length-1):''}</span>`;
- if(r.succ>0)h+=`<span class="chp b" title="${t('blocks')}">⛓ ${t('blocks')} ${plr(r.succ,'task')}</span>`;return h}
+ const K_=esc(r.pr.pid+'|'+r.id),OC=`onclick="event.stopPropagation();depOpen('${K_}')" style="cursor:pointer"`;
+ if(r.blocked)h+=`<span ${OC} class="chp o" title="${esc(r.waits.map(d=>d.x.n).join('، '))}">🔒 ${t('blocked')}: ${esc(r.waits[0].x.n.slice(0,28))}${r.waits.length>1?' +'+(r.waits.length-1):''}</span>`;
+ if(r.succ>0)h+=`<span ${OC} class="chp b" title="${t('blocks')}">⛓ ${t('blocks')} ${plr(r.succ,'task')}</span>`;return h}
 const pathS=r=>r.path.length?esc(r.path.join(' ‹ ')):'';
 function healthOf(a){return health(a.gap!=null?a.gap:0,a.lateN||0)}
 
@@ -298,6 +299,14 @@ function draw(){
  calCheck();
  if(MODE=='me'&&!ALLR.some(r=>r.mine)){$('body').innerHTML=`<div class="card mut">${t('noany')}</div>`;return}
  paint()}
+function depOpen(k){const r=findR(k);if(!r)return;closeSheet();const AR_=lang=='ar',T=(a,e)=>AR_?a:e;
+ const row=(z,q,extra)=>{const ok=q&&q.a.a>=100;return `<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)"><span>${ok?'✅':'⏳'}</span><div style="flex:1"><b>${esc(z.x.n)}</b><div class="mut num" style="font-size:12px">${pct(q?q.a.a:0)}${z.s!=null?' · '+fd(ds(z.s))+' → '+fd(ds(z.e)):''}${extra||''}</div></div><button onclick="closeSheet();ISO='${esc(z.pr.pid+'|'+z.id)}';draw();scrollTo(0,0)">${T('عرض','Show')}</button></div>`};
+ const preds=r.preds.map(d=>{const q=r.pr.byId[d.x.id];return q?row(q,q,' · '+d.y+(d.l?(d.l>0?' +':' ')+d.l:'')):''}).join(''),sc=r.pr.rs.filter(z=>z.preds.some(d=>d.x.id==r.id)).map(z=>row(z,z)).join('');
+ const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
+ o.innerHTML=`<div class="sbx"><h3>⛓ ${T('ترابط المهمة','Task links')}</h3><div style="margin-bottom:6px"><b>${esc(r.x.n)}</b></div>
+ <div class="chp o" style="margin-top:6px">🔒 ${T('تنتظر هذه المهام السابقة','Waiting for these predecessors')}</div>${preds||`<div class="mut">—</div>`}
+ <div class="chp b" style="margin-top:12px">⛓ ${T('المهام التي تنتظر هذه المهمة','Tasks waiting on this task')}</div>${sc||`<div class="mut">—</div>`}
+ <div class="row" style="margin-top:12px"><button onclick="closeSheet()">${T('إغلاق','Close')}</button></div></div>`}
 function isoH(){if(!ISO)return '';const r=findR(ISO);if(!r)return '';const AR_=lang=='ar',T=(a,e)=>AR_?a:e,x=r.x,dn=isDone(r);
  return `<div class="card" style="border:2px solid #BF9849;background:#fffaf0;margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="mut" style="font-size:12px">${T('المهمة المحددة','Selected task')}</div><b style="font-size:17px">${esc(x.n||'')}</b><div class="mut">${pLink(r)}</div></div><button onclick="ISO=null;draw()" aria-label="x">✕</button></div>
  <div style="margin:8px 0">${T('الموعد المخطط: ','Planned: ')}<span class="num">${fd(x.s)}</span> → <span class="num">${fd(x.e)}</span>${x.as?` · ${T('بدأت فعليًا: ','Started: ')}<span class="num">${fd(x.as)}</span>`:''}${x.ae?` · ${T('انتهت: ','Ended: ')}<span class="num">${fd(x.ae)}</span>`:''} · <b class="num">${Math.round(r.pcr||0)}%</b></div>
@@ -874,7 +883,7 @@ html[dir=ltr] .pgban{background:radial-gradient(circle at 0 0,rgba(255,255,255,.
 <script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><script>/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
 var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{4}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
 var RE=new RegExp('('+D+')\\s*(?:→|←|⟵|⟶)\\s*('+D+')','u');
-var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
+var st=document.createElement('style');st.textContent='.dr{display:inline-block;background:#eaf3fa;border:1px solid #cfe2f1;color:#1d5f8a;border-radius:8px;padding:1px 8px;font-weight:600;white-space:nowrap;unicode-bidi:isolate;line-height:1.7}.dr i{font-style:normal;opacity:.6;margin:0 4px}html[dir=rtl] .dr i{display:inline-block;transform:scaleX(-1)}html[dir=rtl] .wc .dr i,html[dir=rtl] .wcd .dr i{display:block;transform:rotate(90deg)}.wc .dr,.wcd .dr{display:flex;flex-direction:column;align-items:center;white-space:nowrap;font-size:11px;padding:2px 6px}.wc .dr i,.wcd .dr i{display:block;transform:rotate(90deg);line-height:1;margin:1px 0}';document.head.appendChild(st);
 function walk(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('→')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE|BUTTON)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),L=[],n;while(n=w.nextNode())L.push(n);
  L.forEach(function(n){var s=n.nodeValue,m=RE.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr';sp.appendChild(document.createTextNode(m[1]));var i=document.createElement('i');i.textContent='→';sp.appendChild(i);sp.appendChild(document.createTextNode(m[2]));f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
 var S1=/(?:\d{4}-\d{2}-\d{2}|[\d\u0660-\u0669]{1,2}\/[\d\u0660-\u0669]{1,2}\/[\d\u0660-\u0669]{4})/;
