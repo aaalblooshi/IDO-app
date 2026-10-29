@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -480,7 +480,7 @@ async function load(){
    return (a.data||[]).filter(r=>!r.archived).map(r=>{const my=sg[r.id]||[],mine=r.created_by==me.id||(!!r.pmn&&r.pmn==(me.full_name||'').trim()),st=r.status;
     const roles=new Set();if(mine)roles.add('pm');if(my.some(x=>x.stage=='reviewed'))roles.add('rv');if(my.some(x=>x.stage=='approved'))roles.add('ap');if(adm)roles.add('of');
     const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(x=>x.stage=='reviewed'&&x.status=='pending'))||(st=='Awaiting Approval'&&my.some(x=>x.stage=='approved'&&x.status=='pending'))||(adm&&['Submitted','Reviewed','Office Decision'].includes(st));
-    return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',st,stage:stOf(k,st),act,roles,own:mine||my.length>0,at:r.stage_at||r.created_at}})}));
+    return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',pmn:r.pmn||'',st,stage:stOf(k,st),act,roles,own:mine||my.length>0,at:r.stage_at||r.created_at}})}));
   E.items=res.flat();
   try{const c=await sb.rpc('my_consults');if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.act=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
   try{const l=await sb.rpc('my_links');if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add(z.kind=='participant'?'pt':'fl')}})}catch(_){}
@@ -524,7 +524,7 @@ function service(k){const c=SV[k],n=E.sel,it=vis(k),by=s=>it.filter(x=>x.stage==
  const state=k=='tasks'?P(TSTATE[n-1]):(n==5?P(STATE5[k]):P(STATE[n-1]));
  const list=by(n).sort((a,b)=>(AC(b)-AC(a))||String(a.at||'').localeCompare(String(b.at||'')));
  const dur=(k!='tasks'&&(n==3||n==4))?(()=>{const s=slaDays(k,n==3?'reviewed':'approved');return `<div>${P(['مدة الإنجاز المعتمدة','Set duration'])}<b style="font-size:15px">${AR(s.d)} ${P(['أيام عمل','working days'])}</b></div>`})():`<div>${P(['مدة الإنجاز','Duration'])}<b style="font-size:15px">${k=='tasks'?P(['حسب موعد المهمة','Per task date']):n==1?P(['حسب إعداد مقدّم الطلب','Set by the preparer']):n==2?P(['فورية','Immediate']):P(['—','—'])}</b></div>`;
- const rows=list.slice(0,7).map(x=>{const q=x.k=='tasks'?null:slaOf(x);const tag=AC(x)?P(['بانتظار إجرائك','Awaiting your action']):x.k=='tasks'?'':P(stName(x.st));
+ const rows=list.slice(0,7).map(x=>{const q=x.k=='tasks'?null:slaOf(x);const tag=AC(x)?P(['بانتظار إجرائك','Awaiting your action']):x.k=='tasks'?'':P(stName(x.st))+((x.st=='Draft'||x.st=='Returned to PM')&&x.pmn?' — '+P(['بيد','with'])+' '+esc(x.pmn):'');
   const extra=q?` · ${q.left>=0?P(['المتبقي','left'])+' '+AR(q.left):P(['متأخر','late'])+' '+AR(-q.left)} ${P(['يوم عمل','wd'])}${q.custom?' ★':''}`:(x.k=='tasks'&&x.late?` · ${P(['متأخرة','late'])} ${AR(x.late)} ${P(['يوم','d'])}`:'');
   const mt=x.k=='plan'&&x.stage==5&&E.mt[x.id]?` · ${P(['مهامي المفتوحة','my open tasks'])}: ${AR(E.mt[x.id])}`:'';
   return `<a class="jn-it" href="${x.p}#o=${x.id}"><span><b>${esc(x.name||x.code)}</b><small>${esc(P(SV[x.k].t))}${x.code?' · '+esc(x.code):''}${x.cons?' · '+P(['التخطيط الجماعي','Group planning']):''}${E.role=='all'?' · '+(x.k=='tasks'?rn('tk'):ROLES.map(z=>z[0]).filter(r=>x.roles.has(r)&&(r!='of'||adm)).map(rn).join('، ')):''}${mt}</small></span><em class="${x.act?'a':''}">${tag}${extra}</em></a>`}).join('');
@@ -751,7 +751,23 @@ function walk1(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
  L.forEach(function(n){var s=n.nodeValue,m=S1.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr dr1';sp.textContent=m[0];f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
 var q=0;function fixArr(root){if(document.documentElement.dir!='rtl')return;var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){var p=n.parentElement;if(!p||!n.nodeValue||n.nodeValue.indexOf('\u2192')<0)return NodeFilter.FILTER_REJECT;if(/^(SCRIPT|STYLE|TEXTAREA|INPUT|OPTION|TITLE)$/.test(p.tagName)||p.closest('.dr'))return NodeFilter.FILTER_REJECT;return NodeFilter.FILTER_ACCEPT}}),a=[],n;while(n=w.nextNode())a.push(n);a.forEach(function(n){var p=n.parentElement,t=(p.textContent||'');var near=function(e){return e&&e.nodeType==1&&(e.classList.contains('dr')||e.classList.contains('num'))};if(near(n.previousSibling)||near(n.nextSibling)||/\d{1,2}\/\d{1,2}\/\d{4}|\d{4}-\d{2}-\d{2}/.test(t))n.nodeValue=n.nodeValue.replace(/\u2192/g,'\u2190')})}
 function go(){q=0;try{walk(document.body);walk1(document.body);fixArr(document.body)}catch(e){}}
-new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();</script><style>/*cmdhome-css*/
+new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();</script><script>/*nightnav*/
+(function(){
+ var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb.ico{flex:0 0 46px}body #gnav .gnb.ico span{display:none}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}body #gnav .gnb{position:relative}body #gnav .gnb .cb{position:absolute;top:2px;inset-inline-end:2px;min-width:18px;padding:0 5px;border-radius:99px;background:#d1101d;color:#fff;font:800 11px/16px Cairo,sans-serif;text-align:center}';document.head.appendChild(st);
+ var cur=(location.pathname.split('/').pop()||'index.html').replace('.html','');
+ function perms(n){try{if(typeof sb==='undefined'||!sb)return;sb.rpc('my_perms').then(function(r){var pg=r&&r.data&&r.data.pages;if(!pg)return;
+   if(n)n.querySelectorAll('a.gnb[href]').forEach(function(a){var f=(a.getAttribute('href')||'').replace('.html','');if(pg[f]===false)a.style.display='none'});
+   if(pg[cur]===false&&cur!='index'&&cur!='account'&&cur!='help')location.replace('index.html')}).catch(function(){})}catch(e){}}
+ function chat(n){try{if(typeof sb==='undefined'||!sb||document.getElementById('chb'))return;sb.rpc('chat_on').then(function(r){if(!r||r.data!==true||document.getElementById('chb'))return;
+   var a=document.createElement('a');a.className='gnb ico'+(cur=='chat'?' on':'');a.id='chb';a.href='chat.html';a.innerHTML='<i>💬</i><span>chat</span>';n.insertBefore(a,document.getElementById('nmb'));
+   sb.rpc('chat_unread').then(function(u){var c=((u&&u.data)||[]).reduce(function(x,y){return x+(+y.n||0)},0);if(c){var b=document.createElement('b');b.className='cb';b.textContent=c;a.appendChild(b)}})}).catch(function(){})}catch(e){}}
+ function add(){var n=document.getElementById('gnav');if(!n||document.getElementById('nmb'))return !!n;var ar=true;try{ar=(localStorage.getItem('lang')||'ar')=='ar'}catch(e){}
+  var b=document.createElement('a');b.className='gnb ico';b.id='nmb';b.href='#';b.title=ar?'الوضع الليلي':'Night mode';b.innerHTML='<i>🌙</i><span>night</span>';
+  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);chat(n);perms(n);return true}
+ if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000);perms(null)}
+})();
+</script>
+<style>/*cmdhome-css*/
 body.cmon .hero{display:none}
 body.cmon{overflow-x:clip;--bg:#eef3f8;--line:#dbe4ec;background:radial-gradient(800px 380px at 100% -60px,#d3e8f6 0,transparent 62%),radial-gradient(700px 340px at 0 -80px,#f4ecd8 0,transparent 58%),#eef3f8;background-attachment:fixed}
 body.cmon #hd,body.cmon #hd2{border-bottom:0}body.cmon header .stripe i:nth-child(1){background:#BF9849}body.cmon header .stripe i:nth-child(2){background:#3EA3DC}body.cmon header .stripe i:nth-child(3){background:#1d5f8a}body.cmon header .stripe i:nth-child(4){background:#c9d6e2}
@@ -1016,13 +1032,4 @@ var tries=0,iv=setInterval(function(){tries++;if(!S.built&&tries>120)return clea
  if(!S.built)build();upd(false)},150);
 var d0=window.draw;if(typeof d0=='function'){window.draw=function(){d0.apply(this,arguments);if(S.built)upd(true)}}
 })();
-</script><script>/*nightnav*/
-(function(){
- var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}';document.head.appendChild(st);
- function add(){var n=document.getElementById('gnav');if(!n||document.getElementById('nmb'))return !!n;var ar=true;try{ar=(localStorage.getItem('lang')||'ar')=='ar'}catch(e){}
-  var b=document.createElement('a');b.className='gnb';b.id='nmb';b.href='#';b.innerHTML='<i>🌙</i><span>'+(ar?'ليلي':'Night')+'</span>';
-  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);return true}
- if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000)}
-})();
-</script>
-</body></html>
+</script></body></html>
