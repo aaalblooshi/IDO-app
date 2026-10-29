@@ -268,13 +268,13 @@ let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
 const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
-  const [a,b,c,pc,lkr]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]}),tbl=='plans'?sb.rpc('my_consults'):Promise.resolve({data:[]}),sb.rpc('my_links')]);
+  const [a,b,c,pc,lkr]=await Promise.all([sb.from(tbl).select('id,status,created_by,archived,pmn:data->>pmname'),sb.from(stbl).select('cr_id,stage,status').eq('user_id',me.id),me.role=='admin'?sb.from('del_requests').select('cr_id').eq('svc',svc).eq('status','pending'):Promise.resolve({data:[]}),tbl=='plans'?sb.rpc('my_consults'):Promise.resolve({data:[]}),sb.rpc('my_links')]);
   const ci=new Set((pc&&!pc.error&&pc.data||[]).map(z=>z.plan_id));
   const lk=new Set((lkr&&!lkr.error&&lkr.data||[]).filter(z=>z.svc==svc).map(z=>z.id));
   if(a.error)throw a.error;if(b.error)throw b.error;const dp=new Set((c&&c.data||[]).map(x=>x.cr_id));
   const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
   let created=0,action=0,done=0;const adm=me.role=='admin';
-  (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id;
+  (a.data||[]).filter(r=>!r.archived).forEach(r=>{const st=r.status,my=sg[r.id]||[],mine=r.created_by==me.id||(!!r.pmn&&r.pmn==(me.full_name||'').trim());
    if(mine)created++;
    if((st=='Approved'||st=='Rejected')&&(mine||my.length||lk.has(r.id)))done++;
    const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'))||(tbl=='plans'&&st=='Draft'&&!mine&&ci.has(r.id));
@@ -473,9 +473,9 @@ async function load(){
   const adm=me.role=='admin';E.scope=E.scope||(adm?'all':'mine');
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
-  const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id)]);
+  const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode,pmn:data->>pmname').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id)]);
    const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
-   return (a.data||[]).filter(r=>!r.archived).map(r=>{const my=sg[r.id]||[],mine=r.created_by==me.id,st=r.status;
+   return (a.data||[]).filter(r=>!r.archived).map(r=>{const my=sg[r.id]||[],mine=r.created_by==me.id||(!!r.pmn&&r.pmn==(me.full_name||'').trim()),st=r.status;
     const roles=new Set();if(mine)roles.add('pm');if(my.some(x=>x.stage=='reviewed'))roles.add('rv');if(my.some(x=>x.stage=='approved'))roles.add('ap');if(adm)roles.add('of');
     const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(x=>x.stage=='reviewed'&&x.status=='pending'))||(st=='Awaiting Approval'&&my.some(x=>x.stage=='approved'&&x.status=='pending'))||(adm&&['Submitted','Reviewed','Office Decision'].includes(st));
     return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',st,stage:stOf(k,st),act,roles,own:mine||my.length>0,at:r.stage_at||r.created_at}})}));
@@ -894,7 +894,7 @@ function build(){document.body.classList.add('cmhome');var main=document.querySe
  '<div class="cm-fab"><div class="cm-fm" id="cmfm"></div><button id="cmfb"></button></div>';
  hero.parentNode.insertBefore(c,hero);document.body.classList.add('cmon');document.documentElement.classList.remove('cmpend');S.built=true;wire();upd(true)}
 function wire(){
- document.getElementById('cmchips').addEventListener('click',function(e){var b=e.target.closest('[data-f]');if(!b)return;S.f=S.f==b.dataset.f?null:b.dataset.f;S.open={};upd(true)});
+ document.getElementById('cmchips').addEventListener('click',function(e){var b=e.target.closest('[data-f]');if(!b)return;S.f=S.f==b.dataset.f?null:b.dataset.f;S.open={};upd(true);if(S.f&&window.innerWidth<900){setTimeout(function(){var k=document.getElementById('cmkb');if(k){var y=k.getBoundingClientRect().top+window.scrollY-70;window.scrollTo({top:y,behavior:'smooth'})}},80)}});
  document.addEventListener('click',function(e){var b=e.target.closest('[data-tg]');if(!b)return;e.preventDefault();S.side=!S.side;try{localStorage.setItem('cmSide',S.side?'1':'0')}catch(_){}S.sig='';upd(true)});
  document.getElementById('cmtabs').addEventListener('click',function(e){var b=e.target.closest('[data-tab]');if(!b)return;S.tab=b.dataset.tab;S.sig='';upd(true)});
  document.getElementById('cmcal').addEventListener('click',calClick);
@@ -902,8 +902,8 @@ function wire(){
   function upd(){var max=kb.scrollWidth-kb.clientWidth,x=Math.abs(kb.scrollLeft),rtl=getComputedStyle(kb).direction=='rtl';var atStart=x<4,atEnd=x>max-4;if(max<6){bl.style.display=br.style.display='none';return}var canL=rtl?!atEnd:!atStart,canR=rtl?!atStart:!atEnd;bl.style.display=canL?'flex':'none';br.style.display=canR?'flex':'none'}
   bl.onclick=function(){kb.scrollBy({left:-kb.clientWidth*.8,behavior:'smooth'})};br.onclick=function(){kb.scrollBy({left:kb.clientWidth*.8,behavior:'smooth'})};
   kb.addEventListener('scroll',upd,{passive:true});addEventListener('resize',upd);new MutationObserver(function(){setTimeout(upd,30)}).observe(kb,{childList:true});setTimeout(upd,300);setInterval(upd,1500)})();
- document.getElementById('cmkb').addEventListener('click',function(e){var pp=e.target.closest('[data-pop]');if(pp){e.preventDefault();e.stopPropagation();popOpen(pp.dataset.pop);return}var pj=e.target.closest('[data-pj]');if(pj){e.preventDefault();e.stopPropagation();location.href='myprojects.html?pc='+encodeURIComponent(pj.dataset.pj);return}var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();S.open[b.dataset.more]=+b.dataset.n;upd(true)});
- document.getElementById('cmside').addEventListener('click',function(e){var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();S.open[b.dataset.more]=+b.dataset.n;upd(true)});
+ document.getElementById('cmkb').addEventListener('click',function(e){var pp=e.target.closest('[data-pop]');if(pp){e.preventDefault();e.stopPropagation();popOpen(pp.dataset.pop);return}var pj=e.target.closest('[data-pj]');if(pj){e.preventDefault();e.stopPropagation();location.href='myprojects.html?pc='+encodeURIComponent(pj.dataset.pj);return}var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();var kk=b.dataset.more,nn=+b.dataset.n;if(kk.indexOf('c:')==0){Object.keys(COLT).forEach(function(c){S.open['c:'+c]=nn})}else S.open[kk]=nn;upd(true)});
+ document.getElementById('cmside').addEventListener('click',function(e){var b=e.target.closest('[data-more]');if(!b)return;e.preventDefault();var kk=b.dataset.more,nn=+b.dataset.n;if(kk.indexOf('c:')==0){Object.keys(COLT).forEach(function(c){S.open['c:'+c]=nn})}else S.open[kk]=nn;upd(true)});
  document.getElementById('cmrole').addEventListener('change',function(e){window.jnR&&window.jnR(e.target.value);upd(true)});
  document.getElementById('cmall').addEventListener('click',function(e){e.preventDefault();var ax=document.getElementById('axes');if(ax)ax.scrollIntoView({behavior:'smooth'})});
  var q=document.getElementById('cmq');q.addEventListener('input',search);q.addEventListener('focus',search);
@@ -963,6 +963,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
 }
 
 /* ---------- نافذة الإجراء ---------- */
+function softRef(){try{var X=window.JNX;if(typeof load=='function'&&X&&X.E){X.E.loading=1;var p=load();(p&&p.then?p:Promise.resolve()).then(function(){X.E.loading=0;S.sig='';try{upd(true)}catch(_){}},function(){location.reload()})}else location.reload()}catch(_){location.reload()}}
 function popClose(){var o=document.getElementById('cmpop');if(o)o.remove();document.body.style.overflow=''}
 function popOpen(key){var m=POP[key];if(!m)return;var x=m.x;popClose();var o=document.createElement('div');o.id='cmpop';o.className='cm-pop';o.onclick=function(e){if(e.target==o)popClose()};
  var K=KIND[m.k]||KIND.ot,ttl=x.k=='tasks'?x.name:(P(window.JNX.SV[x.k].t)+' · '+(x.code||'')+' — '+(x.name||''));
@@ -974,10 +975,10 @@ function popOpen(key){var m=POP[key];if(!m)return;var x=m.x;popClose();var o=doc
    +'<div class="cm-pf"><button class="cm-ok" data-done="plan">✔ '+esc(P(['أنجزتها في الموعد المحدد','Done on schedule']))+'</button><button class="cm-ok" data-done="today" style="background:#3D96C7">✔ '+esc(P(['أنجزتها اليوم','Done today']))+'</button><a class="cm-bt" href="myprojects.html?pc='+encodeURIComponent(x.pc)+'#plan">'+esc(P(['ملف المشروع','Project file']))+'</a><a class="cm-bt" href="tasks.html#t='+encodeURIComponent(x.id+'|'+x.tid)+'">'+esc(P(['فتح في مهامي','Open in My tasks']))+'</a></div></div>';
   o.querySelectorAll('[data-done]').forEach(function(bt){bt.onclick=function(){var plan=this.dataset.done=='plan';if(!confirm(plan?P(['تأكيد إنجاز المهمة بنسبة 100٪ وتسجيل البدء والانتهاء في موعديهما المخططين؟','Confirm completion at 100% with start and end recorded on the planned dates?']):P(['تأكيد إنجاز المهمة بنسبة 100٪ اليوم؟','Confirm completion at 100% today?'])))return;var b=this;o.querySelectorAll('[data-done]').forEach(function(z){z.disabled=true});var td=new Date().toISOString().slice(0,10);
    var as_=plan?(x.ts||td):(x.tas||x.ts||td),ae_=plan?(x.te||td):td;
-   sb.rpc('set_task_progress',{pid:+x.id,tid:x.tid,p_pc:100,p_as:as_,p_ae:ae_}).then(function(r){if(r.error){o.querySelectorAll('[data-done]').forEach(function(z){z.disabled=false});alert(r.error.message);return}popClose();location.reload()})}})}
+   sb.rpc('set_task_progress',{pid:+x.id,tid:x.tid,p_pc:100,p_as:as_,p_ae:ae_}).then(function(r){if(r.error){o.querySelectorAll('[data-done]').forEach(function(z){z.disabled=false});alert(r.error.message);return}popClose();softRef()})}})}
  else{o.innerHTML='<div class="cm-pb cm-wide">'+head+'<iframe class="cm-fr" title="form"></iframe><div class="cm-pf"><a class="cm-bt" href="'+x.p+'#o='+x.id+'">'+esc(P(['فتح في صفحة كاملة','Open full page']))+'</a>'+(x.pc?'<a class="cm-bt" href="myprojects.html?pc='+encodeURIComponent(x.pc)+'">'+esc(P(['ملف المشروع','Project file']))+'</a>':'')+'</div></div>';
   var f=o.querySelector('iframe');f.onload=function(){try{var dd=f.contentDocument,st=dd.createElement('style');st.textContent='#hd,#hd2,header.top,#gnav,.top,footer{display:none!important}body{padding-top:0!important;padding-bottom:12px!important}main{margin-top:0!important}';dd.head.appendChild(st)}catch(_){}};f.src=x.p+'#o='+x.id}
- if(x.k!='tasks'){var cl0=popClose;o.onclick=function(e){if(e.target==o){cl0();location.reload()}};o.querySelector('.cm-px').onclick=function(){cl0();location.reload()}}else o.querySelector('.cm-px').onclick=popClose;document.body.appendChild(o);document.body.style.overflow='hidden';
+ if(x.k!='tasks'){var cl0=popClose;o.onclick=function(e){if(e.target==o){cl0();softRef()}};o.querySelector('.cm-px').onclick=function(){cl0();softRef()}}else o.querySelector('.cm-px').onclick=popClose;document.body.appendChild(o);document.body.style.overflow='hidden';
  var onEsc=function(e){if(e.key=='Escape'){popClose();document.removeEventListener('keydown',onEsc)}};document.addEventListener('keydown',onEsc)}
 /* ---------- التقويم ---------- */
 function addWD(start,n,c){var d=start,k=0;while(k<n&&d<start+400){d++;var w=new Date(d*864e5).getUTCDay();if(!c.off.includes(w)&&!c.hol[d])k++}return d}
