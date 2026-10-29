@@ -104,6 +104,19 @@ h3.h{margin:0 0 8px;font-size:16px}
 
 .crumb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 10px}.crumb select{flex:1;min-width:180px;max-width:420px}
 .crumb select{padding:9px 10px;border:1px solid #cfd9e3;border-radius:10px;background:#fff;font:inherit;color:#181C32}
+/* gantt: phone-friendly (same behaviour as tasks page) */
+.gt{isolation:isolate}.gl{z-index:5}.gr.h .gl{z-index:6}
+.gr.gfx .gl{background:#fff6dd}.gr.gfx .gt{background:#fff9e8}.gr.gfx .bk{box-shadow:0 0 0 3px #BF9849,0 2px 8px rgba(0,0,0,.25)}.gr.gfx .ms{box-shadow:0 0 0 3px #BF9849}
+.gl{cursor:pointer}
+@media(max-width:700px){
+.gw{max-height:70vh;-webkit-overflow-scrolling:touch}
+.gr{height:44px}.gr.h{height:30px}
+.gl,.gl.p{width:50vw;max-width:50vw;white-space:normal;align-items:center;line-height:1.25;font-size:12px;padding-inline-end:4px}
+.gl .nm{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:clip;word-break:break-word}
+.gr.h .gl{white-space:nowrap}
+.bk{top:14px}.bk.ph{top:12px}.ms{top:14px}.bs{top:34px}
+}
+#gnm{position:fixed;inset-inline:12px;bottom:calc(var(--gnh,0px) + 12px);background:#181C32;color:#fff;border-radius:14px;padding:10px 14px;font-size:13.5px;z-index:90;box-shadow:0 6px 24px rgba(0,0,0,.3);display:none;line-height:1.5}
 
 .chips{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
@@ -114,6 +127,11 @@ h3.h{margin:0 0 8px;font-size:16px}
 .sb .tabs{margin:0}
 @media(max-width:1000px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){.grid{grid-template-columns:1fr}.chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.chip{white-space:nowrap}}
+
+#pkm{position:fixed;inset:0;background:rgba(24,28,50,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center}
+#pkm .pkb{background:#fff;border-radius:18px 18px 0 0;padding:16px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column}
+#pkm .pkl{overflow:auto;flex:1}#pkm label{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid #eef1f4}#pkm label span{flex:1}
+@media(min-width:700px){#pkm{align-items:center}#pkm .pkb{border-radius:18px}}
 
 </style></head><body>
 <header class="top"><div class="in"><a class="btn" id="bk" href="./"></a><b id="ttl"></b><a class="btn" href="account.html">👤</a><button id="lb" onclick="toggleLang()">EN</button></div></header>
@@ -208,10 +226,10 @@ function situ(c){const ch=c.ch,pl=c.pl,M=c.M,cls=(c.cls||[]).filter(x=>!x.archiv
  if(M.done==lv)return add({k:'wait',t:R('اكتملت كل المهام — بانتظار التقرير الختامي','All tasks done — closure report pending'),s:R('الخطوة التالية: مدير المشروع يرفع التقرير الختامي','Next: the project manager submits the closure report')});
  const gap=Math.round(M.pct-M.exp);
  return add({k:M.late||gap<=-10?'bad':gap<=-3?'wait':'ok',t:R('التنفيذ جارٍ','Execution in progress'),s:R('أُنجز '+Math.round(M.pct)+'% من '+Math.round(M.exp)+'% كان مخططًا حتى اليوم'+(M.late?' · '+LT(M.late):''),Math.round(M.pct)+'% done of '+Math.round(M.exp)+'% planned to date'+(M.late?' · '+M.late+' late task(s)':''))})}
-/* ---------- صحة المشروع ---------- */
+/* ---------- مؤشر الأداء ---------- */
 function health(M){if(!M||!M.leaves.length)return null;const gap=M.pct-M.exp,lt=M.late/M.leaves.length;
- if(M.late>=3||gap<=-20||lt>=.25)return {k:'r',c:'var(--r)',t:P(['حرج','Critical'])};if(M.late>0||gap<=-5)return {k:'a',c:'var(--w)',t:P(['يحتاج انتباه','Needs attention'])};return {k:'g',c:'var(--ok)',t:P(['جيد','Healthy'])}}
-const HLP=()=>P(['حرج: ٣ مهام متأخرة فأكثر، أو تأخر ٢٠ نقطة فأكثر. يحتاج انتباه: أي مهمة متأخرة أو تأخر ٥ نقاط. جيد: غير ذلك.','Critical: 3+ late tasks or 20+ points behind. Needs attention: any late task or 5+ points behind. Healthy: otherwise.']);
+ if(M.late>=3||gap<=-20||lt>=.25)return {k:'r',c:'var(--r)',t:P(['متعثر','Struggling'])};if(M.late>0||gap<=-5)return {k:'a',c:'var(--w)',t:P(['يحتاج متابعة','Needs follow-up'])};return {k:'g',c:'var(--ok)',t:P(['منتظم','On track'])}}
+const HLP=()=>P(['متعثر: ٣ مهام متأخرة فأكثر، أو تأخر ٢٠ نقطة فأكثر. يحتاج متابعة: أي مهمة متأخرة أو تأخر ٥ نقاط. منتظم: غير ذلك.','Struggling: 3+ late tasks or 20+ points behind. Needs follow-up: any late task or 5+ points behind. On track: otherwise.']);
 /* مقاييس ثابتة: المخطط ← الفعلي ← الفارق */
 function prog3(M){if(!M||!M.leaves.length)return '<div class="bar"><i style="width:0"></i></div><small class="mut">'+P(['لا مهام في الخطة بعد','No tasks in the plan yet'])+'</small>';
  const pl=Math.round(M.exp),ac=Math.round(M.pct),gap=ac-pl,gc=gap<=-5?'var(--r)':gap>=5?'var(--ok)':'#374151',lab=gap<=-5?P(['متأخر عن المخطط','Behind plan']):gap>=5?P(['متقدّم عن المخطط','Ahead of plan']):P(['على المسار','On track']);
@@ -258,6 +276,11 @@ function walk1(root){var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{
  L.forEach(function(n){var s=n.nodeValue,m=S1.exec(s);if(!m)return;var f=document.createDocumentFragment();if(m.index)f.appendChild(document.createTextNode(s.slice(0,m.index)));var sp=document.createElement('span');sp.className='dr dr1';sp.textContent=m[0];f.appendChild(sp);var rest=s.slice(m.index+m[0].length);if(rest)f.appendChild(document.createTextNode(rest));n.parentNode.replaceChild(f,n)})}
 var q=0;function go(){q=0;try{walk(document.body);walk1(document.body)}catch(e){}}
 new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});go()})();
+/*ganttFocus*/
+(function(){var tm;document.addEventListener('click',function(e){var l=e.target.closest&&e.target.closest('.gw .gl');if(!l||e.target.closest('button,a'))return;var r=l.closest('.gr');if(!r||r.classList.contains('h'))return;var w=r.closest('.gw');w.querySelectorAll('.gr.gfx').forEach(function(x){x.classList.remove('gfx')});r.classList.add('gfx');
+var b=r.querySelector('.bk,.ms'),nm=(l.querySelector('.nm')||l).textContent.trim();
+if(b){var wr=w.getBoundingClientRect(),br=b.getBoundingClientRect(),lw=l.getBoundingClientRect().width;var vis=wr.width-lw,cx=br.left+br.width/2,rtl=getComputedStyle(w).direction=='rtl';var tgt=rtl?(wr.left+(vis/2)):(wr.left+lw+vis/2);w.scrollBy({left:cx-tgt,behavior:'smooth'})}
+var g=document.getElementById('gnm');if(!g){g=document.createElement('div');g.id='gnm';document.body.appendChild(g)}g.textContent=nm;g.style.display='block';clearTimeout(tm);tm=setTimeout(function(){g.style.display='none'},3500)})})();
 
 let PC='',CH=null,PLS=[],CRS=[],CLS=[],CFGP=null,MYSG={},LINKS=[],PLR=null,M=null,TAB='ov',VIEW='gantt',COLL={},ZOOM=1;
 const F={ph:'',who:'',st:'',mine:false,late:false,q:''};
@@ -320,7 +343,7 @@ function journey(){const doc=a=>a.filter(x=>!x.archived).sort((x,y)=>y.id-x.id);
 function head(){const roles=myRoles(),ch=CH||{};
  const meta=[ch.code||PC,CH?stN(ch.status):'',ch.pm?P(['مدير المشروع: ','PM: '])+ch.pm:(PLR&&PLR.data&&PLR.data.pmname?P(['مدير المشروع: ','PM: '])+PLR.data.pmname:''),ch.sp?P(['المالك: ','Owner: '])+ch.sp:''].filter(Boolean).join(' · ');
  const h=health(M),sit=situ({ch:CH,pl:PLR&&Object.assign({},PLR,{act:PLR.data&&PLR.data._active}),M,crs:CRS,cls:CLS,restricted:PLR&&PLR.restricted});
- return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p>'+esc(meta)+'</p></div><div class="row">'+(h?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الصحة: ','Health: ']))+esc(h.t)+'</span>':'')+roles.map(r=>'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
+ return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p>'+esc(meta)+'</p></div><div class="row">'+(h?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الأداء: ','Performance: ']))+esc(h.t)+'</span>':'')+roles.map(r=>'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
  '<div class="sit big" style="--k:'+SIT_C[sit.k]+'"><b>'+P(['الوضع الآن: ','Now: '])+esc(sit.t)+'</b>'+(sit.s?'<small>'+esc(sit.s)+'</small>':'')+'</div>'+
  '<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
 function goTab(t){TAB=t;history.replaceState(null,'','#'+t);draw()}
@@ -470,15 +493,18 @@ function attOf(p){const out=[];const chk=(k,r,mine)=>{const sg=(SG[k]||[]).filte
  if(p.ch)chk('charter',p.ch);p.pls.forEach(x=>{if(!x.restricted)chk('plan',x)});p.crs.forEach(x=>chk('cr',x));p.cls.forEach(x=>chk('closure',x));
  if(p.M.mineLate)out.push({c:'#d9534f',l:['مهام متأخرة ('+p.M.mineLate+')','Late tasks ('+p.M.mineLate+')']});
  return out}
+const phOf=p=>p.sit.k=='done'||(p.M.leaves.length&&p.M.leaves.every(x=>x._st=='done'))?'fin':(p.pl&&p.M.leaves.length&&p.pl.status=='Approved')?'run':'plan';
+let HID={};try{HID=JSON.parse(localStorage.getItem('myHid')||'{}')}catch(_){}
+const hidSave=()=>{try{localStorage.setItem('myHid',JSON.stringify(HID))}catch(_){}};
 const isLate=p=>p.M.late>0&&(p.roles.some(r=>r=='pm'||r=='ow'||r=='of')||p.M.mineLate>0);
 function match(p){const q=Q.trim().toLowerCase();if(q&&!((p.name||'')+' '+p.code).toLowerCase().includes(q))return false;
- if(FLT=='all')return true;if(FLT=='act')return p.att.length>0;if(FLT=='late')return isLate(p);if(FLT=='red')return p.h&&p.h.k=='r';if(FLT=='stuck')return p.sit.k=='bad'||p.sit.k=='wait';return p.roles.includes(FLT)}
+ if(FLT=='all')return true;if(FLT=='act')return p.att.length>0;if(FLT=='late')return isLate(p);if(FLT=='red')return p.h&&p.h.k=='r';if(FLT=='run'||FLT=='plan'||FLT=='fin')return phOf(p)==FLT;if(FLT=='stuck')return p.sit.k=='bad'||p.sit.k=='wait';return p.roles.includes(FLT)}
 function jr(p){const S=[[P(['ميثاق','Charter']),p.ch?(p.ch.status=='Approved'?'d':''):'n'],[P(['خطة','Plan']),p.stage>=2?'d':''],[P(['تنفيذ','Execution']),p.stage>=4?'d':''],[P(['إغلاق','Closure']),p.stage>=4?'d':'']];
  const vis=p.ch?S:S.slice(1,3);let c=vis.findIndex(x=>x[1]=='');if(p.stage>=2&&p.stage<4&&p.ch)c=2;else if(p.stage>=2&&p.stage<4&&!p.ch)c=1;
  return '<div class="jr">'+vis.map((x,i)=>'<div class="st '+(x[1]=='d'?'d':i==c?'c':'')+'"><i></i>'+esc(x[0])+'</div>').join('')+'</div>'}
 function sitOf(p){return situ({ch:p.ch,pl:p.pl,M:p.M,crs:p.crs,cls:p.cls,restricted:p.pl&&p.pl.restricted})}
 const sitHtml=s=>'<div class="sit" style="--k:'+SIT_C[s.k]+'"><b>'+esc(s.t)+'</b>'+(s.s?'<small>'+esc(s.s)+'</small>':'')+'</div>';
-const hBadge=h=>h?'<span class="hl" title="'+esc(HLP())+'" style="--k:'+h.c+'"><i></i>'+esc(P(['الصحة: ','Health: ']))+esc(h.t)+'</span>':'';
+const hBadge=h=>h?'<span class="hl" title="'+esc(HLP())+'" style="--k:'+h.c+'"><i></i>'+esc(P(['الأداء: ','Performance: ']))+esc(h.t)+'</span>':'';
 function card(p){const M=p.M,hasT=M.leaves.length,late=isLate(p),sit=p.sit,h=health(M),cls=sit.k=='bad'||(h&&h.k=='r')?'l':p.att.length?'a':sit.k=='done'?'d':'';
  const nxt=M.mine?M.leaves.filter(x=>x._me&&x._st!='done'&&x._e!=null).sort((a,b)=>a._e-b._e)[0]:null;
  const u='myprojects.html?pc='+encodeURIComponent(p.code);
@@ -486,8 +512,8 @@ function card(p){const M=p.M,hasT=M.leaves.length,late=isLate(p),sit=p.sit,h=hea
  '<div class="row" style="margin-top:7px">'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+(r=='tk'?' ('+M.mine+')':'')+'</span>').join('')+p.att.map(a=>'<span class="pill" style="background:'+a.c+'">⏳ '+esc(P(a.l))+'</span>').join('')+'</div>'+
  sitHtml(sit)+jr(p)+(hasT?prog3(M):'')+(nxt?'<small>'+P(['أقرب مهامك: ','Your next task: '])+esc(nxt.n)+' · '+fd(nxt._e)+'</small>':'')+
  '<div class="row" style="margin-top:auto;padding-top:10px">'+(hasT?'<a class="btn p" href="'+u+'#plan">'+P(['عرض الخطة','View plan'])+'</a>':(p.ch&&p.ch.status=='Approved'&&p.roles.includes('pm')&&!p.pl?'<a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a>':'<a class="btn p" href="'+u+'">'+P(['فتح المشروع','Open project'])+'</a>'))+(M.mine?'<a class="btn" href="'+u+'#tasks">'+P(['مهامي','My tasks'])+'</a>':'')+(p.ch?'<a class="btn" href="'+u+'#req">'+P(['الطلبات','Requests'])+'</a>':'')+'</div></div>'}
-function listV(L){return '<div class="tw"><table><thead><tr><th>'+P(['المشروع','Project'])+'</th><th>'+P(['الوضع الآن','Current status'])+'</th><th>'+P(['دوري','My role'])+'</th><th>'+P(['مخطط / فعلي / فارق','Planned / actual / gap'])+'</th><th>'+P(['الصحة','Health'])+'</th><th>'+P(['بانتظار إجرائي','Awaiting me'])+'</th><th></th></tr></thead><tbody>'+L.map(p=>{const M=p.M,pl=Math.round(M.exp),ac=Math.round(M.pct),g=ac-pl;return '<tr><td><b>'+esc(p.name)+'</b><div class="mut" dir="ltr" style="text-align:start">'+esc(p.code)+'</div></td><td>'+sitHtml(p.sit)+'</td><td>'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+'</span>').join(' ')+'</td><td>'+(M.leaves.length?pl+'% / '+ac+'% / <b dir="ltr" style="color:'+(g<=-5?'var(--r)':g>=5?'var(--ok)':'inherit')+'">'+(g>0?'+':g<0?'−':'')+Math.abs(g)+'</b>':'—')+'</td><td>'+(hBadge(p.h)||'—')+'</td><td>'+(p.att.map(a=>'<span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span>').join(' ')||'—')+'</td><td><a class="btn p" href="myprojects.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح','Open'])+'</a></td></tr>'}).join('')+'</tbody></table></div>'}
-function timeV(L){const R=L.filter(p=>p.M.start!=null);if(!R.length)return '<div class="card"><div class="none">'+P(['لا توجد خطط بتواريخ.','No plans with dates.'])+'</div></div>';
+function listV(L){return '<div class="tw"><table><thead><tr><th>'+P(['المشروع','Project'])+'</th><th>'+P(['الوضع الآن','Current status'])+'</th><th>'+P(['دوري','My role'])+'</th><th>'+P(['مخطط / فعلي / فارق','Planned / actual / gap'])+'</th><th>'+P(['الأداء','Performance'])+'</th><th>'+P(['بانتظار إجرائي','Awaiting me'])+'</th><th></th></tr></thead><tbody>'+L.map(p=>{const M=p.M,pl=Math.round(M.exp),ac=Math.round(M.pct),g=ac-pl;return '<tr><td><b>'+esc(p.name)+'</b><div class="mut" dir="ltr" style="text-align:start">'+esc(p.code)+'</div></td><td>'+sitHtml(p.sit)+'</td><td>'+p.roles.map(r=>'<span class="pill" style="background:'+RC[r]+'">'+esc(P(RL[r]))+'</span>').join(' ')+'</td><td>'+(M.leaves.length?pl+'% / '+ac+'% / <b dir="ltr" style="color:'+(g<=-5?'var(--r)':g>=5?'var(--ok)':'inherit')+'">'+(g>0?'+':g<0?'−':'')+Math.abs(g)+'</b>':'—')+'</td><td>'+(hBadge(p.h)||'—')+'</td><td>'+(p.att.map(a=>'<span class="pill" style="background:'+a.c+'">'+esc(P(a.l))+'</span>').join(' ')||'—')+'</td><td><a class="btn p" href="myprojects.html?pc='+encodeURIComponent(p.code)+'">'+P(['فتح','Open'])+'</a></td></tr>'}).join('')+'</tbody></table></div>'}
+function timeV(L){const R=L.filter(p=>p.M.start!=null&&!HID[p.code]);if(!R.length)return '<div class="card"><div class="none">'+P(['لا توجد خطط بتواريخ.','No plans with dates.'])+'</div></div>';
  const td=today(),s0=Math.min.apply(0,R.map(p=>p.M.start))-5,e0=Math.max(Math.max.apply(0,R.map(p=>p.M.end)),td)+5,tot=e0-s0,pct=d=>(d-s0)/tot*100,side='inset-inline-start';
  const mo=[],qs=[];{const t=new Date(s0*DAY);let d=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),1));while(Math.floor(d.getTime()/DAY)<e0){const a=Math.floor(d.getTime()/DAY);mo.push({a,l:new Intl.DateTimeFormat(LOC(),{month:'short',timeZone:'UTC'}).format(d)});if(d.getUTCMonth()%3==0||!qs.length)qs.push({a,l:'Q'+(Math.floor(d.getUTCMonth()/3)+1)+' '+d.getUTCFullYear()});d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1))}}
  const lab=(arr,min)=>arr.map((m,i)=>{const nx=arr[i+1]?arr[i+1].a:e0,wd=(nx-Math.max(m.a,s0))/tot*100;return '<div class="mo" style="'+side+':'+pct(Math.max(m.a,s0))+'%">'+(wd>min?esc(m.l):'')+'</div>'}).join('');
@@ -501,14 +527,19 @@ function timeV(L){const R=L.filter(p=>p.M.start!=null);if(!R.length)return '<div
  return '<div class="row noprint" style="margin-bottom:8px"><span class="seg">'+[['p',['المشاريع','Projects']],['ph',['المراحل','Phases']],['all',['كل الأنشطة','All activities']]].map(v=>'<button class="'+(LV==v[0]?'on':'')+'" onclick="LV=\''+v[0]+'\';EXPP={};sv(\'myLv\',LV);draw()">'+P(v[1])+'</button>').join('')+'</span><span class="mut">'+P(['اضغط ▸ بجانب أي مشروع لتوسيعه وحده','Click ▸ next to a project to expand it alone'])+'</span></div>'+
  '<div class="gw"><div class="gi" style="min-width:'+Math.max(900,tot*1.6+250)+'px"><div class="gr h" style="height:24px"><div class="gl"></div><div class="gt">'+lab(qs,6)+'</div></div><div class="gr h" style="top:24px"><div class="gl">'+P(['المشروع / النشاط','Project / activity'])+'</div><div class="gt">'+lab(mo,2.5)+'</div></div>'+rows.join('')+'</div></div><div class="lg"><span><b style="background:var(--b)"></b>'+P(['في المسار','On track'])+'</span><span><b style="background:var(--r)"></b>'+P(['فيه مهام متأخرة','Has late tasks'])+'</span><span><b style="background:#181C32;transform:rotate(45deg)"></b>'+P(['معلم (Milestone)','Milestone'])+'</span><span style="margin-inline-start:auto">│ '+P(['الخط الأحمر = اليوم','Red line = today'])+'</span></div>'}
 function drawList(){applyLang();document.title=P(['مشاريعي','My projects']);$('ttl').textContent=P(['مشاريعي','My projects']);$('bk').textContent='⬅ '+P(['الرئيسية','Home']);$('bk').href='./';
- const cnt=f=>PJ.filter(p=>f=='all'||(f=='act'?p.att.length:f=='late'?isLate(p):f=='red'?(p.h&&p.h.k=='r'):f=='stuck'?(p.sit.k=='bad'||p.sit.k=='wait'):p.roles.includes(f))).length;
- const CH=[['all',['الكل','All']],['pm',RN.pm],['ow',RN.ow],['tk',RN.tk],['fl',RN.fl],['pt',RN.pt],['act',['تحتاج إجرائي','Need my action']],['late',['متأخرة','Late']],['red',['صحة حرجة','Critical health']],['stuck',['متوقفة عند خطوة','Waiting on a step']]].filter(c=>c[0]=='all'||c[0]=='act'||c[0]=='late'||c[0]=='red'||c[0]=='stuck'||cnt(c[0])>0);
+ const cnt=f=>PJ.filter(p=>f=='all'||(f=='run'||f=='plan'||f=='fin'?phOf(p)==f:f=='act'?p.att.length:f=='late'?isLate(p):f=='red'?(p.h&&p.h.k=='r'):f=='stuck'?(p.sit.k=='bad'||p.sit.k=='wait'):p.roles.includes(f))).length;
+ const CH=[['all',['الكل','All']],['pm',RN.pm],['ow',RN.ow],['tk',RN.tk],['fl',RN.fl],['pt',RN.pt],['act',['تحتاج إجرائي','Need my action']],['run',['قيد التنفيذ','In progress']],['plan',['قيد التخطيط','In planning']],['fin',['مكتملة','Completed']],['late',['متأخرة','Late']],['red',['متعثرة','Struggling']],['stuck',['متوقفة عند خطوة','Waiting on a step']]].filter(c=>c[0]=='all'||c[0]=='act'||c[0]=='run'||c[0]=='plan'||c[0]=='fin'||c[0]=='late'||c[0]=='red'||c[0]=='stuck'||cnt(c[0])>0);
  if(!CH.some(c=>c[0]==FLT))FLT='all';
  const L=PJ.filter(match).sort((a,b)=>(b.att.length>0)-(a.att.length>0)||(isLate(b)-isLate(a))||String(a.name).localeCompare(String(b.name),'ar'));
  const body=!PJ.length?'<div class="card"><div class="none">'+P(['لا توجد مشاريع مرتبطة بك بعد.','No projects linked to you yet.'])+'</div></div>':!L.length?'<div class="card"><div class="none">'+P(['لا مشاريع مطابقة.','No matching projects.'])+'</div></div>':VW=='cards'?'<div class="grid">'+L.map(card).join('')+'</div>':VW=='list'?listV(L):timeV(L);
  const ac=PJ.filter(p=>p.att.length).length;
  $('app').innerHTML='<div class="ban"><h1>'+P(['مشاريعي','My projects'])+'</h1><p>'+P(['كل المشاريع التي لك فيها دور — في مكان واحد','Every project you have a role in — in one place'])+(ac?' · '+P([ac+' بانتظار إجرائك',ac+' need your action']):'')+'</p><div class="chips">'+CH.map(c=>'<button class="chip '+(FLT==c[0]?'on':'')+(c[0]!='all'&&!cnt(c[0])?' z':'')+'" onclick="FLT=\''+c[0]+'\';sv(\'myFlt\',FLT);draw()"><b>'+cnt(c[0])+'</b>'+esc(P(c[1]))+'</button>').join('')+'</div></div>'+
- '<div class="sb"><span class="tabs">'+[['cards','▦ '+P(['بطاقات','Cards'])],['list','☰ '+P(['قائمة','List'])],['time','🗺 '+P(['خارطة الطريق','Roadmap'])]].map(v=>'<button class="'+(VW==v[0]?'p':'')+'" onclick="VW=\''+v[0]+'\';sv(\'myVw\',VW);draw()">'+v[1]+'</button>').join('')+'</span><input id="sq" placeholder="'+P(['🔎 ابحث باسم المشروع أو رمزه…','🔎 Search project name or code…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{draw();const e=$(\'sq\');e.focus();e.setSelectionRange(9999,9999)},300)"></div>'+body}
+ '<div class="sb"><span class="tabs">'+[['cards','▦ '+P(['بطاقات','Cards'])],['list','☰ '+P(['قائمة','List'])],['time','🗺 '+P(['خارطة الطريق','Roadmap'])]].map(v=>'<button class="'+(VW==v[0]?'p':'')+'" onclick="VW=\''+v[0]+'\';sv(\'myVw\',VW);draw()">'+v[1]+'</button>').join('')+'</span>'+(VW=='time'?'<button class="p" style="background:#fff;color:var(--bd);border:1.5px solid var(--bd)" onclick="pickPj()">☑ '+P(['المشاريع المعروضة','Shown projects'])+(Object.keys(HID).filter(k=>HID[k]).length?' ('+(L.length-L.filter(p=>HID[p.code]).length)+'/'+L.length+')':'')+'</button>':'')+'<input id="sq" placeholder="'+P(['🔎 ابحث باسم المشروع أو رمزه…','🔎 Search project name or code…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{draw();const e=$(\'sq\');e.focus();e.setSelectionRange(9999,9999)},300)"></div>'+body}
+
+function pickPj(){const L=PJ.filter(p=>p.M.start!=null);let o=document.getElementById('pkm');if(o)o.remove();o=document.createElement('div');o.id='pkm';
+ o.innerHTML='<div class="pkb"><b>'+P(['اختر المشاريع التي تظهر في الرسم','Choose projects shown in the chart'])+'</b><div class="row" style="margin:8px 0"><button onclick="pkAll(1)">'+P(['الكل','All'])+'</button><button onclick="pkAll(0)">'+P(['لا شيء','None'])+'</button><button onclick="pkAll(2)">'+P(['المتأخرة فقط','Late only'])+'</button></div><div class="pkl">'+L.map(p=>'<label><input type="checkbox" '+(HID[p.code]?'':'checked')+' onchange="HID[\''+esc(p.code)+'\']=!this.checked;hidSave()"> <span>'+esc(p.name)+'</span> <small dir="ltr">'+esc(p.code)+'</small></label>').join('')+'</div><button class="p" style="width:100%;margin-top:10px" onclick="document.getElementById(\'pkm\').remove();draw()">'+P(['تطبيق','Apply'])+'</button></div>';
+ o.onclick=e=>{if(e.target===o){o.remove();draw()}};document.body.appendChild(o)}
+function pkAll(m){PJ.forEach(p=>{HID[p.code]=m==0?true:m==2?!isLate(p):false});hidSave();pickPj()}
 
 const HUB=(()=>{const u=new URL(location.href);return u.searchParams.get('pc')||u.searchParams.get('plan')||''})();
 function draw(){HUB?drawHub():drawList()}
