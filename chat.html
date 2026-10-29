@@ -35,7 +35,7 @@ main{max-width:1100px;padding:10px 12px 0}
 .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.av.sq{border-radius:11px;background:#eef3f8}.av.sm{width:28px;height:28px;font-size:12px;align-self:flex-end}
 .tx{flex:1;min-width:0}.tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pi{font-size:11px;font-style:normal;position:absolute;top:4px;inset-inline-end:6px;opacity:.6}
-.bd{display:inline-block;min-width:20px;padding:0 6px;border-radius:99px;background:var(--r);color:#fff;font-size:12px;font-weight:800;text-align:center}
+.rb{border:0;background:none;padding:2px 4px;font-size:14px;opacity:.3;flex:none}.pr:hover .rb,.rb.on{opacity:.9}.bd.mu{background:#9aa0a6}.mt{font-size:12px;opacity:.55;margin-inline-start:4px}.bd{display:inline-block;min-width:20px;padding:0 6px;border-radius:99px;background:var(--r);color:#fff;font-size:12px;font-weight:800;text-align:center}
 .more{padding:10px 6px}.more button{width:100%;border-style:dashed;color:var(--g)}
 .chd{display:flex;gap:10px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line)}.bk{display:none;border:0;font-size:20px;padding:2px 8px}
 .ha{display:flex;gap:2px}.ha button{border:0;background:none;padding:6px 9px;font-size:17px;border-radius:10px}.ha button:hover{background:var(--g2)}.ha button.dim{opacity:.45}.ha button.on{color:#BF9849}.ha sup{font-size:11px;font-weight:800}
@@ -102,18 +102,18 @@ function shell(){
  drawRail();drawConv()}
 function items(){
  const ql=norm(Q.trim()),out={pin:[],proj:[],ppl:[]};
- const mk=o=>{o.pin=PINS.has(keyOf(o));o.n=UNR[keyOf(o)]||0;return o};
+ const mk=o=>{o.pin=PINS.has(keyOf(o));o.n=UNR[keyOf(o)]||0;o.mu=PINS.has('m:'+keyOf(o));return o};
  const all=[];
  if(GEN)all.push(mk({t:'ch',id:GEN.id,name:T2('عام — كل المستخدمين','General — everyone'),icon:'🌐',sub:T2('قناة مفتوحة للجميع','Open to everyone'),at:GEN.last||0,kind:'gen'}));
  PROJ.forEach(p=>all.push(mk({t:'ch',id:p.channel_id||('p:'+p.pcode),pcode:p.pcode,name:p.name||p.pcode,icon:'📁',sub:p.pcode,at:p.last_at?+new Date(p.last_at):0,kind:'proj',n0:+p.n||0,_ck:'ch:'+p.channel_id})));
- all.forEach(o=>{if(o.kind=='proj'){o.n=UNR['ch:'+o.id]||o.n0||0;o.pin=PINS.has('ch:'+o.id)||PINS.has('pc:'+o.pcode)}});
+ all.forEach(o=>{if(o.kind=='proj'){o.n=UNR['ch:'+o.id]||0;o.pin=PINS.has('ch:'+o.id)||PINS.has('pc:'+o.pcode);o.mu=PINS.has('m:ch:'+o.id)}});
  Object.keys(UN).filter(i=>i!=ME.id).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:UN[i].full_name||'—',icon:ini(UN[i].full_name),sub:d?(d.deleted?'':d.body||T2('مرفق','Attachment')):(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
  all.forEach(o=>{if(ql&&!norm(o.name+' '+(o.pcode||'')).includes(ql))return;
   if(o.pin)out.pin.push(o);else if(o.kind=='proj'||o.kind=='gen')out.proj.push(o);else if(o.has||ql||SHOWALL)out.ppl.push(o)});
- const srt=(a,b)=>(b.n>0)-(a.n>0)||(b.at-a.at)||String(a.name).localeCompare(b.name);
+ const srt=(a,b)=>((b.n>0&&!b.mu)-(a.n>0&&!a.mu))||(b.at-a.at)||String(a.name).localeCompare(b.name);
  out.pin.sort(srt);out.proj.sort((a,b)=>(a.kind=='gen'?-1:0)-(b.kind=='gen'?-1:0)||srt(a,b));out.ppl.sort(srt);return out}
 function drawRail(){const el=$('rl');if(!el)return;const o=items();
- const row=x=>`<div class="pr ${CUR&&CUR.t==x.t&&String(CUR.id)==String(x.id)?'on':''}" onclick="openItem('${x.t}','${String(x.id).replace(/'/g,'')}')"><div class="av ${x.kind=='dm'?'':'sq'}">${x.icon}</div><div class="tx"><b>${esc(x.name)}</b><span>${esc(x.sub||'')}</span></div>${x.n?`<span class="bd">${x.n}</span>`:''}${x.pin?'<i class="pi">📌</i>':''}</div>`;
+ const row=x=>`<div class="pr ${CUR&&CUR.t==x.t&&String(CUR.id)==String(x.id)?'on':''}" onclick="openItem('${x.t}','${String(x.id).replace(/'/g,'')}')"><div class="av ${x.kind=='dm'?'':'sq'}">${x.icon}</div><div class="tx"><b>${esc(x.name)}</b><span>${esc(x.sub||'')}</span></div>${x.n?`<span class="bd ${x.mu?'mu':''}">${x.n}</span>`:''}${x.mu&&!x.n?'<span class="mt">🔕</span>':''}${x.pin?'<i class="pi">📌</i>':''}${x.t=='ch'&&String(x.id).startsWith('p:')?'':`<button class="rb ${x.mu?'on':''}" title="${x.mu?T2('إلغاء الكتم','Unmute'):T2('كتم','Mute')}" onclick="event.stopPropagation();muteKey('${x.t}:${String(x.id).replace(/'/g,'')}')">${x.mu?'🔕':'🔔'}</button>`}</div>`;
  const sec=(h,L)=>L.length?`<div class="sh">${h}</div>${L.map(row).join('')}`:'';
  el.innerHTML=sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع','Projects'),o.proj)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
   (!Q&&!SHOWALL?`<div class="more"><button onclick="SHOWALL=true;drawRail()">＋ ${T2('محادثة جديدة مع زميل','New chat with a colleague')}</button></div>`:'')+
@@ -140,12 +140,14 @@ function drawConv(){drawHead();drawPinbar();drawMsgs(true);drawCmp()}
 function drawHead(){const el=$('chead');if(!el)return;
  if(!CUR){el.innerHTML='';el.style.display='none';$('msgs').innerHTML=`<div class="empty"><div style="font-size:42px">💬</div><b>${T2('اختر محادثة','Pick a conversation')}</b><div class="mut">${T2('محادثة لكل مشروع، ورسائل مباشرة مع الزملاء.','One chat per project, plus direct messages.')}</div></div>`;$('cmp').style.display='none';return}
  el.style.display='';$('cmp').style.display='';
- const pin=PINS.has(keyOf(CUR))||(CUR.pcode&&PINS.has('pc:'+CUR.pcode)),pn=MSGS.filter(m=>m.pinned&&!m.deleted).length;
+ const pin=PINS.has(keyOf(CUR))||(CUR.pcode&&PINS.has('pc:'+CUR.pcode)),pn=MSGS.filter(m=>m.pinned&&!m.deleted).length,mu=PINS.has('m:'+keyOf(CUR));
  el.innerHTML=`<button class="bk" onclick="backRail()">${lang=='ar'?'→':'←'}</button><div class="av ${CUR.t=='dm'?'':'sq'}">${CUR.t=='dm'?esc(ini(CUR.name)):(CUR.pcode?'📁':'🌐')}</div><div class="tx"><b>${esc(CUR.name||'')}</b><span>${CUR.t=='dm'?esc(CUR.sub||''):CUR.pcode?esc(CUR.pcode)+' · '+(MEM.length?MEM.length+' '+T2('عضو','members'):''):T2('كل المستخدمين','Everyone')}</span></div>
- <div class="ha">${CUR.pcode?`<button title="${T2('الأعضاء','Members')}" onclick="panel('mem')">👥</button>`:''}<button title="${T2('الرسائل المثبّتة','Pinned messages')}" onclick="panel('pin')" ${pn?'':'class="dim"'}>📌${pn?'<sup>'+pn+'</sup>':''}</button><button title="${T2('تثبيت المحادثة في أعلى القائمة','Pin conversation')}" onclick="pinConv()" class="${pin?'on':''}">${pin?'★':'☆'}</button>${EMB?`<button title="${T2('فتح في صفحة كاملة','Open full page')}" onclick="fullPage()">↗</button><button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}</div>`}
+ <div class="ha">${CUR.pcode?`<button title="${T2('الأعضاء','Members')}" onclick="panel('mem')">👥</button>`:''}<button title="${T2('الرسائل المثبّتة','Pinned messages')}" onclick="panel('pin')" ${pn?'':'class="dim"'}>📌${pn?'<sup>'+pn+'</sup>':''}</button><button title="${mu?T2('إلغاء الكتم','Unmute'):T2('كتم الإشعارات: لا يظهر عدّاد هذه المحادثة في الصفحات الأخرى','Mute: this chat will not add to counters elsewhere')}" onclick="muteConv()">${mu?'🔕':'🔔'}</button><button title="${T2('تثبيت المحادثة في أعلى القائمة','Pin conversation')}" onclick="pinConv()" class="${pin?'on':''}">${pin?'★':'☆'}</button>${EMB?`<button title="${T2('فتح في صفحة كاملة','Open full page')}" onclick="fullPage()">↗</button><button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}</div>`}
 function backRail(){CUR=null;$('chat').classList.remove('has');drawRail();drawHead()}
 function fullPage(){const u='chat.html'+(CUR&&CUR.pcode?'?p='+encodeURIComponent(CUR.pcode):'');try{top.location.href=u}catch(_){location.href=u}}
 async function pinConv(){if(!CUR)return;const k=keyOf(CUR),on=!PINS.has(k);try{const r=await sb.rpc('chat_pin_conv',{p_k:k,p_on:on});if(r.error)throw r.error;on?PINS.add(k):PINS.delete(k);drawRail();drawHead();toast(on?T2('تم تثبيت المحادثة','Conversation pinned'):T2('أُلغي التثبيت','Unpinned'))}catch(e){toast(e.message||e)}}
+async function muteConv(){if(CUR)return muteKey(keyOf(CUR))}
+async function muteKey(ck){const k='m:'+ck,on=!PINS.has(k);try{const r=await sb.rpc('chat_pin_conv',{p_k:k,p_on:on});if(r.error)throw r.error;on?PINS.add(k):PINS.delete(k);drawRail();drawHead();toast(on?T2('تم كتم المحادثة: لن يزيد عدّاد الصفحات الأخرى','Muted: it will not add to counters elsewhere'):T2('أُلغي الكتم','Unmuted'))}catch(e){toast(e.message||e)}}
 function panel(p){PANEL=PANEL==p?null:p;drawSide()}
 function drawSide(){const el=$('side');if(!el)return;if(!PANEL){el.innerHTML='';el.className='';return}el.className='on';
  if(PANEL=='pin'){const L=MSGS.filter(m=>m.pinned&&!m.deleted);el.innerHTML=`<div class="sp"><div class="sph"><b>📌 ${T2('الرسائل المثبّتة','Pinned messages')}</b><button onclick="panel('')">✕</button></div>${L.length?L.map(m=>`<div class="pm" onclick="jump(${m.id})"><b>${esc(nm(m.from_user))}</b> <span class="mut">${fmtD(m.created_at)} ${fmtT(m.created_at)}</span><div>${esc((m.body||'').slice(0,160))||'📎'}</div></div>`).join(''):`<div class="mut" style="padding:12px">${T2('لا توجد رسائل مثبّتة. اضغط على أي رسالة ثم «تثبيت».','No pinned messages. Tap a message, then “Pin”.')}</div>`}</div>`;return}
@@ -220,8 +222,8 @@ async function sendM(){if(BUSY||!CUR)return;const ta=$('mt'),v=ta.value.trim();i
  if(CUR.t=='dm'){DMS[CUR.id]=MSGS[MSGS.length-1];drawRail()}else{const p=PROJ.find(x=>x.channel_id==CUR.id);if(p){p.last_at=new Date().toISOString();drawRail()}}}
 /* ---- التحميل والتحديث الدوري ---- */
 async function refreshLists(){
- const [u,p,d]=await Promise.all([sb.rpc('chat_unread'),sb.rpc('chat_my_projects'),sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300)]);
- UNR={};(u.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});
+ const [u,p,d,um]=await Promise.all([sb.rpc('chat_unread'),sb.rpc('chat_my_projects'),sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300),sb.rpc('chat_unread_muted')]);
+ UNR={};(um&&um.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});(u.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});
  if(!p.error)PROJ=p.data||[];
  DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o])DMS[o]=m});
  if(CUR){delete UNR[keyOf(CUR)]}drawRail()}
