@@ -738,7 +738,7 @@ function goTab(k){showTab(k);toPanel()}
 function updProg(){if(!editing||!cr)return;const tot=F.length+T.length;let m=0;
  for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]||'').trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
  const od=(cr.stakeholders||[]).some(shF)?1:0;const p=$('fpb');if(p)p.style.width=((tot-m+od)/(tot+1)*100)+'%';const l=$('fpt');if(l)l.textContent=pgText(tot-m,tot,od,1)}
-async function openCR(id){document.body.classList.add('ld');try{return await openCR0(id)}finally{document.body.classList.remove('ld')}}
+async function openCR(id){document.body.classList.add('ld');try{return await openCR0(id)}catch(e){const ar=(document.documentElement.lang||'ar')=='ar';const d=document.createElement('div');d.textContent=ar?'تعذّر فتح الطلب، تحقق من الاتصال وحاول مرة أخرى.':'Could not open the request. Check your connection and try again.';d.style.cssText='position:fixed;inset-inline:14px;top:14px;z-index:400;background:#d1101d;color:#fff;padding:11px 14px;border-radius:12px;text-align:center;font-weight:700';document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}finally{document.body.classList.remove('ld')}}
 async function openCR0(id){
  if(curView===homeView)HSY=window.scrollY;
  const [a,b,c,e]=await Promise.all([sb.from('change_requests').select('*').eq('id',id).single(),sb.from('signatories').select('*').eq('cr_id',id).order('id'),sb.from('audit_log').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('attachments').select('*').eq('cr_id',id).order('id')]);
