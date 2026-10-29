@@ -1103,6 +1103,10 @@ const W=[
 ["cs_wait", "no activity yet", "لا مشاركة بعد"],
 ["cs_of", "of", "من"],
 ["cs_cnt", "notes", "ملاحظة"],
+["cs_saves", "draft saves", "حفظ للمسودة"],
+["cs_last", "last save", "آخر حفظ"],
+["cs_prep", "Preparer", "المُعِدّ"],
+["l_consultsave", "Saved the draft during group planning", "حفظ المسودة أثناء التخطيط الجماعي"],
 ["cs_ro", "You are not invited to comment.", "لست ضمن المدعوّين للتعليق."],
 ["cs_cl", "Group planning is closed.", "التخطيط الجماعي مغلق."],
 ["cs_ok", "Done.", "تم."],
@@ -1583,7 +1587,7 @@ async function save(q){if(!cr)return;norm();rollup();stampEdits();const dd={...c
  if(PL.cOnly){const {error:e3}=await sb.rpc('pl_consult_save',{pid:cr.id,p_tasks:dd.tasks,p_del:dd._del||[]});if(e3)return msg(e3.message);snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.rvEd){const {error:e2}=await sb.rpc('pl_review_save',{pid:cr.id,p_tasks:dd.tasks});if(e2)return msg(e2.message);if(q!==false)await openCR(cr.id);return}
  const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));snapTasks();if(q!==false)await openCR(cr.id)}
-async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();msg(t('draftSaved'))}
+async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();try{if(cr&&cr.status=='Draft'&&CS&&CS.pc)await lg(cr.id,'consultsave')}catch(_){}msg(t('draftSaved'))}
 let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
 async function revisePlan(skip){if(!skip&&!confirm(t('pl_reviseAsk')))return;const {error}=await sb.rpc('pl_revise',{pid:cr.id});if(error)return msg(error.message);ftab='plan';await openCR(cr.id);msg(t('pl_revised'))}
 async function setCrLink(){const m=($('crl_m')||{}).value=='1',v=m?(($('crl_c')||{}).value||'').trim():'';if(m&&!v)return msg(t('pl_crPickErr'));
@@ -2330,7 +2334,8 @@ const _logT0=logT;logT=function(a){const p=String(a).split('|'),k=p[0];
  if(k=='consultopen')return t('l_consultopen')+' ('+(p[1]||'')+')';
  if(k=='reviewedit')return t('l_reviewedit');
  if(k=='consultadd')return t('l_consultadd')+' ('+(p[1]||'')+')';
- if(k=='consultedit')return t('l_consultedit');
+ if(k=='consultedit')return t('l_consultedit')+(p[1]&&p[1]!='0'?' ('+p[1]+')':'');
+ if(k=='consultsave')return t('l_consultsave');
  if(k=='consultclose')return t('l_consultclose');
  if(k=='comment')return t('l_comment')+(p[1]?': '+p[1]:'');
  return _logT0(a)};
@@ -2339,7 +2344,7 @@ const csMgr=()=>cr&&me&&(me.role=='admin'||cr.created_by==me.id||pmOf(cr));
 function csInvDefault(){const s=new Set();(sigs||[]).forEach(x=>{if(x.user_id)s.add(x.user_id)});
  const walk=(cr.data.tasks||[]).forEach(x=>{if(x.w)s.add(x.w)});s.delete(cr.created_by);return [...s]}
 async function drawConsult(){const box=document.getElementById('consultbox');if(!box||!cr)return;
- let pc=null,cm=[];try{const [a,b]=await Promise.all([sb.from('plan_consult').select('*').eq('plan_id',cr.id).maybeSingle(),sb.from('plan_comments').select('*').eq('plan_id',cr.id).order('created_at',{ascending:false})]);pc=a.data;cm=b.data||[]}catch(_){}
+ let pc=null,cm=[],sv={};try{const [a,b,c]=await Promise.all([sb.from('plan_consult').select('*').eq('plan_id',cr.id).maybeSingle(),sb.from('plan_comments').select('*').eq('plan_id',cr.id).order('created_at',{ascending:false}),sb.from('plan_audit').select('user_name,action,at').eq('cr_id',cr.id).order('at',{ascending:false}).limit(500)]);pc=a.data;cm=b.data||[];(c.data||[]).forEach(z=>{const k=String(z.action).split('|')[0];if(k=='consultedit'||k=='consultsave'){const o=sv[z.user_name]||(sv[z.user_name]={n:0,at:z.at});o.n++}})}catch(_){}
  CS={pc,cm};const mgr=csMgr(),st=cr.status;
  const nm=i=>esc((users[i]||{}).full_name||'—');
  if(!pc){
@@ -2357,7 +2362,7 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  const can=open&&(mgr||inv.includes(me.id)||me.role=='admin');
  const by={};cm.forEach(c=>{by[c.user_id]=(by[c.user_id]||0)+1});
  const eb={};(cr.data.tasks||[]).forEach(x=>{if(x.eb)eb[x.eb]=(eb[x.eb]||0)+1});(cr.data._del||[]).forEach(r=>{if(r.by)eb[r.by]=(eb[r.by]||0)+1});
- const done=inv.filter(i=>by[i]||eb[i]).length;
+ const done=inv.filter(i=>by[i]||eb[i]||sv[(users[i]||{}).full_name]).length;
  const tk=(cr.data.tasks||[]).map(x=>`<option value="${esc(x.id)}">${esc(x.n||'')}</option>`).join('');
  box.innerHTML=`<div class="sec">${t('cs_h')} <span class="qhelp" tabindex="0" data-tip="${esc(t('cs_help'))}">?</span></div>
  <div class="sig" style="margin-bottom:8px">${open?'🟢 '+t('cs_state_open'):'🔴 '+t('cs_state_closed')}: <b>${fd(pc.closes_at)}</b>${pc.note?`<div style="margin-top:4px">${esc(pc.note)}</div>`:''}
@@ -2365,7 +2370,7 @@ async function drawConsult(){const box=document.getElementById('consultbox');if(
  ${can?csAddBox(inv):''}
  ${can?`<label>${t('cs_task')}</label><select id="cs_t"><option value="">${t('cs_gen')}</option>${tk}</select><label>${t('cs_comm')}</label><textarea id="cs_b" style="min-height:70px"></textarea><div class="row" style="margin-top:6px"><button class="p" onclick="csComment()">${t('cs_send')}</button></div>`:`<div class="mut">${open?t('cs_ro'):t('cs_cl')}</div>`}
  <div class="sec" style="margin-top:12px">${t('cs_part')} — ${done} ${t('cs_of')} ${inv.length}</div>
- ${inv.map(i=>`<div class="srow"><div>${by[i]||eb[i]?'✅':'⏳'} <b>${nm(i)}</b></div><div class="mut">${by[i]||eb[i]?`${ad(eb[i]||0)} ${t('cs_edits')} · ${ad(by[i]||0)} ${t('cs_cnt')}`:t('cs_wait')}</div></div>`).join('')||'<div class="mut">—</div>'}
+ ${[cr.created_by].concat(inv).map((i,ix)=>{const un=(users[i]||{}).full_name,s_=sv[un],act=by[i]||eb[i]||s_;return `<div class="srow"><div>${act?'✅':'⏳'} <b>${nm(i)}</b>${ix==0?` <span class="mut">· ${t('cs_prep')}</span>`:''}</div><div class="mut">${act?`${ad(eb[i]||0)} ${t('cs_edits')} · ${ad(by[i]||0)} ${t('cs_cnt')}${s_?` · 💾 ${ad(s_.n)} ${t('cs_saves')} · ${t('cs_last')} ${fd(s_.at)}`:''}`:t('cs_wait')}</div></div>`}).join('')}
  <div class="sec" style="margin-top:12px">💬 (${cm.length})</div>
  ${cm.map(c=>`<div class="sig" style="margin-bottom:6px"><b>${esc(c.user_name||'')}</b> · <span class="mut">${fd(c.created_at)}</span>${c.task_name?`<div class="mut">↳ ${esc(c.task_name)}</div>`:''}<div style="margin-top:3px;white-space:pre-wrap">${esc(c.body)}</div></div>`).join('')||`<div class="mut">${t('cs_empty')}</div>`}`}
 function csFilt(){const q=(document.getElementById('cs_q').value||'').trim().toLowerCase();document.querySelectorAll('.cs_r').forEach(r=>{r.style.display=!q||r.dataset.n.includes(q)?'flex':'none'})}
