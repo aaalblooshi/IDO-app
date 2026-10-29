@@ -80,7 +80,8 @@ const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
 function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
 function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
-function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
+function gate(k){if(window.top!==window.self){try{parent.postMessage({chatClose:1},'*')}catch(_){}}else{try{location.replace('index.html');return}catch(_){}}
+ document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button> <button onclick="try{top.location.href=\'index.html\'}catch(_){location.href=\'index.html\'}">'+t('home')+'</button></div>'}
 
 const QS=new URLSearchParams(location.search),EMB=QS.get('embed')=='1',P0=QS.get('p')||'',R0=QS.get('r')||'';
 const T2=(a,e)=>lang=='ar'?a:e;
