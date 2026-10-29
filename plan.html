@@ -1512,7 +1512,7 @@ async function editNow(){if(!cr)return;const st=cr.status;
  if(st=='Draft'||st=='Returned to PM'){if(!PL.canEdit)return msg(t('pl_noEdit'));ftab='plan';showTab('plan');return}
  msg(t('pl_editBusy'))}
 
-async function openCR(id){document.body.classList.add('ld');try{return await openCR0(id)}finally{document.body.classList.remove('ld')}}
+async function openCR(id){document.body.classList.add('ld');try{return await openCR0(id)}catch(e){const ar=(document.documentElement.lang||'ar')=='ar';const d=document.createElement('div');d.textContent=ar?'تعذّر فتح الطلب، تحقق من الاتصال وحاول مرة أخرى.':'Could not open the request. Check your connection and try again.';d.style.cssText='position:fixed;inset-inline:14px;top:14px;z-index:400;background:#d1101d;color:#fff;padding:11px 14px;border-radius:12px;text-align:center;font-weight:700';document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}finally{document.body.classList.remove('ld')}}
 async function openCR0(id){
  if(curView===homeView)HSY=window.scrollY;
  const [a,b,c,e]=await Promise.all([sb.from('plans').select('*').eq('id',id).single(),sb.from('plan_signatories').select('*').eq('cr_id',id).order('id'),sb.from('plan_audit').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('plan_attachments').select('*').eq('cr_id',id).order('id')]);
