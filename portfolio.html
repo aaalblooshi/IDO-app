@@ -201,6 +201,15 @@ function agg(list){const secs=[...new Set(list.map(p=>p.sc))].sort((a,b)=>a-b);
  const W=rows.reduce((q,r)=>q+r.sw,0)||1;
  return {rows,a:rows.reduce((q,r)=>q+r.a*r.sw,0)/W,ex:rows.reduce((q,r)=>q+r.ex*r.sw,0)/W,late:rows.reduce((q,r)=>q+r.late,0),n:list.length}}
 const scoped=()=>PL.filter(p=>(!FS||p.sc==FS)&&(!FP||p.k==FP));
+let HP={};try{HP=JSON.parse(localStorage.getItem('pfHP')||'{}')}catch(_){}
+const gsc=()=>scoped().filter(p=>!HP[p.k]);
+function hpSave(){try{localStorage.setItem('pfHP',JSON.stringify(HP))}catch(_){}}
+function hpPick(){const AR_=lang=='ar',L=scoped();let o=document.getElementById('hpm');if(o)o.remove();o=document.createElement('div');o.id='hpm';o.style.cssText='position:fixed;inset:0;background:rgba(24,28,50,.5);z-index:200;display:flex;align-items:flex-end;justify-content:center';
+ o.innerHTML='<div style="background:#fff;border-radius:18px 18px 0 0;padding:16px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column"><b>'+(AR_?'اختر المشاريع التي تظهر في الرسم':'Choose projects shown in the chart')+'</b><div class="row" style="margin:8px 0"><button onclick="hpAll(1)">'+(AR_?'الكل':'All')+'</button><button onclick="hpAll(0)">'+(AR_?'لا شيء':'None')+'</button></div><div style="overflow:auto;flex:1">'+L.map(p=>'<label style="display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid #eef1f4"><input type="checkbox" style="width:auto" '+(HP[p.k]?'':'checked')+' onchange="HP[\''+esc(p.k)+'\']=!this.checked;hpSave()"> <span style="flex:1">'+esc(p.name)+'</span></label>').join('')+'</div><button class="p" style="width:100%;margin-top:10px" onclick="document.getElementById(\'hpm\').remove();hpRe()">'+(AR_?'تطبيق':'Apply')+'</button></div>';
+ o.onclick=e=>{if(e.target===o){o.remove();hpRe()}};document.body.appendChild(o)}
+function hpAll(m){scoped().forEach(p=>{HP[p.k]=m==0});hpSave();hpPick()}
+function hpRe(){draw()}
+const hpBtn=()=>{const n=scoped().filter(p=>HP[p.k]).length;return `<button onclick="hpPick()">☑ ${lang=='ar'?'المشاريع المعروضة':'Shown projects'}${n?` (${scoped().length-n}/${scoped().length})`:''}</button>`};
 const hl=(gap,l)=>health(gap,l);
 let GRP={};
 const pEdit=p=>ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRP[p.k]?`<a href="plan.html#o=${p.id}&e=1" onclick="event.stopPropagation()"><button class="sm" type="button">${t('pEdit')}</button></a>`:'';
@@ -247,7 +256,7 @@ function wxAll(m){const L=scoped();WX=new Set();WXC=new Set();
  if(m=='sec')agg(L).rows.forEach(r=>WXC.add(r.sc));
  if(m=='ph'||m=='all')L.forEach(p=>WX.add('p:'+p.k));
  if(m=='all')L.forEach(p=>p.tasks.forEach(x=>WX.add('t:'+p.k+':'+x.id)));vWbs()}
-function vWbs(){const L=scoped(),A=agg(L);
+function vWbs(){const L=gsc(),A=agg(L);
  const bd=pt=>pt=='strategic'?`<span class="tb s">${t('wbS')}</span>`:pt?`<span class="tb o">${t('wbO')}</span>`:'';
  const node=(task,an,lv,pk,kids)=>{const a=an.t[task.id]||{a:0,ex:0,late:0},k='t:'+pk+':'+task.id,ch=kids[task.id]||[],has=ch.length,op=WX.has(k);
   return `<div class="wn" style="padding-inline-start:${lv*14}px"><span class="wtg" ${has?`onclick="event.stopPropagation();wx('${esc(k)}')"`:''}>${has?(op?'▾':'▸'):'·'}</span><i class="wd" style="background:${SCOL[stA({a:a.a,late:a.late,lateN:a.late?1:0,s:a.s})]}"></i><span class="wnn ${lv==0?'b':''}" title="${esc(task.n)}">${task.ms?'◆ ':''}${esc(task.n)}</span>${a.late?`<span class="wlt">${a.late}</span>`:''}<span class="num wpc">${pct(a.a)}</span></div>`+(has&&op?ch.map(c=>node(c,an,lv+1,pk,kids)).join(''):'')};
@@ -257,7 +266,7 @@ function vWbs(){const L=scoped(),A=agg(L);
  const cx=`<div class="wcx" style="--st:${SCOL[stA({a:A.a,late:0,lateN:A.late,s:null})]}"><div class="wh"><b>${t('wbC')}</b><span class="mut">${plr(A.n,'project')}</span></div>${pbar(A.a,A.ex)}<div class="wf"><span class="${A.late?'bad':''}">${t('late')} <b class="num">${A.late}</b></span></div></div><div class="wst"></div>`;
  const cols=A.rows.map((r,i)=>{const c=SECC[i%SECC.length],cl=WXC.has(r.sc);
   return `<div class="wsc ${cl?'cl':''}" style="--sc:${c}"><div class="wsh" onclick="wxs('${r.sc}')"><span class="wtg big" style="color:#fff">${cl?'▸':'▾'}</span><div style="flex:1;min-width:0"><div class="wsn">${esc(secN(r.sc))}</div><div class="wsm">${plr(r.L.length,'project')} · ${t('late')} ${r.late}</div></div><div class="wsp num">${pct(r.a)}</div></div><div class="wsb">${pbar(r.a,r.ex)}</div>${cl?'':`<div class="wsl">${r.L.map(proj).join('')}</div>`}</div>`}).join('');
- $('body').innerHTML=legendS()+`<div class="row noprint" style="margin:0 0 8px"><button onclick="wxAll('all')">${t('wx_all')}</button><button onclick="wxAll('ph')">${t('wx_ph')}</button><button onclick="wxAll('proj')">${t('wx_proj')}</button><button onclick="wxAll('sec')">${t('wx_sec')}</button><span class="mut">${t('wx_tip')}</span></div><div class="zb" data-zk="pfwbs" style="direction:ltr"><div class="zi" style="width:${Math.max(760,A.rows.length*370)}px" dir="${lang=='ar'?'rtl':'ltr'}"><div class="wtop">${cx}</div><div class="wcols">${cols}</div></div></div><style>
+ $('body').innerHTML=legendS()+`<div class="row noprint" style="margin:0 0 8px"><button onclick="wxAll('all')">${t('wx_all')}</button><button onclick="wxAll('ph')">${t('wx_ph')}</button><button onclick="wxAll('proj')">${t('wx_proj')}</button><button onclick="wxAll('sec')">${t('wx_sec')}</button>${hpBtn()}<span class="mut">${t('wx_tip')}</span></div><div class="zb" data-zk="pfwbs" style="direction:ltr"><div class="zi" style="width:${Math.max(760,A.rows.length*370)}px" dir="${lang=='ar'?'rtl':'ltr'}"><div class="wtop">${cx}</div><div class="wcols">${cols}</div></div></div><style>
  .wtop{display:flex;flex-direction:column;align-items:center}.wcx{width:420px;max-width:100%;background:#fff;border:2px solid #23272b;border-top:8px solid var(--st);border-radius:14px;padding:10px 14px}.wst{width:2px;height:22px;background:#9aa7b4}
  .wcols{display:flex;gap:14px;align-items:flex-start;justify-content:center;border-top:2px solid #9aa7b4;padding-top:0}.wsc{width:350px;flex:none;position:relative;padding-top:16px}.wsc:before{content:"";position:absolute;top:0;left:50%;width:2px;height:16px;background:#9aa7b4}
  .wsh{display:flex;align-items:center;gap:8px;background:var(--sc);color:#fff;border-radius:14px 14px 0 0;padding:12px 14px;cursor:pointer}.wsn{font-size:21px;font-weight:800;line-height:1.2}.wsm{font-size:12.5px;opacity:.92}.wsp{font-size:22px;font-weight:800}
@@ -275,7 +284,7 @@ const stTx=k=>lang=='ar'?stT(k):({done:'Done',late:'Late',prog:'In progress',fut
 const legendS=()=>`<div class="stp">${['fut','prog','late','done'].map(k=>`<span style="--c:${SCOL[k]}">${stTx(k)}</span>`).join('')}</div>`;
 function gLevel(n){EXP=new Set([...EXP].filter(k=>!/^g[cspt]/.test(k)));const L=scoped();
  if(n>=2)EXP.add('gc');if(n>=3)agg(L).rows.forEach(r=>EXP.add('gs:'+r.sc));if(n>=4){L.forEach(p=>{EXP.add('gp:'+p.k);p.tasks.forEach(x=>EXP.add('gt:'+p.k+':'+x.id))})}EXP.add('ginit');vGantt()}
-function vGantt(){const L=scoped(),A=agg(L),us=new Map();L.forEach(p=>p.tasks.forEach(x=>{if(x.w)us.set(x.w,UN[x.w]||x.w)}));
+function vGantt(){const L=gsc(),A=agg(L),us=new Map();L.forEach(p=>p.tasks.forEach(x=>{if(x.w)us.set(x.w,UN[x.w]||x.w)}));
  if(!EXP.has('ginit')){EXP.add('ginit');EXP.add('gc')}
  const XS=k=>FSG?true:EXP.has(k);
  const mt=(p,x)=>{if(!FSG)return true;const ch=p.an.kids[x.id]||[];if(!ch.length){const m=p.an.t[x.id]||{a:0,late:0};return FSG=='late'?m.late>0:m.a>=100}return ch.some(c=>mt(p,c))};
@@ -294,7 +303,7 @@ function vGantt(){const L=scoped(),A=agg(L),us=new Map();L.forEach(p=>p.tasks.fo
      if(ch&&XS(tk))walk(x.id,lv+1)});walk('',3)}})});
  const ss=rows.map(r=>r.s).filter(v=>v!=null),ee=rows.map(r=>r.e).filter(v=>v!=null);
  const lb=(n,k)=>`<button class="${k}" onclick="gLevel(${n})">${[lang=='ar'?'المركز':'Centre',lang=='ar'?'القطاعات':'Sectors',lang=='ar'?'المشاريع':'Projects',lang=='ar'?'عرض الكل':'Show all'][n-1]}</button>`;
- const ctrl=`<div class="row noprint" style="margin:0 0 8px"><span class="mut">${lang=='ar'?'مستوى العرض':'Detail level'}</span>${[1,2,3,4].map(n=>lb(n,'')).join('')}<select id="fu" style="flex:1;min-width:130px"><option value="">${t('allU')}</option>${[...us].sort((x,y)=>String(x[1]).localeCompare(y[1],'ar')).map(([i,n])=>`<option value="${esc(i)}" ${FU==i?'selected':''}>${esc(n)}</option>`).join('')}</select><select id="fsg" onchange="FSG=this.value;vGantt()"><option value="">${lang=='ar'?'كل الحالات':'All statuses'}</option><option value="late" ${FSG=='late'?'selected':''}>${lang=='ar'?'المتأخرة فقط':'Late only'}</option><option value="done" ${FSG=='done'?'selected':''}>${lang=='ar'?'المنجزة فقط':'Done only'}</option></select><button onclick="PXD=Math.min(24,PXD*1.4);vGantt()">＋</button><button onclick="PXD=Math.max(.8,PXD/1.4);vGantt()">－</button></div>`;
+ const ctrl=`<div class="row noprint" style="margin:0 0 8px"><span class="mut">${lang=='ar'?'مستوى العرض':'Detail level'}</span>${[1,2,3,4].map(n=>lb(n,'')).join('')}${hpBtn()}<select id="fu" style="flex:1;min-width:130px"><option value="">${t('allU')}</option>${[...us].sort((x,y)=>String(x[1]).localeCompare(y[1],'ar')).map(([i,n])=>`<option value="${esc(i)}" ${FU==i?'selected':''}>${esc(n)}</option>`).join('')}</select><select id="fsg" onchange="FSG=this.value;vGantt()"><option value="">${lang=='ar'?'كل الحالات':'All statuses'}</option><option value="late" ${FSG=='late'?'selected':''}>${lang=='ar'?'المتأخرة فقط':'Late only'}</option><option value="done" ${FSG=='done'?'selected':''}>${lang=='ar'?'المنجزة فقط':'Done only'}</option></select><button onclick="PXD=Math.min(24,PXD*1.4);vGantt()">＋</button><button onclick="PXD=Math.max(.8,PXD/1.4);vGantt()">－</button></div>`;
  if(!ss.length){$('body').innerHTML=ctrl+`<div class="card mut">${t('none')}</div>`;bindU();return}
  const wide=innerWidth>=760,m0=Math.min(...ss,TODAY)-3,m1=Math.max(...ee,TODAY)+3;
  const LW=wide?420:Math.round(innerWidth*.52),RH=wide?34:44,HH=28,avail=Math.max(420,Math.min(innerWidth-LW-30,1000));
