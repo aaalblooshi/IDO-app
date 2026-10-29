@@ -821,14 +821,14 @@ function vRmap(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e;
  const BR={};rows.forEach(p=>{const x1=X(p.an.s),x2=X(p.an.e+1);BR[p.k]=[Math.min(x1,x2),Math.max(x1,x2)]});
  const dir=AR_?-1:1,lanesU={};
  const arr=links.map((l,li)=>{const A=by[l.from_code],Bp=by[l.to_code],sl=slack(l),c=sl<0?'#d1101d':crit.has(l.id)?'#181C32':'#6b7686',ia=idx[A.k],ib=idx[Bp.k],ya=HH+ia*RH+RH/2,yb=HH+ib*RH+RH/2,dn_=ib>ia?1:-1,off=(li%3)*3;
-  const xa=l.typ=='ss'?X(A.an.s):X(A.an.e+1),xb=X(Bp.an.s),xs=xa+(l.typ=='ss'?-dir:dir)*(10+off),xt=xb-dir*(10+off),yc1=ya+dn_*(RH/2-3-off),yc2=yb-dn_*(RH/2-3-off);
+  const xa=l.typ=='ss'?X(A.an.s):X(A.an.e+1),xb=X(Bp.an.s),xs=xa+(l.typ=='ss'?-dir:dir)*(10+off),xt=xb-dir*(20+off),yc1=ya+dn_*(RH/2-3-off),yc2=yb-dn_*(RH/2-3-off);
   // ممر عمودي حر بين الصفين: لا يقطع أي شريط في الصفوف الوسطى
   let xl=xt;const lo=Math.min(ia,ib)+1,hi=Math.max(ia,ib)-1;
   if(hi>=lo){const mid=rows.slice(lo,hi+1).map(p=>BR[p.k]),free=x=>mid.every(b=>x<b[0]-8||x>b[1]+8);
    const cand=[xs,xt,4,CW-4];mid.forEach(b=>{cand.push(b[0]-12,b[1]+12)});
    const ok=cand.filter(x=>x>=2&&x<=CW-2&&free(x));const tgt=(xs+xt)/2;xl=ok.length?ok.sort((p,q)=>Math.abs(p-tgt)-Math.abs(q-tgt))[0]:xt;
    xl+=((li%4)-1.5)*3}
-  const pts=[[xa,ya],[xs,ya],[xs,yc1],[xl,yc1],[xl,yc2],[xt,yc2],[xt,yb],[xb,yb]];
+  const pts=[[xa,ya],[xs,ya],[xs,yc1],[xl,yc1],[xl,yc2],[xt,yc2],[xt,yb],[xb-dir*10,yb]];
   const d='M'+pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' L');
   const on=!RMSEL||l.from_code==RMSEL||l.to_code==RMSEL;
   return `<g opacity="${on?1:.12}"><path d="${d}" fill="none" stroke="${c}" stroke-width="${crit.has(l.id)?2.8:2}" stroke-linejoin="round" ${sl<0?'stroke-dasharray="6 4"':''} marker-end="url(#ah${sl<0?'r':crit.has(l.id)?'k':'g'})"><title>${esc(A.name)} ← ${esc(Bp.name)}</title></path><circle cx="${xa.toFixed(1)}" cy="${ya}" r="4.5" fill="${c}"/></g>`}).join('');
@@ -843,7 +843,7 @@ function vRmap(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e;
   <div class="row" style="margin:6px 0"><span class="chp g">${T('ترابطات','Links')}: <b class="num">${links.length}</b></span><span class="chp r">${T('تعارضات','Conflicts')}: <b class="num">${conf.length}</b></span><span class="chp o">${T('ضيّقة (≤٧ أيام)','Tight (≤7d)')}: <b class="num">${tight.length}</b></span>${hpBtn()}<button onclick="RMPX=Math.min(8,(RMPX||${PX.toFixed(3)})*1.4);vRmap()">＋</button><button onclick="RMPX=Math.max(.3,(RMPX||${PX.toFixed(3)})/1.4);vRmap()">－</button></div>
   ${rows.length?`<div class="rmw" id="rmw"><div class="rmi"><div class="rmlc" style="width:${LW}px"><div class="rmh" style="height:${HH}px">${T('المشروع','Project')}</div>${lab}</div>
   <div class="rmcv" style="width:${CW}px;height:${HH+rows.length*RH}px"><div class="rmh" style="height:${HH}px;width:${CW}px">${mh}</div>${rows.map((p,i)=>`<div class="rmrow" style="top:${HH+i*RH}px;height:${RH}px;width:${CW}px"></div>`).join('')}${mo.map(n=>`<i class="rmg" style="left:${X(n)}px;top:${HH}px;height:${rows.length*RH}px"></i>`).join('')}<i class="rmt" style="left:${todayX}px;top:0;height:${HH+rows.length*RH}px"></i>${rows.map(bar).join('')}
-  <svg width="${CW}" height="${HH+rows.length*RH}" style="position:absolute;left:0;top:0;pointer-events:none"><defs>${[['g','#8a93a0'],['k','#181C32'],['r','#d1101d']].map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join('')}</defs>${arr}</svg></div></div></div>
+  <svg width="${CW}" height="${HH+rows.length*RH}" style="position:absolute;left:0;top:0;pointer-events:none"><defs>${[['g','#8a93a0'],['k','#181C32'],['r','#d1101d']].map(([k,c])=>`<marker id="ah${k}" viewBox="0 0 10 10" refX="0" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${c}"/></marker>`).join('')}</defs>${arr}</svg></div></div></div>
   <div class="row mut" style="font-size:12px;gap:14px"><span>● ${T('بداية السهم: نهاية السابق','Arrow starts: predecessor end')}</span><span>▶ ${T('نهاية السهم: بداية اللاحق','Arrow ends: successor start')}</span><span><b style="color:#181C32">━</b> ${T('المسار الحرج','Critical path')}</span><span><b style="color:#8a93a0">━</b> ${T('ترابط عادي','Normal link')}</span><span><b style="color:#d1101d">╍</b> ${T('تعارض: اللاحق يبدأ قبل انتهاء السابق','Conflict')}</span><span><b style="color:#d1101d">│</b> ${T('اليوم','Today')}</span></div>`:`<div class="mut">${T('لا توجد مشاريع بتواريخ ضمن المعروض.','No dated projects shown.')}</div>`}</div>
   <div class="card"><b>＋ ${T('إضافة ترابط بين مشروعين','Add a link between two projects')}</b>
   <div class="rmf"><label>${T('المشروع السابق (يجب أن يسبق)','Predecessor')}<select id="rm_a"><option value="">—</option>${opts}</select></label><label>${T('المشروع اللاحق (يعتمد عليه)','Successor (depends on it)')}<select id="rm_b"><option value="">—</option>${opts}</select></label>
