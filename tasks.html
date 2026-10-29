@@ -189,7 +189,8 @@ const saveCfg=()=>{try{localStorage.setItem('tk_cfg',JSON.stringify(CFG))}catch(
 let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',PEXP=new Set(),Q='',FP='',FS='',FU='',FST='',GRP='project',LAST=null,SHOWN=40,CUST=false,PXD=0,COL=new Set(),GOPEN=new Set(),GCL=new Set();
 const TEAM=()=>ADM||!!(ME&&ME.view_scope);
 const dayP=n=>plr(n,'day');const SCOL={done:'#1c7a45',late:'#d1101d',prog:'#3D96C7',fut:'#949594'};document.body.classList.add('tkp');
-async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
+let ISO=null;
+async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
 let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
 function mkProject(p){
@@ -280,7 +281,7 @@ function draw(){
  const us=[...new Set(ALLR.map(r=>r.own).filter(Boolean))];
  const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
  const tabs=MODE=='me'&&VIEW=='list'?TABS.map(([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
- $('app').innerHTML=`<div id="calbar"></div><div class="sb noprint">
+ $('app').innerHTML=`${isoH()}<div id="calbar"></div><div class="sb noprint">
   ${TEAM()?`<div class="tabs">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team',"setMode('team')",t('mTeam'))}</div>`:''}
   <input id="q" placeholder="${t('search')}" value="${esc(Q)}">
   <div class="tabs" style="margin-top:8px">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
@@ -297,6 +298,14 @@ function draw(){
  calCheck();
  if(MODE=='me'&&!ALLR.some(r=>r.mine)){$('body').innerHTML=`<div class="card mut">${t('noany')}</div>`;return}
  paint()}
+function isoH(){if(!ISO)return '';const r=findR(ISO);if(!r)return '';const AR_=lang=='ar',T=(a,e)=>AR_?a:e,x=r.x,dn=isDone(r);
+ return `<div class="card" style="border:2px solid #BF9849;background:#fffaf0;margin-bottom:12px"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><div class="mut" style="font-size:12px">${T('المهمة المحددة','Selected task')}</div><b style="font-size:17px">${esc(x.n||'')}</b><div class="mut">${pLink(r)}</div></div><button onclick="ISO=null;draw()" aria-label="x">✕</button></div>
+ <div style="margin:8px 0">${T('الموعد المخطط: ','Planned: ')}<span class="num">${fd(x.s)}</span> → <span class="num">${fd(x.e)}</span>${x.as?` · ${T('بدأت فعليًا: ','Started: ')}<span class="num">${fd(x.as)}</span>`:''}${x.ae?` · ${T('انتهت: ','Ended: ')}<span class="num">${fd(x.ae)}</span>`:''} · <b class="num">${Math.round(r.pcr||0)}%</b></div>
+ <div class="row">${dn?`<span class="chp">✔ ${T('منجزة','Completed')}</span>`:`<button class="p" onclick="isoDone('plan')">✔ ${T('أنجزتها في الموعد المحدد','Done on schedule')}</button><button onclick="isoDone('today')">✔ ${T('أنجزتها اليوم','Done today')}</button>`}<button onclick="openSheet(ISO)">${T('التفاصيل والتحديث','Details and update')}</button></div>
+ <div class="mut" style="margin-top:8px">${T('باقي المهام أدناه ↓','Your other tasks below ↓')}</div></div>`}
+function isoDone(m){const r=findR(ISO);if(!r)return;const x=r.x,tdy=ds(TODAY),as=m=='plan'?(x.s||tdy):(x.as||x.s||tdy),ae=m=='plan'?(x.e||tdy):tdy;
+ const old={pc:r.pcr,as:x.as||'',ae:x.ae||''};
+ run(async()=>{await rpcProg(r,100,as,ae);await reload();draw();utoast(t('saved2'),()=>run(async()=>{await rpcProg(r,old.pc,old.as,old.ae);await reload();draw()},t('upd')))},false)}
 function info(tk,bk){closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};o.innerHTML=`<div class="sbx"><h3>${t(tk)}</h3><p>${t(bk)}</p><div class="row"><button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;document.body.appendChild(o)}
 function setMode(m){MODE=m;FP=FS=FU=FST='';SHOWN=40;reload()}
 function paint(){const el=$('body');if(!el)return;
