@@ -691,6 +691,7 @@ const isStale=x=>{if((+x.pc||0)>=100)return false;const s0=dn(x.s);if(s0==null||
 const sparkH=(arr,c)=>`<div class="spk">${arr.map(v=>`<i style="height:${Math.max(6,Math.round(v))}%;${c?'background:'+c:''}"></i>`).join('')}</div>`;
 const snapBy=k=>(SNP||[]).filter(z=>z.code==k).sort((a,b)=>a.snap_date<b.snap_date?-1:1);
 function degOf(k){const z=snapBy(k);if(z.length<2)return null;const last=z[z.length-1],ld=dn(last.snap_date);let base=z.filter(q=>dn(q.snap_date)<=ld-7).pop()||z[0];if(base===last)return null;return {d:+last.actual-+base.actual,span:ld-dn(base.snap_date),cur:+last.actual,z}}
+let SNPL=0;
 function ensureAdminData(){if(SNP==null){SNP=false;snapLoad()}if(PLK==null&&!RMBUSY)rmLoad()}
 function vAtt(){ensureAdminData();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=gsc(),open=L.filter(p=>!p.closed||SHC);
  let late=0,stale=0;open.forEach(p=>{late+=p.an.lateN||0;stale+=leafT(p).filter(isStale).length});
@@ -714,6 +715,7 @@ function trajChart(g,c){const W=150,H=44,z=g.z,n=z.length;if(n<2)return '';const
  return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="direction:ltr;flex:none">${ln('planned','#BF9849',1)}${ln('actual',c,0)}<circle cx="${X(a1).toFixed(1)}" cy="${Y(+z[n-1].actual).toFixed(1)}" r="3" fill="${c}"/></svg>`}
 const AR_x=()=>lang=='ar';
 function vDeg(){ensureAdminData();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=gsc().filter(p=>!p.closed||SHC),th=DEGT(),P=DEGP;
+ if(SNPL){B.innerHTML=`<div class="card mut">${t('loading')}</div>`;return}
  if(SNP===false||!SNP||!SNP.length){B.innerHTML=`<div class="card"><b>📈 ${T('مسار الإنجاز','Progress trajectory')}</b><div class="mut" style="margin-top:6px">${T('لا توجد بيانات تاريخية بعد. تُبنى تلقائيًا عند فتح الأدمن للمحفظة بعد تشغيل التحديث، ثم تُسجَّل يوميًا.','No history yet. It is built automatically when an admin opens the portfolio after the update, then recorded daily.')}</div></div>`;return}
  const rows=L.map(p=>({p,g:trajOf(p.k,P)})),ok=rows.filter(z=>z.g&&!z.g.nodata),nd=rows.filter(z=>!z.g||z.g.nodata);
  const dec=ok.filter(z=>z.g.d<=-th),imp=ok.filter(z=>z.g.d>=th),flat=ok.length-dec.length-imp.length,avg=ok.length?ok.reduce((q,z)=>q+z.g.d,0)/ok.length:0;
@@ -773,7 +775,7 @@ async function snapBackfill(){if(!ADM||!PL.length||!Array.isArray(SNP))return;le
  let a=Infinity;PL.forEach(p=>(p.tasks||[]).forEach(x=>{const s0=dn(x.s);if(s0!=null)a=Math.min(a,s0)}));if(!isFinite(a))return;a=Math.max(a,TODAY-730);const rows=[];
  for(let d=a;d<TODAY;d+=7){PL.forEach(p=>{const an=analyze(tkAt(p.tasks||[],d),p.wm,d);rows.push({snap_date:ds(d),code:p.k,actual:Math.round(an.a*10)/10,planned:Math.round(an.ex*10)/10,late:an.lateN||0,est:true})})}
  try{for(let i=0;i<rows.length;i+=500){const r=await sb.from('portfolio_snapshots').upsert(rows.slice(i,i+500),{onConflict:'snap_date,code',ignoreDuplicates:true});if(r.error)throw r.error}try{localStorage.setItem(k,'1')}catch(_){}SNP=null;snapLoad()}catch(_){}}
-async function snapLoad(){try{const r=await sb.from('portfolio_snapshots').select('snap_date,code,actual,planned,late,est').order('snap_date');if(r.error)throw r.error;SNP=r.data||[]}catch(e){SNP=false}if(TAB=='trd')vTrd()}
+async function snapLoad(){SNPL=1;try{const r=await sb.from('portfolio_snapshots').select('snap_date,code,actual,planned,late,est').order('snap_date');if(r.error)throw r.error;SNP=r.data||[]}catch(e){SNP=false}SNPL=0;if(['trd','deg','att'].includes(TAB))draw()}
 function snapSeries(L){if(!SNP)return[];const ks=new Set(L.map(p=>p.k)),by={};SNP.forEach(z=>{if(!z.est&&ks.has(z.code))(by[z.snap_date]=by[z.snap_date]||[]).push(z)});
  return Object.keys(by).sort().map(d=>{const it=by[d].map(z=>{const p=L.find(q=>q.k==z.code);return {sc:p.sc,a:+z.actual,ex:+z.planned,lateN:z.late,w:p.w}});return {d:dn(d),a:agg(it).a}})}
 function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TRK?all.filter(p=>p.k==TRK):all;if(SNP==null){SNP=false;snapLoad()}
