@@ -785,7 +785,7 @@ new MutationObserver(function(){if(!q)q=setTimeout(go,60)}).observe(document.doc
  function ref(){try{
    if(typeof pcOf==='function'&&typeof cr!=='undefined'&&cr&&typeof SVC!=='undefined'){var k=SVC=='charter'?'charter':SVC=='plan'?'plan':SVC=='closure'?'closure':'cr';var lb=cr.title||cr.name||cr.code||'';if(cr.id&&lb)return k+':'+cr.id+':'+encodeURIComponent(lb)}
   }catch(e){}return ''}
- function show(){var c=code(),isIdx=(cur=='index');var want=!!ON&&(!!c||isIdx);fab.classList.toggle('on',want);fab.title=c?(ar?'محادثة هذا المشروع':'Project chat'):(ar?'التواصل':'Chat');
+ function show(){var c=code(),isIdx=(cur=='index');if(isIdx){var tf=document.getElementById('tkfab');if(tf&&tf.offsetParent!==null){var r=tf.getBoundingClientRect();fab.style.bottom=(innerHeight-r.top+12)+'px'}else fab.style.bottom=''}var want=!!ON&&(!!c||isIdx);fab.classList.toggle('on',want);fab.title=c?(ar?'محادثة هذا المشروع':'Project chat'):(ar?'التواصل':'Chat');
   if(c!==last){last=c;badge()}}
  function badge(){try{if(!ON||typeof sb==='undefined'||!sb)return;sb.rpc('chat_unread').then(function(u){var L=(u&&u.data)||[],n=0,c=code();L.forEach(function(y){if(c?y.pcode==c:true)n+=(+y.n||0)});var o=fab.querySelector('b');if(o)o.remove();if(n){var b=document.createElement('b');b.textContent=n>99?'99+':n;fab.appendChild(b)}})}catch(e){}}
  function open(){var c=code(),r=ref(),u='chat.html?embed=1'+(c?'&p='+encodeURIComponent(c):'')+(c&&r?'&r='+r:'');pan.innerHTML='<iframe src="'+u+'" allow="clipboard-write"></iframe>';pan.classList.add('on')}
