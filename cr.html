@@ -419,7 +419,7 @@ const W=[
 ["next","Next ›","التالي ‹"],
 ["back","‹ Back","› السابق"],
 ["progress","required fields completed","حقول مطلوبة مكتملة"],
-["tagline","Sign in to manage change requests","سجّل الدخول لإدارة طلبات التغيير"],
+["portalTitle","Institutional Development Office Services","خدمات مكتب التطوير المؤسسي"],["portalTag","Sign in to access your services","سجّل الدخول للوصول إلى خدماتك"],["tagline","Sign in to manage change requests","سجّل الدخول لإدارة طلبات التغيير"],
 ["moreActs","More actions","إجراءات أخرى"],
 ["tapHint","Tap a long text to expand it","اضغط على النص الطويل لتوسيعه"],
 ["att","Supporting attachments","مرفقات داعمة"],
@@ -566,7 +566,8 @@ async function start(){
 }
 function eyeT(id,b){const i=$(id);if(!i)return;const h=i.type=='password';i.type=h?'text':'password';b.textContent=h?'🙈':'👁'}
 function loginView(){curView=loginView;editing=false;
- app.innerHTML=`<div class="card lcard"><h1>${t('appTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('tagline')}</div>
+ try{$('ttl').textContent=t('portalTitle');document.title=t('portalTitle')}catch(_){}
+ app.innerHTML=`<div class="card lcard"><h1>${t('portalTitle')}</h1><div class="mut" style="margin-bottom:6px">${t('portalTag')}</div>
 <label>${t('fullName')}</label><input id="fn"><label>${t('email')}</label><input id="em" type="email" dir="ltr"><label>${t('password')}</label><div class="pwr"><input id="pw" type="password" dir="ltr"><button type="button" class="eye" onclick="eyeT('pw',this)">👁</button></div>
 <div class="row"><button class="p" onclick="login()">${t('signIn')}</button><button onclick="signup()">${t('createAcc')}</button></div></div>`}
 async function login(){const e=$('em').value.trim(),p=$('pw').value;if(!e||!p)return msg(t('typeBoth'));
