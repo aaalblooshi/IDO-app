@@ -183,7 +183,7 @@ xe_ok:['المحفظة منتظمة','The portfolio is on track'],xe_wa:['الم
  rTitle:['تقرير متابعة المشاريع','Project follow-up report'],rGen2:['أُعدّ بتاريخ','Prepared on'],rDone:['مهام أُنجزت في الفترة','Tasks finished in period'],rCR:['طلبات التغيير في الفترة','Change requests in period'],rNoCR:['لا توجد طلبات تغيير في الفترة.','No change requests in the period.'],
  rDet:['تفاصيل الخطط','Plan details'],rAllS:['كل المشاريع ضمن الصلاحية','All projects in scope'],rBySec:['قطاع: ','Sector: '],rByP:['مشروع: ','Project: '],rGrp:['مجموعة','Group'],
  st:['الحالة','Status'],cnt:['مشروع','projects'],ms:['مرحلة','Milestone'],lateD:['يوم تأخير','d late']});
-let PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
+let CLS={},SHC=false,PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
 const LC=['#B39A6B','#949594','#3D96C7','#7a6740','#2a6a90'];
 async function start(){
  if(!(ADM||ME.view_scope))return gate('noacc');
@@ -193,13 +193,14 @@ async function start(){
   q('project_cfg','*'),
   q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
   q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector'])),q('project_grants','pcode,lvl,svcs',r=>r.eq('user_id',ME.id))]);
+ try{const cz=await q('closure_reports','status,archived,pc:data->>pcode',r=>r.eq('archived',false).eq('status','Approved'));CLS={};cz.forEach(x=>{if(x.pc)CLS[x.pc]=1})}catch(_){CLS={}}
  GRP={};gr.forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRP[x.pcode]=1});
  CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
  ss.forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
  try{const wr=await sb.rpc('project_weights');WM={};if(!wr.error)(wr.data||[]).forEach(x=>WM[x.pcode]=+x.weight)}catch(_){}
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||p.id>best[k].id)best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,an=analyze(p.tasks||[],p.wm),c=CFG[k]||{};
-  return {k,id:p.id,wm:p.wm,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+  return {k,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
  PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
  draw()}
 const wavg=(arr,f)=>{const W=arr.reduce((s,p)=>s+p.w,0);return W?arr.reduce((s,p)=>s+f(p)*p.w,0)/W:0};
@@ -209,7 +210,7 @@ function agg(list){const secs=[...new Set(list.map(p=>p.sc))].sort((a,b)=>a-b);
  return {rows,a:rows.reduce((q,r)=>q+r.a*r.sw,0)/W,ex:rows.reduce((q,r)=>q+r.ex*r.sw,0)/W,late:rows.reduce((q,r)=>q+r.late,0),n:list.length}}
 const scoped=()=>PL.filter(p=>(!FS||p.sc==FS)&&(!FP||p.k==FP));
 let HP={};try{HP=JSON.parse(localStorage.getItem('pfHP')||'{}')}catch(_){}
-const gsc=()=>scoped().filter(p=>!HP[p.k]);
+const gsc=()=>scoped().filter(p=>!HP[p.k]&&(SHC||!p.closed));
 function hpSave(){try{localStorage.setItem('pfHP',JSON.stringify(HP))}catch(_){}}
 function hpPick(){const AR_=lang=='ar',L=scoped();let o=document.getElementById('hpm');if(o)o.remove();o=document.createElement('div');o.id='hpm';o.style.cssText='position:fixed;inset:0;background:rgba(24,28,50,.5);z-index:200;display:flex;align-items:flex-end;justify-content:center';
  o.innerHTML='<div style="background:#fff;border-radius:18px 18px 0 0;padding:16px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column"><b>'+(AR_?'اختر المشاريع التي تظهر في الرسم':'Choose projects shown in the chart')+'</b><div class="row" style="margin:8px 0"><button onclick="hpAll(1)">'+(AR_?'الكل':'All')+'</button><button onclick="hpAll(0)">'+(AR_?'لا شيء':'None')+'</button></div><div style="overflow:auto;flex:1">'+L.map(p=>'<label style="display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid #eef1f4"><input type="checkbox" style="width:auto" '+(HP[p.k]?'':'checked')+' onchange="HP[\''+esc(p.k)+'\']=!this.checked;hpSave()"> <span style="flex:1">'+esc(p.name)+'</span></label>').join('')+'</div><button class="p" style="width:100%;margin-top:10px" onclick="document.getElementById(\'hpm\').remove();hpRe()">'+(AR_?'تطبيق':'Apply')+'</button></div>';
@@ -228,13 +229,13 @@ function draw(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
  const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
- $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${['exe','sum','tree','wbs','gantt','trd','fil','rec','rep'].concat(ADM?['rmap','wts']:[]).map(tab).join('')}</div>
+ $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${['exe','sum','tree','wbs','gantt','trd','fil','rec','rep'].concat(ADM?['rmap','dq','wts']:[]).map(tab).join('')}</div>
  <div class="row" style="margin-top:0"><select id="fs" style="flex:1"><option value="">${t('allSec')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select>
  <select id="fp" style="flex:2"><option value="">${t('allP')}</option>${PL.filter(p=>!FS||p.sc==FS).map(p=>`<option value="${esc(p.k)}" ${FP==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div></div><div id="body"></div>`;
  $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
  if(TAB=='wts'&&ADM)return vWts();
  if(!PL.length){$('body').innerHTML=`<div class="card mut">${t('none')}</div>`;return}
- ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec,fil:vFil,trd:vTrd,rmap:vRmap})[TAB]()}
+ ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec,fil:vFil,trd:vTrd,rmap:vRmap,dq:vDq})[TAB]()}
 /* ---- executive summary ---- */
 function vSum(){const L=scoped(),A=agg(L),h=hl(A.ex-A.a,A.late);
  $('body').innerHTML=`<div class="card"><div class="kp"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b class="${h}">${pct(A.a)}</b><span>${t('kA')}</span></div><div><b class="${A.late?'bad':'ok'}">${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}<div class="mut">${t('legend')}</div></div>
@@ -651,7 +652,29 @@ boot();
 (async()=>{for(let i=0;i<40&&!(PL&&PL.length);i++)await new Promise(r=>setTimeout(r,500));snapSave()})();
 
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
-Object.assign(D,{tRmap:['خارطة المشاريع','Projects roadmap'],tFil:['المرفقات والملاحظات','Files and notes'],tTrd:['التتبع الزمني','Time tracking']});
+
+/* ---- جودة البيانات (للأدمن): ما يُضعف دقة المحفظة وأين يجب التدخل ---- */
+function vDq(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=PL,ds_=x=>x.name;
+ const unW=P.filter(p=>WM[p.k]==null&&(CFG[p.k]||{}).weight==null),closed=P.filter(p=>p.closed),
+  noT=P.filter(p=>!(p.tasks||[]).length),
+  leaf=p=>{const k=new Set((p.tasks||[]).map(x=>x.p).filter(Boolean));return(p.tasks||[]).filter(x=>!k.has(x.id))},
+  noD=P.map(p=>({p,n:leaf(p).filter(x=>!x.s||!x.e).length})).filter(z=>z.n),
+  noO=P.map(p=>({p,n:leaf(p).filter(x=>!x.w&&!x.wn).length})).filter(z=>z.n),
+  stale=P.map(p=>({p,n:leaf(p).filter(x=>x.e&&dn(x.e)<TODAY-14&&(+x.pc||0)<100&&!x.as).length})).filter(z=>z.n),
+  done=P.filter(p=>!p.closed&&p.a>=100),
+  lateM=P.filter(p=>!p.closed&&p.an&&p.an.lateN>0).sort((a,b)=>b.an.lateN-a.an.lateN);
+ const box=(ti,arr,fx,hint,sev)=>`<div class="card" style="border-inline-start:5px solid ${arr.length?sev:'#2e8b57'}"><div class="row" style="margin:0"><b>${ti}</b><span class="chp ${arr.length?(sev=='#d1101d'?'r':'o'):'g'}">${arr.length?arr.length:'✓'}</span></div><div class="mut" style="font-size:12.5px;margin:4px 0">${hint}</div>${arr.length?`<div style="font-size:13px;line-height:1.9">${arr.slice(0,12).map(fx).join('<br>')}${arr.length>12?`<br><span class="mut">+${arr.length-12}</span>`:''}</div>`:''}</div>`;
+ const sn=SNP||[],days=new Set(sn.map(z=>z.snap_date)).size;
+ B.innerHTML=`<div class="card"><b>🩺 ${T('جودة بيانات المحفظة','Portfolio data quality')}</b><div class="mut" style="font-size:12.5px;margin-top:4px">${T('ما يؤثر على دقة الأرقام. المشاريع المغلقة (تقرير ختامي معتمد) تُستبعد من المؤشرات افتراضيًا.','What affects accuracy. Closed projects (approved closure report) are excluded from indicators by default.')}</div>
+ <div class="row" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${SHC?'checked':''} onchange="SHC=this.checked;vDq()"> ${T('احتساب المشاريع المغلقة في المؤشرات','Count closed projects in indicators')}</label><span class="chp b">${T('مغلقة','Closed')}: <b class="num">${closed.length}</b></span><span class="chp g">${T('لقطات يومية','Daily snapshots')}: <b class="num">${days}</b></span></div></div>
+ ${box(T('مشاريع بلا تقييم وزن (وزن متساوٍ)','Projects without weight assessment'),unW,p=>'• '+esc(p.name),T('الأوزان متساوية لحين تقييم المشاريع من تبويب «الأوزان».','Weights stay equal until assessed in the Weights tab.'),'#e9a23b')}
+ ${box(T('إنجاز 100% دون تقرير ختامي معتمد','100% complete without approved closure'),done,p=>'• '+esc(p.name),T('أُنجزت مهامها كلها، يلزم إغلاقها لتخرج من المؤشرات.','All tasks done; close it to leave the indicators.'),'#e9a23b')}
+ ${box(T('مهام بلا تواريخ بدء/انتهاء','Tasks without dates'),noD,z=>'• '+esc(z.p.name)+' — '+z.n,T('تُحرم من التحليل الزمني والتأخر.','Excluded from time analysis.'),'#d1101d')}
+ ${box(T('مهام بلا مكلّف','Tasks without assignee'),noO,z=>'• '+esc(z.p.name)+' — '+z.n,T('لا أحد مسؤول عن تحديث إنجازها.','Nobody owns the progress update.'),'#e9a23b')}
+ ${box(T('مهام فات موعدها أكثر من 14 يومًا ولم تبدأ','Overdue 14+ days, never started'),stale,z=>'• '+esc(z.p.name)+' — '+z.n,T('غالبًا بيانات غير محدَّثة.','Likely stale data.'),'#d1101d')}
+ ${box(T('مشاريع بلا مهام','Projects without tasks'),noT,p=>'• '+esc(p.name),T('لا تدخل في أي قياس.','Not measured at all.'),'#d1101d')}
+ ${box(T('مشاريع متأخرة (حسب عدد المهام المتأخرة)','Late projects'),lateM,p=>'• '+esc(p.name)+' — '+p.an.lateN,T('للمتابعة الفورية.','For immediate follow-up.'),'#d1101d')}`;}
+Object.assign(D,{tDq:['جودة البيانات','Data quality'],tRmap:['خارطة المشاريع','Projects roadmap'],tFil:['المرفقات والملاحظات','Files and notes'],tTrd:['التتبع الزمني','Time tracking']});
 /* ---- التتبع الزمني: إعادة بناء مسار المخطط والفعلي عبر الزمن من تواريخ البدء والإنجاز الفعلية ---- */
 function tkAt(tasks,d){const kids=new Set(tasks.map(x=>x.p).filter(Boolean));return tasks.map(x=>{if(kids.has(x.id))return x;const e=dn(x.e),as=dn(x.as),ae=dn(x.ae),pc=+x.pc||0;let v=0;
   if(d>=TODAY)v=pc;else if(pc>=100){const en=ae!=null?ae:e;const st=as!=null?as:dn(x.s);v=en==null||d>=en?100:(st!=null&&d>=st&&en>st?Math.min(99,(d-st+1)/(en-st+1)*100):0)}
