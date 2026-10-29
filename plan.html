@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg)}}.rvb{border:1px solid #BF9849;background:#fffaf0;border-radius:14px;padding:10px 12px;margin:8px 0}</style>
+<html lang="en"><head><script>/*nightmode*/try{if(localStorage.getItem('nm')=='1')document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.rvb{border:1px solid #BF9849;background:#fffaf0;border-radius:14px;padding:10px 12px;margin:8px 0}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -1502,16 +1502,16 @@ function fitRO(){}
 // ---- who may edit: IDO office, project manager, creator, or users granted "edit" in project settings ----
 const pmOf=r=>{try{return !!(r&&r.data&&r.data.pmname)&&!!me&&r.data.pmname==me.full_name}catch(e){return false}};
 async function editNow(){if(!cr)return;const st=cr.status;
- if(st=='Approved'){if(PL.canRvs){return revisePlan(true)}return msg(t('pl_noEdit'))}
+ if(st=='Approved'){if(PL.canRvs){return me.role=='admin'?revisePlan(true):startWC()}return msg(t('pl_noEdit'))}
  if(st=='Draft'||st=='Returned to PM'){if(!PL.canEdit)return msg(t('pl_noEdit'));ftab='plan';showTab('plan');return}
  msg(t('pl_editBusy'))}
 
 async function openCR(id){
  const [a,b,c,e]=await Promise.all([sb.from('plans').select('*').eq('id',id).single(),sb.from('plan_signatories').select('*').eq('cr_id',id).order('id'),sb.from('plan_audit').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('plan_attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
- cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
+ cr=a.data;if(WCM&&aedOn()&&cr.status=='Approved'){try{const x=JSON.parse(sessionStorage.getItem('wc:'+id)||'null');if(x)cr.data=x}catch(_){}}sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
- const aed=adm&&!arch&&aedOn()&&!['Draft','Returned to PM','Cancelled'].includes(st);PL.snapK=null;let cInv=false;try{const q0=await sb.from('plan_consult').select('closes_at,invitees').eq('plan_id',id).maybeSingle();cInv=!!(q0.data&&new Date(q0.data.closes_at)>new Date()&&(q0.data.invitees||[]).includes(me.id))&&st=='Draft'&&!arch}catch(_){}
+ const aed=!arch&&aedOn()&&(adm&&!WCM?!['Draft','Returned to PM','Cancelled'].includes(st):(WCM&&st=='Approved'&&(adm||cr.created_by==me.id||pmOf(cr)||gEd(cr))));PL.snapK=null;let cInv=false;try{const q0=await sb.from('plan_consult').select('closes_at,invitees').eq('plan_id',id).maybeSingle();cInv=!!(q0.data&&new Date(q0.data.closes_at)>new Date()&&(q0.data.invitees||[]).includes(me.id))&&st=='Draft'&&!arch}catch(_){}
  const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr)||pmOf(cr))&&(st=='Draft'||st=='Returned to PM');
  curView=()=>openCR(id);editing=ed&&!aed;
  if(noteFor!==id){noteFor=id;noteMode=false}
@@ -1531,7 +1531,7 @@ async function openCR(id){
  const AN=Array.isArray(d._anotes)?d._anotes:[];
  const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at)+(s.signed_by&&s.signed_by!=s.user_id?' · '+t('byProxy').replace('{n}',esc((users[s.signed_by]||{}).full_name||'')):''):`<span class="mut">${fin?'—':t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
- if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
+ if(aed&&WCM)acts+=`<button class="p" onclick="wcCommit()">💾 ${lang=='ar'?'حفظ كإصدار جديد':'Save as new version'}</button><button onclick="wcCancel()">${t('cancel')}</button>`;else if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
  if(ed&&!aed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
  const admAct=adm&&!arch&&stage&&!ed&&!mine&&!sigs.some(s=>s.user_id==me.id&&s.stage==stage&&s.status=='signed');
  if(admAct)acts+=stage=='created'?`<button class="g" onclick="submitCR()">${t('admSub')}</button>`:`<button class="g" onclick="admSign('${stage}')">${t('admSign')}</button>`;
@@ -1563,7 +1563,7 @@ async function openCR(id){
  if(!PL.zoom)PL.zoom='auto';
  try{PL.adv=localStorage.getItem('pl_adv')=='1'}catch(_){PL.adv=false}
  if(PL.view=='gantt'&&!d.tasks.length)PL.view='list';
- const canRvs=!arch&&st=='Approved'&&(adm||cr.created_by==me.id||pmOf(cr)||gEd(cr));PL.canRvs=canRvs;const revise=canRvs?`<button onclick="revisePlan()">✏️ ${t('pl_revise')}</button>`:'';
+ const canRvs=!arch&&st=='Approved'&&(adm||cr.created_by==me.id||pmOf(cr)||gEd(cr));PL.canRvs=canRvs;const revise=canRvs?`<button onclick="${adm?'revisePlan()':'startWC()'}">✏️ ${t('pl_revise')}</button>`:'';
  const crM=cr.cr_link?1:0;
  const crl=adm&&!arch?`<div class="crl"><span class="mut">${t('pl_crlink')}:</span><select id="crl_m" onchange="document.getElementById('crl_w').style.display=this.value=='1'?'':'none'"><option value="0" ${crM?'':'selected'}>${t('pl_crNone')}</option><option value="1" ${crM?'selected':''}>${t('pl_crYes')}</option></select><span id="crl_w" style="flex:1;min-width:180px;${crM?'':'display:none'}"><select class="srch" id="crl_c"><option value="">${t('pl_crPick')}</option>${(PL.crs||[]).map(c=>`<option value="${esc(c.code)}" ${cr.cr_link==c.code?'selected':''}>${esc(c.code)} — ${esc(c.pn||'')}</option>`).join('')}${cr.cr_link&&!(PL.crs||[]).some(c=>c.code==cr.cr_link)?`<option value="${esc(cr.cr_link)}" selected>${esc(cr.cr_link)}</option>`:''}</select></span><button class="sm p" onclick="setCrLink()">${t('save')}</button></div>`:`<div class="sig" style="margin-top:8px">🔗 ${t('pl_crlink')}: ${cr.cr_link?`<b dir="ltr">${esc(cr.cr_link)}</b>`:t('pl_crNone')}</div>`;
  app.innerHTML=bar()+`<div class="card crh"><div class="top"><div><h1>${t('planOf')}${d.pname?' — '+esc(d.pname):''}</h1><span class="mut">${t('createdCol')}: ${esc(users[cr.created_by]?.full_name)} · ${t('version')} ${cr.version}</span></div>${pillS(st)}</div>
@@ -1596,11 +1596,22 @@ function stampEdits(){if(!cr||!me)return;const ts=cr.data.tasks||[];if(!PL.snap|
  Object.keys(PL.snap).forEach(id=>{if(!cur.has(id)&&!del.some(r=>r.id==id)){let n='';try{n=JSON.parse(PL.snap[id]).n||''}catch(_){}del.push({id,n,by:me.id,at:new Date().toISOString()})}});
  cr.data._del=del.slice(-60)}
 async function save(q){if(!cr)return;norm();rollup();stampEdits();const dd={...cr.data};dd.tasks=strip(cr.data.tasks||[]);
+ if(WCM&&aedOn()&&cr.status=='Approved'){try{sessionStorage.setItem('wc:'+cr.id,JSON.stringify(dd))}catch(_){}snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.cOnly){const {error:e3}=await sb.rpc('pl_consult_save',{pid:cr.id,p_tasks:dd.tasks,p_del:dd._del||[]});if(e3)return msg(e3.message);snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.rvEd){const {error:e2}=await sb.rpc('pl_review_save',{pid:cr.id,p_tasks:dd.tasks});if(e2)return msg(e2.message);if(q!==false)await openCR(cr.id);return}
  const {data:r,error}=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));snapTasks();if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();try{if(cr&&cr.status=='Draft'&&CS&&CS.pc)await lg(cr.id,'consultsave')}catch(_){}msg(t('draftSaved'))}
 let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
+let WCM=false;
+function startWC(){WCM=true;AEDIT=SVC+':'+cr.id;AEDIT0=JSON.stringify(cr.data||{});try{sessionStorage.removeItem('wc:'+cr.id)}catch(_){}ftab='plan';openCR(cr.id)}
+function wcCancel(){const id=cr.id;WCM=false;AEDIT=null;AEDIT0='';try{sessionStorage.removeItem('wc:'+id)}catch(_){}openCR(id)}
+async function wcCommit(){const id=cr.id;try{await flushAtt()}catch(e){return msg(e.message||String(e))}
+ await save(false);let dd=null;try{dd=JSON.parse(sessionStorage.getItem('wc:'+id)||'null')}catch(_){}
+ if(!dd){return wcCancel()}
+ const r=await sb.rpc('pl_revise',{pid:id});if(r.error)return msg(r.error.message);
+ const u=await sb.from('plans').update({data:dd}).eq('id',id).select('id');if(u.error||!u.data||!u.data.length)return msg(u.error?u.error.message:t('saveFail'));
+ WCM=false;AEDIT=null;AEDIT0='';try{sessionStorage.removeItem('wc:'+id)}catch(_){}ftab='plan';await openCR(id);
+ msg(lang=='ar'?'أُنشئ الإصدار الجديد بتعديلاتك. راجعه ثم أرسله للمراجعة والاعتماد.':'New version created from your edits. Review it, then submit.')}
 const revBanner=()=>{if(SVC!='plan'||!cr||cr.version<2||cr.status!='Draft'||cr.archived||!(me.role=='admin'||cr.created_by==me.id||pmOf(cr)))return '';const a=lang=='ar';
  return `<div class="rvb"><b>✏️ ${a?'أنت تعدّل إصدارًا جديدًا (v'+cr.version+')':'You are editing a new version (v'+cr.version+')'}</b><div class="mut">${a?'عدّل الخطة بحرية، واحفظ، وعند الانتهاء أرسل الإصدار للمراجعة والاعتماد من تبويب «سير العمل». يبقى الإصدار المعتمد سابقًا ساريًا حتى اعتماد الجديد، ويمكنك تجاهل التعديلات في أي وقت قبل الإرسال.':'Edit freely and save; when done, submit the version from the Workflow tab. The previously approved version stays in force until the new one is approved, and you can discard these changes any time before submitting.'}</div><div class="row" style="margin-top:8px"><button onclick="var q=document.querySelector('.vsum');if(q){q.open=true;q.scrollIntoView({behavior:'smooth',block:'center'})}">🔁 ${a?'عرض التغييرات':'Show changes'}</button><button class="r" onclick="discardRev()">↩ ${a?'تجاهل التعديلات والعودة للمعتمد':'Discard and return to approved'}</button></div></div>`};
 async function discardRev(){if(!confirm(lang=='ar'?'تجاهل كل تعديلات هذا الإصدار والعودة إلى الخطة المعتمدة؟':'Discard all changes in this version and return to the approved plan?'))return;const {error}=await sb.rpc('pl_discard_revision',{pid:cr.id});if(error)return msg(error.message);await openCR(cr.id);msg(lang=='ar'?'عادت الخطة إلى الإصدار المعتمد.':'Plan restored to the approved version.')}
@@ -2987,11 +2998,18 @@ if(!S[f])return;function go(){var m=document.querySelector('main');if(!m||docume
 function upd(){var d=document.getElementById('pgban');if(!d)return;var ar=(document.documentElement.lang||'ar')=='ar',s=S[f];d.firstChild.textContent=ar?s[0]:s[1];d.lastChild.textContent=ar?s[2]:s[3]}
 document.addEventListener('DOMContentLoaded',go);if(document.readyState!='loading')go();new MutationObserver(function(){go();upd()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});})();</script><script>/*actsheet*/document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.actbar');var all=document.querySelectorAll('.actbar.open');if(!b){all.forEach(function(x){x.classList.remove('open')});return}if(innerWidth>700)return;if(e.target.closest('.row>*')){setTimeout(function(){b.classList.remove('open');dispatchEvent(new Event('resize'))},0);return}b.classList.toggle('open');dispatchEvent(new Event('resize'))});</script><script>/*nightnav*/
 (function(){
- var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}';document.head.appendChild(st);
+ var st=document.createElement('style');st.textContent='body #gnav{background:#fff;border-top:3px solid var(--gold,#BF9849)}body #gnav .gnb{color:#5b6b7b}body #gnav .gnb.on{color:var(--g,#1d5f8a);background:var(--g2,#e6f2f9);box-shadow:inset 0 3px 0 var(--blue,#3EA3DC)}body #gnav .gnb.ico{flex:0 0 46px}body #gnav .gnb.ico span{display:none}body #gnav .gnb#nmb{border:0;background:none;font:inherit;cursor:pointer}body #gnav .gnb{position:relative}body #gnav .gnb .cb{position:absolute;top:2px;inset-inline-end:2px;min-width:18px;padding:0 5px;border-radius:99px;background:#d1101d;color:#fff;font:800 11px/16px Cairo,sans-serif;text-align:center}';document.head.appendChild(st);
+ var cur=(location.pathname.split('/').pop()||'index.html').replace('.html','');
+ function perms(n){try{if(typeof sb==='undefined'||!sb)return;sb.rpc('my_perms').then(function(r){var pg=r&&r.data&&r.data.pages;if(!pg)return;
+   if(n)n.querySelectorAll('a.gnb[href]').forEach(function(a){var f=(a.getAttribute('href')||'').replace('.html','');if(pg[f]===false)a.style.display='none'});
+   if(pg[cur]===false&&cur!='index'&&cur!='account'&&cur!='help')location.replace('index.html')}).catch(function(){})}catch(e){}}
+ function chat(n){try{if(typeof sb==='undefined'||!sb||document.getElementById('chb'))return;sb.rpc('chat_on').then(function(r){if(!r||r.data!==true||document.getElementById('chb'))return;
+   var a=document.createElement('a');a.className='gnb ico'+(cur=='chat'?' on':'');a.id='chb';a.href='chat.html';a.innerHTML='<i>💬</i><span>chat</span>';n.insertBefore(a,document.getElementById('nmb'));
+   sb.rpc('chat_unread').then(function(u){var c=((u&&u.data)||[]).reduce(function(x,y){return x+(+y.n||0)},0);if(c){var b=document.createElement('b');b.className='cb';b.textContent=c;a.appendChild(b)}})}).catch(function(){})}catch(e){}}
  function add(){var n=document.getElementById('gnav');if(!n||document.getElementById('nmb'))return !!n;var ar=true;try{ar=(localStorage.getItem('lang')||'ar')=='ar'}catch(e){}
-  var b=document.createElement('a');b.className='gnb';b.id='nmb';b.href='#';b.innerHTML='<i>🌙</i><span>'+(ar?'ليلي':'Night')+'</span>';
-  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);return true}
- if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000)}
+  var b=document.createElement('a');b.className='gnb ico';b.id='nmb';b.href='#';b.title=ar?'الوضع الليلي':'Night mode';b.innerHTML='<i>🌙</i><span>night</span>';
+  b.onclick=function(e){e.preventDefault();var on=document.documentElement.classList.toggle('nm');try{localStorage.setItem('nm',on?'1':'0')}catch(x){}};n.appendChild(b);chat(n);perms(n);return true}
+ if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000);perms(null)}
 })();
 </script>
 </body></html>
