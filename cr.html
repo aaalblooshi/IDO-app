@@ -1442,4 +1442,36 @@ document.addEventListener('DOMContentLoaded',go);if(document.readyState!='loadin
  if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000);perms(null)}
 })();
 </script>
+<script>/*chatfab*/
+(function(){
+ if(window.top!==window.self)return;
+ var cur=(location.pathname.split('/').pop()||'index.html').replace('.html','');
+ if(cur=='chat'||cur=='access'||cur=='settings')return;
+ var st=document.createElement('style');st.textContent='#cfab{position:fixed;inset-inline-end:14px;bottom:calc(var(--pb,0px) + 16px);z-index:60;width:54px;height:54px;border-radius:50%;border:0;background:var(--g,#1d5f8a);color:#fff;font-size:24px;box-shadow:0 6px 18px rgba(0,0,0,.28);cursor:pointer;display:none;align-items:center;justify-content:center;padding:0}#cfab.on{display:flex}#cfab b{position:absolute;top:-4px;inset-inline-end:-4px;min-width:20px;padding:0 5px;border-radius:99px;background:#d1101d;color:#fff;font:800 12px/20px Cairo,sans-serif;text-align:center}#cfab small{position:absolute;bottom:-18px;font:700 10.5px Cairo,sans-serif;color:var(--g,#1d5f8a);white-space:nowrap;display:none}#cpan{position:fixed;inset:0;z-index:300;display:none;background:rgba(0,0,0,.35)}#cpan.on{display:block}#cpan iframe{position:absolute;top:0;bottom:0;inset-inline-end:0;width:min(460px,100vw);height:100%;border:0;background:#fff;box-shadow:-6px 0 24px rgba(0,0,0,.25)}@media print{#cfab,#cpan{display:none!important}}';document.head.appendChild(st);
+ var ar=true;try{ar=(localStorage.getItem('lang')||'ar')=='ar'}catch(e){}
+ var fab=document.createElement('button'),pan=document.createElement('div'),PC='',last='',ON=null;
+ fab.id='cfab';fab.type='button';fab.innerHTML='💬';fab.setAttribute('aria-label',ar?'التواصل':'Chat');
+ pan.id='cpan';
+ function code(){try{
+   if(cur=='index'||cur=='tasks'||cur=='inbox')return '';
+   if(typeof pcOf==='function'&&typeof cr!=='undefined'&&cr)return pcOf(cr)||'';
+   if(typeof PC!=='undefined'&&PC)return PC;
+  }catch(e){}return ''}
+ function ref(){try{
+   if(typeof pcOf==='function'&&typeof cr!=='undefined'&&cr&&typeof SVC!=='undefined'){var k=SVC=='charter'?'charter':SVC=='plan'?'plan':SVC=='closure'?'closure':'cr';var lb=cr.title||cr.name||cr.code||'';if(cr.id&&lb)return k+':'+cr.id+':'+encodeURIComponent(lb)}
+  }catch(e){}return ''}
+ function show(){var c=code(),isIdx=(cur=='index');var want=!!ON&&(!!c||isIdx);fab.classList.toggle('on',want);fab.title=c?(ar?'محادثة هذا المشروع':'Project chat'):(ar?'التواصل':'Chat');
+  if(c!==last){last=c;badge()}}
+ function badge(){try{if(!ON||typeof sb==='undefined'||!sb)return;sb.rpc('chat_unread').then(function(u){var L=(u&&u.data)||[],n=0,c=code();L.forEach(function(y){if(c?y.pcode==c:true)n+=(+y.n||0)});var o=fab.querySelector('b');if(o)o.remove();if(n){var b=document.createElement('b');b.textContent=n>99?'99+':n;fab.appendChild(b)}})}catch(e){}}
+ function open(){var c=code(),r=ref(),u='chat.html?embed=1'+(c?'&p='+encodeURIComponent(c):'')+(c&&r?'&r='+r:'');pan.innerHTML='<iframe src="'+u+'" allow="clipboard-write"></iframe>';pan.classList.add('on')}
+ function close(){pan.classList.remove('on');pan.innerHTML='';badge()}
+ fab.onclick=open;pan.onclick=function(e){if(e.target===pan)close()};
+ window.addEventListener('message',function(e){if(e.data&&e.data.chatClose)close()});
+ document.addEventListener('keydown',function(e){if(e.key=='Escape'&&pan.classList.contains('on'))close()});
+ function init(){document.body.appendChild(fab);document.body.appendChild(pan);
+  var t0=0;(function w(){if(typeof sb!=='undefined'&&sb){sb.rpc('chat_on').then(function(r){ON=!!(r&&r.data===true);show()}).catch(function(){})}else if(t0++<30)setTimeout(w,500)})();
+  setInterval(show,1500);setInterval(badge,30000)}
+ if(document.body)init();else document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
 </body></html>
