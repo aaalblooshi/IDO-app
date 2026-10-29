@@ -828,7 +828,7 @@ function adminBlock(){
  const wr=Object.entries(WL).filter(([u])=>users[u]).map(([u,v])=>`<tr><td>${esc(users[u].full_name)}</td><td>${v.p}</td><td>${avg(v.d)}</td></tr>`).join('');
  return acc(t('pipe'),`<div class="kp">${ST.map(s=>`<div class="k ${H.f=='st:'+s?'on':''}" onclick="setF('st:${s}')"><b>${n(s)}</b>${t('st_'+s)}</div>`).join('')}</div>`,true)
  +acc(`${t('overdue')} (${over.length})`,over.map(x=>rowH(x,true)).join('')||`<div class="mut">${t('noOverdue')}</div>`,over.length>0)
- +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${t('kpi_appr')}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${t('kpi_rej')}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
+ +acc(t('kpis'),`<div class="kp"><div class="k"><b>${A.length}</b>${t('kpi_total')}</div><div class="k"><b>${typeof ad=='function'?ad(ap):ap}/${A.length}</b>${lang=='ar'?'معتمدة من الإجمالي':'Approved of total'}</div><div class="k" title="${lang=='ar'?'المعتمد ÷ (المعتمد + المرفوض)':'Approved ÷ (approved + rejected)'}"><b>${fn?Math.round(ap/fn*100)+'%':'—'}</b>${lang=='ar'?'نسبة الاعتماد من القرارات النهائية':'Approval rate of final decisions'}</div><div class="k"><b>${fn?Math.round(rj/fn*100)+'%':'—'}</b>${lang=='ar'?'نسبة الرفض من القرارات النهائية':'Rejection rate of final decisions'}</div><div class="k"><b>${avg(cyc)}</b>${t('kpi_cycle')}</div><div class="k"><b>${mc(0)}</b>${t('kpi_month')} (${t('kpi_prev')}: ${mc(1)})</div><div class="k"><b>${DB.arch}</b>${t('tabArch')}</div></div>`,false)
  +acc(t('x_expTitle'),expBtns(),false)
  +acc(t('workload'),`<div class="scroll"><table><tr><th>${t('thName')}</th><th>${t('w_pending')}</th><th>${t('w_avg')}</th></tr>${wr||'<tr><td colspan="3">—</td></tr>'}</table></div>`,false)
  +acc(t('ch_month')+' / '+t('ch_type')+' / '+t('ch_sector'),`<h2>${t('ch_month')}</h2>${bars(months)}<h2 style="margin-top:12px">${t('ch_type')}</h2>${bars(pr)}<h2 style="margin-top:12px">${t('ch_sector')}</h2>${bars(dp)}`,false)}
@@ -956,7 +956,7 @@ async function openCR(id){
  if(canAdm&&st=='Reviewed')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button>`;
  if(canAdm&&st=='Office Decision')acts+=`<button class="g" onclick="sendApproval()">${t('sendApp')}</button><button class="r" onclick="finalRej()">${t('finalReject')}</button>`;
  if(mine&&!(ed&&stage=='created'))acts+=`<button class="g" onclick="openSign(${mine.id},'${stage}')">${t(stage=='approved'?'signApprove':stage=='reviewed'?'signSendApp':'sign')}${mine.user_id!=me.id?' — '+t('byProxyFor')+' '+esc((users[mine.user_id]||{}).full_name||''):''}</button>`;
- if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
+ if(canAdm&&['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'].includes(st))acts+=`<button class="g" onclick="officeDecide('approve')">✅ ${t('offApprove')}</button>`+(st=='Office Decision'||(!arch&&((st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))||(st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))))?'':`<button class="r" onclick="officeDecide('reject')">⛔ ${t('offReject')}</button>`);
  if(canRet)acts+=`<button class="r" onclick="ret()">${t('returnPM')}</button>`;
  if(!arch&&st=='Awaiting Approval'&&sigs.some(s=>isMine(s)&&s.stage=='approved'&&s.status=='pending'))acts+=`<button class="r" onclick="rej()">${t('reject')}</button>`;
  if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
@@ -964,6 +964,7 @@ async function openCR(id){
  if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
+ if(adm&&st=='Cancelled'&&!arch)more+=`<button class="g" onclick="restoreCR()">↩ ${lang=='ar'?'استعادة الطلب الملغى':'Restore cancelled request'}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
  const note=canAdm&&st=='Submitted'?t('adminNoteRev'):(canAdm&&st=='Reviewed'?t('adminNoteApp'):(st=='Office Decision'?t('officeNote')+(cr.comment?' — '+esc(cr.comment):''):''));
  const tx=k=>ed?`<div class="ta-w"><textarea class="ta" rows="1" data-k="${k}">${esc(d[k])}</textarea></div>`:`<div class="ro" onclick="this.classList.toggle('open');fitRO()">${esc(d[k])||'NA'}</div>`;
@@ -1076,6 +1077,7 @@ async function flushAtt(){const fi=$('at_f'),f=fi&&fi.files[0];if(!f)return;if(f
  const title=($('at_t').value.trim())||f.name;fi.value='';$('at_t').value='';await uploadAtt(f,title)}
 function toggleNoteMode(){noteMode=!noteMode;if(noteMode)ftab='proj';openCR(cr.id)}
 function toggleNb(k){const b=$('nb_'+k);if(!b)return;const show=b.style.display=='none';b.style.display=show?'block':'none';if(show){const a=b.querySelector('textarea');if(a)a.focus()}}
+async function restoreCR(){if(!confirm(lang=='ar'?'استعادة هذا الطلب كمسودة؟ يمكن بعدها تعديله وتقديمه من جديد.':'Restore this request as a draft?'))return;await setStatus('Draft');homeView()}
 async function cancelCR(){if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
  const w=window.open('','_blank');
@@ -1097,6 +1099,29 @@ async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await s
 const SVC='closure';
 const FWEV=[['submitted','إرسال للمراجعة','Sent for review'],['reviewerAssigned','تحديد مراجع','Reviewer assigned'],['reviewDone','اعتماد المراجعة','Review completed'],['approverAssigned','تحديد معتمِد','Approver assigned'],['approved','الاعتماد النهائي','Final approval'],['draftAssigned','توجيه مسودة','Draft assigned'],['deleteApproved','الموافقة على الحذف','Deletion approved'],['deleteRejected','رفض الحذف','Deletion rejected'],['approverRejected','رفض المعتمِد (إحالة للمكتب)','Approver rejection']];
 let FW=[];
+/*esc*/
+async function drawEsc(){if(!cr||SET.esc_on!='1')return;const d0=$('delbox');if(!d0)return;let box=$('escbox');if(!box){d0.insertAdjacentHTML('afterend','<div id="escbox"></div>');box=$('escbox')}
+ const a=lang=='ar',T2=(x,y)=>a?x:y,st=cr.status,adm=me.role=='admin';let rows=[];
+ try{const r=await sb.from('escalations').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});if(r.error){box.innerHTML='';return}rows=r.data||[]}catch(_){box.innerHTML='';return}
+ let ok=!cr.archived&&(st=='PMO Review'||st=='Awaiting Approval');
+ if(!ok&&SVC=='plan'&&st=='Draft'&&!cr.archived){try{const c=await sb.from('plan_consult').select('closes_at').eq('plan_id',cr.id);ok=(c.data||[]).some(x=>new Date(x.closes_at)>new Date())}catch(_){}}
+ const pend=rows.find(x=>x.status=='pending'),mineP=pend&&pend.requested_by==me.id;
+ const nm=id=>(users[id]||{}).full_name||'—',dt=x=>x?new Date(x).toLocaleDateString(a?'ar':'en-GB'):'';
+ const LB={pending:T2('بانتظار قرار مكتب التطوير','Awaiting PMO decision'),redirected:T2('تم توجيه الطلب','Redirected'),ignored:T2('لم يُتخذ إجراء','No action taken'),withdrawn:T2('سُحب','Withdrawn')};
+ const hist=rows.filter(x=>x!==pend).slice(0,5);
+ if(!pend&&!ok&&!hist.length){box.innerHTML='';return}
+ let h=`<div class="sig"><b>⬆ ${T2('التصعيد','Escalation')}</b>`;
+ if(pend){h+=`<div class="mut" style="margin:4px 0">${mineP||!adm?T2('تم رفع طلب تصعيد، وسيقرّر مكتب التطوير المؤسسي التوجيه أو عدمه.','An escalation was raised; the Corporate Development Office will decide.'):''}${adm?`<br>${T2('رفعه','Raised by')}: <b>${esc(nm(pend.requested_by))}</b> · ${dt(pend.created_at)}`:''}${pend.reason?`<br>${T2('السبب','Reason')}: ${esc(pend.reason)}`:''}</div>`;
+  if(mineP)h+=`<button class="sm" onclick="escWd(${pend.id})">${T2('سحب التصعيد','Withdraw')}</button>`;
+  if(adm)h+=`<div class="row" style="margin-top:8px"><select class="srch" id="esc_u" style="flex:1;width:auto"><option value="">${T2('توجيه الطلب المعلّق إلى…','Redirect pending step to…')}</option>${Object.values(users).filter(u=>u.id!=pend.requested_by||true).sort((x,y)=>(x.full_name||'').localeCompare(y.full_name||'')).map(u=>`<option value="${u.id}">${esc(u.full_name)}</option>`).join('')}</select></div><div class="row"><button class="p sm" onclick="escGo(${pend.id},'redirect')">${T2('تصعيد (توجيه)','Escalate (redirect)')}</button><button class="sm" onclick="escGo(${pend.id},'ignore')">${T2('تجاهل','Ignore')}</button></div>`}
+ else if(ok)h+=`<div class="mut" style="margin:4px 0">${T2('إذا تأخر هذا الطلب في خطوته الحالية يمكنك رفع طلب تصعيد إلى مكتب التطوير المؤسسي.','If this request is stuck at its current step you can ask the Corporate Development Office to escalate it.')}</div><button class="sm" onclick="escAsk()">⬆ ${T2('تصعيد الطلب','Escalate request')}</button>`;
+ if(hist.length)h+=`<div class="mut" style="margin-top:8px;font-size:12px">${hist.map(x=>`${dt(x.created_at)} · ${esc(nm(x.requested_by))} · ${LB[x.status]}${x.redirect_to?' → '+esc(nm(x.redirect_to)):''}`).join('<br>')}</div>`;
+ box.innerHTML=h+'</div>'}
+function escAsk(){askNote(lang=='ar'?'تصعيد الطلب':'Escalate request',lang=='ar'?'سبب التصعيد (اختياري)':'Reason (optional)',lang=='ar'?'رفع التصعيد':'Escalate',async v=>{const {error}=await sb.rpc('esc_request',{p_svc:SVC,p_id:cr.id,p_reason:v||null});if(error)return msg(error.message);msg(lang=='ar'?'تم رفع طلب التصعيد إلى مكتب التطوير المؤسسي.':'Escalation sent to the Corporate Development Office.');drawEsc()})}
+async function escWd(id){const {error}=await sb.rpc('esc_withdraw',{p_id:id});if(error)return msg(error.message);drawEsc()}
+function escGo(id,act){const u=($('esc_u')||{}).value;if(act=='redirect'&&!u)return msg(lang=='ar'?'اختر الشخص الذي سيُوجَّه إليه الطلب.':'Pick who to redirect to.');
+ askNote(act=='redirect'?(lang=='ar'?'تأكيد التوجيه':'Confirm redirect'):(lang=='ar'?'تجاهل التصعيد':'Ignore escalation'),lang=='ar'?'ملاحظة (اختياري)':'Note (optional)',lang=='ar'?'تأكيد':'Confirm',async v=>{const {error}=await sb.rpc('esc_decide',{p_id:id,p_action:act,p_to:act=='redirect'?u:null,p_note:v||null});if(error)return msg(error.message);msg(lang=='ar'?'تم تسجيل القرار.':'Decision recorded.');
+  try{await load()}catch(_){}drawEsc()})}
 async function drawFollow(){if(!cr)return;const d0=$('delbox');if(!d0)return;let box=$('fwbox');if(!box){d0.insertAdjacentHTML('afterend','<div id="fwbox"></div>');box=$('fwbox')}
  const a=lang=='ar',T2=(x,y)=>a?x:y;let r;try{r=await sb.from('followers').select('*').eq('svc',SVC).eq('cr_id',cr.id)}catch(_){return}
  if(!r||r.error){box.innerHTML='';return}FW=r.data||[];
@@ -1127,7 +1152,7 @@ function pkOpen(sel){const ar=typeof lang!='undefined'&&lang=='ar';const all=[..
 const TTI={'✕':['إغلاق / حذف','Close / remove'],'✎':['تعديل','Edit'],'▲':['أعلى','Up'],'▼':['أسفل','Down'],'🗑':['حذف','Delete'],'⇥':['إنزال مستوى','Lower a level'],'⇤':['رفع مستوى','Raise a level'],'↶':['تراجع','Undo'],'↷':['إعادة','Redo'],'⊟':['طيّ الكل','Collapse all'],'⊞':['فتح الكل','Expand all'],'−':['تصغير','Zoom out'],'＋':['تكبير','Zoom in'],'🔔':['تخصيص التنبيهات','Customize alerts'],'▸':['فتح','Expand'],'▾':['طيّ','Collapse']};
 function ttEnh(){const ar=typeof lang!='undefined'&&lang=='ar';document.querySelectorAll('button:not([title])').forEach(b=>{const x=(b.textContent||'').replace(/\s+/g,' ').trim();if(!x)return;const k=TTI[x];if(k)b.title=k[ar?0:1];else if(x.length<70)b.title=x})}
 try{new MutationObserver(()=>{clearTimeout(pkEnh.t);pkEnh.t=setTimeout(()=>{pkEnh();ttEnh()},30)}).observe(document.documentElement,{childList:true,subtree:true})}catch(_){}
-async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;drawFollow();
+async function drawDel(){const el=$('delbox');if(!el||el.dataset.d||!cr)return;el.dataset.d=1;drawEsc();drawFollow();
  let rows=[];try{const r=await sb.from('del_requests').select('*').eq('svc',SVC).eq('cr_id',cr.id).order('id',{ascending:false});rows=r.data||[]}catch(_){}
  const last=rows[0],pend=last&&last.status=='pending',adm=me.role=='admin',st=cr.status;
  const revP=SVC=='plan'&&cr.version>1&&st!='Approved'&&st!='Cancelled';
