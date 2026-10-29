@@ -161,17 +161,19 @@ Object.assign(D,{
  a_approvenote:['ملاحظة على الاعتماد','Approval note'],a_adminedit:['عدّل مكتب التطوير المؤسسي النموذج','Edited by the Institutional Development Office'],
  a_officeapproved:['اعتمد المكتب','Approved by the office'],a_officerejected:['رفض المكتب','Rejected by the office'],a_taskprog:['تحديث إنجاز مهمة','Task progress updated'],a_taskadd:['إضافة مهمة تكميلية','Supplementary task added'],a_chgprop:['اقتراح تعديل مواعيد الخطة','Plan date changes proposed'],a_consultopen:['فتح مشاورة المسودة','Draft consultation opened'],a_consultclose:['إغلاق المشاورة','Consultation closed'],a_comment:['ملاحظة على المسودة','Draft comment'],
  a_consultopen:['فُتح التخطيط الجماعي — أضف مدخلاتك','Group planning opened — add your input'],a_consultadd:['أُضيف مشاركون للتخطيط الجماعي','People added to group planning'],a_consultclose:['أُغلق التخطيط الجماعي','Group planning closed'],a_consultedit:['تعديل على الخطة أثناء التخطيط الجماعي','Plan edited during group planning'],a_comment:['ملاحظة على الخطة','Note on the plan'],
- a_nudge:['تذكير','Reminder'],sv_nudge:['تذكير','Reminder'],
+ a_nudge:['تذكير','Reminder'],a_escalated:['تصعيد الطلب لشخص آخر','Escalated to another person'],sv_nudge:['تذكير','Reminder'],
  a_archived:['أُرشف','Archived'],a_restored:['استُرجع من الأرشيف','Restored'],a_removed:['أُزيل موقّع','Signer removed'],a_revcancelled:['أُلغي الإصدار الجديد','Revision cancelled'],
  k_all:['كل الأنواع','All types'],k_appr:['الاعتماد','Approvals'],k_sign:['التواقيع والتكليف','Signatures'],k_ret:['الإعادة والرفض','Returns & rejections'],k_task:['إنجاز المهام','Task progress'],k_edit:['تعديلات ومرفقات','Edits & files'],s_all:['كل الخدمات','All services'],prefs:['تحكّم في رسائل البريد من «حسابي»','Control email messages from “My account”'],prefsH:['هذه الصفحة تعرض كل ما يخصك؛ الفلاتر أعلاه للعرض فقط.','This page shows everything that concerns you; the filters above only change the view.'],
  sv_task:['المهام','Tasks'],sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق','Charter'],sv_plan:['خطة','Plan'],sv_closure:['تقرير ختامي','Closure report']});
 const SRC=[['audit_log','change_requests','cr','cr.html'],['charter_audit','charters','charter','charter.html'],['plan_audit','plans','plan','plan.html'],['closure_audit','closure_reports','closure','closure.html']];
-let EV=[],ONLY=false,SEEN=0,FK='',FSV='';
+let EV=[],ONLY=false,SEEN=0,FK='',FSV='';let ESC=[];
+async function loadEsc(){ESC=[];if(!ADM)return;try{const {data}=await sb.from('escalations').select('*').eq('status','pending').order('created_at');const PG={charter:'charter.html',plan:'plan.html',cr:'cr.html',closure:'closure.html'};ESC=await Promise.all((data||[]).map(async x=>{let c='';try{const tb={charter:'charters',plan:'plans',cr:'change_requests',closure:'closure_reports'}[x.svc];const r=await sb.from(tb).select('code').eq('id',x.cr_id).maybeSingle();c=(r.data||{}).code||''}catch(_){}return {...x,pg:PG[x.svc],code:c}}))}catch(_){}}
+
 const KIND=a=>{const k=String(a).split('|')[0],st=String(a).split('|')[1]||'';if(['signed','assigned','removed','reminded'].includes(k))return 'sign';if(['returned','rejected','officerejected','revrejected','apprejected'].includes(k)||(k=='status'&&/Return|Reject/.test(st)))return 'ret';if(['approvenote','officeapproved'].includes(k)||(k=='status'&&st=='Approved'))return 'appr';if(k=='taskprog')return 'task';if(['adminedit','attached','attremoved','archived','restored'].includes(k))return 'edit';return 'other'};
 try{SEEN=+localStorage.getItem('inbox_seen_'+'u')||0}catch(_){}
 async function start(){
  try{SEEN=+localStorage.getItem('inbox_seen_'+ME.id)||0}catch(_){}
- const all=[];
+ const all=[];await loadEsc();
  await Promise.all(SRC.map(async([tb,dt,sv,pg])=>{
   const {data}=await sb.from(tb).select('*').order('at',{ascending:false}).limit(60);if(!data||!data.length)return;
   const ids=[...new Set(data.map(x=>x.cr_id))],{data:cs}=await sb.from(dt).select('id,code,nm:data->>pname').in('id',ids),cm={},nmm={};(cs||[]).forEach(c=>{cm[c.id]=c.code;nmm[c.id]=c.nm});
@@ -188,7 +190,8 @@ function draw(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
  if(!ME)return;
  const isNew=e=>new Date(e.at).getTime()>SEEN,L=EV.filter(e=>(!ONLY||isNew(e))&&(!FK||KIND(e.act)==FK)&&(!FSV||(FSV=='task'?e.tk:e.sv==FSV))),nn=EV.filter(isNew).length;
- $('app').innerHTML=`<div class="row" style="margin:0 0 8px"><button class="${ONLY?'p':''}" onclick="ONLY=!ONLY;draw()">${t('only')} <span class="num">${nn}</span></button><button onclick="markAll()">${t('markAll')}</button></div>
+ const escH=ESC.length?`<div class="card" style="border-inline-start:4px solid #BF9849"><b>⬆ ${lang=='ar'?'طلبات تصعيد بانتظار قرارك':'Escalations awaiting your decision'} (${ESC.length})</b>${ESC.map(x=>`<a class="tk" style="display:block;text-decoration:none;color:inherit" href="${x.pg}#o=${x.cr_id}"><b dir="ltr">${esc(x.code||('#'+x.cr_id))}</b> <span class="mut">${esc(UN[x.requested_by]||'')} · ${fd(String(x.created_at).slice(0,10))}${x.reason?' · '+esc(x.reason):''}</span></a>`).join('')}</div>`:'';
+ $('app').innerHTML=escH+`<div class="row" style="margin:0 0 8px"><button class="${ONLY?'p':''}" onclick="ONLY=!ONLY;draw()">${t('only')} <span class="num">${nn}</span></button><button onclick="markAll()">${t('markAll')}</button></div>
  <div class="tabs">${[['','k_all'],['appr','k_appr'],['sign','k_sign'],['ret','k_ret'],['task','k_task'],['edit','k_edit']].map(([k,l])=>`<button class="${FK==k?'on':''}" onclick="FK='${k}';draw()">${t(l)}</button>`).join('')}</div>
  <div class="tabs">${[['','s_all'],['task','sv_task'],['cr','sv_cr'],['charter','sv_charter'],['plan','sv_plan'],['closure','sv_closure']].map(([k,l])=>`<button class="${FSV==k?'on':''}" onclick="FSV='${k}';draw()">${t(l)}</button>`).join('')}</div>
  ${L.length?L.map(e=>`<a class="tk" style="display:block;text-decoration:none;color:inherit;${isNew(e)?'border-inline-start:4px solid #3D96C7':''}" href="${e.pg}#o=${e.id}"><div><b>${esc(e.nm||e.code)}</b></div><div class="mut">${t(e.tk?'sv_task':'sv_'+e.sv)} <span dir="ltr">${esc(e.code)}</span> · <span class="num">${fd(String(e.at).slice(0,10))} ${new Date(e.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'})}</span>${isNew(e)?` · <b style="color:#3D96C7">${t('unread')}</b>`:''}</div><div>${esc(txt(e.act))}</div><div class="mut">${t('by')} ${esc(e.who||'')}</div></a>`).join(''):`<div class="card mut">${t('none')}</div>`}
