@@ -66,7 +66,7 @@ main{max-width:1100px;padding:10px 12px 0}
 .pm{padding:8px 12px;border-top:1px solid var(--line);cursor:pointer;font-size:13.5px}.pm:hover{background:var(--g2)}
 .mr{display:flex;gap:10px;align-items:center;padding:6px 12px}button.sm{padding:2px 9px;font-size:12px}
 .emb body,body.emb{background:#fff}body.emb .top{display:none}body.emb main{padding:0;max-width:none}body.emb .chat{height:100vh;grid-template-columns:1fr;gap:0}body.emb .rail{display:none}body.emb .conv{border:0;border-radius:0}body.emb .bk{display:none!important}body.emb #toast{bottom:90px}
-@media(max-width:899px){.chat{grid-template-columns:1fr;height:calc(100vh - 140px)}.chat.has .rail{display:none}.chat:not(.has) .conv{display:none}.bk{display:inline-block}.bb{max-width:86%}main{padding:8px 8px 0}}
+@media(max-width:899px){.top{flex-wrap:nowrap;padding:6px 10px}.top>button span{display:none}.top>button{padding:6px 12px}.top .hgrp{flex-wrap:nowrap}.top .hgrp a.hbtn,.top .hgrp button[data-i=hso]{display:none}.top b{flex:1;text-align:center}.chat{grid-template-columns:1fr;height:calc(100vh - 140px)}.chat.has .rail{display:none}.chat:not(.has) .conv{display:none}.bk{display:inline-block}.bb{max-width:86%}main{padding:8px 8px 0}}
 </style>
 </head><body>
 <div class="top"><button onclick="location.href='index.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
