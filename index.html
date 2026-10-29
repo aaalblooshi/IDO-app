@@ -849,6 +849,8 @@ html[dir=ltr] .cm-ban{background:radial-gradient(circle at 0 0,rgba(255,255,255,
 .cm-kb{display:flex!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding-bottom:4px;scrollbar-width:thin}.cm-col{flex:1 0 190px!important;min-width:190px;scroll-snap-align:start}
 .cm-ar{position:absolute;top:50%;z-index:5;width:34px;height:34px;border-radius:50%;border:0;background:#181C32;color:#fff;font-size:22px;line-height:1;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);opacity:.9;display:none}.cm-ar.l{left:6px}.cm-ar.r{right:6px}
 .cm-ar{direction:ltr;unicode-bidi:isolate}
+@media(min-width:901px){.cm-main.sc .cm-kb{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));overflow:visible;scroll-snap-type:none}.cm-main.sc .cm-col{min-width:0;flex:none!important}.cm-main.sc .cm-ar{display:none!important}}
+@media(max-width:900px){.cm-ar{display:none!important}}
 </style><script>/*cmdhome*/
 (function(){
 var CLASSIC=false;try{localStorage.removeItem('idoClassic')}catch(_){}
