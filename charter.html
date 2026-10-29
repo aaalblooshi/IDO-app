@@ -922,7 +922,13 @@ function passF(x,f){const r=x.r,adm=me.role=='admin';
 const passQ=x=>{const r=x.r;if(H.q&&!`${r.code} ${r.data.pname||''}`.toLowerCase().includes(H.q.toLowerCase()))return false;return H.rel=='all'||x.rel.includes(H.rel)};
 const list=f=>DB.crs.map(r=>DB.by[r.id]).filter(x=>passF(x,f));
 const bars=rows=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(([l,n])=>`<div class="hb"><span>${esc(l)}</span><div><i style="width:${n/m*100}%"></i></div><b>${n}</b></div>`).join('')||'<div class="mut">—</div>'};
-async function homeView(){curView=homeView;editing=false;DB=await loadAll();enrich();drawHome()}
+let HSY=0,HSIG='';
+async function homeView(){curView=homeView;editing=false;const sy=HSY;
+ if(DB){try{enrich();drawHome();window.scrollTo(0,sy)}catch(e){}}
+ const d=await loadAll();if(curView!==homeView)return;
+ const sg=(()=>{try{return JSON.stringify(d)}catch(e){return String(Math.random())}})();
+ if(DB&&sg===HSIG)return;
+ const keep=window.scrollY;DB=d;HSIG=sg;enrich();drawHome();window.scrollTo(0,DB&&keep?keep:sy)}
 function fLabel(f){if(!f)return'';if(f.startsWith('st:'))return t('st_'+f.slice(3));const m={created:'x_mineCreated',done:'x_mineDone',action:'c_action',mine:me.role=='admin'?'c_mineA':'c_mine',returned:'c_returned',approved:'c_approved',rejected:'c_rejected'};return m[f]?t(m[f]):''}
 function setF(f){const on=H.f!=f;H.f=on?f:'';drawHome();if(on){const e=$('lst');if(e){e.classList.remove('flash');void e.offsetWidth;e.classList.add('flash');e.scrollIntoView({behavior:'smooth',block:'start'})}}}
 function drawList(){const rows=list(H.f).filter(passQ);$('hl').innerHTML=rows.map(x=>rowH(x,me.role=='admin')).join('')||`<div class="mut">${t('noReq')}</div>`}
@@ -1036,6 +1042,7 @@ function durTxt(){const m=monthsBetween(cr.data.sdate,cr.data.edate);return m==n
 function fillDept(){const s=document.querySelector('select[data-k=dept]');if(!s)return;const sc=cr.data.sector;
  s.innerHTML='<option value=""></option>'+(sc?'<option value="na">'+(lang=='ar'?'لا ينطبق':'Not applicable')+'</option>'+(LST.depts[sc-1]||[]).map((_,i)=>`<option value="${i+1}">${esc(depL(sc,i+1))}</option>`).join(''):'');s.value=cr.data.dept||'';s.disabled=!sc}
 async function openCR(id){
+ if(curView===homeView)HSY=window.scrollY;
  const [a,b,c,e]=await Promise.all([sb.from('charters').select('*').eq('id',id).single(),sb.from('charter_signatories').select('*').eq('cr_id',id).order('id'),sb.from('charter_audit').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('charter_attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
  cr=a.data;sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
