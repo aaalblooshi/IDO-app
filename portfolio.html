@@ -648,6 +648,7 @@ async function repPptx(){
  }catch(e){console.error(e);alert(t('rPptF')+' '+(e&&e.message||''))}}
 
 boot();
+(async()=>{for(let i=0;i<40&&!(PL&&PL.length);i++)await new Promise(r=>setTimeout(r,500));snapSave()})();
 
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
 Object.assign(D,{tRmap:['خارطة المشاريع','Projects roadmap'],tFil:['المرفقات والملاحظات','Files and notes'],tTrd:['التتبع الزمني','Time tracking']});
@@ -657,8 +658,14 @@ function tkAt(tasks,d){const kids=new Set(tasks.map(x=>x.p).filter(Boolean));ret
   else if(as!=null&&d>=as&&TODAY>as)v=pc*(d-as)/(TODAY-as);return {...x,pc:v}})}
 function trdPoints(L){let a=Infinity,b=-Infinity;L.forEach(p=>(p.tasks||[]).forEach(x=>{const s=dn(x.s),e=dn(x.e);if(s!=null)a=Math.min(a,s);if(e!=null)b=Math.max(b,e)}));if(!isFinite(a))return[];b=Math.max(b,TODAY);const n=26,st=Math.max(7,Math.ceil((b-a)/n)),P=[];for(let d=a;d<b;d+=st)P.push(d);P.push(b);return P}
 function trdSeries(L,P){return P.map(d=>{const items=L.map(p=>{const an=analyze(tkAt(p.tasks||[],d),p.wm,d);return {sc:p.sc,a:an.a,ex:an.ex,lateN:an.lateN,w:p.w}});const A=agg(items);return {d,a:d<=TODAY?A.a:null,ex:A.ex}})}
-let TRK='';
-function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TRK?all.filter(p=>p.k==TRK):all;
+let TRK='',SNP=null;
+/* لقطات يومية حقيقية (للأدمن): تُسجَّل مرة كل يوم عند فتح المحفظة، فيصبح المسار التاريخي حقيقيًا من اليوم فصاعدًا */
+async function snapSave(){if(!ADM||!PL.length)return;const k='snp'+TODAY;try{if(localStorage.getItem(k))return}catch(_){}
+ try{const rows=PL.map(p=>({snap_date:ds(TODAY),code:p.k,actual:Math.round(p.a*10)/10,planned:Math.round((p.ex||0)*10)/10,late:(p.an&&p.an.lateN)||p.lateN||0}));const r=await sb.from('portfolio_snapshots').upsert(rows,{onConflict:'snap_date,code'});if(!r.error)try{localStorage.setItem(k,'1')}catch(_){}}catch(_){}}
+async function snapLoad(){try{const r=await sb.from('portfolio_snapshots').select('snap_date,code,actual,planned,late').order('snap_date');if(r.error)throw r.error;SNP=r.data||[]}catch(e){SNP=false}if(TAB=='trd')vTrd()}
+function snapSeries(L){if(!SNP)return[];const ks=new Set(L.map(p=>p.k)),by={};SNP.forEach(z=>{if(ks.has(z.code))(by[z.snap_date]=by[z.snap_date]||[]).push(z)});
+ return Object.keys(by).sort().map(d=>{const it=by[d].map(z=>{const p=L.find(q=>q.k==z.code);return {sc:p.sc,a:+z.actual,ex:+z.planned,lateN:z.late,w:p.w}});return {d:dn(d),a:agg(it).a}})}
+function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TRK?all.filter(p=>p.k==TRK):all;if(SNP==null){SNP=false;snapLoad()}
  if(!L.length){B.innerHTML=`<div class="card mut">${t('none')}</div>`;return}
  const P=trdPoints(L);if(!P.length){B.innerHTML=`<div class="card mut">${t('none')}</div>`;return}
  const S=trdSeries(L,P),a0=P[0],a1=P[P.length-1],W=640,H=250,pl=34,pr=10,pt=12,pb=26,X=d=>{const f=(d-a0)/Math.max(1,a1-a0);return pl+(AR_?1-f:f)*(W-pl-pr)},Y=v=>pt+(1-v/100)*(H-pt-pb);
@@ -666,12 +673,13 @@ function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TR
  const grid=[0,25,50,75,100].map(v=>`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e4e9ee"/><text x="${AR_?W-pr+0:pl-4}" y="${Y(v)+4}" font-size="10" fill="#889" text-anchor="${AR_?'start':'end'}" style="display:none">${v}</text><text x="${pl-4}" y="${Y(v)+4}" font-size="10" fill="#889" text-anchor="end">${v}%</text>`).join('');
  const step=Math.ceil(P.length/6),xl=P.filter((d,i)=>i%step==0&&(P.length-1-i>=step/2||i==P.length-1)).map(d=>`<text x="${X(d)}" y="${H-8}" font-size="10" fill="#889" text-anchor="middle">${fd(ds(d)).slice(0,5)}/${fd(ds(d)).slice(8)}</text>`).join('');
  const tx=X(TODAY);
+ const SS=snapSeries(L).filter(z=>z.d>=a0&&z.d<=a1),recL=SS.length?`<polyline points="${SS.map(z=>X(z.d).toFixed(1)+','+Y(z.a).toFixed(1)).join(' ')}" fill="none" stroke="#1c7a45" stroke-width="3"/>`+SS.map(z=>`<circle cx="${X(z.d).toFixed(1)}" cy="${Y(z.a).toFixed(1)}" r="3.5" fill="#1c7a45"/>`).join(''):'';
  const last=S.filter(z=>z.a!=null).slice(-1)[0]||{a:0,ex:0},m30=S.filter(z=>z.a!=null&&z.d<=TODAY-30).slice(-1)[0];
  const rows=L.map(p=>{const an=p.an,p30=analyze(tkAt(p.tasks||[],TODAY-30),p.wm,TODAY-30);const dl=an.a-p30.a;return `<tr><td>${esc(p.name)}</td><td class="num">${Math.round(an.ex)}%</td><td class="num">${Math.round(an.a)}%</td><td class="num" style="color:${an.a-an.ex<-5?'#d1101d':'#1c7a45'}">${an.a-an.ex>0?'+':''}${Math.round(an.a-an.ex)}</td><td class="num" style="color:${dl>0?'#1c7a45':'#a8761a'}">${dl>0?'▲ ':''}${Math.round(dl)}</td></tr>`}).join('');
  B.innerHTML=`<div class="card"><div class="row" style="margin:0 0 8px"><select id="trk" style="flex:1" onchange="TRK=this.value;vTrd()"><option value="">${T('كل المشاريع المعروضة','All shown projects')}</option>${all.map(p=>`<option value="${esc(p.k)}" ${TRK==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select>${hpBtn()}</div>
   <div class="row" style="margin:0 0 6px"><span class="chp b">${T('المخطط الآن','Planned now')}: <b class="num">${Math.round(last.ex)}%</b></span><span class="chp g">${T('الفعلي الآن','Actual now')}: <b class="num">${Math.round(last.a)}%</b></span>${m30?`<span class="chp o">${T('تغيّر الفعلي في ٣٠ يومًا','Actual change in 30 days')}: <b class="num">${Math.round(last.a-m30.a)}</b></span>`:''}</div>
-  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;direction:ltr">${grid}<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H-pb}" stroke="#d1101d" stroke-width="1.5"/>${line('ex','#BF9849',1)}${line('a','#3D96C7',0)}${xl}</svg>
-  <div class="stp"><span style="--c:#BF9849">${T('المخطط','Planned')}</span><span style="--c:#3D96C7">${T('الفعلي (تقديري من تواريخ الإنجاز)','Actual (estimated from completion dates)')}</span><span style="--c:#d1101d">${T('اليوم','Today')}</span></div>
+  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;direction:ltr">${grid}<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H-pb}" stroke="#d1101d" stroke-width="1.5"/>${line('ex','#BF9849',1)}${line('a','#3D96C7',0)}${recL}${xl}</svg>
+  <div class="stp"><span style="--c:#BF9849">${T('المخطط','Planned')}</span><span style="--c:#3D96C7">${T('الفعلي (تقديري من تواريخ الإنجاز)','Actual (estimated from completion dates)')}</span><span style="--c:#1c7a45">${T('المسجَّل فعليًا ('+SS.length+' لقطة يومية)','Recorded ('+SS.length+' daily snapshots)')}</span><span style="--c:#d1101d">${T('اليوم','Today')}</span></div>
   <div class="mut" style="font-size:12.5px;margin-top:6px">${T('يُعاد بناء المسار الماضي من تواريخ البدء والانتهاء الفعلية للمهام، فهو تقديري للفترات السابقة ودقيق من اليوم فصاعدًا مع كل تحديث.','The past path is rebuilt from tasks’ actual start/end dates, so it is an estimate for earlier periods.')}</div></div>
   <div class="card"><div style="overflow:auto"><table class="tb" style="width:100%;border-collapse:collapse"><tr><th style="text-align:start">${T('المشروع','Project')}</th><th>${T('المخطط','Planned')}</th><th>${T('الفعلي','Actual')}</th><th>${T('الفارق','Gap')}</th><th>${T('تغيّر ٣٠ يومًا','30-day change')}</th></tr>${rows}</table></div></div>`}
 
