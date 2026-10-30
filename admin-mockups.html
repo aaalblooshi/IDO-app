@@ -1,0 +1,74 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>نماذج مقترحة لمتابعة الأدمن</title>
+<style>
+:root{--b:#3EA3DC;--d:#1d5f8a;--g:#BF9849;--n:#181C32;--r:#d1101d;--ok:#1c7a45;--w:#a8761a;--bg:#eef3f7;--ln:#e3e8ee}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Tahoma,Arial,sans-serif;color:#222;padding:14px}
+h2{margin:6px 0 2px;font-size:17px}.sub{color:#778;font-size:12.5px;margin-bottom:12px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.tabs button{border:1px solid var(--ln);background:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}.tabs button.on{background:var(--d);color:#fff;border-color:var(--d)}
+.card{background:#fff;border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.k{border-radius:14px;padding:12px;color:#fff}.k b{font-size:28px;display:block}.k small{opacity:.9}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.chp{border-radius:99px;padding:2px 10px;font-size:12px;font-weight:700}
+.r{background:#fde6e8;color:var(--r)}.o{background:#fdf1d9;color:var(--w)}.g{background:#dff3e8;color:var(--ok)}.bl{background:#e1f1fb;color:var(--d)}
+.it{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--ln)}.it:first-child{border:0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}.it .t{flex:1;font-size:13.5px}.it .t small{display:block;color:#889;font-size:12px}
+button.a{border:1px solid var(--b);background:#fff;color:var(--d);border-radius:10px;padding:6px 12px;font:inherit;font-size:12.5px}
+.bar{height:10px;border-radius:9px;background:#e6ecf1;overflow:hidden;position:relative}.bar i{position:absolute;top:0;bottom:0;right:0;border-radius:9px}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.pane{display:none}.pane.on{display:block}
+.note{background:#fff8e6;border:1px dashed var(--g);border-radius:12px;padding:10px;font-size:12.5px;color:#6b5420}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px}.spark i{width:7px;border-radius:3px 3px 0 0;background:var(--b)}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:8px 6px;border-top:1px solid var(--ln);text-align:start}th{color:#778;font-size:12px;border:0}
+</style></head><body>
+<h2>نماذج مقترحة لمتابعة الأدمن</h2><div class="sub">الأسماء والأرقام هنا للتوضيح فقط، وليست بيانات المنصة. اضغط على التبويبات لتصفّح الأفكار.</div>
+<div class="tabs" id="tb"><button class="on" data-p="p1">١ ماذا يحتاج انتباهي اليوم</button><button data-p="p2">٣ ملف المشروع الشامل</button><button data-p="p3">٢ تنبيه التدهور</button><button data-p="p4">٥ من لا يحدّث</button></div>
+
+<div class="pane on" id="p1">
+ <div class="grid">
+  <div class="k" style="background:var(--r)"><b>7</b><small>مهام متأخرة بلا تحديث</small></div>
+  <div class="k" style="background:var(--w)"><b>3</b><small>طلبات تنتظر قراراً +٣ أيام</small></div>
+  <div class="k" style="background:var(--d)"><b>2</b><small>مشاريع تدهورت هذا الأسبوع</small></div>
+  <div class="k" style="background:var(--ok)"><b>12</b><small>مشروع منتظم</small></div>
+ </div>
+ <div class="card" style="margin-top:12px"><b>الأولوية الآن</b>
+  <div class="it"><span class="dot" style="background:var(--r)"></span><div class="t">مشروع تطوير نظام الموارد البشرية<small>تأخر ٣ مهام · الفجوة ٢٢ نقطة · يعطّل مشروعين لاحقين</small></div><button class="a">فتح الملف</button></div>
+  <div class="it"><span class="dot" style="background:var(--r)"></span><div class="t">طلب تغيير CR-2026-014<small>ينتظر قرار مكتب التطوير منذ ٥ أيام</small></div><button class="a">البتّ</button></div>
+  <div class="it"><span class="dot" style="background:var(--w)"></span><div class="t">المؤتمر الدولي للدراسات الاستراتيجية<small>مهمتان فات موعدهما ولم تبدآ</small></div><button class="a">تذكير المكلّفين</button></div>
+  <div class="it"><span class="dot" style="background:var(--w)"></span><div class="t">برنامج الابتعاث والتأهيل القيادي<small>الإنجاز ٥١٪ مقابل مخطط ٦٣٪</small></div><button class="a">فتح الملف</button></div>
+ </div>
+ <div class="note">كل بند يُفتح بضغطة واحدة، وفيه الإجراء المناسب مباشرة (فتح، بتّ، تذكير) دون الانتقال بين الصفحات.</div>
+</div>
+
+<div class="pane" id="p2">
+ <div class="card"><div class="row"><b style="font-size:16px">تطوير نظام الموارد البشرية وإدارة الأداء</b><span class="chp r">متأخر</span><span class="chp bl">قطاع ١</span></div>
+  <div class="two" style="margin-top:10px">
+   <div><div class="row" style="justify-content:space-between;font-size:12.5px"><span>الفعلي ٤٨٪</span><span>المخطط ٧٠٪</span></div>
+    <div class="bar"><i style="width:70%;background:#f0d9a8"></i><i style="width:48%;background:var(--b)"></i></div>
+    <div class="spark" style="margin-top:12px"><i style="height:30%"></i><i style="height:36%"></i><i style="height:40%"></i><i style="height:45%"></i><i style="height:52%"></i><i style="height:55%"></i><i style="height:57%"></i><i style="height:58%;background:var(--r)"></i></div><small style="color:#889">لقطات آخر ٨ أيام</small></div>
+   <div><div class="it"><div class="t">المدير<small>سالم الكعبي</small></div></div><div class="it"><div class="t">المكلّفون<small>٦ أشخاص · ٢ لم يحدّثوا منذ ١٢ يوماً</small></div></div><div class="it"><div class="t">يعتمد عليه<small>مشروعان لاحقان (من خارطة المشاريع)</small></div></div></div>
+  </div>
+  <div class="row" style="margin-top:10px"><span class="chp r">٣ مهام متأخرة</span><span class="chp o">📎 ٩ مرفقات</span><span class="chp bl">📝 ٤ ملاحظات</span><span class="chp g">طلب تغيير واحد معتمد</span><span class="chp bl">يراه ٨ أشخاص</span></div>
+  <div class="row" style="margin-top:10px"><button class="a">الميثاق</button><button class="a">الخطة</button><button class="a">طلبات التغيير</button><button class="a">من يراه؟</button><button class="a">تذكير المتأخرين</button></div>
+ </div>
+ <div class="note">بطاقة واحدة تجمع كل ما يخص المشروع، تُفتح من أي مكان بضغطة على اسمه.</div>
+</div>
+
+<div class="pane" id="p3">
+ <div class="card"><b>مشاريع تدهورت مقارنةً بالأسبوع الماضي</b>
+  <table><tr><th>المشروع</th><th>قبل أسبوع</th><th>الآن</th><th>التغيّر</th><th>الاتجاه</th></tr>
+  <tr><td>نظام الموارد البشرية</td><td>٥٨٪</td><td>٤٨٪</td><td><span class="chp r">−١٠</span></td><td><div class="spark"><i style="height:90%"></i><i style="height:80%"></i><i style="height:60%"></i><i style="height:45%;background:var(--r)"></i></div></td></tr>
+  <tr><td>المؤتمر الدولي</td><td>٥٥٪</td><td>٤٩٪</td><td><span class="chp o">−٦</span></td><td><div class="spark"><i style="height:80%"></i><i style="height:75%"></i><i style="height:65%"></i><i style="height:55%;background:var(--w)"></i></div></td></tr>
+  <tr><td>برنامج الابتعاث</td><td>٤٧٪</td><td>٥١٪</td><td><span class="chp g">+٤</span></td><td><div class="spark"><i style="height:40%"></i><i style="height:50%"></i><i style="height:60%"></i><i style="height:70%;background:var(--ok)"></i></div></td></tr></table>
+ </div>
+ <div class="note">يحتاج بضعة أسابيع من اللقطات اليومية ليصبح دقيقاً. يمكن ضبط حدّ التنبيه (مثلاً هبوط ٥ نقاط).</div>
+</div>
+
+<div class="pane" id="p4">
+ <div class="card"><b>آخر تحديث لكل مكلّف</b>
+  <div class="it"><div class="t">أحمد الحمادي<small>٥ مهام · آخر تحديث منذ ١٦ يوماً</small></div><div style="width:90px"><div class="bar"><i style="width:100%;background:var(--r)"></i></div></div><button class="a">تذكير</button></div>
+  <div class="it"><div class="t">مريم الظاهري<small>٣ مهام · منذ ٩ أيام</small></div><div style="width:90px"><div class="bar"><i style="width:56%;background:var(--w)"></i></div></div><button class="a">تذكير</button></div>
+  <div class="it"><div class="t">خالد المنصوري<small>٤ مهام · منذ يومين</small></div><div style="width:90px"><div class="bar"><i style="width:12%;background:var(--ok)"></i></div></div><button class="a" disabled>—</button></div>
+  <div class="row" style="margin-top:8px"><button class="a" style="background:var(--d);color:#fff">تذكير كل من تأخر أكثر من ٧ أيام (٢)</button></div>
+ </div>
+</div>
+<script>document.querySelectorAll('#tb button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tb button,.pane').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.getElementById(b.dataset.p).classList.add('on')})</script>
+</body></html>

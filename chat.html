@@ -262,4 +262,11 @@ if(EMB){document.body.classList.add("emb");if(P0)document.body.classList.add("pj
  if(!add()){var mo=new MutationObserver(function(){if(add())mo.disconnect()});mo.observe(document.body,{childList:true,subtree:true});setTimeout(function(){mo.disconnect()},8000);perms(null)}
 })();
 </script>
-</body></html>
+<script>/*langsync*/(function(){try{
+var ST=Storage.prototype.setItem,quiet=0;
+function uid(){return sb.auth.getSession().then(function(g){var s=g&&g.data&&g.data.session;return s&&s.user?{id:s.user.id,k:'ls:'+s.user.id+':'+(s.user.last_sign_in_at||'')}:null})}
+function pull(){uid().then(function(u){if(!u||sessionStorage.getItem(u.k))return;sessionStorage.setItem(u.k,'1');return sb.from('profiles').select('pref_lang').eq('id',u.id).maybeSingle().then(function(r){var v=r&&r.data&&r.data.pref_lang;if(v!=='ar'&&v!=='en')return;var c='ar';try{c=localStorage.getItem('lang')||'ar'}catch(e){}if(v!==c){quiet=1;try{ST.call(localStorage,'lang',v)}catch(e){}location.reload()}})}).catch(function(){})}
+function push(v){uid().then(function(u){if(u)return sb.from('profiles').update({pref_lang:v}).eq('id',u.id)}).catch(function(){})}
+Storage.prototype.setItem=function(k,v){ST.apply(this,arguments);if(k==='lang'&&this===localStorage&&!quiet&&typeof sb!=='undefined'&&sb)push(v)};
+var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.auth.onAuthStateChange(function(e){if(e==='SIGNED_IN')setTimeout(pull,50)})}catch(x){}}else if(n++<40)setTimeout(w,400)})();
+}catch(e){}})();</script></body></html>
