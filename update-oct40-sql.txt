@@ -1,0 +1,119 @@
+-- =====================================================================
+-- update-oct40: أداء المستخدمين هرميًا (مركز ← قطاع ← إدارة ← قسم) — يُشغَّل بعد oct37
+-- =====================================================================
+alter table profiles add column if not exists org_section text;
+
+create or replace function admin_set_org(uid uuid, p_sector int, p_dept int, p_section text) returns void
+language plpgsql security definer set search_path=public as $$
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'not allowed'; end if;
+  update profiles set org_sector = p_sector,
+    org_dept = case when p_sector is null then null else p_dept end,
+    org_section = case when p_sector is null or p_dept is null then null else nullif(trim(p_section),'') end
+  where id = uid;
+end $$;
+grant execute on function admin_set_org(uuid,int,int,text) to authenticated;
+
+-- نطاق المتابعة: قطاع كامل ('2' في perf_sectors) · إدارة ('2:3') · قسم ('2:3:اسم القسم') في perf_depts
+create or replace function perf_can(target uuid) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(
+    select 1 from profiles me, profiles tg
+    where me.id = auth.uid() and tg.id = target and (
+      me.role = 'admin' or me.perf_scope = 'all' or me.id = tg.id
+      or (me.perf_scope = 'units' and (
+            (tg.org_sector is not null and tg.org_sector = any(coalesce(me.perf_sectors,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and (tg.org_sector::text||':'||tg.org_dept::text) = any(coalesce(me.perf_depts,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and tg.org_section is not null and (tg.org_sector::text||':'||tg.org_dept::text||':'||tg.org_section) = any(coalesce(me.perf_depts,'{}')))))))
+$$;
+grant execute on function perf_can(uuid) to authenticated;
+
+-- 3) مؤشرات الأداء (بعد حذف تكرار نسخ الخطط + القسم + بلا تحديث + آخر تحديث)
+drop function if exists perf_users();
+create or replace function perf_users() returns table(
+  user_id uuid, full_name text, job_title text, org_sector int, org_dept int, org_section text,
+  t_total int, t_done int, t_late int, t_open int, t_avg numeric,
+  pend int, pend_old int, created int, created_open int, signed int,
+  t_stale int, last_upd text, t_plan numeric, t_act numeric)
+language sql stable security definer set search_path=public as $$
+  with recursive pt as (
+    select p.id pid, x as t from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) x
+    where (p.status = 'Approved' or p.data->>'_active' = 'true') and not p.archived and p.id = (select max(q.id) from plans q where q.code = p.code and (q.status = 'Approved' or q.data->>'_active' = 'true') and not q.archived)),
+  lf as (select * from pt a where not exists(select 1 from pt c where c.pid = a.pid and c.t->>'p' = a.t->>'id')),
+  ch as (
+    select pid, t->>'id' lid, nullif(t->>'w','') w, nullif(t->>'p','') par,
+           coalesce(nullif(t->>'pc','')::numeric,0) pc, nullif(t->>'e','') e, nullif(t->>'s','') s, left(t->'tu'->>'at',10) tu, 0 g from lf
+    union all
+    select ch.pid, ch.lid, nullif(pt.t->>'w',''), nullif(pt.t->>'p',''), ch.pc, ch.e, ch.s, ch.tu, ch.g+1
+    from ch join pt on pt.pid = ch.pid and pt.t->>'id' = ch.par where ch.w is null and ch.g < 12),
+  tk as (select w::uuid uid, pc, e, s, tu from ch where w is not null and w ~ '^[0-9a-f-]{36}$'),
+  tks as (select uid, count(*) tt, count(*) filter (where pc >= 100) td,
+                 count(*) filter (where pc < 100 and e is not null and e < to_char(now() at time zone 'Asia/Dubai','YYYY-MM-DD')) tl,
+                 count(*) filter (where pc < 100) top, round(avg(pc)) ta,
+                 count(*) filter (where pc < 100 and s is not null and s < to_char((now() at time zone 'Asia/Dubai')::date, 'YYYY-MM-DD') and coalesce(tu, s) < to_char((now() at time zone 'Asia/Dubai')::date - 14, 'YYYY-MM-DD')) tst,
+                 max(tu) lu,
+                 round(avg(case when s is not null and e is not null and s ~ '^\d{4}-\d\d-\d\d$' and e ~ '^\d{4}-\d\d-\d\d$' then greatest(0, least(100, 100.0*(((now() at time zone 'Asia/Dubai')::date) - s::date + 1) / greatest(1, e::date - s::date + 1))) end)) tpl from tk group by uid),
+  pe as (
+    select s.user_id uid, s.stage, r.stage_at from signatories s join change_requests r on r.id = s.cr_id where s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select s.user_id, s.stage, r.stage_at from charter_signatories s join charters r on r.id = s.cr_id where s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select s.user_id, s.stage, r.stage_at from plan_signatories s join plans r on r.id = s.cr_id where s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select s.user_id, s.stage, r.stage_at from closure_signatories s join closure_reports r on r.id = s.cr_id where s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))),
+  pes as (select uid, count(*) pn, count(*) filter (where stage_at < now() - interval '3 days') po from pe group by uid),
+  cr0 as (
+    select created_by uid, status from change_requests where not archived
+    union all select created_by, status from charters where not archived
+    union all select created_by, status from plans where not archived
+    union all select created_by, status from closure_reports where not archived),
+  crs as (select uid, count(*) cn, count(*) filter (where status not in ('Approved','Rejected','Cancelled')) co from cr0 group by uid),
+  sg as (
+    select user_id uid from signatories where status = 'signed' union all select user_id from charter_signatories where status = 'signed'
+    union all select user_id from plan_signatories where status = 'signed' union all select user_id from closure_signatories where status = 'signed'),
+  sgs as (select uid, count(*) sn from sg group by uid)
+  select p.id, p.full_name, p.job_title, p.org_sector, p.org_dept, p.org_section,
+         coalesce(t.tt,0)::int, coalesce(t.td,0)::int, coalesce(t.tl,0)::int, coalesce(t.top,0)::int, t.ta,
+         coalesce(e.pn,0)::int, coalesce(e.po,0)::int, coalesce(c.cn,0)::int, coalesce(c.co,0)::int, coalesce(g.sn,0)::int, coalesce(t.tst,0)::int, t.lu, t.tpl, t.ta
+  from profiles p
+  left join tks t on t.uid = p.id left join pes e on e.uid = p.id left join crs c on c.uid = p.id left join sgs g on g.uid = p.id
+  where perf_can(p.id)
+  order by p.full_name
+$$;
+grant execute on function perf_users() to authenticated;
+
+-- 3ب) تفاصيل مستخدم واحد (المهام، ما ينتظر إجراءه، ما أنشأه)
+drop function if exists perf_user_detail(uuid);
+create or replace function perf_user_detail(p_user uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb;
+begin
+  if not perf_can(p_user) then raise exception 'not allowed'; end if;
+  with recursive pt as (
+    select p.id pid, p.code pcode, p.data->>'pname' pname, x as t from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) x
+    where (p.status = 'Approved' or p.data->>'_active' = 'true') and not p.archived and p.id = (select max(q.id) from plans q where q.code = p.code and (q.status = 'Approved' or q.data->>'_active' = 'true') and not q.archived)),
+  lf as (select * from pt a where not exists(select 1 from pt c where c.pid = a.pid and c.t->>'p' = a.t->>'id')),
+  ch as (
+    select pid, pcode, pname, t->>'id' lid, t->>'n' tn, nullif(t->>'w','') w, nullif(t->>'p','') par, t->>'s' s, nullif(t->>'e','') e,
+           coalesce(nullif(t->>'pc','')::numeric,0) pc, left(t->'tu'->>'at',10) tu, 0 g from lf
+    union all
+    select ch.pid, ch.pcode, ch.pname, ch.lid, ch.tn, nullif(pt.t->>'w',''), nullif(pt.t->>'p',''), ch.s, ch.e, ch.pc, ch.tu, ch.g+1
+    from ch join pt on pt.pid = ch.pid and pt.t->>'id' = ch.par where ch.w is null and ch.g < 12),
+  tk as (select * from ch where w = p_user::text),
+  pe as (
+    select 'cr' svc, r.id, r.code, r.data->>'pname' pn, s.stage, r.stage_at at from signatories s join change_requests r on r.id = s.cr_id where s.user_id = p_user and s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select 'charter', r.id, r.code, r.data->>'pname', s.stage, r.stage_at from charter_signatories s join charters r on r.id = s.cr_id where s.user_id = p_user and s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select 'plan', r.id, r.code, r.data->>'pname', s.stage, r.stage_at from plan_signatories s join plans r on r.id = s.cr_id where s.user_id = p_user and s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))
+    union all select 'closure', r.id, r.code, r.data->>'pname', s.stage, r.stage_at from closure_signatories s join closure_reports r on r.id = s.cr_id where s.user_id = p_user and s.status = 'pending' and not r.archived and ((s.stage='reviewed' and r.status='PMO Review') or (s.stage='approved' and r.status='Awaiting Approval'))),
+  cr0 as (
+    select 'cr' svc, id, code, data->>'pname' pn, status, created_at from change_requests where created_by = p_user and not archived
+    union all select 'charter', id, code, data->>'pname', status, created_at from charters where created_by = p_user and not archived
+    union all select 'plan', id, code, data->>'pname', status, created_at from plans where created_by = p_user and not archived
+    union all select 'closure', id, code, data->>'pname', status, created_at from closure_reports where created_by = p_user and not archived)
+  select jsonb_build_object(
+    'tasks', coalesce((select jsonb_agg(jsonb_build_object('plan',pcode,'proj',pname,'task',tn,'s',s,'e',e,'pc',pc,'tu',tu) order by e nulls last) from tk),'[]'::jsonb),
+    'pending', coalesce((select jsonb_agg(jsonb_build_object('svc',svc,'code',code,'pn',pn,'stage',stage,'at',at) order by at) from pe),'[]'::jsonb),
+    'created', coalesce((select jsonb_agg(jsonb_build_object('svc',svc,'code',code,'pn',pn,'status',status,'at',created_at) order by created_at desc) from (select * from cr0 order by created_at desc limit 40) q),'[]'::jsonb))
+  into r;
+  return r;
+end $fn$;
+grant execute on function perf_user_detail(uuid) to authenticated;
+
+notify pgrst, 'reload schema';

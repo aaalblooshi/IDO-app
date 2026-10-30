@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}
+.kp3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 10px}.kp3 button{border-radius:14px;padding:8px 6px;border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;line-height:1.3}.kp3 button b{font-size:22px;color:var(--sc)}.kp3 button span{font-size:12.5px;color:var(--mut);font-weight:600}.kp3 button.on{border-color:var(--sc);background:#fbfaf6}
+.xw{color:#a8761a}.xg{background:#fff;border:1px solid var(--line);border-inline-start:5px solid var(--sc,#ccc);border-radius:14px;padding:10px 12px;margin:0 0 10px}.xh{display:flex;justify-content:space-between;align-items:center;cursor:pointer;gap:8px}.xt b{font-size:15.5px}.xv{color:var(--mut);font-size:20px;transition:.15s;display:inline-block}.xv.op{transform:rotate(90deg)}.xc{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.xb{margin-top:8px;border-top:1px dashed var(--line)}
+.xr{display:flex;gap:9px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid #f0ece2;cursor:pointer}.xr:last-child{border:0}.xr .xi{flex:1;min-width:0}.xr .xl{margin-top:3px}.xd{width:11px;height:11px;border-radius:50%;margin-top:7px;flex:none}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -155,6 +159,12 @@ async function boot(){
  try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
  await start()}
 Object.assign(D,{
+ sc_all:['المؤسسة','Organization'],sc_mine:['نطاقي','My scope'],sc_sec:['قطاعي','My sector'],sc_dept:['إدارتي','My department'],sc_sect:['قسمي','My section'],
+ g_sector:['حسب القطاع','By sector'],g_dept:['حسب الإدارة','By department'],g_section:['حسب القسم','By section'],g_people:['الأفراد','People'],
+ m_t:['مهام المشاريع','Project tasks'],m_s:['الخدمات (طلبات وتوقيعات)','Services (requests & signatures)'],
+ c_stale:['بلا تحديث','Not updated'],k_stale:['مهام بلا تحديث (14+ يوم)','Not updated (14+ days)'],pln:['المخطط','Planned'],act:['الفعلي','Actual'],nodata:['لا مهام مجدولة','No scheduled tasks'],
+ last:['آخر تحديث','Last update'],noact:['لا نشاط','no activity'],today:['اليوم','today'],nodept:['بدون إدارة','No department'],nosec:['بدون قسم','No section'],
+ s_risk:['الأعلى أولوية للمتابعة','Highest priority'],s_stale:['الأكثر بلا تحديث','Most not updated'],s_load:['الأكثر حملًا','Most loaded'],s_idle:['الأقدم نشاطًا','Longest inactive'],
  title:['أداء المستخدمين','Users performance'],
  noaccP:['هذه الصفحة متاحة لمكتب التطوير المؤسسي والمستخدمين الممنوحين صلاحية متابعة الأداء.','This page is available to the Office and users granted performance monitoring.'],
  sub:['نظرة عامة على أداء المستخدمين ضمن نطاقك، ثم التفصيل لكل مستخدم.','An overview of users within your scope, then detail for each user.'],
@@ -163,52 +173,79 @@ Object.assign(D,{
  s_late:['الأكثر تأخرًا','Most late'],s_pend:['الأكثر إجراءات منتظرة','Most pending actions'],s_low:['الأقل إنجازًا','Lowest completion'],s_name:['الاسم','Name'],
  byunit:['الأداء بحسب الوحدة','Performance by unit'],unit:['الوحدة','Unit'],users_h:['المستخدمون','Users'],none:['لا يوجد مستخدمون ضمن نطاقك.','No users within your scope.'],
  nounit:['بدون وحدة','No unit'],c_tasks:['المهام','Tasks'],c_late:['متأخرة','Late'],c_open:['جارية','Open'],c_pend:['بانتظار إجراءه','Awaiting his action'],c_reqs:['طلبات أنشأها','Requests created'],c_sign:['توقيعات','Signatures'],
- h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs follow-up'],h_bad:['متأخر','Late'],
+ h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs follow-up'],h_bad:['يحتاج دعمًا','Needs support'],
  nudge:['🔔 تذكير','🔔 Remind'],nudgeT:['إرسال تذكير إلى','Send a reminder to'],nudgeH:['يصل التذكير داخل النظام (الإشعارات) وبالبريد الإلكتروني.','The reminder arrives in-app (Notifications) and by email.'],send:['إرسال','Send'],cancel:['إلغاء','Cancel'],sent:['تم إرسال التذكير','Reminder sent'],
  close:['إغلاق','Close'],d_tasks:['مهام المستخدم','User tasks'],d_pend:['بانتظار إجراءه','Awaiting his action'],d_cr:['ما أنشأه من طلبات','Requests he created'],d_none:['لا يوجد.','None.'],due:['الموعد','Due'],
  st_reviewed:['مراجعة','Review'],st_approved:['اعتماد','Approval'],
  sv_task:['المهام','Tasks'],sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق','Charter'],sv_plan:['خطة','Plan'],sv_closure:['تقرير ختامي','Closure report'],
  msgT:['تذكير من مكتب التطوير المؤسسي: لديك {l} مهام متأخرة و{p} إجراءات بانتظارك. نأمل المتابعة في أقرب وقت.','Reminder from the Institutional Development Office: you have {l} late tasks and {p} actions awaiting you. Please follow up soon.'],
  dl:['تنزيل (Excel)','Download (Excel)']});
-let PU=[],DEPS=[],FS='',FD='',FQ='',SO='late',DET=null;
+let PU=[],DEPS=[],FQ='',SO='risk',DET=null,SCOPE='all',GB='',HF='',MODE='t',OPG={},DTAB='late';
 const pf=(a,b)=>b?Math.round(100*a/b):0;
-const unitN=u=>{if(!u.org_sector)return t('nounit');const s=secN(u.org_sector),d=u.org_dept?(((DEPS[u.org_sector-1]||[])[u.org_dept-1])||[])[lang=='ar'?0:1]:'';return d?s+' — '+d:s};
-const hl=u=>u.t_late>0&&u.t_open&&u.t_late/u.t_open>=.3||u.pend_old>0?'bad':(u.t_late>0||u.pend>0)?'wa':'ok';
+const depN=(s,d)=>d?(((DEPS[s-1]||[])[d-1])||[])[lang=='ar'?0:1]||'':'';
+const unitN=u=>{if(!u.org_sector)return t('nounit');const s=secN(u.org_sector),d=depN(u.org_sector,u.org_dept);return [s,d,u.org_section].filter(Boolean).join(' — ')};
+const hl=u=>u.t_late>0&&u.t_open&&u.t_late/u.t_open>=.3||u.pend_old>0?'bad':(u.t_late>0||u.pend>0||u.t_stale>0)?'wa':'ok';
+const ago=d=>{if(!d)return t('noact');const n=TODAY-dn(String(d).slice(0,10));return n<=0?t('today'):lang=='ar'?'قبل '+n+' يوم':n+'d ago'};
+const gkey=(u,g)=>g=='sector'?String(u.org_sector||0):g=='dept'?(u.org_sector||0)+':'+(u.org_dept||0):(u.org_sector||0)+':'+(u.org_dept||0)+':'+(u.org_section||'');
+const glab=(u,g)=>{if(!u.org_sector)return t('nounit');const s=secN(u.org_sector),d=depN(u.org_sector,u.org_dept);
+ if(g=='sector')return s;if(g=='dept')return d?s+' — '+d:s+' — '+t('nodept');return (d?d:s)+' — '+(u.org_section||t('nosec'))};
 async function start(){
  if(!ADM&&!ME.perf_scope)return gate('noaccP');
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.depts))DEPS=L.depts}catch(_){}
  const r=await sb.rpc('perf_users');if(r.error){$('app').innerHTML='<div class="card">'+esc(t('err')+r.error.message)+'</div>';return}
- PU=r.data||[];draw()}
-function flt(){let a=PU.filter(u=>(!FS||u.org_sector==FS)&&(!FD||u.org_dept==FD)&&(!FQ||String(u.full_name||'').toLowerCase().includes(FQ.toLowerCase())));
- const k={late:(x,y)=>y.t_late-x.t_late||y.pend-x.pend,pend:(x,y)=>y.pend-x.pend||y.t_late-x.t_late,low:(x,y)=>(x.t_total?pf(x.t_done,x.t_total):101)-(y.t_total?pf(y.t_done,y.t_total):101),name:(x,y)=>String(x.full_name).localeCompare(String(y.full_name),'ar')}[SO];return a.sort(k)}
-const sum=a=>a.reduce((o,u)=>{['t_total','t_done','t_late','t_open','pend','pend_old','created_open'].forEach(k=>o[k]+=u[k]||0);return o},{t_total:0,t_done:0,t_late:0,t_open:0,pend:0,pend_old:0,created_open:0});
-function unitsH(a){const m={};a.forEach(u=>{const k=(u.org_sector||0)+':'+(u.org_dept||0);(m[k]=m[k]||[]).push(u)});
- const rows=Object.keys(m).sort().map(k=>{const us=m[k],s=sum(us);return `<tr><td>${esc(unitN(us[0]))}</td><td class="num">${us.length}</td><td style="min-width:110px">${pbar(pf(s.t_done,s.t_total),null,'#1c7a45')}<span class="mut num">${pf(s.t_done,s.t_total)}% (${s.t_done}/${s.t_total})</span></td><td class="num ${s.t_late?'bad':''}">${s.t_late}</td><td class="num ${s.pend_old?'bad':''}">${s.pend}</td><td class="num">${s.created_open}</td></tr>`}).join('');
- return `<div class="card" style="overflow:auto"><b>${t('byunit')}</b><table style="width:100%;border-collapse:collapse;font-size:13.5px;min-width:480px;margin-top:6px"><tr style="text-align:start;background:#f7f5ef">${['unit','k_users','k_done','c_late','c_pend','k_reqs'].map(k=>`<th style="padding:6px;text-align:start">${t(k)}</th>`).join('')}</tr>${rows}</table></div>`}
+ PU=r.data||[];GB=(ADM||ME.perf_scope=='all')?'sector':'dept';draw()}
+function inScope(u){if(SCOPE=='sec')return !!ME.org_sector&&u.org_sector==ME.org_sector;if(SCOPE=='dept')return !!ME.org_dept&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept;if(SCOPE=='sect')return !!ME.org_section&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept&&u.org_section==ME.org_section;return true}
+const rk=u=>u.t_late*3+u.t_stale*2+u.pend_old*4+u.pend;
+function srt(a){const k={risk:(x,y)=>rk(y)-rk(x),late:(x,y)=>y.t_late-x.t_late||y.pend-x.pend,stale:(x,y)=>y.t_stale-x.t_stale,load:(x,y)=>y.t_open-x.t_open,idle:(x,y)=>String(x.last_upd||'').localeCompare(String(y.last_upd||'')),name:(x,y)=>String(x.full_name).localeCompare(String(y.full_name),'ar')}[SO];return a.sort(k)}
+function base(){return PU.filter(u=>inScope(u)&&(!FQ||String(u.full_name||'').toLowerCase().includes(FQ.toLowerCase())))}
+function flt(){let a=base();if(HF)a=a.filter(u=>hl(u)==HF);return srt(a)}
+const sum=a=>a.reduce((o,u)=>{['t_total','t_done','t_late','t_open','t_stale','pend','pend_old','created_open','signed'].forEach(k=>o[k]+=u[k]||0);return o},{t_total:0,t_done:0,t_late:0,t_open:0,t_stale:0,pend:0,pend_old:0,created_open:0,signed:0});
+const avg=(a,k)=>{const v=a.map(u=>u[k]).filter(x=>x!=null).map(Number);return v.length?Math.round(v.reduce((p,c)=>p+c,0)/v.length):null};
+function bars(pl,ac,col){if(ac==null)return '<div class="mut">'+t('nodata')+'</div>';return `<div class="pb2"><div class="pr2"><span>${t('pln')}</span><div class="bar pl"><i style="width:${pl||0}%"></i></div><b class="num">${pl==null?'—':pl+'%'}</b></div><div class="pr2"><span>${t('act')}</span><div class="bar"><i style="width:${ac}%;background:${col}"></i></div><b class="num">${ac}%</b></div></div>`}
+function rowH(u,flat){const h=hl(u);
+ const m=MODE=='t'?`<span class="${u.t_late?'bad':''}">${t('c_late')}: <b class="num">${u.t_late}</b></span> · <span class="${u.t_stale?'xw':''}">${t('c_stale')}: <b class="num">${u.t_stale}</b></span> · ${t('c_open')}: <b class="num">${u.t_open}</b> · ${t('c_pend')}: <b class="num">${u.pend}</b>`:`<span class="${u.pend_old?'bad':''}">${t('c_pend')}: <b class="num">${u.pend}</b> (${t('k_old')}: <b class="num">${u.pend_old}</b>)</span> · ${t('c_reqs')}: <b class="num">${u.created_open}/${u.created}</b> · ${t('c_sign')}: <b class="num">${u.signed}</b>`;
+ return `<div class="xr" onclick="openD('${u.user_id}')"><span class="xd" style="background:${hCol[h]}"></span><div class="xi"><b>${esc(u.full_name)}</b><span class="mut"> ${esc(flat?unitN(u):(u.job_title||''))}</span>
+ ${MODE=='t'?bars(u.t_plan==null?null:Math.round(u.t_plan),u.t_total?Math.round(u.t_act==null?pf(u.t_done,u.t_total):u.t_act):null,hCol[h]):''}
+ <div class="mut xl">${m} · ${t('last')}: ${ago(u.last_upd)}</div></div><span class="xv">›</span></div>`}
+function groupsH(L){
+ const m={};L.forEach(u=>{const k=gkey(u,GB);(m[k]=m[k]||{k,lab:glab(u,GB),us:[]}).us.push(u)});
+ const gs=Object.values(m).map(g=>({...g,s:sum(g.us),pl:avg(g.us,'t_plan'),ac:avg(g.us,'t_act'),rk:g.us.reduce((p,u)=>p+rk(u),0),nb:g.us.filter(u=>hl(u)=='bad').length})).sort((x,y)=>y.rk-x.rk);
+ return gs.map(g=>{const op=OPG[g.k]!==undefined?OPG[g.k]:gs.length==1;const hc=g.nb?'bad':(g.s.t_late||g.s.t_stale||g.s.pend)?'wa':'ok';
+ return `<div class="xg" style="--sc:${hCol[hc]}"><div class="xh" onclick="OPG[${esc(JSON.stringify(g.k)).replace(/"/g,'&quot;')}]=${op?'false':'true'};draw()"><div class="xt"><b>${esc(g.lab)}</b><span class="mut"> · <span class="num">${g.us.length}</span> ${t('k_users')}</span></div><span class="xv ${op?'op':''}">›</span></div>
+ ${MODE=='t'?bars(g.pl,g.ac,hCol[hc]):''}
+ <div class="xc">${MODE=='t'?`<span class="chp ${g.s.t_late?'r':'g'}">${t('c_late')} <b class="num">${g.s.t_late}</b></span><span class="chp ${g.s.t_stale?'o':'g'}">${t('c_stale')} <b class="num">${g.s.t_stale}</b></span>`:`<span class="chp ${g.s.pend_old?'r':'g'}">${t('c_pend')} <b class="num">${g.s.pend}</b></span><span class="chp g">${t('c_reqs')} <b class="num">${g.s.created_open}</b></span>`}${g.nb?`<span class="chp r">${t('h_bad')} <b class="num">${g.nb}</b></span>`:''}</div>
+ ${op?`<div class="xb">${g.us.map(u=>rowH(u,false)).join('')}</div>`:''}</div>`}).join('')}
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
  if(!ME)return;
- const L=flt(),s=sum(L),secs=[...new Set(PU.map(u=>u.org_sector).filter(Boolean))].sort();
- const ds=FS?(DEPS[FS-1]||[]):[];
+ const B=base(),L=srt(HF?B.filter(u=>hl(u)==HF):B.slice()),s=sum(B),cnt={ok:0,wa:0,bad:0};B.forEach(u=>cnt[hl(u)]++);
+ const wide=ADM||ME.perf_scope=='all';
+ const sc=[['all',wide?t('sc_all'):t('sc_mine'),1],['sec',t('sc_sec'),!!ME.org_sector],['dept',t('sc_dept'),!!ME.org_dept],['sect',t('sc_sect'),!!ME.org_section]].filter(x=>x[2]);
  $('app').innerHTML=`<div class="mut" style="margin:0 0 8px">${t('sub')}</div>
- <div class="kp"><div><b class="num">${L.length}</b><span>${t('k_users')}</span></div><div><b class="num">${pf(s.t_done,s.t_total)}%</b><span>${t('k_done')} (${s.t_done}/${s.t_total})</span></div><div><b class="num ${s.t_late?'bad':''}">${s.t_late}</b><span>${t('k_late')}</span></div><div><b class="num ${s.pend_old?'bad':''}">${s.pend}</b><span>${t('k_pend')} · ${t('k_old')}: ${s.pend_old}</span></div></div>
- <div class="row" style="gap:8px;margin:12px 0;flex-wrap:wrap;align-items:center"><select onchange="FS=+this.value||'';FD='';draw()"><option value="">${t('f_all')}</option>${secs.map(i=>`<option value="${i}" ${FS==i?'selected':''}>${esc(secN(i))}</option>`).join('')}</select>
- ${FS?`<select onchange="FD=+this.value||'';draw()"><option value="">${t('f_alld')}</option>${ds.map((x,i)=>`<option value="${i+1}" ${FD==i+1?'selected':''}>${esc(x[lang=='ar'?0:1])}</option>`).join('')}</select>`:''}
- <input placeholder="${t('f_q')}" value="${esc(FQ)}" oninput="FQ=this.value;clearTimeout(window._pq);window._pq=setTimeout(()=>{draw();const e=document.querySelector('#app input');if(e){e.focus();e.setSelectionRange(FQ.length,FQ.length)}},250)" style="max-width:220px">
- <select onchange="SO=this.value;draw()">${[['late','s_late'],['pend','s_pend'],['low','s_low'],['name','s_name']].map(([k,l])=>`<option value="${k}" ${SO==k?'selected':''}>${t('f_sort')}: ${t(l)}</option>`).join('')}</select>
+ ${sc.length>1?`<div class="chips">${sc.map(x=>`<button class="${SCOPE==x[0]?'on':''}" onclick="SCOPE='${x[0]}';HF='';draw()">${x[1]}</button>`).join('')}</div>`:''}
+ <div class="kp3">${[['ok','h_ok'],['wa','h_wa'],['bad','h_bad']].map(([k,l])=>`<button class="${HF==k?'on':''}" style="--sc:${hCol[k]}" onclick="HF=HF=='${k}'?'':'${k}';draw()"><b class="num">${cnt[k]}</b><span>${t(l)}</span></button>`).join('')}</div>
+ <div class="kp"><div><b class="num">${B.length}</b><span>${t('k_users')}</span></div><div><b class="num ${s.t_late?'bad':''}">${s.t_late}</b><span>${t('k_late')}</span></div><div><b class="num ${s.t_stale?'xw':''}">${s.t_stale}</b><span>${t('k_stale')}</span></div><div><b class="num ${s.pend_old?'bad':''}">${s.pend}</b><span>${t('k_pend')}</span></div></div>
+ <div class="chips" style="margin-top:12px"><button class="${MODE=='t'?'on':''}" onclick="MODE='t';draw()">${t('m_t')}</button><button class="${MODE=='s'?'on':''}" onclick="MODE='s';draw()">${t('m_s')}</button></div>
+ <div class="row" style="gap:8px;margin:8px 0;flex-wrap:wrap;align-items:center"><input placeholder="${t('f_q')}" value="${esc(FQ)}" oninput="FQ=this.value;clearTimeout(window._pq);window._pq=setTimeout(()=>{draw();const e=document.querySelector('#app input');if(e){e.focus();e.setSelectionRange(FQ.length,FQ.length)}},250)" style="max-width:200px">
+ <select onchange="SO=this.value;draw()">${[['risk','s_risk'],['late','s_late'],['stale','s_stale'],['load','s_load'],['idle','s_idle'],['name','s_name']].map(([k,l])=>`<option value="${k}" ${SO==k?'selected':''}>${t('f_sort')}: ${t(l)}</option>`).join('')}</select>
  <button onclick="dlP()">${t('dl')}</button></div>
- ${L.length?unitsH(L):''}
- <div class="card"><b>${t('users_h')}</b>${L.length?L.map(u=>{const h=hl(u),p=pf(u.t_done,u.t_total);return `<div class="tk" style="--sc:${hCol[h]}"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><b>${esc(u.full_name)}</b><div class="mut">${esc(u.job_title||'')}${u.job_title?' · ':''}${esc(unitN(u))}</div></div><span class="chp ${h=='ok'?'g':h=='wa'?'o':'r'}">${t('h_'+h)}</span></div>
- ${pbar(p,null,hCol[h])}<div class="mut"><span class="num">${p}%</span> · ${t('c_tasks')}: <span class="num">${u.t_done}/${u.t_total}</span> · <span class="${u.t_late?'bad':''}">${t('c_late')}: <span class="num">${u.t_late}</span></span> · ${t('c_open')}: <span class="num">${u.t_open}</span> · <span class="${u.pend_old?'bad':''}">${t('c_pend')}: <span class="num">${u.pend}</span></span> · ${t('c_reqs')}: <span class="num">${u.created_open}/${u.created}</span> · ${t('c_sign')}: <span class="num">${u.signed}</span></div>
- <div class="pb"><button onclick="openD('${u.user_id}')">${t('d_tasks')}</button><button onclick="nudge('${u.user_id}')">${t('nudge')}</button></div></div>`}).join(''):`<div class="mut">${t('none')}</div>`}</div>
+ <div class="chips">${[['sector','g_sector'],['dept','g_dept'],['section','g_section'],['people','g_people']].map(([k,l])=>`<button class="${GB==k?'on':''}" onclick="GB='${k}';OPG={};draw()">${t(l)}</button>`).join('')}</div>
+ ${L.length?(GB=='people'?`<div class="xg"><div class="xb" style="border:0">${L.map(u=>rowH(u,true)).join('')}</div></div>`:groupsH(L)):`<div class="card mut">${t('none')}</div>`}
  ${DET?detH():''}`}
 function detH(){const D0=DET,u=PU.find(x=>x.user_id==D0.id);if(!u)return'';const d=D0.d;
- const tk=(d.tasks||[]).map(x=>{const late=x.e&&x.pc<100&&dn(x.e)<TODAY;return `<div class="tk ${x.pc>=100?'dn':''} ${late?'lt':''}"><b>${esc(x.task||'')}</b><div class="mut">${esc(x.plan||'')} · ${esc(x.proj||'')}</div>${pbar(+x.pc,null,late?'#d1101d':'#1c7a45')}<div class="mut"><span class="num">${Math.round(x.pc)}%</span> · ${t('due')}: <span class="num">${fd(x.e)||'—'}</span>${late?` · <span class="bad">${t('c_late')}</span>`:''}</div></div>`}).join('')||`<div class="mut">${t('d_none')}</div>`;
- const pe=(d.pending||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${t('st_'+x.stage)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
- const cr=(d.created||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${esc(x.status)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
- return `<div class="sov" onclick="if(event.target==this){DET=null;draw()}"><div class="sbx"><h3>${esc(u.full_name)}</h3><div class="mut">${esc(unitN(u))}</div><h3 style="margin-top:12px">${t('d_tasks')}</h3>${tk}<h3 style="margin-top:12px">${t('d_pend')}</h3>${pe}<h3 style="margin-top:12px">${t('d_cr')}</h3>${cr}<div class="row" style="margin-top:12px"><button class="p" onclick="nudge('${u.user_id}')">${t('nudge')}</button><button onclick="DET=null;draw()">${t('close')}</button></div></div></div>`}
-async function openD(id){const r=await sb.rpc('perf_user_detail',{p_user:id});if(r.error)return toast(t('err')+r.error.message);DET={id,d:r.data||{}};draw()}
+ const T=(d.tasks||[]).map(x=>{const open=+x.pc<100,late=!!x.e&&open&&dn(x.e)<TODAY,lu=x.tu?dn(String(x.tu).slice(0,10)):null,s0=dn(x.s),stale=open&&s0!=null&&s0<TODAY&&(lu!=null?TODAY-lu>14:TODAY-s0>14);return {...x,open,late,stale,lu}});
+ const cn={late:T.filter(x=>x.late).length,stale:T.filter(x=>x.stale).length,all:T.filter(x=>x.open).length,pend:(d.pending||[]).length,cr:(d.created||[]).length};
+ const tkH=a=>a.map(x=>`<div class="tk ${x.pc>=100?'dn':''} ${x.late?'lt':''}"><b>${esc(x.task||'')}</b><div class="mut">${esc(x.plan||'')} · ${esc(x.proj||'')}</div>${pbar(+x.pc,null,x.late?'#d1101d':'#1c7a45')}<div class="mut"><span class="num">${Math.round(x.pc)}%</span> · ${t('due')}: <span class="num">${fd(x.e)||'—'}</span>${x.late?` · <span class="bad">${t('c_late')}</span>`:''}${x.stale?` · <span class="xw">${t('c_stale')}${x.lu!=null?' '+TODAY-x.lu+'d':''}</span>`:''}</div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
+ let body;
+ if(DTAB=='late')body=tkH(T.filter(x=>x.late));else if(DTAB=='stale')body=tkH(T.filter(x=>x.stale));else if(DTAB=='all')body=tkH(T.filter(x=>x.open));
+ else if(DTAB=='pend')body=(d.pending||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${t('st_'+x.stage)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
+ else body=(d.created||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${esc(x.status)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
+ const tabs=[['late','c_late'],['stale','c_stale'],['all','c_open'],['pend','c_pend'],['cr','d_cr']];
+ return `<div class="sov" onclick="if(event.target==this){DET=null;draw()}"><div class="sbx"><h3>${esc(u.full_name)}</h3><div class="mut">${esc(u.job_title||'')} · ${esc(unitN(u))}</div>
+ <div class="chips" style="margin-top:10px">${tabs.map(([k,l])=>`<button class="${DTAB==k?'on':''}" onclick="DTAB='${k}';draw()">${t(l)} <span class="num">${cn[k]}</span></button>`).join('')}</div>${body}
+ <div class="row" style="margin-top:12px"><button class="p" onclick="nudge('${u.user_id}')">${t('nudge')}</button><button onclick="DET=null;draw()">${t('close')}</button></div></div></div>`}
+async function openD(id){const r=await sb.rpc('perf_user_detail',{p_user:id});if(r.error)return toast(t('err')+r.error.message);DET={id,d:r.data||{}};DTAB='late';draw()}
 function nudge(id){const u=PU.find(x=>x.user_id==id);if(!u)return;const pt=(n,a)=>{n=+n||0;return n==1?a[0]:n==2?a[1]:n+' '+((n>=3&&n<=10)||n==0?a[2]:a[3])};const m=lang=='ar'?'تذكير من مكتب التطوير المؤسسي: لديك '+pt(u.t_late,['مهمة متأخرة','مهمتان متأخرتان','مهام متأخرة','مهمة متأخرة'])+' و'+pt(u.pend,['إجراء بانتظارك','إجراءان بانتظارك','إجراءات بانتظارك','إجراءً بانتظارك'])+'. نأمل المتابعة في أقرب وقت.':t('msgT').replace('{l}',u.t_late).replace('{p}',u.pend);
  const o=document.createElement('div');o.className='sov';o.style.zIndex=120;o.innerHTML=`<div class="sbx"><h3>${t('nudgeT')} ${esc(u.full_name)}</h3><div class="mut" style="margin:4px 0 8px">${t('nudgeH')}</div><textarea id="nd_m">${esc(m)}</textarea><div class="row" style="margin-top:10px"><button class="p" id="nd_s">${t('send')}</button><button id="nd_c">${t('cancel')}</button></div></div>`;
  document.body.appendChild(o);o.onclick=e=>{if(e.target==o)o.remove()};$('nd_c').onclick=()=>o.remove();
