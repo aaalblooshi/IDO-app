@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.p:disabled{background:#eceae4!important;color:#8b8678!important;border-color:#d9d4c4!important;cursor:default;box-shadow:none}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -656,11 +656,12 @@ function schedBox(r){
  ${sc?`<div style="margin:6px 0"><a href="#" onclick="affView('${esc(r.pr.pid)}|${esc(r.id)}');return false" class="chp o">🔗 ${(lang=='ar'?'تؤثر على '+plr(sc,'task'):t('af_chip').replace('{n}',ad(sc)))}</a></div>`:''}
  <div class="mut" style="margin:4px 0">${t('sc_note')}</div>
  <div class="pb"><button onclick="scQ(7)">${t('sc_w1')}</button><button onclick="scQ(14)">${t('sc_w2')}</button><button onclick="scQ('m')">${t('sc_m1')}</button><button onclick="scQ(-7)">${t('sc_b1')}</button></div>
- <div class="g2"><div><label>${t('sc_s')}</label><input type="date" id="sc_s" value="${ds(cur.s)}"></div><div><label>${t('sc_e')}</label><input type="date" id="sc_e" value="${ds(cur.e)}"></div></div>
+ <div class="g2"><div><label>${t('sc_s')}</label><input type="date" id="sc_s" value="${ds(cur.s)}" oninput="scChk()" onchange="scChk()"></div><div><label>${t('sc_e')}</label><input type="date" id="sc_e" value="${ds(cur.e)}" oninput="scChk()" onchange="scChk()"></div></div>
  <label class="tg" style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" id="sc_c" style="width:auto" checked> ${t('sc_cas')}</label>
- <div class="row" style="margin-top:8px"><button class="p" onclick="scApply()">${t('sc_ap')}</button></div></div>`}
+ <div class="row" style="margin-top:8px"><button class="p" id="sc_apb" data-s="${ds(cur.s)}" data-e="${ds(cur.e)}" disabled onclick="scApply()">${t('sc_ap')}</button></div></div>`}
+function scChk(){const b=$('sc_apb');if(!b)return;const s=$('sc_s').value,e=$('sc_e').value;b.disabled=!(s&&e&&e>=s&&(s!=b.dataset.s||e!=b.dataset.e))}
 function scQ(v){const s=dn($('sc_s').value),e=dn($('sc_e').value);if(s==null||e==null)return;
- if(v=='m'){$('sc_s').value=ds(addM(s,1));$('sc_e').value=ds(addM(e,1))}else{$('sc_s').value=ds(s+v);$('sc_e').value=ds(e+v)}}
+ if(v=='m'){$('sc_s').value=ds(addM(s,1));$('sc_e').value=ds(addM(e,1))}else{$('sc_s').value=ds(s+v);$('sc_e').value=ds(e+v)}scChk()}
 let CALC=null;
 async function calLoad(){if(CALC)return CALC;let off=[0,6],hol={};try{const q=await sb.from('app_settings').select('key,value').in('key',['wk_off','holidays']),S={};(q.data||[]).forEach(z=>S[z.key]=z.value);
  if(S.wk_off!=null&&String(S.wk_off).trim()!==''){off=String(S.wk_off).split(',').map(Number).filter(x=>x>=0&&x<=6)}else if(S.wk_off!=null&&String(S.wk_off)==='-')off=[];if(off.length>=7)off=[];
