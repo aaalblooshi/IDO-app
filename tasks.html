@@ -343,7 +343,7 @@ function pLink(r){return `<a href="plan.html#o=${r.pr.pid}" style="color:#2a6a90
 function card(r,nopath){const done=isDone(r),x=r.x,k=r.pr.pid+'|'+x.id,st=stOf(r),cmp=CFG.cmp;
  const canRem=MODE=='team'&&r.own&&!done&&(ADM||r.pr.cb==ME.id);
  return `<div class="tk ${done?'dn':''}" style="--sc:${SCOL[st]};${st=='late'?'background:#fff8f8':''}"><div class="mut">${pLink(r)}${!nopath&&pathS(r)?' · '+pathS(r):''}</div>
- <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${esc(x.n)}</b>${x.ms?` <span class="chp" style="background:#f3ecdc;color:#7a6330">◆ ${t('ms')}</span>`:''}</div>
+ <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${esc(x.n)}</b></div>
  <div style="margin:3px 0">${stChip(r)}${prChip(r)}${depChips(r)}${r.own?`<span class="chp">${esc(UN[r.own]||'')}</span>`:''}${MODE=='team'&&!r.own?`<span class="chp o">${t('unas')}</span>`:''}</div>
  <div class="mut">${relT(r)} · ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}</div>
  ${cmp?'':pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}
@@ -389,7 +389,7 @@ function vProj(rs){
   ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a>${ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRPL[p.pcode]?`<a href="plan.html#o=${p.pid}&e=1"><button>${t('pEdit')}</button></a>`:''}<button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
   ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}${tree}`:`<div class="row" style="margin-top:6px"><button onclick="PEXP.add(${p.pid});paint()">${t('pDet')}</button></div>`}</div>`}).join('')}
 function rowH(p,r,vis){const x=r.x,done=isDone(r),k=p.pid+'|'+x.id,st=stOf(r);
- return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${esc(x.n)}</b>${x.ms?` <span class="chp" style="background:#f3ecdc;color:#7a6330">◆ ${t('ms')}</span>`:''}${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
+ return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${esc(x.n)}</b>${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
  <div class="mut">${r.leaf?relT(r)+' · ':''}${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}${r.own?' · '+esc(UN[r.own]||''):''}</div>${pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}`}
 function nodeH(p,x,vis,lv){const r=p.byId[x.id];if(!r||!vis.includes(r))return '';const ch=(p.kids[x.id]||[]).map(c=>nodeH(p,c,vis,lv+1)).join('');
  return `<div class="nd" style="margin-inline-start:${lv*16}px;${lv?'border-inline-start:3px solid #d9d4c7;padding-inline-start:8px':''}">${rowH(p,r,vis)}</div>${ch}`}

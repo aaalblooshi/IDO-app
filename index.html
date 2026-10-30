@@ -480,7 +480,7 @@ async function load(){
    T.forEach(x=>{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
     const s0=dn(x.s),e0=dn(x.e),pc=+x.pc||0;let stg;if(pc>=100)stg=5;else if(e0!=null&&e0<td)stg=4;else if(pc>0)stg=3;else if(s0!=null&&s0<=td)stg=2;else stg=1;if(pc<100)open++;
     var nums=[];const path=[];{let c=x,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}let pre='';nums=path.map((q,i)=>{const sib=T.filter(z=>(z.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(z=>z.id==q.id)+1);return pre})}
-    E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:x.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',ts:x.s||'',te:x.e||'',tas:x.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(x.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:stg==2||stg==4,roles:new Set(['tk','pm']),own:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0});});
+    E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:x.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',ts:x.s||'',te:x.e||'',tas:x.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(x.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:stg>=2&&stg<=4,roles:new Set(['tk','pm']),own:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0});});
    E.mt[p.id]=open})}catch(_){}
   /* مدد مخصصة لكل طلب */
   try{const r=await sb.from('request_sla').select('svc,req_id,stage,days');(r.data||[]).forEach(x=>{E.sla[x.svc+':'+x.req_id+':'+x.stage]=x.days})}catch(_){}
