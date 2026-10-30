@@ -585,7 +585,7 @@ Object.assign(D,{
  sc_staged:['معدّلة في المسودة (لم تُرسل)','Changed in draft (not sent)'],sc_undo:['إلغاء تعديل هذه المهمة','Undo this task’s change'],
  sc_bad:['تأكد من التواريخ (النهاية بعد البداية).','Check the dates (end after start).'],sc_none:['لا تغيير في التواريخ.','No date change.'],
  af_h:['المهام المتأثرة','Affected tasks'],af_chip:['تؤثر على {n} مهمة','Affects {n} tasks'],af_ok:['تأكيد وإضافة للمسودة','Confirm and add to draft'],
- af_old:['قبل','Before'],af_opt:['تحسين الجدولة','Optimise schedule'],af_opt_on:['✔ تم تحسين الجدولة: تتأخر اللاحقة بالقدر اللازم فقط.','✔ Schedule optimised: later tasks move only as much as needed.'],af_opt_back:['رجوع للحساب السابق','Back to previous calculation'],af_new:['بعد','After'],af_none:['لا توجد مهام أخرى متأثرة.','No other tasks are affected.'],af_conf:['يتعارض مع المهمة السابقة','Conflicts with its predecessor'],
+ af_old:['قبل','Before'],af_opt:['تحسين الجدولة','Optimise schedule'],af_opt_on:['✔ تم تحسين الجدولة: تتأخر اللاحقة بالقدر اللازم فقط.','✔ Schedule optimised: later tasks move only as much as needed.'],af_undo:['التراجع','Undo'],af_new:['بعد','After'],af_none:['لا توجد مهام أخرى متأثرة.','No other tasks are affected.'],af_conf:['يتعارض مع المهمة السابقة','Conflicts with its predecessor'],
  sg_bar:['{n} مهمة معدّلة في المسودة','{n} task(s) changed in draft'],sg_rev:['مراجعة وإرسال','Review & send'],sg_drop:['تجاهل الكل','Discard all'],
  sg_h:['تعديلات الخطة قبل الإرسال','Plan changes before sending'],sg_send:['إرسال للاعتماد','Send for approval'],sg_nt:['ملاحظة للمعتمدين (اختياري)','Note for approvers (optional)'],
  sg_ok:['أُنشئت مسودة التعديل. أكمل الإرسال من صفحة الخطة.','Change draft created. Finish sending from the plan page.'],
@@ -693,7 +693,7 @@ async function scApply(){if(!SH)return;const r=SH.r,s=dn($('sc_s').value),e=dn($
 function affOpt(on){window.__aff.on=!!on;affPaint()}
 function affPaint(){const A=window.__aff,o=$('sov');if(!A||!o)return;const chg=A.on&&A.opt?A.opt:A.chg,rows=affRows(A.r,chg);window.__chg={pid:A.r.pr.pid,chg};
  o.innerHTML=`<div class="sbx"><h3>${t('af_h')}</h3>${rows.length>1?`<div class="mut">${ad(rows.length-1)} ${t('af_h')}</div>`:`<div class="mut">${t('af_none')}</div>`}
- ${A.opt?(A.on?`<div class="mut" style="margin:6px 0;color:#1c7a45;font-weight:700">${t('af_opt_on')} <a href="#" onclick="affOpt(0);return false">${t('af_opt_back')}</a></div>`:`<div style="margin:6px 0"><button onclick="affOpt(1)">⚙️ ${t('af_opt')}</button></div>`):''}
+ ${A.opt?`<div style="margin:6px 0"><button onclick="affOpt(${A.on?0:1})">${A.on?'↩ '+t('af_undo'):'⚙️ '+t('af_opt')}</button>${A.on?`<div class="mut" style="margin-top:4px;color:#1c7a45;font-weight:700">${t('af_opt_on')}</div>`:''}</div>`:''}
  ${affTL(rows)}
  <div class="row" style="margin-top:10px"><button class="p" onclick="stgAdd()">${t('af_ok')}</button><button onclick="closeSheet()">${t('addX')}</button></div></div>`}
 function stgAdd(){const c=window.__chg;if(!c)return;STG[c.pid]=STG[c.pid]||{};Object.keys(c.chg).forEach(i=>{const v=c.chg[i];STG[c.pid][i]={s:ds(v.s),e:ds(v.e)}});
