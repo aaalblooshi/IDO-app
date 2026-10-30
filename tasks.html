@@ -626,7 +626,11 @@ function affTL(rows){
   ${TODAY>=a&&TODAY<=b?`<div style="position:absolute;top:0;bottom:0;left:${pc(TODAY)};width:2px;background:#d1101d"></div>`:''}
   ${z.os!=null&&z.oe!=null?`<div title="${t('af_old')}" style="position:absolute;top:3px;height:10px;left:${pc(z.os)};width:${wd(z.os,z.oe)};border:1.5px dashed #949594;border-radius:4px;box-sizing:border-box"></div>`:''}
   ${z.ns!=null&&z.ne!=null?`<div title="${t('af_new')}" style="position:absolute;top:15px;height:11px;left:${pc(z.ns)};width:${wd(z.ns,z.ne)};background:${z.conf?'#d1101d':'#3D96C7'};border-radius:4px"></div>`:''}</div>
-  <div class="mut num" style="font-size:11px">${fd(ds(z.os))} ${lang=='ar'?'←':'→'} ${fd(ds(z.oe))} ${lang=='ar'?'⟵':'⟶'} <b>${fd(ds(z.ns))} ${lang=='ar'?'←':'→'} ${fd(ds(z.ne))}</b></div></div>`;
+  ${(()=>{const ar=lang=='ar',dyT=n=>ar?(n==1?'يوم واحد':n==2?'يومين':ad(n)+((n>=3&&n<=10)?' أيام':' يومًا')):n+' day'+(n>1?'s':''),dl=(z.os!=null&&z.ns!=null)?z.ns-z.os:null,de=(z.oe!=null&&z.ne!=null)?z.ne-z.oe:null,sg=n=>(n>0?'+':n<0?'−':'')+Math.abs(n);
+   let sm='';if(dl!=null&&de!=null){if(dl==0&&de==0)sm=`<span class="mut">${ar?'لم يتغيّر موعدها':'Dates unchanged'}</span>`;else if(dl==de)sm=`<b style="color:${dl>0?'#a8731a':'#1c7a45'}">${dl>0?(ar?'⏩ تتأخر ':'⏩ Moves later by '):(ar?'⏪ تتقدّم ':'⏪ Moves earlier by ')}${dyT(Math.abs(dl))}</b>`;else sm=`<b style="color:#a8731a">${ar?'تغيّرت المدة':'Duration changed'}</b> <span class="mut">(${ar?'البداية':'start'} ${sg(dl)} · ${ar?'النهاية':'end'} ${sg(de)} ${ar?'يوم':'d'})</span>`}
+   const ch=(a,b,st)=>`<span dir="ltr" style="unicode-bidi:isolate;display:inline-block;border-radius:8px;padding:2px 9px;white-space:nowrap;${st}">${fd(ds(a))} → ${fd(ds(b))}</span>`;
+   return `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12.5px;margin-top:6px"><b class="mut">${t('af_old')}</b><div>${ch(z.os,z.oe,'background:#eef0f1;color:#6b6f76;text-decoration:line-through')}</div><b>${t('af_new')}</b><div>${ch(z.ns,z.ne,z.conf?'background:#fdecee;color:#8f0a14;font-weight:800':'background:#e3f1fa;color:#17608a;font-weight:800')}</div></div>${sm?`<div style="margin-top:4px;font-size:12.5px">${sm}</div>`:''}`})()}
+  </div>`;
  return `<div class="mut" style="font-size:11.5px">┄ ${t('af_old')} · ▬ ${t('af_new')} · <span style="color:#d1101d">|</span> ${t('dg_tdy')}</div>`+rows.map(mk).join('')}
 function affInfo(r){/* للقراءة فقط: المهام التي تعتمد على هذه المهمة */
  const sc=[...succOf(r.pr,r.id)].map(i=>r.pr.byId[i]).filter(Boolean);return sc}
