@@ -51,7 +51,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],save:['حفظ','Save'],cancel:['إلغاء','Cancel'],del:['حذف الدور','Delete role'],add:['+ دور جديد','+ New role'],
  nar:['الاسم بالعربي','Arabic name'],nen:['الاسم بالإنجليزي','English name'],key:['المعرّف (حروف إنجليزية صغيرة وأرقام و _)','Key (a-z, 0-9, _)'],
  base:['الصنف الأساسي','Base class'],baseh:['يحدد السلوك الأساسي في سير العمل (أدمن / مراجعة / مدير مشروع / راعٍ).','Sets core workflow behaviour.'],
- b_pm:['مدير مشروع','Project Manager'],b_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],b_sponsor:['راعي المشروع','Sponsor'],b_admin:['أدمن','Admin'],
+ b_user:['مستخدم عادي (رؤيته بحسب الوحدات)','Regular user (visibility by units)'],b_exec:['الإدارة العليا (ترى كل شيء، بلا توجيه ولا إعدادات)','Senior management (sees all; no routing/settings)'],b_pm:['مدير مشروع','Project Manager'],b_pmo:['مكتب التطوير المؤسسي','Institutional Development Office'],b_sponsor:['راعي المشروع','Sponsor'],b_admin:['أدمن','Admin'],
  perm:['الصلاحيات حسب الخدمة','Permissions per service'],svc:['الخدمة','Service'],show:['إظهار','Show'],crt:['إنشاء','Create'],view:['مستوى العرض','View level'],own:['ما يخصّه فقط','Own only'],all:['الكل','Everything'],
  s_cr:['طلبات التغيير','Change requests'],s_plan:['خطط المشاريع','Project plans'],s_charter:['مواثيق المشاريع','Project charters'],s_closure:['التقارير الختامية','Closure reports'],
  nt:['التنبيهات البريدية لهذا الدور','Email alerts for this role'],nth:['ألغِ التأشير لإيقاف هذا التنبيه عن كل مستخدمي الدور.','Untick to stop that alert for all users of this role.'],
@@ -80,7 +80,7 @@ function card(r,isNew){
  const nm=lang=='ar'?r.name_ar:r.name_en;
  const head=`<div class="rh" onclick="tog('${id}')" style="cursor:pointer"><b>${esc(nm||'—')}</b><span class="mut">${isNew?'':(CNT[r.key]||0)+' '+t('users')}${r.system?' · '+t('sys'):''}</span></div>`;
  if(!open)return `<div class="rr">${head}</div>`;
- const bs=['pm','pmo','sponsor','admin'].map(b=>`<option value="${b}" ${r.base==b?'selected':''}>${t('b_'+b)}</option>`).join('');
+ const bs=['user','exec','admin'].map(b=>`<option value="${b}" ${r.base==b?'selected':''}>${t('b_'+b)}</option>`).join('');
  const rows=SV.map(s=>`<tr><td>${t('s_'+s)}</td><td><input type="checkbox" id="sv_${s}" ${pv(r,'svc',s,true)?'checked':''}></td><td><input type="checkbox" id="cr_${s}" ${pv(r,'create',s,r.base=='pm'||ad)?'checked':''}></td><td><select id="vw_${s}"><option value="own" ${pv(r,'view',s,ad?'all':'own')=='own'?'selected':''}>${t('own')}</option><option value="all" ${pv(r,'view',s,ad?'all':'own')=='all'?'selected':''}>${t('all')}</option></select></td></tr>`).join('');
  const off=r.notif_off||[];
  return `<div class="rr" style="border-color:var(--g)">${head}

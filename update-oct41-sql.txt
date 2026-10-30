@@ -1,0 +1,228 @@
+-- =====================================================================
+-- update-oct41: هيكل الأدوار الجديد + الرؤية بحسب الوحدات التنظيمية — يُشغَّل بعد oct40
+--   الأدوار: مكتب التطوير المؤسسي (admin) · الإدارة العليا (exec) · مستخدم (user)
+--   المستخدم العادي: رؤيته بحسب الوحدات المحددة له (قطاع / إدارة / قسم) + المشاريع التي هو طرف فيها
+-- =====================================================================
+
+-- 1) الحقول الجديدة
+alter table profiles add column if not exists view_units text[];                       -- '2' قطاع · '2:3' إدارة · '2:3:اسم القسم' قسم
+alter table profiles add column if not exists scope_perf boolean not null default false; -- يتابع أداء مستخدمي هذه الوحدات
+alter table profiles add column if not exists org_section text;
+alter table profiles drop constraint if exists profiles_role_check;
+alter table app_roles drop constraint if exists app_roles_base_check;
+alter table app_roles add constraint app_roles_base_check check (base in ('admin','exec','user','pmo','pm','sponsor'));
+
+-- 2) الدوران الجديدان (وحفظ صلاحيات المستخدمين الحالية قبل حذف الأدوار القديمة)
+insert into app_roles(key,name_ar,name_en,base,perms,sort,system) values
+ ('exec','الإدارة العليا','Senior management','exec','{"create":{"cr":false,"charter":false,"closure":false,"plan":false},"view":{"cr":"all","charter":"all","closure":"all","plan":"all"},"svc":{"cr":true,"charter":true,"closure":true,"plan":true}}',15,true),
+ ('user','مستخدم','User','user','{"create":{"cr":true,"charter":true,"closure":true,"plan":true},"view":{"cr":"own","charter":"own","closure":"own","plan":"own"},"svc":{"cr":true,"charter":true,"closure":true,"plan":true}}',20,true)
+on conflict (key) do update set name_ar=excluded.name_ar, name_en=excluded.name_en, base=excluded.base, perms=excluded.perms, sort=excluded.sort, system=true;
+update app_roles set name_ar='مكتب التطوير المؤسسي', name_en='Institutional Development Office', sort=10 where key='admin';
+
+do $mig$
+declare r record; oc jsonb; svs text[] := array['cr','charter','closure','plan']; s text; stock jsonb :=
+  '{"create":{"cr":true,"charter":true,"closure":true},"view":{"cr":"own","charter":"own","closure":"own"},"svc":{"cr":true,"charter":true,"closure":true}}'::jsonb;
+begin
+  -- المستخدمون ذوو نطاق «المركز» القديم = الإدارة العليا (مع حفظ حقهم في الإنشاء إن كانوا مدراء مشاريع)
+  for r in select p.id, coalesce(p.role_key,p.role) rk, a.perms ap from profiles p left join app_roles a on a.key = coalesce(p.role_key,p.role)
+           where coalesce(p.role_key,p.role) in ('pm','pmo','sponsor') or (p.view_scope = 'center' and coalesce(p.role_key,p.role) <> 'admin') loop
+    if r.rk = 'admin' then continue; end if;
+    oc := '{}'::jsonb;
+    foreach s in array svs loop
+      oc := oc || jsonb_build_object(s, coalesce((r.ap->'create'->>s)::boolean, r.rk = 'pm'));
+    end loop;
+    -- المخصص من صلاحيات الدور القديم ينتقل إلى المستخدم نفسه إن كان مختلفًا عن الافتراضي
+    if r.rk in ('pmo','sponsor') or r.ap is distinct from stock then
+      update profiles set perm_ov = jsonb_build_object('create', oc)
+          || case when r.ap ? 'view' then jsonb_build_object('view', r.ap->'view') else '{}'::jsonb end
+          || case when r.ap ? 'svc' then jsonb_build_object('svc', r.ap->'svc') else '{}'::jsonb end
+          || coalesce(perm_ov,'{}'::jsonb) where id = r.id;
+    end if;
+    if exists(select 1 from profiles where id = r.id and view_scope = 'center') then
+      update profiles set role_key = 'exec', role = 'exec' where id = r.id;
+    else
+      update profiles set role_key = 'user', role = 'user' where id = r.id;
+    end if;
+  end loop;
+  -- نطاق القطاع القديم ← وحدات
+  update profiles set view_units = (select array_agg(x::text) from unnest(coalesce(view_sectors,'{}')) x) where view_scope = 'sector' and view_units is null and coalesce(cardinality(view_sectors),0) > 0;
+  -- صلاحية متابعة الأداء القديمة ← تُحفظ كما هي (perf_*) وتبقى سارية
+end $mig$;
+delete from app_roles where key in ('pm','pmo','sponsor') and not exists(select 1 from profiles where coalesce(role_key,role) = app_roles.key);
+
+-- 3) مزامنة view_scope (تعرفها الواجهات القديمة): center للإدارة العليا · units لمن له وحدات
+create or replace function profiles_scope_sync() returns trigger language plpgsql as $$
+begin
+  if coalesce(new.role_key,new.role) = 'exec' then new.view_scope := 'center'; new.view_sectors := null;
+  else
+    if new.view_scope = 'center' then new.view_scope := null; end if;
+    if coalesce(cardinality(new.view_units),0) > 0 then new.view_scope := 'units'; new.view_sectors := null;
+    elsif new.view_scope = 'units' then new.view_scope := null; end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists profiles_scope_sync_t on profiles;
+create trigger profiles_scope_sync_t before insert or update of role_key, role, view_units, view_scope on profiles for each row execute function profiles_scope_sync();
+update profiles set role_key = role_key where coalesce(role_key,role) = 'exec' or coalesce(cardinality(view_units),0) > 0;
+
+-- 4) مطابقة الوحدات: هل تغطي وحداتي هذا المشروع؟ (قطاع/إدارة بحسب بيانات المشروع، والقسم بحسب مشاركة أفراده)
+create or replace function units_cover(u text[], sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from unnest(coalesce(u,'{}')) e where
+       (coalesce(sec,'') ~ '^[0-9]+$' and (e = sec or (coalesce(dept,'') ~ '^[0-9]+$' and e = sec||':'||dept)))
+    or (e ~ '^[0-9]+:[0-9]+:.+' and coalesce(pc,'') <> '' and exists(
+          select 1 from profiles m
+          where m.org_sector = split_part(e,':',1)::int and m.org_dept = split_part(e,':',2)::int
+            and m.org_section = substr(e, length(split_part(e,':',1)) + length(split_part(e,':',2)) + 3)
+            and (m.full_name = (select c.data->>'pmname' from charters c where c.code = pc limit 1)
+              or m.id = (select c.created_by from charters c where c.code = pc limit 1)
+              or exists(select 1 from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t
+                        where p.data->>'pcode' = pc and t->>'w' = m.id::text)))))
+$$;
+create or replace function scope_view_p(sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select scope_view(sec) or exists(select 1 from profiles p where p.id = auth.uid() and coalesce(cardinality(p.view_units),0) > 0 and units_cover(p.view_units, sec, dept, pc))
+$$;
+grant execute on function units_cover(text[],text,text,text), scope_view_p(text,text,text) to authenticated;
+
+create or replace function pl_scope_edit(pid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from plans p where p.id = pid
+    and (has_grant(p.data->>'pcode','tasks','edit') or (scope_complete_me() and scope_view_p(p.data->>'sector', p.data->>'dept', p.data->>'pcode'))))
+$$;
+grant execute on function pl_scope_edit(bigint) to authenticated;
+
+-- المشروع «السري» لا يخفى عن الإدارة العليا (تراه كاملًا) ويخفى عن أصحاب الوحدات
+create or replace function proj_hidden_me(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce((select g.hidden and not pl_is_admin()
+                          and not exists(select 1 from profiles x where x.id = auth.uid() and coalesce(x.role_key,x.role) = 'exec')
+                          and not (auth.uid() = any(coalesce(g.hidden_users,'{}')))
+                   from project_cfg g where g.pcode = pc), false)
+$$;
+grant execute on function proj_hidden_me(text) to authenticated;
+
+-- 5) دوال الرؤية (بإضافة الوحدات)
+create or replace function pl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select pl_is_admin() or is_follower('plan',cid)
+      or exists(select 1 from plans c where c.id = cid and (c.created_by = auth.uid()
+            or has_grant(c.data->>'pcode','plan','view') or has_grant(c.data->>'pcode','tasks','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('plan') or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from plan_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+      or pl_assignee(cid)
+      or pl_pm_ok(cid)
+      or pl_was_invited(cid)
+$$;
+
+create or replace function ch_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select ch_is_admin() or is_follower('charter',cid)
+      or exists(select 1 from charters c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.code,'charter','view')
+            or (not proj_hidden_me(c.code) and (role_view_all('charter') or scope_view_p(c.data->>'sector', c.data->>'dept', c.code)))))
+      or exists(select 1 from charter_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+
+create or replace function cl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select cl_is_admin() or is_follower('closure',cid)
+      or exists(select 1 from closure_reports c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.data->>'pcode','closure','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('closure') or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from closure_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+
+create or replace function cr_scope_see(cid bigint, need text default 'view') returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from change_requests c where c.id = cid and not proj_blocked_me(c.data->>'pcode')
+     and ((need = 'view' and scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode') and not proj_hidden_me(c.data->>'pcode')) or has_grant(c.data->>'pcode','cr',need)))
+      or (need = 'view' and exists(select 1 from signatories s where s.cr_id = cid and proxy_ok(s.user_id)))
+$$;
+
+create or replace function project_access(p_code text) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare sec text; dpt text; pm text; res jsonb;
+begin
+  if not pl_is_admin() then raise exception 'admin only'; end if;
+  select coalesce(data->>'sector',''), coalesce(data->>'dept',''), coalesce(data->>'pmname','') into sec, dpt, pm from charters where code = p_code;
+  with r(uid, reason, gid) as (
+    select id, 'admin', null::bigint from profiles where role = 'admin'
+    union all select id, 'center', null from profiles where view_scope = 'center'
+    union all select id, 'sector', null from profiles where view_scope = 'sector' and sec ~ '^[0-9]+$' and sec::int = any(coalesce(view_sectors,'{}'))
+    union all select id, 'unit', null from profiles where coalesce(cardinality(view_units),0) > 0 and units_cover(view_units, sec, dpt, p_code)
+    union all select p.id, 'role_all', null from profiles p join app_roles a on a.key = coalesce(p.role_key,p.role) where a.base <> 'admin' and (a.perms->'view'->>'plan' = 'all' or a.perms->'view'->>'charter' = 'all')
+    union all select created_by, 'creator', null from charters where code = p_code
+    union all select created_by, 'creator', null from plans where data->>'pcode' = p_code
+    union all select id, 'pm', null from profiles where pm <> '' and full_name = pm
+    union all select s.user_id, case s.stage when 'reviewed' then 'reviewer' when 'approved' then 'approver' else 'preparer' end, null from charter_signatories s join charters c on c.id = s.cr_id where c.code = p_code
+    union all select s.user_id, case s.stage when 'reviewed' then 'reviewer' when 'approved' then 'approver' else 'preparer' end, null from plan_signatories s join plans c on c.id = s.cr_id where c.data->>'pcode' = p_code
+    union all select s.user_id, case s.stage when 'reviewed' then 'reviewer' when 'approved' then 'approver' else 'preparer' end, null from closure_signatories s join closure_reports c on c.id = s.cr_id where c.data->>'pcode' = p_code
+    union all select s.user_id, case s.stage when 'reviewed' then 'reviewer' when 'approved' then 'approver' else 'preparer' end, null from signatories s join change_requests c on c.id = s.cr_id where c.data->>'pcode' = p_code
+    union all select (t->>'w')::uuid, 'assignee', null from plans c, jsonb_array_elements(coalesce(c.data->'tasks','[]'::jsonb)) t where c.data->>'pcode' = p_code and c.status = 'Approved' and coalesce(t->>'w','') ~ '^[0-9a-f-]{36}$'
+    union all select unnest(k.invitees), 'participant', null from plan_consult k join plans c on c.id = k.plan_id where c.data->>'pcode' = p_code
+    union all select f.user_id, 'follower', null from followers f where (f.svc = 'plan' and f.cr_id in (select id from plans where data->>'pcode' = p_code)) or (f.svc = 'charter' and f.cr_id in (select id from charters where code = p_code)) or (f.svc = 'closure' and f.cr_id in (select id from closure_reports where data->>'pcode' = p_code)) or (f.svc = 'cr' and f.cr_id in (select id from change_requests where data->>'pcode' = p_code))
+    union all select user_id, case when lvl = 'edit' then 'grant_edit' else 'grant_view' end, id from project_grants where pcode = p_code
+  ), g as (
+    select uid, array_agg(distinct reason) reasons, max(gid) gid from r where uid is not null group by uid)
+  select coalesce(jsonb_agg(jsonb_build_object('user_id', g.uid, 'name', p.full_name, 'job', p.job_title, 'role', p.role, 'reasons', g.reasons, 'grant_id', g.gid,
+          'blocked', exists(select 1 from project_blocks b where b.pcode = p_code and b.user_id = g.uid),
+          'block_note', (select b.note from project_blocks b where b.pcode = p_code and b.user_id = g.uid),
+          'duty', (exists(select 1 from plan_signatories s join plans c on c.id = s.cr_id where c.data->>'pcode' = p_code and s.user_id = g.uid and s.status = 'pending')
+                or exists(select 1 from charter_signatories s join charters c on c.id = s.cr_id where c.code = p_code and s.user_id = g.uid and s.status = 'pending')
+                or exists(select 1 from closure_signatories s join closure_reports c on c.id = s.cr_id where c.data->>'pcode' = p_code and s.user_id = g.uid and s.status = 'pending')
+                or exists(select 1 from plans c, jsonb_array_elements(coalesce(c.data->'tasks','[]'::jsonb)) t where c.data->>'pcode' = p_code and c.status = 'Approved' and t->>'w' = g.uid::text and coalesce((t->>'pc')::numeric,0) < 100))
+        ) order by (p.role = 'admin') desc, p.full_name), '[]'::jsonb) into res
+  from g join profiles p on p.id = g.uid;
+  return res;
+end $fn$;
+grant execute on function project_access(text) to authenticated;
+
+-- 6) ضبط الوحدات التي يراها المستخدم (للأدمن فقط): الوحدات + متابعة الأداء + إنجاز مهام أفرادها
+create or replace function admin_set_units(uid uuid, p_units text[], p_perf boolean, p_complete boolean) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare u text[];
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'admin only'; end if;
+  select coalesce(array_agg(distinct trim(x)), '{}') into u from unnest(coalesce(p_units,'{}')) x where trim(x) ~ '^[0-9]+(:[0-9]+(:.+)?)?$';
+  update profiles set view_units = case when cardinality(u) > 0 then u end,
+                      scope_perf = coalesce(p_perf,false) and cardinality(u) > 0,
+                      scope_complete = coalesce(p_complete,false) and cardinality(u) > 0
+  where id = uid;
+end $fn$;
+revoke all on function admin_set_units(uuid,text[],boolean,boolean) from public;
+grant execute on function admin_set_units(uuid,text[],boolean,boolean) to authenticated;
+
+-- 7) متابعة أداء المستخدمين: الإدارة العليا ترى الكل · ومن له وحدات + خانة الأداء يرى مستخدمي وحداته
+create or replace function perf_can(target uuid) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(
+    select 1 from profiles me, profiles tg
+    where me.id = auth.uid() and tg.id = target and (
+      me.role = 'admin' or me.perf_scope = 'all' or me.id = tg.id or coalesce(me.role_key,me.role) = 'exec'
+      or (me.scope_perf and tg.org_sector is not null and exists(select 1 from unnest(coalesce(me.view_units,'{}')) e where
+            e = tg.org_sector::text
+            or (tg.org_dept is not null and e = tg.org_sector::text||':'||tg.org_dept::text)
+            or (tg.org_dept is not null and tg.org_section is not null and e = tg.org_sector::text||':'||tg.org_dept::text||':'||tg.org_section)))
+      or (me.perf_scope = 'units' and (
+            (tg.org_sector is not null and tg.org_sector = any(coalesce(me.perf_sectors,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and (tg.org_sector::text||':'||tg.org_dept::text) = any(coalesce(me.perf_depts,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and tg.org_section is not null and (tg.org_sector::text||':'||tg.org_dept::text||':'||tg.org_section) = any(coalesce(me.perf_depts,'{}')))))))
+$$;
+grant execute on function perf_can(uuid) to authenticated;
+
+-- 8) الأدوار الأساسية الجديدة في إدارة الأدوار
+create or replace function admin_save_role(p_key text, p_ar text, p_en text, p_base text, p_perms jsonb, p_notif text[]) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'admin only'; end if;
+  if p_key !~ '^[a-z0-9_]{2,30}$' then raise exception 'bad key'; end if;
+  if p_base not in ('admin','exec','user') then raise exception 'bad base'; end if;
+  insert into app_roles(key,name_ar,name_en,base,perms,notif_off)
+    values(p_key,p_ar,p_en,p_base,coalesce(p_perms,'{}'),coalesce(p_notif,'{}'))
+  on conflict (key) do update set name_ar=excluded.name_ar, name_en=excluded.name_en,
+    base = case when app_roles.system then app_roles.base else excluded.base end,
+    perms=excluded.perms, notif_off=excluded.notif_off;
+  update profiles set role = (select base from app_roles where key=p_key) where role_key = p_key;
+end $fn$;
+grant execute on function admin_save_role(text,text,text,text,jsonb,text[]) to authenticated;
+
+notify pgrst, 'reload schema';
