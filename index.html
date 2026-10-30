@@ -926,10 +926,11 @@ function sumTxt(k,n,l){var t;
   return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة و':'')+pl(d)+' حان موعد تنفيذها'}
  t=lang=='en'?n+' '+SUMP[k][1]:AR(n)+' '+SUMP[k][0];
  return t+(l?(lang=='en'?' ('+(l==n?(n==1?'late':n==2?'both late':'all late'):l+' late')+')':' ('+(l==n?(n==1?'متأخرة':n==2?'كلاهما متأخر':'كلها متأخرة'):AR(l)+' متأخرة')+')'):'')}
-function kindOf(m){var x=m.x;if(!m.act)return null;if(x.k=='tasks')return'tk';if(x.cons)return'pt';
+function kindOf(m){var x=m.x;if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'of';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
  if(x.st=='Awaiting Approval'&&x.roles.has('ap'))return'ap';if(x.st=='PMO Review'&&x.roles.has('rv'))return'rv';
  if(x.st=='Returned to PM'&&x.roles.has('pm'))return'pmr';if(x.st=='Draft'&&x.roles.has('pm'))return'pmd';
  if(x.roles.has('of'))return'of';return x.roles.has('ap')?'ap':x.roles.has('rv')?'rv':'ot'}
+function E_ok(x){return window.JNX.E.role!='fl'}
 function roleNames(x){var X=window.JNX;return X.ROLES.filter(function(r){return x.roles.has(r[0])&&(r[0]!='of'||(X.E.me&&X.E.me.role=='admin'))}).map(function(r){return P(r[1])}).join('، ')}
 function rolePill(m){var k=m.k;if(k){var K=KIND[k],x=m.x,pk=x.k+'|'+x.id+(x.tid?'|'+x.tid:'');return'<span class="cm-rp ab" data-pop="'+esc(pk)+'" title="'+esc(P(K))+'" style="--k:'+K[2]+'">'+esc(P(K))+' ›</span>'}var r=roleNames(m.x);return r?'<span class="cm-rp n">'+esc(P(['دورك: ','Role: '])+r)+'</span>':''}
 function st(m){var x=m.x;if(x.k=='tasks')return P(TS[x.stage-1]||['','']);return P(window.JNX.stName(x.st))}
