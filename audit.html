@@ -83,7 +83,8 @@ let F={from:'',to:'',actor:'',q:'',tab:'all',dup:true},ROWS=[],TOTAL=0,LOADING=f
 const PG=100;
 const v2s=v=>v==null?'∅':typeof v=='object'?JSON.stringify(v):String(v);
 function act(r){
- if(r.src=='sys'){let s=t(r.op)+' '+tn(r.tbl);if(r.tbl=='profiles'&&r.pname)s=t(r.op)+' '+P('بيانات مستخدم','user')+': '+r.pname;
+ if(r.src=='sys'){if(r.tbl=='plan_versions'&&r.op=='INSERT'){const v=r.details&&r.details.version;return P('حفظ نسخة من الخطة عند الاعتماد'+(v?' (الإصدار '+v+')':'')+' — ليست خطة جديدة','Plan snapshot saved at approval'+(v?' (version '+v+')':'')+' — not a new plan')}
+  let s=t(r.op)+' '+tn(r.tbl);if(r.tbl=='profiles'&&r.pname)s=t(r.op)+' '+P('بيانات مستخدم','user')+': '+r.pname;
   const c=r.details;if(r.op=='UPDATE'&&c&&c.status&&Array.isArray(c.status))s+=' — '+P('الحالة من ','status from ')+stn(c.status[0])+P(' إلى ',' to ')+stn(c.status[1]);
   return s}
  const p=String(r.summary||'').split('|'),k=p[0],S=SVN[r.src]?SVN[r.src][A()?0:1]:'';
