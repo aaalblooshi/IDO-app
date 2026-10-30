@@ -172,7 +172,7 @@ async function load(){
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();
  if(!p||p.role!='admin')return gate('adminOnly');
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors;if(L&&Array.isArray(L.depts)&&L.depts.length)DEPS=L.depts;if(L&&Array.isArray(L.sects))SECTL=L.sects}catch(_){}
- if(!DEPS.length)DEPS=DEFD();while(DEPS.length<SECS.length)DEPS.push([])
+ if(!DEPS.length)DEPS=DEFD();while(DEPS.length<SECS.length)DEPS.push([]);if(!SECTL.length)SECTL=DEPS.map(ds=>ds.map(()=>[['قسم 1','Section 1'],['قسم 2','Section 2'],['قسم 3','Section 3']]))
  await reload()}
 const rk=u=>u.role_key||u.role;
 const rn=k=>{const r=ROLES.find(x=>x.key==k);return r?(lang=='ar'?r.name_ar:r.name_en):(D['r_'+k]?t('r_'+k):k)};

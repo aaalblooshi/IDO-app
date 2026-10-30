@@ -90,6 +90,7 @@ async function load(){
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate('needLogin');
  me=p;ADM=p.role=='admin';
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length){SECS=L.sectors;if(Array.isArray(L.depts))DEPS=L.depts}if(L&&Array.isArray(L.sects))SECTL=L.sects}catch(_){}
+ if(!SECTL.length)SECTL=Array.from({length:SECS.length},(_,s)=>Array.from({length:(DEPS[s]||[]).length||5},()=>[['قسم 1','Section 1'],['قسم 2','Section 2'],['قسم 3','Section 3']]));
  await reload()}
 async function reload(){
  const q=(tb,c)=>sb.from(tb).select(c).then(r=>r.data||[],()=>[]);

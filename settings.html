@@ -238,7 +238,7 @@ function initLists(){const d=DEFL();let u={};try{u=JSON.parse(SET.opt_lists||'{}
  if(!u.goals&&SET.opt_goals){try{const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length)u.goals=g}catch(_){}}
  EL={};LK.forEach(k=>EL[k]=JSON.parse(JSON.stringify(Array.isArray(u[k])&&u[k].length?u[k]:d[k])));
  while(EL.depts.length<EL.sectors.length)EL.depts.push([]);EL.depts.length=EL.sectors.length;
- EL.sects=EL.depts.map((ds,si)=>ds.map((_,di)=>JSON.parse(JSON.stringify((((u.sects||[])[si]||[])[di])||[]))))}
+ EL.sects=EL.depts.map((ds,si)=>ds.map((_,di)=>JSON.parse(JSON.stringify(Array.isArray(u.sects)?((((u.sects||[])[si]||[])[di])||[]):[['قسم 1','Section 1'],['قسم 2','Section 2'],['قسم 3','Section 3']]))))}
 const keyed=k=>['ptype','prio','pstat'].includes(k);
 function rowsH(arr,path,k){ // arr: array of items; path: JS expression to the array
  return arr.map((it,i)=>{const o=keyed(k)?1:0,lock=keyed(k)&&(LOCK[k]||[]).includes(it[0]);
