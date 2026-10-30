@@ -1,0 +1,26 @@
+-- تصحيح تاريخ اعتماد الميثاق PRJ-2026-042 (كان 1 نوفمبر 2026 أي في المستقبل) إلى وقت التشغيل
+-- شغّله مرة واحدة في Supabase → SQL editor. يغيّر سجلًا واحدًا فقط ويُسجَّل التصحيح في سجل التدقيق.
+
+-- 1) تاريخ الاعتماد والإصدار للميثاق
+update charters
+   set stage_at = now(), issued_at = now()
+ where code = 'PRJ-2026-042'
+   and stage_at > now();
+
+-- 2) سطر سجل الاعتماد المؤرَّخ في المستقبل (رقم 140 فقط)
+update charter_audit
+   set at = now()
+ where id = 140
+   and at > now()
+   and action = 'status|Approved'
+   and cr_id = (select id from charters where code = 'PRJ-2026-042');
+
+-- 3) سطر شفافية يوثّق التصحيح نفسه
+insert into charter_audit (cr_id, user_name, action)
+select id, 'مكتب التطوير المؤسسي (تصحيح بيانات)', 'adminedit|تصحيح تاريخ الاعتماد من 2026-11-01 (مستقبلي) إلى تاريخ التصحيح'
+  from charters where code = 'PRJ-2026-042';
+
+-- تحقّق: يجب ألا يظهر أي تاريخ مستقبلي
+select code, status, created_at, stage_at, issued_at from charters where code = 'PRJ-2026-042';
+select id, at, user_name, action from charter_audit
+ where cr_id = (select id from charters where code = 'PRJ-2026-042') order by at desc limit 5;
