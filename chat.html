@@ -90,8 +90,12 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
 const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
 let ME=null,UN={},ON=false,PROJ=[],GEN=null,UNR={},PINS=new Set(),DMS={},CUR=null,MSGS=[],MEM=[],ATT=[],REFS=[],Q='',SEL=null,PANEL=null,MENC={},MEN=null,URLC={},DR={},SIG='',BUSY=false,SHOWALL=false;
 const OFFICE=()=>T2('مكتب التطوير المؤسسي','Institutional Development Office');
-const hidAdm=id=>{const u=UN[id];if(!u||u.role!='admin'||id==(ME||{}).id)return false;if(!CUR||CUR.t!='ch')return false;if(!CUR.pcode)return true;return !MEM.some(m=>m.user_id==id)};
-const snm=id=>hidAdm(id)?OFFICE():((UN[id]||{}).full_name||'—');
+let AIDC='both';
+const admCtx=id=>{const u=UN[id];if(!u||u.role!='admin'||id==(ME||{}).id)return false;if(!CUR||CUR.t!='ch')return false;if(!CUR.pcode)return true;return !MEM.some(m=>m.user_id==id)};
+const aidN=(id,n)=>AIDC=='name'?n:AIDC=='office'?OFFICE():OFFICE()+' — '+n;
+const hidAdm=id=>admCtx(id)&&AIDC=='office';
+const snm=id=>{const n=(UN[id]||{}).full_name||'—';return admCtx(id)?aidN(id,n):n};
+const dmn=id=>{const n=(UN[id]||{}).full_name||'—';const u=UN[id];return u&&u.role=='admin'&&id!=(ME||{}).id?aidN(id,n):n};
 const nm=id=>(UN[id]||{}).full_name||'—',ini=n=>((n||'?').trim()[0]||'?'),norm=x=>String(x||'').toLowerCase().replace(/[ً-ٰٟ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
 const keyOf=c=>c?(c.t+':'+c.id):'';
 const fmtT=x=>new Date(x).toLocaleTimeString(lang=='ar'?'ar':'en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -111,7 +115,7 @@ function items(){
  if(GEN)all.push(mk({t:'ch',id:GEN.id,name:T2('عام — كل المستخدمين','General — everyone'),icon:'🌐',sub:T2('قناة مفتوحة للجميع','Open to everyone'),at:GEN.last||0,kind:'gen'}));
  PROJ.forEach(p=>all.push(mk({t:'ch',id:p.channel_id||('p:'+p.pcode),pcode:p.pcode,name:p.name||p.pcode,icon:'📁',sub:p.pcode,at:p.last_at?+new Date(p.last_at):0,kind:'proj',n0:+p.n||0,_ck:'ch:'+p.channel_id})));
  all.forEach(o=>{if(o.kind=='proj'){o.n=UNR['ch:'+o.id]||0;o.pin=PINS.has('ch:'+o.id)||PINS.has('pc:'+o.pcode);o.mu=PINS.has('m:ch:'+o.id)}});
- Object.keys(UN).filter(i=>i!=ME.id&&(ME.role=='admin'||(UN[i]||{}).role!='admin'||DMS[i])).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:UN[i].full_name||'—',icon:ini(UN[i].full_name),sub:d?(d.deleted?'':d.body||T2('مرفق','Attachment')):(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
+ Object.keys(UN).filter(i=>i!=ME.id&&(ME.role=='admin'||(UN[i]||{}).role!='admin'||DMS[i])).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:dmn(i),icon:ini(dmn(i)),sub:d?(d.deleted?'':d.body||T2('مرفق','Attachment')):(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
  all.forEach(o=>{if(ql&&!norm(o.name+' '+(o.pcode||'')).includes(ql))return;
   if(o.pin)out.pin.push(o);else if(o.kind=='proj'||o.kind=='gen')out.proj.push(o);else if(o.has||ql||SHOWALL)out.ppl.push(o)});
  const srt=(a,b)=>((b.n>0&&!b.mu)-(a.n>0&&!a.mu))||(b.at-a.at)||String(a.name).localeCompare(b.name);
@@ -241,7 +245,7 @@ async function load(){
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();ME=me;
  const {data:us}=await sb.from('profiles').select('id,full_name,job_title,role');(us||[]).forEach(u=>UN[u.id]=u);
- const r=await sb.rpc('chat_on');ON=!!r.data;
+ const r=await sb.rpc('chat_on');ON=!!r.data;try{const a=await sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle();const v=a.data&&a.data.value?(JSON.parse(a.data.value).chat):null;if(v=='office'||v=='name')AIDC=v}catch(_){}
  if(!ON){$('app').innerHTML=`<div class="card lock"><p>${t('off')}</p></div>`;return}
  try{const g=await sb.from('chat_channels').select('id').eq('kind','general').limit(1);GEN=(g.data||[])[0]||null}catch(_){}
  try{const p=await sb.from('chat_pins').select('k');PINS=new Set((p.data||[]).map(x=>x.k))}catch(_){}

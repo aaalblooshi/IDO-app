@@ -172,14 +172,18 @@ async function loadEsc(){ESC=[];if(!ADM)return;try{const {data}=await sb.from('e
 
 const KIND=a=>{const k=String(a).split('|')[0],st=String(a).split('|')[1]||'';if(['signed','assigned','removed','reminded'].includes(k))return 'sign';if(['returned','rejected','officerejected','revrejected','apprejected'].includes(k)||(k=='status'&&/Return|Reject/.test(st)))return 'ret';if(['approvenote','officeapproved'].includes(k)||(k=='status'&&st=='Approved'))return 'appr';if(k=='taskprog')return 'task';if(['adminedit','attached','attremoved','archived','restored'].includes(k))return 'edit';return 'other'};
 try{SEEN=+localStorage.getItem('inbox_seen_'+'u')||0}catch(_){}
+
+/*admin-identity*/let AIDS={},AIDN=new Set();
+async function aidLoad(){try{const [a,b]=await Promise.all([sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle(),sb.from('profiles').select('full_name').eq('role','admin')]);AIDS=a.data&&a.data.value?JSON.parse(a.data.value):{};AIDN=new Set((b.data||[]).map(x=>(x.full_name||'').trim()))}catch(_){}}
+function aid(n,k){const s=n==null?'':String(n),m=AIDS[k];if(!s||m=='name'||!AIDN.has(s.trim()))return n;const O=(typeof lang!='undefined'&&lang=='en')?'Institutional Development Office':'مكتب التطوير المؤسسي';return m=='office'?O:O+' — '+s}
 async function start(){
- try{SEEN=+localStorage.getItem('inbox_seen_'+ME.id)||0}catch(_){}
+ await aidLoad();try{SEEN=+localStorage.getItem('inbox_seen_'+ME.id)||0}catch(_){}
  const all=[];await loadEsc();
  await Promise.all(SRC.map(async([tb,dt,sv,pg])=>{
   const {data}=await sb.from(tb).select('*').order('at',{ascending:false}).limit(60);if(!data||!data.length)return;
   const ids=[...new Set(data.map(x=>x.cr_id))],{data:cs}=await sb.from(dt).select('id,code,nm:data->>pname').in('id',ids),cm={},nmm={};(cs||[]).forEach(c=>{cm[c.id]=c.code;nmm[c.id]=c.nm});
-  data.forEach(x=>all.push({at:x.at,who:x.user_name,act:x.action||'',sv,pg,tk:/^(taskprog|taskrem|taskadd)/.test(x.action||''),id:x.cr_id,code:cm[x.cr_id]||'',nm:nmm[x.cr_id]||''}))}));
- try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:x.from_name,act:'nudge|'+x.msg,sv:'nudge',pg:'inbox.html',tk:false,id:0,code:'',nm:x.from_name||''}))}catch(_){}
+  data.forEach(x=>all.push({at:x.at,who:aid(x.user_name,'audit'),act:x.action||'',sv,pg,tk:/^(taskprog|taskrem|taskadd)/.test(x.action||''),id:x.cr_id,code:cm[x.cr_id]||'',nm:nmm[x.cr_id]||''}))}));
+ try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:aid(x.from_name,'notify'),act:'nudge|'+x.msg,sv:'nudge',pg:'inbox.html',tk:false,id:0,code:'',nm:aid(x.from_name,'notify')||''}))}catch(_){}
  EV=all.filter(e=>e.who!=ME.full_name).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,120);draw()}
 function txt(a){const p=a.split('|'),k=p[0],b=D['a_'+k]?t('a_'+k):k;
  if(k=='taskprog')return b+': '+(p[1]||'')+' — '+(p[2]||'')+'%';

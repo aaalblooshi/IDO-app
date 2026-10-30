@@ -1,0 +1,57 @@
+-- أوكتوبر 47: ظهور الأدمن (مكتب التطوير المؤسسي / الاسم / الاثنان) في التذكيرات والبريد
+-- شغّله مرة واحدة في Supabase → SQL editor (بعد 43 → 44 → 45 → 46)
+
+-- القيمة الافتراضية: المكتب + الاسم لكل الخطوات (لا تُستبدل إن كانت موجودة)
+insert into app_settings(key, value)
+values ('admin_identity', '{"chat":"both","decision":"both","audit":"both","notify":"both"}')
+on conflict (key) do nothing;
+
+-- يحوّل اسم المنفّذ إلى الصيغة المختارة (للأدمن فقط) حسب الخطوة
+create or replace function admin_label(p_uid uuid, p_step text) returns text
+language plpgsql stable security definer set search_path=public as $fn$
+declare nm text; rl text; m text;
+begin
+  select full_name, role into nm, rl from profiles where id = p_uid;
+  if nm is null or rl is distinct from 'admin' then return nm; end if;
+  begin
+    select (value::jsonb)->>p_step into m from app_settings where key = 'admin_identity';
+  exception when others then m := null; end;
+  if m = 'name' then return nm; end if;
+  if m = 'office' then return 'مكتب التطوير المؤسسي'; end if;
+  return 'مكتب التطوير المؤسسي — ' || nm;
+end $fn$;
+grant execute on function admin_label(uuid, text) to authenticated;
+
+-- تذكير المكلّفين: اسم المُرسِل حسب إعداد «التذكيرات والإشعارات والبريد»
+create or replace function remind_stale(p_plans bigint[], p_users uuid[]) returns int
+language plpgsql security definer set search_path=public as $fn$
+declare
+  me text; pid bigint; v_code text; v_proj text; rcp jsonb; url text; sec text; site text; n int := 0;
+begin
+  select role into me from profiles where id = auth.uid();
+  if me is distinct from 'admin' then return 0; end if;
+  select value into url  from app_config where key = 'mail_url';
+  select value into sec  from app_config where key = 'mail_secret';
+  select value into site from app_config where key = 'site_url';
+  if url is null then return 0; end if;
+  foreach pid in array coalesce(p_plans, '{}'::bigint[]) loop
+    select code, data->>'pname' into v_code, v_proj from plans where id = pid;
+    if v_code is null then continue; end if;
+    select coalesce(jsonb_agg(distinct jsonb_build_object('email', lower(trim(pr.email)), 'name', pr.full_name)), '[]'::jsonb)
+      into rcp
+      from profiles pr
+     where pr.id = any(p_users)
+       and coalesce(trim(pr.email), '') <> ''
+       and exists (select 1 from plans p2, jsonb_array_elements(coalesce(p2.data->'tasks','[]'::jsonb)) t
+                    where p2.id = pid and t->>'w' = pr.id::text);
+    if jsonb_array_length(rcp) = 0 then continue; end if;
+    perform net.http_post(url := url,
+      body := jsonb_build_object('secret', sec, 'event', 'reminderUpdate', 'service', 'plan', 'code', v_code,
+              'project', nullif(v_proj, ''), 'by', admin_label(auth.uid(), 'notify'),
+              'site', site, 'page', 'tasks.html', 'recipients', rcp),
+      headers := '{"Content-Type":"application/json"}'::jsonb);
+    n := n + jsonb_array_length(rcp);
+  end loop;
+  return n;
+end $fn$;
+grant execute on function remind_stale(bigint[], uuid[]) to authenticated;

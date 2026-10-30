@@ -825,7 +825,10 @@ let GR=[],PROXY=[];
 const isMine=s=>s.user_id==me.id||PROXY.includes(s.user_id);
 const pcOf=r=>SVC=='charter'?(r.code||''):((r.data||{}).pcode||'');
 const gEd=r=>{const p=pcOf(r);return !!p&&GR.some(g=>g.pcode==p&&g.lvl=='edit'&&(!g.svcs||g.svcs.includes(SVC)))};
-async function loadSet(){SET={};GR=[];PROXY=[];try{const r=await sb.rpc('my_perms');EFFP=r.error?null:r.data}catch(_){}try{const r=await sb.rpc('my_proxy_for');PROXY=(r.data||[]).map(x=>x.id)}catch(_){}try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
+/*admin-identity*/let AIDS={},AIDN=new Set();
+async function aidLoad(){try{const [a,b]=await Promise.all([sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle(),sb.from('profiles').select('full_name').eq('role','admin')]);AIDS=a.data&&a.data.value?JSON.parse(a.data.value):{};AIDN=new Set((b.data||[]).map(x=>(x.full_name||'').trim()))}catch(_){}}
+function aid(n,k){const s=n==null?'':String(n),m=AIDS[k];if(!s||m=='name'||!AIDN.has(s.trim()))return n;const O=(typeof lang!='undefined'&&lang=='en')?'Institutional Development Office':'مكتب التطوير المؤسسي';return m=='office'?O:O+' — '+s}
+async function loadSet(){await aidLoad();SET={};GR=[];PROXY=[];try{const r=await sb.rpc('my_perms');EFFP=r.error?null:r.data}catch(_){}try{const r=await sb.rpc('my_proxy_for');PROXY=(r.data||[]).map(x=>x.id)}catch(_){}try{if(me&&me.id){const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',me.id);GR=g.data||[]}}catch(_){}try{const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>SET[x.key]=x.value)}catch(_){}
  applyLists();ROLES={};try{const r=await sb.from('app_roles').select('*');(r.data||[]).forEach(x=>ROLES[x.key]=x)}catch(_){}}
 async function start(){
  curView=start;editing=false;
@@ -901,7 +904,7 @@ function enrich(){
   x.days=waitDays(r.stage_at||r.created_at);x.late=HOLD.includes(st)?Math.max(0,x.days-SLA):0;
   x.over=x.late>0;
  })}
-function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>users[s.user_id]?.full_name).filter(Boolean).join(', ');
+function whoOf(x){const r=x.r,st=r.status,nm=s2=>x.sg.filter(s=>s.stage==s2&&s.status=='pending').map(s=>aid(users[s.user_id]?.full_name,'decision')).filter(Boolean).join(', ');
  if(st=='Draft'||st=='Returned to PM')return users[r.created_by]?.full_name||'';
  if(st=='Submitted'||st=='Reviewed'||st=='Office Decision')return t('role_admin');
  if(st=='PMO Review')return nm('reviewed');
@@ -1068,7 +1071,7 @@ async function openCR0(id){
  const opts=()=>Object.values(users);
  const key=id+':'+ed;if(ftabKey!==key){ftabKey=key;ftab=ed?'gen':'flow'}
  const AN=Array.isArray(d._anotes)?d._anotes:[];
- const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(u.full_name)} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at)+(s.signed_by&&s.signed_by!=s.user_id?' · '+t('byProxy').replace('{n}',esc((users[s.signed_by]||{}).full_name||'')):''):`<span class="mut">${fin?'—':t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
+ const blk=(sg,can,n)=>`<div class="sig st${n}"><b>${n+1}. ${t('stg_'+sg)}</b>${sigs.filter(s=>s.stage==sg).map(s=>{const u=users[s.user_id]||{};return`<div class="srow"><div>${esc(aid(u.full_name,'decision'))} <span class="mut">· ${esc(u.job_title||rl(u))}</span><br>${s.status=='signed'?t('signedOn')+' '+fd(s.signed_at)+(s.signed_by&&s.signed_by!=s.user_id?' · '+t('byProxy').replace('{n}',esc((users[s.signed_by]||{}).full_name||'')):''):`<span class="mut">${fin?'—':t('pending')}</span>`}${s.signature_img?`<img src="${s.signature_img}">`:''}</div>${can?`<button class="sm" onclick="rmSig(${s.id})">✕</button>`:''}</div>`}).join('')||`<div class="mut">${t('noOne')}</div>`}${AN.filter(a=>(a.stage||'approved')==sg).map(a=>`<div class="nt ap"><b>💬 ${t(sg=='approved'?'apprNoteT':'stageNoteT')}: ${esc(a.by)}</b>${esc(a.text)}</div>`).join('')}${can?`<div class="row"><select class="srch" id="as_${sg}" style="flex:1;width:auto">${opts().map(u=>`<option value="${u.id}">${esc(u.full_name)} (${rl(u)})</option>`).join('')}</select><button onclick="addSig('${sg}')">${t('add')}</button></div>`:''}</div>`;
  let acts='',more='';
  if(aed)acts+=`<button class="p" onclick="adminEditDone(true)">💾 ${t('aedSave')}</button><button onclick="adminEditDone(false)">${t('cancel')}</button>`;
  if(ed&&!aed)acts+=`<button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button>`;
@@ -1098,7 +1101,7 @@ async function openCR0(id){
  const canNote=canRet&&!ed,NT=apprOnly?null:d._notes,nv0=k=>(NOTES[cr.id]||{})[k]||'',nHas=k=>nv0(k).trim()!=='';
  const nbtn=k=>canNote&&noteMode?`<button class="nbtn ${nHas(k)?'has':''}" data-nb="${k}" onclick="toggleNb('${k}')">💬</button>`:'';
  const nbox=k=>canNote&&noteMode?`<div class="nbox" id="nb_${k}" style="display:${nHas(k)?'block':'none'}"><textarea data-n="${k}" rows="2" placeholder="${t('notePh')}">${esc(nv0(k))}</textarea></div>`:'';
- const ntx=k=>NT&&NT.items&&NT.items[k]?`<div class="nt ${ed?'':'old'}"><b>💬 ${t('noteTitle')} ${esc(NT.by)} · ${t('version')} ${NT.v}</b>${esc(NT.items[k])}</div>`:'';
+ const ntx=k=>NT&&NT.items&&NT.items[k]?`<div class="nt ${ed?'':'old'}"><b>💬 ${t('noteTitle')} ${esc(aid(NT.by,'decision'))} · ${t('version')} ${NT.v}</b>${esc(NT.items[k])}</div>`:'';
  const fld=(k,ctrl,cls,hint)=>`<div class="${cls||''}"><div class="lr" data-fk="${k}"><label>${t('f_'+k)}${STAR.includes(k)?' <span class="rq">*</span>':''}</label>${nbtn(k)}</div>${hint?`<div class="mut" style="margin:-2px 0 6px">${hint}</div>`:''}${ctrl}${nbox(k)}${ntx(k)}</div>`;
  const tf=k=>fld(k,tx(k));
  const ncnt=k=>TABKEYS[k]?TABKEYS[k].filter(x=>NT&&NT.items&&NT.items[x]).length:0;
@@ -1152,7 +1155,7 @@ async function openCR0(id){
  <div class="card pn ${ftab=='rsk'?'on':''}" data-t="rsk"><div class="sec">${t('s_rsk')}</div>${fld('risks',rowsEd('risks'),'',t('risks_hint'))}${tf('assume')}${tf('constr')}<div class="sec" style="margin-top:14px">${t('s_appr')}</div>${fld('appr',listEd('appr'))}${pnav('res','fz')}</div>
 <div class="card pn ${ftab=='fz'?'on':''}" data-t="fz">${fzHtml(ed,adm,{rowsEd})}${pnav('rsk','flow')}</div>
  <div class="card pn ${ftab=='flow'?'on':''}" data-t="flow"><div class="sec">${t('workflow')}</div><div id="delbox"></div>${attB}${note?`<div class="mut" style="margin-bottom:8px">${note}</div>`:''}${blk('created',ed||canAdm,0)}${showRev?blk('reviewed',canRev,1):''}${showApp?blk('approved',canApp||extraApp,2):''}${extraApp?`<div class="mut" style="margin:6px 0">${t('extraAppNote')}</div>`:''}${more?`<div class="row">${more}</div>`:''}${pnav('rsk','')}
- <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(l.user_name)}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
+ <details style="margin-top:12px"><summary class="mut" style="cursor:pointer;font-weight:700">${t('auditLog')} (${logs.length})</summary><div class="log">${logs.map(l=>`<div>${fd(l.at)} · <b>${esc(aid(l.user_name,'audit'))}</b>: ${esc(logT(l.action))}</div>`).join('')}</div></details></div>
  ${acts?`<div class="actbar"><div class="row">${acts}</div></div>`:''}`;
  updProg();fit()}
 document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
@@ -1613,8 +1616,8 @@ function exportExcel(){if(me.role!='admin')return;busy('xe',async()=>{
  const r5=[[t('pcode'),t('t_job'),t('t_name'),t('t_mail'),t('t_task')]];crs.forEach(c=>A(c,'team').forEach(r=>r5.push([c.code,r.j||'',r.n||'',r.e||'',r.m||''])));
  const r6=[[t('pcode'),t('f_agr'),t('f_appr')]];crs.forEach(c=>{A(c,'agr').forEach(v=>r6.push([c.code,v,'']));A(c,'appr').forEach(v=>r6.push([c.code,'',v]))});
  const r7=[[t('pcode'),t('k_desc'),t('k_when'),t('k_owner'),t('k_imp'),t('k_prob'),t('k_score'),t('x_level')]];crs.forEach(c=>A(c,'risks').forEach(r=>{const s=score(r);r7.push([c.code,r.d||'',r.p||'',r.o||'',r.i===''?'':Number(r.i),r.x===''?'':Number(r.x),s||'',s?t('lv_'+lvl(s)):''])}));
- const r8=[[t('pcode'),t('x_stage'),t('thName'),t('thJob'),t('x_state'),t('x_signedAt')]];sg.forEach(s=>{const u=users[s.user_id]||{};r8.push([code[s.cr_id]||s.cr_id,t('stg_'+s.stage),u.full_name||'',u.job_title||'',s.status=='signed'?t('signedOn').replace('✔ ',''):t('pending'),s.signed_at?fd(s.signed_at):''])});
- const r9=[[t('pcode'),t('x_date'),t('x_user'),t('x_action')]];lg.forEach(x=>r9.push([code[x.cr_id]||x.cr_id,fd(x.at),x.user_name||'',logT(x.action)]));
+ const r8=[[t('pcode'),t('x_stage'),t('thName'),t('thJob'),t('x_state'),t('x_signedAt')]];sg.forEach(s=>{const u=users[s.user_id]||{};r8.push([code[s.cr_id]||s.cr_id,t('stg_'+s.stage),aid(u.full_name||'','decision'),u.job_title||'',s.status=='signed'?t('signedOn').replace('✔ ',''):t('pending'),s.signed_at?fd(s.signed_at):''])});
+ const r9=[[t('pcode'),t('x_date'),t('x_user'),t('x_action')]];lg.forEach(x=>r9.push([code[x.cr_id]||x.cr_id,fd(x.at),aid(x.user_name||'','audit'),logT(x.action)]));
  const blob=makeXlsx([{name:t('x_sh_req'),rows:r1,widths:[14,14,9,22,28,40,14,16,10,24,40,13,13,10,22,12,24,22,16,36,36,36,36,36,36,14,18,22,18,10,30,26,26,26,30,30]},{name:t('x_sh_stk'),rows:r2,widths:[14,36,40]},{name:t('s_acts'),rows:r3,widths:[14,34,40,24]},{name:t('s_res'),rows:r4,widths:[14,30,22,36,10,16]},{name:t('f_team'),rows:r5,widths:[14,22,24,28,40]},{name:t('s_agr')+' - '+t('s_appr'),rows:r6,widths:[14,40,40]},{name:t('f_risks'),rows:r7,widths:[14,40,24,22,10,10,10,12]},{name:t('x_sh_sig'),rows:r8,widths:[14,18,26,22,22,22]},{name:t('x_sh_log'),rows:r9,widths:[14,22,24,60]}],rtl);
  dl(blob,'Charters-export-'+stamp()+'.xlsx')})}
 
