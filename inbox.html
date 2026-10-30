@@ -186,6 +186,7 @@ async function start(){
  try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:aid(x.from_name,'notify'),act:'nudge|'+x.msg,sv:'nudge',pg:'inbox.html',tk:false,id:0,code:'',nm:aid(x.from_name,'notify')||''}))}catch(_){}
  EV=all.filter(e=>e.who!=ME.full_name).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,120);draw()}
 function txt(a){const p=a.split('|'),k=p[0],b=D['a_'+k]?t('a_'+k):k;
+ if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير على التصعيد ('+({r:'توجيه',i:'تجاهل',w:'سحب'}[p[1]]||'')+'): ':'Office note on escalation ('+({r:'redirect',i:'ignored',w:'withdrawn'}[p[1]]||'')+'): ')+p.slice(2).join('|');
  if(k=='taskprog')return b+': '+(p[1]||'')+' — '+(p[2]||'')+'%';
  if(k=='taskadd')return b+': '+(p[1]||'');
  if(k=='signed')return b+(p[1]?' ('+p[1]+')':'');if(k=='status')return b+': '+(p[1]||'');

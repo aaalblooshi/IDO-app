@@ -122,6 +122,7 @@ function act(r){
   case 'delok':return P('الموافقة على الإلغاء','Cancel approved');
   case 'delno':return P('رفض طلب الإلغاء','Cancel rejected');
   case 'adminedit':return P('تعديل بصفة الأدمن','Edited as admin')+(p[1]&&p[1]!='-'?': '+p[1]:'');
+  case 'escnote':return P('ملاحظة مكتب التطوير على التصعيد ('+({r:'توجيه',i:'تجاهل',w:'سحب'}[p[1]]||'')+'): ','Office note on escalation: ')+p.slice(2).join(' · ');
   case 'escalated':return P('تصعيد لشخص آخر','Escalated');
   default:return p.join(' · ')}}
 const tkRow=r=>r.src=='plan'&&r.rid&&/^(taskprog|taskadd)\|/.test(String(r.summary||''));
