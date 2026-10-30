@@ -40,6 +40,7 @@ main{max-width:980px}
 .tg{display:inline-block;padding:2px 10px;border-radius:99px;font-size:12.5px;margin:2px 3px 2px 0;font-weight:600}.tg.g{background:#e5f2ea;color:#0a6b3d}.tg.b{background:#fdecee;color:#d1101d}
 .rr2{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding:10px 0}.rr2 input{width:auto;margin-top:6px}.rr2.ar{opacity:.6}.rh2{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.cmt{margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
 </style><style>.ar{border-bottom:1px solid var(--line);padding:9px 0}.ar:last-child{border:0}.ah{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px}.ts{color:var(--mut)}.ac{font-weight:800}.sr{background:var(--g2);color:var(--g);border-radius:99px;padding:1px 10px;font-weight:700}.sr.sys{background:#eaf1f7;color:#1d5f8a}.pc{background:#f3ecdc;color:#7a6330;border-radius:6px;padding:0 8px;font-weight:700}.ab{margin-top:3px;overflow-wrap:anywhere}.dt{background:#f7f6f2;border-radius:10px;padding:8px 10px;margin-top:5px;font-size:13px;overflow-wrap:anywhere}.dt .o{color:var(--r);text-decoration:line-through}.dt .n{color:var(--g);font-weight:700}details summary{cursor:pointer;color:var(--mut);font-size:13px}.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.fg label{margin:0}main{max-width:980px}</style>
+<style>.tbs{display:flex;gap:6px;overflow-x:auto;padding:2px 1px 10px;scrollbar-width:none}.tbs::-webkit-scrollbar{display:none}.tbs button{flex:0 0 auto;border-radius:99px;padding:7px 14px;white-space:nowrap}.tbs button.on{background:var(--g);border-color:var(--g);color:#fff}.dh{position:sticky;top:50px;background:#f3f1ea;margin:10px -14px 4px;padding:5px 14px;font-weight:800;font-size:13px;color:var(--ch);z-index:3}.pj{margin-top:3px;font-size:14px}.ty{background:#eaf1f7;color:#1d5f8a;border-radius:6px;padding:0 8px;font-size:12.5px;font-weight:700;margin-inline-end:4px}.lk{margin-inline-start:auto;font-weight:700;color:var(--g);text-decoration:none;border:1px solid var(--g);border-radius:99px;padding:0 10px}.tg2{display:flex;gap:8px;align-items:center;font-weight:600;margin:10px 0 0}.tg2 input{width:auto}</style>
 </head><body>
 <div class="top"><button onclick="location.href='settings.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
@@ -50,61 +51,108 @@ let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
-const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
+const A=()=>lang=='ar',P=(a,b)=>A()?a:b;
+const t=k=>(D[k]||[k,k])[A()?0:1];
 function toast(m){const e=$('toast');e.textContent=m;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
-function toggleLang(){lang=lang=='ar'?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
+function toggleLang(){lang=A()?'en':'ar';try{localStorage.setItem('lang',lang)}catch(_){}draw()}
 function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+t('signin')+'</button></div>'}
 const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],home:['الإعدادات','Settings'],title:['سجل التدقيق الشامل','Full audit log'],
  needLogin:['سجّل الدخول لعرض الصفحة.','Sign in to view this page.'],adminOnly:['هذه الصفحة لمكتب التطوير المؤسسي فقط.','This page is for the Institutional Development Office only.'],signin:['تسجيل الدخول','Sign in'],
- h:['كل ما يجري في النظام','Everything that happens in the system'],hs:['من فعل ماذا ومتى: إضافة وتعديل وحذف للمشاريع والخطط والمواثيق والتواقيع والمستخدمين والأدوار والإعدادات والمحادثات (دون نص الرسائل) وغيرها. تظهر الأسماء الحقيقية دون إخفاء. السجل للقراءة فقط ولا يمكن تعديله أو حذفه من هنا.','Who did what and when: additions, edits and deletions of projects, plans, charters, signatures, users, roles, settings, chat membership (not message text) and more. Real names are shown unmasked. Read-only.'],
- f_from:['من تاريخ','From'],f_to:['إلى تاريخ','To'],f_src:['المصدر','Source'],f_all:['الكل','All'],f_actor:['المنفّذ (اسم)','Actor (name)'],f_q:['بحث (رمز مشروع، جدول، نص…)','Search (project code, table, text…)'],
- go:['بحث','Search'],csv:['تصدير Excel (CSV)','Export CSV'],more:['عرض المزيد','Show more'],none:['لا توجد سجلات مطابقة.','No matching records.'],tot:['إجمالي النتائج','Total results'],shown:['المعروض','Shown'],
- s_sys:['تغييرات النظام','System changes'],s_charter:['سجل المواثيق','Charter log'],s_plan:['سجل الخطط','Plan log'],s_cr:['سجل طلبات التغيير','Change-request log'],s_closure:['سجل الإقفال','Closure log'],
- INSERT:['إضافة','Added'],UPDATE:['تعديل','Edited'],DELETE:['حذف','Deleted'],LOG:['إجراء','Action'],sys:['النظام','System'],det:['التفاصيل','Details'],sysu:['النظام (تلقائي)','System (automatic)'],err:['تعذّر التحميل: ','Failed to load: ']};
-const TN={profiles:['المستخدمون','Users'],app_settings:['الإعدادات','Settings'],app_roles:['الأدوار','Roles'],project_cfg:['إعدادات المشاريع','Project settings'],project_grants:['صلاحيات المشاريع','Project grants'],project_blocks:['حجب المشاريع','Project blocks'],plans:['خطط المشاريع','Plans'],charters:['مواثيق المشاريع','Charters'],change_requests:['طلبات التغيير','Change requests'],closure_reports:['تقارير الإقفال','Closure reports'],signatories:['توقيعات طلبات التغيير','CR signatures'],plan_signatories:['توقيعات الخطط','Plan signatures'],charter_signatories:['توقيعات المواثيق','Charter signatures'],closure_signatories:['توقيعات الإقفال','Closure signatures'],del_requests:['طلبات الإلغاء','Cancel requests'],escalations:['التصعيدات','Escalations'],plan_versions:['إصدارات الخطط','Plan versions'],plan_consult:['التخطيط الجماعي','Group planning'],plan_comments:['تعليقات الخطط','Plan comments'],project_transfer:['نقل المشاريع','Project transfers'],project_handover:['تسليم المشاريع','Project handovers'],project_links:['روابط المشاريع','Project links'],followers:['المتابعون','Followers'],user_groups:['المجموعات','Groups'],user_group_members:['أعضاء المجموعات','Group members'],chat_channels:['قنوات المحادثة','Chat channels'],chat_members:['أعضاء المحادثة','Chat members'],chat_excl:['المستبعدون من المحادثة','Chat exclusions'],user_nudges:['التذكيرات','Reminders'],service_ratings:['تقييمات الخدمات','Ratings'],request_sla:['مدد الطلبات','Request SLAs'],eval_model:['نموذج التقييم','Evaluation model'],project_evals:['تقييمات المشاريع','Project evaluations'],audit_log:['سجل طلبات التغيير','CR log'],charter_audit:['سجل المواثيق','Charter log'],plan_audit:['سجل الخطط','Plan log'],closure_audit:['سجل الإقفال','Closure log']};
-const tn=k=>TN[k]?TN[k][lang=='ar'?0:1]:k;
-const FN={status:['الحالة','status'],role:['الدور','role'],role_key:['مفتاح الدور','role key'],full_name:['الاسم','name'],email:['البريد','email'],job_title:['المسمى','job title'],archived:['مؤرشف','archived'],version:['الإصدار','version'],data:['المحتوى','content'],value:['القيمة','value'],key:['المفتاح','key'],pcode:['رمز المشروع','project code'],code:['الرمز','code'],view_scope:['نطاق الرؤية','view scope'],view_units:['الوحدات','units'],view_sectors:['القطاعات','sectors'],org_sector:['القطاع','sector'],org_dept:['الإدارة','department'],org_section:['القسم','section'],hidden:['مخفي','hidden'],own_only:['مهامه فقط','own only'],blur:['التغبيش','blur'],dept_ov:['الإدارة (تخصيص)','department override'],section:['القسم','section'],lvl:['المستوى','level'],user_id:['المستخدم','user'],comment:['تعليق','comment']};
-const fn=k=>FN[k]?FN[k][lang=='ar'?0:1]:k;
-const num=n=>lang=='ar'?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
-const fdt=x=>{try{return new Date(x).toLocaleString(lang=='ar'?'ar-AE-u-nu-latn':'en-GB',{timeZone:'Asia/Dubai',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}catch(_){return x}};
-let F={from:'',to:'',src:'',actor:'',q:''},ROWS=[],TOTAL=0,LOADING=false;
+ hs:['من فعل ماذا ومتى، مرتّبًا بالأحدث. اضغط «فتح» للانتقال إلى المشروع أو السجل المعني. الأسماء حقيقية دون إخفاء، والسجل للقراءة فقط.','Who did what and when, newest first. Tap “Open” to jump to the related project or record. Real names, read-only.'],
+ f_from:['من تاريخ','From'],f_to:['إلى تاريخ','To'],f_actor:['المنفّذ (اسم)','Actor (name)'],f_q:['بحث (مشروع، رمز، نص…)','Search (project, code, text…)'],
+ go:['بحث','Search'],csv:['تصدير Excel (CSV)','Export CSV'],more:['عرض المزيد','Show more'],none:['لا توجد سجلات مطابقة.','No matching records.'],tot:['الإجمالي','Total'],shown:['المعروض','Shown'],
+ dup:['إخفاء التكرار (تعديلات تقنية يغطّيها سجل الخدمة)','Hide duplicates (technical edits already in the service log)'],
+ INSERT:['إضافة','Added'],UPDATE:['تعديل','Edited'],DELETE:['حذف','Deleted'],det:['التفاصيل','Details'],sysu:['النظام (تلقائي)','System (automatic)'],err:['تعذّر التحميل: ','Failed to load: '],open:['فتح','Open'],
+ tb_all:['الكل','All'],tb_work:['المشاريع والخدمات','Projects & services'],tb_users:['المستخدمون والصلاحيات','Users & access'],tb_set:['الإعدادات','Settings'],tb_chat:['المحادثات','Chat'],tb_oth:['أخرى','Other']};
+const TABS={all:'',work:'charter,plan,cr,closure,plans,charters,change_requests,closure_reports,signatories,plan_signatories,charter_signatories,closure_signatories,del_requests,escalations,plan_versions,plan_consult,plan_comments,project_transfer,project_handover,project_links,followers',users:'profiles,app_roles,project_grants,project_blocks,user_groups,user_group_members',set:'app_settings,project_cfg,eval_model,request_sla',chat:'chat_channels,chat_members,chat_excl',oth:'user_nudges,service_ratings,project_evals'};
+const TN={profiles:['المستخدمون','Users'],app_settings:['الإعدادات','Settings'],app_roles:['الأدوار','Roles'],project_cfg:['إعدادات المشروع','Project settings'],project_grants:['صلاحيات المشاريع','Project grants'],project_blocks:['حجب المشاريع','Project blocks'],plans:['الخطة','Plan'],charters:['الميثاق','Charter'],change_requests:['طلب التغيير','Change request'],closure_reports:['تقرير الإقفال','Closure report'],signatories:['توقيع طلب التغيير','CR signature'],plan_signatories:['توقيع الخطة','Plan signature'],charter_signatories:['توقيع الميثاق','Charter signature'],closure_signatories:['توقيع الإقفال','Closure signature'],del_requests:['طلب إلغاء','Cancel request'],escalations:['تصعيد','Escalation'],plan_versions:['إصدار الخطة','Plan version'],plan_consult:['التخطيط الجماعي','Group planning'],plan_comments:['تعليق على الخطة','Plan comment'],project_transfer:['نقل مشروع','Project transfer'],project_handover:['تسليم مشروع','Project handover'],project_links:['رابط مشروع','Project link'],followers:['متابع','Follower'],user_groups:['مجموعة','Group'],user_group_members:['عضو مجموعة','Group member'],chat_channels:['قناة محادثة','Chat channel'],chat_members:['عضو محادثة','Chat member'],chat_excl:['استبعاد من محادثة','Chat exclusion'],user_nudges:['تذكير','Reminder'],service_ratings:['تقييم خدمة','Rating'],request_sla:['مدة طلب','Request SLA'],eval_model:['نموذج التقييم','Evaluation model'],project_evals:['تقييم مشروع','Project evaluation']};
+const tn=k=>TN[k]?TN[k][A()?0:1]:k;
+const SVN={plan:['الخطة','Plan'],charter:['الميثاق','Charter'],cr:['طلب التغيير','Change request'],closure:['تقرير الإقفال','Closure report']};
+const PG_={plan:'plan.html',charter:'charter.html',cr:'cr.html',closure:'closure.html',plans:'plan.html',charters:'charter.html',change_requests:'cr.html',closure_reports:'closure.html'};
+const STN={Draft:['مسودة','Draft'],Submitted:['مُرسل','Submitted'],'PMO Review':['قيد المراجعة','In review'],Reviewed:['تمت المراجعة','Reviewed'],'Awaiting Approval':['بانتظار الاعتماد','Awaiting approval'],'Office Decision':['قرار المكتب','Office decision'],Approved:['معتمد','Approved'],Rejected:['مرفوض','Rejected'],'Returned to PM':['أُعيد لمدير المشروع','Returned to PM'],Cancelled:['ملغى','Cancelled']};
+const STG={created:['المنشئ','Creator'],reviewed:['المراجعة','Review'],approved:['الاعتماد','Approval']};
+const stn=k=>STN[k]?STN[k][A()?0:1]:k,stg=k=>STG[k]?STG[k][A()?0:1]:k;
+const FN={status:['الحالة','status'],role:['الدور','role'],role_key:['مفتاح الدور','role key'],full_name:['الاسم','name'],email:['البريد','email'],job_title:['المسمى','job title'],archived:['مؤرشف','archived'],version:['الإصدار','version'],data:['المحتوى','content'],value:['القيمة','value'],key:['المفتاح','key'],pcode:['رمز المشروع','project code'],code:['الرمز','code'],view_scope:['نطاق الرؤية','view scope'],view_units:['الوحدات','units'],view_sectors:['القطاعات','sectors'],org_sector:['القطاع','sector'],org_dept:['الإدارة','department'],org_section:['القسم','section'],hidden:['مخفي','hidden'],own_only:['مهامه فقط','own only'],blur:['التغبيش','blur'],dept_ov:['الإدارة (تخصيص)','department override'],section:['القسم','section'],lvl:['المستوى','level'],user_id:['المستخدم','user'],comment:['تعليق','comment'],perf_scope:['نطاق الأداء','performance scope'],pref_lang:['اللغة','language'],id:['المعرّف','id']};
+const fn=k=>FN[k]?FN[k][A()?0:1]:k;
+const num=n=>A()?String(n).replace(/\d/g,c=>'٠١٢٣٤٥٦٧٨٩'[c]):String(n);
+const TZ='Asia/Dubai';
+const dayK=x=>new Date(x).toLocaleDateString('en-CA',{timeZone:TZ});
+const tmS=x=>new Date(x).toLocaleTimeString('en-GB',{timeZone:TZ,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const dayL=k=>{const d=new Date(k+'T12:00:00Z'),w=d.toLocaleDateString(A()?'ar-AE':'en-GB',{weekday:'long',timeZone:'UTC'}),x=k.split('-');return w+' '+x[2]+'/'+x[1]+'/'+x[0]};
+let F={from:'',to:'',actor:'',q:'',tab:'all',dup:true},ROWS=[],TOTAL=0,LOADING=false;
 const PG=100;
 const v2s=v=>v==null?'∅':typeof v=='object'?JSON.stringify(v):String(v);
+function act(r){
+ if(r.src=='sys'){let s=t(r.op)+' '+tn(r.tbl);if(r.tbl=='profiles'&&r.pname)s=t(r.op)+' '+P('بيانات مستخدم','user')+': '+r.pname;
+  const c=r.details;if(r.op=='UPDATE'&&c&&c.status&&Array.isArray(c.status))s+=' — '+P('الحالة من ','status from ')+stn(c.status[0])+P(' إلى ',' to ')+stn(c.status[1]);
+  return s}
+ const p=String(r.summary||'').split('|'),k=p[0],S=SVN[r.src]?SVN[r.src][A()?0:1]:'';
+ switch(k){
+  case 'status':return P('تغيّرت الحالة إلى: ','Status changed to: ')+stn(p[1]);
+  case 'signed':return P('تم التوقيع (','Signed (')+stg(p[1])+')'+(p[2]=='admin'?P(' — بصفة الأدمن',' — as admin'):p[2]=='proxy'?P(' — بالإنابة',' — by proxy'):'');
+  case 'created':return P('إنشاء ','Created ')+S;
+  case 'assigned':return P('تعيين ','Assigned ')+(p[1]||'')+' — '+stg(p[2]);
+  case 'removed':return P('إزالة موقّع','Signer removed');
+  case 'revised':return P('بدء إصدار جديد (مسودة)','New version started (draft)');
+  case 'revcancelled':return P('إلغاء الإصدار الجديد واستعادة المعتمد','New version cancelled; approved version restored');
+  case 'superseded':return P('حلّ الإصدار '+p[2]+' محل الإصدار '+p[1]+' وأُرشف السابق','Version '+p[2]+' replaced version '+p[1]+'; earlier version archived');
+  case 'officeapproved':return P('اعتماد مكتب التطوير المؤسسي','Approved by the Institutional Development Office')+(p[1]?': '+p.slice(1).join(' · '):'');
+  case 'taskprog':return P('تحديث إنجاز مهمة «','Task progress «')+(p[1]||'')+P('» إلى ','» to ')+(p[2]||0)+'%';
+  case 'taskadd':return P('إضافة مهمة: ','Task added: ')+(p[1]||'');
+  case 'taskrem':return P('حذف مهمة: ','Task removed: ')+(p[1]||'');
+  case 'returned':return P('إرجاع: ','Returned: ')+p.slice(1).join(' · ');
+  case 'rejected':return P('رفض: ','Rejected: ')+p.slice(1).join(' · ');
+  case 'apprejected':return P('رفض الاعتماد: ','Approval rejected: ')+p.slice(1).join(' · ');
+  case 'revrejected':return P('رفض المراجعة: ','Review rejected: ')+p.slice(1).join(' · ');
+  case 'attached':return P('إرفاق: ','Attached: ')+p.slice(1).join(' · ');
+  case 'attremoved':return P('حذف مرفق: ','Attachment removed: ')+p.slice(1).join(' · ');
+  case 'reminded':return P('إرسال تذكير','Reminder sent');
+  case 'archived':return P('أرشفة','Archived');
+  case 'restored':return P('استرجاع من الأرشيف','Restored from archive');
+  case 'delreq':return P('طلب إلغاء','Cancel requested');
+  case 'delok':return P('الموافقة على الإلغاء','Cancel approved');
+  case 'delno':return P('رفض طلب الإلغاء','Cancel rejected');
+  case 'adminedit':return P('تعديل بصفة الأدمن','Edited as admin')+(p[1]&&p[1]!='-'?': '+p[1]:'');
+  case 'escalated':return P('تصعيد لشخص آخر','Escalated');
+  default:return p.join(' · ')}}
+function link(r){const pg=PG_[r.src=='sys'?r.tbl:r.src];if(pg&&r.rid)return pg+'#o='+r.rid;if(r.tbl=='profiles')return 'users.html';if(r.tbl=='app_settings')return 'settings.html';if(r.tbl=='app_roles')return 'roles.html';return ''}
+function detH(r){const c=r.details;if(!c||typeof c!='object')return '';const ks=Object.keys(c).filter(k=>!(r.op!='UPDATE'&&(k=='id'||k=='archived'&&!c[k])));if(!ks.length)return '';
+ if(r.op=='UPDATE')return ks.map(k=>Array.isArray(c[k])?`<div><b>${esc(fn(k))}:</b> <span class="o">${esc(v2s(c[k][0]))}</span> ← <span class="n">${esc(v2s(c[k][1]))}</span></div>`:`<div><b>${esc(fn(k))}:</b> ${esc(v2s(c[k]))}</div>`).join('');
+ return ks.map(k=>`<div><b>${esc(fn(k))}:</b> ${esc(v2s(c[k]))}</div>`).join('')}
+function rowH(r){const dt=detH(r),lk=link(r),ttl=r.pname||(r.pcode?'':'');
+ return `<div class="ar"><div class="ah"><span class="ts" dir="ltr">${esc(tmS(r.at))}</span><span class="ac">${esc(r.actor||t('sysu'))}</span>${lk?`<a class="lk" href="${esc(lk)}">${t('open')} ↗</a>`:''}</div>
+ ${(ttl||r.pcode)?`<div class="pj">${ttl?`<b>${esc(ttl)}</b>`:''}${r.pcode?` <span class="pc" dir="ltr">${esc(r.pcode)}</span>`:''}</div>`:''}
+ <div class="ab"><span class="ty">${esc(r.src=='sys'?tn(r.tbl):(SVN[r.src]?SVN[r.src][A()?0:1]:''))}</span> ${esc(act(r))}</div>${dt?`<details><summary>${t('det')}</summary><div class="dt">${dt}</div></details>`:''}</div>`}
+function list(){const el=$('lst');if(!el)return;let h='',last='';
+ ROWS.forEach(r=>{const k=dayK(r.at);if(k!=last){last=k;h+=`<div class="dh">${esc(dayL(k))}</div>`}h+=rowH(r)});
+ el.innerHTML=(ROWS.length?h:`<div class="mut" style="padding:14px 0">${t('none')}</div>`)+(ROWS.length<TOTAL?`<div class="row" style="justify-content:center"><button class="p" onclick="fetchRows(false)">${t('more')} (${num(TOTAL-ROWS.length)})</button></div>`:'');
+ $('cnt').textContent=t('tot')+': '+num(TOTAL)+' · '+t('shown')+': '+num(ROWS.length)}
+function args(off,lim){return {p_from:F.from?new Date(F.from+'T00:00:00+04:00').toISOString():null,p_to:F.to?new Date(new Date(F.to+'T00:00:00+04:00').getTime()+864e5).toISOString():null,p_src:TABS[F.tab]||null,p_actor:F.actor||null,p_q:F.q||null,p_lim:lim,p_off:off,p_hide_dup:!!F.dup}}
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('role').eq('id',session.user.id).single();if(!p||p.role!='admin')return gate('adminOnly');
  draw();await fetchRows(true)}
 async function fetchRows(reset){if(LOADING)return;LOADING=true;if(reset){ROWS=[];TOTAL=0}
- const a={p_from:F.from?new Date(F.from+'T00:00:00+04:00').toISOString():null,p_to:F.to?new Date(new Date(F.to+'T00:00:00+04:00').getTime()+864e5).toISOString():null,p_src:F.src||null,p_actor:F.actor||null,p_q:F.q||null,p_lim:PG,p_off:ROWS.length};
- const r=await sb.rpc('admin_audit',a);LOADING=false;
+ const r=await sb.rpc('admin_audit',args(ROWS.length,PG));LOADING=false;
  if(r.error){toast(t('err')+r.error.message);return}
- const d=r.data||[];ROWS=ROWS.concat(d);TOTAL=d.length?+d[0].total:TOTAL;list()}
-function srcLab(r){return r.src=='sys'?tn(r.tbl):t('s_'+r.src)}
-function detH(r){const c=r.details;if(!c||typeof c!='object')return '';const ks=Object.keys(c);if(!ks.length)return '';
- if(r.op=='UPDATE')return ks.map(k=>Array.isArray(c[k])?`<div><b>${esc(fn(k))}:</b> <span class="o">${esc(v2s(c[k][0]))}</span> ← <span class="n">${esc(v2s(c[k][1]))}</span></div>`:`<div><b>${esc(fn(k))}:</b> ${esc(v2s(c[k]))}</div>`).join('');
- return ks.map(k=>`<div><b>${esc(fn(k))}:</b> ${esc(v2s(c[k]))}</div>`).join('')}
-function rowH(r,i){const dt=detH(r),act=r.src=='sys'?esc(t(r.op)):esc(String(r.summary||'').replace(/\|/g,' · '));
- return `<div class="ar"><div class="ah"><span class="ts" dir="ltr">${esc(fdt(r.at))}</span><span class="ac">${esc(r.actor||t('sysu'))}</span><span class="sr ${r.src}">${esc(srcLab(r))}</span>${r.pcode?`<span class="pc" dir="ltr">${esc(r.pcode)}</span>`:''}</div>
- <div class="ab"><b>${act}</b>${r.src=='sys'&&r.rid?` <span class="mut" dir="ltr">#${esc(String(r.rid).slice(0,40))}</span>`:''}</div>${dt?`<details><summary>${t('det')}</summary><div class="dt">${dt}</div></details>`:''}</div>`}
-function list(){const el=$('lst');if(!el)return;
- el.innerHTML=(ROWS.length?ROWS.map(rowH).join(''):`<div class="mut" style="padding:14px 0">${t('none')}</div>`)+(ROWS.length<TOTAL?`<div class="row" style="justify-content:center"><button class="p" onclick="fetchRows(false)">${t('more')} (${num(TOTAL-ROWS.length)})</button></div>`:'');
- $('cnt').textContent=t('tot')+': '+num(TOTAL)+' · '+t('shown')+': '+num(ROWS.length)}
-function readF(){F.from=$('f_from').value;F.to=$('f_to').value;F.src=$('f_src').value;F.actor=$('f_actor').value.trim();F.q=$('f_q').value.trim()}
+ const d=r.data||[];ROWS=ROWS.concat(d);TOTAL=d.length?+d[0].total:(reset?0:TOTAL);list()}
+function readF(){F.from=$('f_from').value;F.to=$('f_to').value;F.actor=$('f_actor').value.trim();F.q=$('f_q').value.trim();F.dup=$('f_dup').checked}
 function go(){readF();fetchRows(true)}
+function setTab(k){readF();F.tab=k;draw();fetchRows(true)}
 const csvC=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
 async function exportCsv(){readF();const out=[];let off=0;
- for(;;){const r=await sb.rpc('admin_audit',{p_from:F.from?new Date(F.from+'T00:00:00+04:00').toISOString():null,p_to:F.to?new Date(new Date(F.to+'T00:00:00+04:00').getTime()+864e5).toISOString():null,p_src:F.src||null,p_actor:F.actor||null,p_q:F.q||null,p_lim:1000,p_off:off});
+ for(;;){const r=await sb.rpc('admin_audit',args(off,1000));
   if(r.error)return toast(t('err')+r.error.message);const d=r.data||[];out.push(...d);if(d.length<1000||out.length>=20000)break;off+=1000}
- const H=['الوقت','المنفّذ','المصدر','الجدول','العملية','المعرّف','رمز المشروع','الوصف','التفاصيل'];
- const rows=[H].concat(out.map(r=>[fdt(r.at),r.actor||'',srcLab(r),r.tbl,r.op,r.rid||'',r.pcode||'',r.summary||'',r.details?JSON.stringify(r.details):'']));
+ const H=['التاريخ','الوقت','المنفّذ','المشروع','الرمز','النوع','الإجراء','التفاصيل'];
+ const rows=[H].concat(out.map(r=>[dayK(r.at),tmS(r.at),r.actor||'',r.pname||'',r.pcode||'',r.src=='sys'?tn(r.tbl):(SVN[r.src]?SVN[r.src][A()?0:1]:''),act(r),r.details?JSON.stringify(r.details):'']));
  const blob=new Blob(['﻿'+rows.map(x=>x.map(csvC).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='audit-log.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
-function draw(){document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
- const so=[['sys','']].concat(['charter','plan','cr','closure'].map(k=>[k,'']));
- const keep=$('f_q')?{from:$('f_from').value,to:$('f_to').value,src:$('f_src').value,actor:$('f_actor').value,q:$('f_q').value}:F;
- $('app').innerHTML=`<div class="card"><h2>${t('h')}<small>${t('hs')}</small></h2>
+function draw(){document.documentElement.lang=lang;document.documentElement.dir=A()?'rtl':'ltr';$('lb').textContent=A()?'EN':'ع';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+ const keep=$('f_q')?{from:$('f_from').value,to:$('f_to').value,actor:$('f_actor').value,q:$('f_q').value,dup:$('f_dup').checked}:F;
+ $('app').innerHTML=`<div class="tbs">${Object.keys(TABS).map(k=>`<button class="${F.tab==k?'on':''}" onclick="setTab('${k}')">${t('tb_'+k)}</button>`).join('')}</div>
+ <div class="card"><div class="mut" style="margin-bottom:8px">${t('hs')}</div>
  <div class="fg"><div><label>${t('f_from')}</label><input id="f_from" type="date" value="${esc(keep.from)}"></div><div><label>${t('f_to')}</label><input id="f_to" type="date" value="${esc(keep.to)}"></div>
- <div><label>${t('f_src')}</label><select id="f_src"><option value="">${t('f_all')}</option>${so.map(([k])=>`<option value="${k}" ${keep.src==k?'selected':''}>${t('s_'+k)}</option>`).join('')}${Object.keys(TN).filter(k=>!/_audit$|^audit_log$/.test(k)).map(k=>`<option value="${k}" ${keep.src==k?'selected':''}>${esc(tn(k))}</option>`).join('')}</select></div>
  <div><label>${t('f_actor')}</label><input id="f_actor" value="${esc(keep.actor)}"></div></div>
  <label>${t('f_q')}</label><input id="f_q" value="${esc(keep.q)}" onkeydown="if(event.key=='Enter')go()">
+ <label class="tg2"><input type="checkbox" id="f_dup" ${keep.dup?'checked':''} onchange="go()"> ${t('dup')}</label>
  <div class="row"><button class="p" onclick="go()">${t('go')}</button><button onclick="exportCsv()">${t('csv')}</button><span class="mut" id="cnt"></span></div></div>
  <div class="card" id="lst"></div>`;list()}
 load();

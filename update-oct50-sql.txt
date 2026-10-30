@@ -1,0 +1,48 @@
+-- أوكتوبر 50: تحسين سجل التدقيق (تبويبات + اسم المشروع + فتح السجل المرتبط)
+-- شغّله مرة واحدة في Supabase → SQL editor (بعد 49)
+
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int);
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean);
+
+create or replace function admin_audit(
+  p_from timestamptz default null, p_to timestamptz default null,
+  p_src text default null, p_actor text default null, p_q text default null,
+  p_lim int default 100, p_off int default 0, p_hide_dup boolean default false)
+returns table(at timestamptz, src text, actor text, tbl text, op text, rid text, pcode text, pname text, summary text, details jsonb, total bigint)
+language plpgsql stable security definer set search_path=public as $fn$
+declare srcs text[] := case when coalesce(p_src,'') = '' then null else string_to_array(p_src, ',') end;
+begin
+  if (select role from profiles where id = auth.uid()) is distinct from 'admin' then
+    raise exception 'admin only';
+  end if;
+  return query
+  with u as (
+    select s.at, 'sys'::text src, s.actor_name actor, s.tbl, s.op, s.rid, s.pcode,
+           (case s.tbl when 'plans' then (select p.data->>'pname' from plans p where p.id::text = s.rid)
+                       when 'charters' then (select p.data->>'pname' from charters p where p.id::text = s.rid)
+                       when 'change_requests' then (select p.data->>'pname' from change_requests p where p.id::text = s.rid)
+                       when 'closure_reports' then (select p.data->>'pname' from closure_reports p where p.id::text = s.rid)
+                       when 'profiles' then (select p.full_name from profiles p where p.id::text = s.rid) end) pname,
+           s.summary, s.changes details from sys_audit s
+    union all
+    select a.at, 'cr', a.user_name, 'audit_log', 'LOG', a.cr_id::text, c.code, c.data->>'pname', a.action, null::jsonb from audit_log a left join change_requests c on c.id = a.cr_id
+    union all
+    select a.at, 'charter', a.user_name, 'charter_audit', 'LOG', a.cr_id::text, c.code, c.data->>'pname', a.action, null from charter_audit a left join charters c on c.id = a.cr_id
+    union all
+    select a.at, 'plan', a.user_name, 'plan_audit', 'LOG', a.cr_id::text, c.code, c.data->>'pname', a.action, null from plan_audit a left join plans c on c.id = a.cr_id
+    union all
+    select a.at, 'closure', a.user_name, 'closure_audit', 'LOG', a.cr_id::text, c.code, c.data->>'pname', a.action, null from closure_audit a left join closure_reports c on c.id = a.cr_id
+  )
+  select x.at, x.src, x.actor, x.tbl, x.op, x.rid, x.pcode, x.pname, x.summary, x.details, count(*) over() total
+    from u x
+   where (p_from is null or x.at >= p_from) and (p_to is null or x.at < p_to)
+     and (srcs is null or x.src = any(srcs) or x.tbl = any(srcs))
+     and not (coalesce(p_hide_dup,false) and x.src = 'sys' and x.op = 'UPDATE' and x.tbl in ('plans','charters','change_requests','closure_reports'))
+     and (coalesce(p_actor, '') = '' or x.actor ilike '%' || p_actor || '%')
+     and (coalesce(p_q, '') = '' or x.summary ilike '%' || p_q || '%' or x.pcode ilike '%' || p_q || '%' or x.pname ilike '%' || p_q || '%'
+          or x.tbl ilike '%' || p_q || '%' or coalesce(x.details::text, '') ilike '%' || p_q || '%')
+   order by x.at desc
+   limit least(coalesce(p_lim, 100), 1000) offset greatest(coalesce(p_off, 0), 0);
+end $fn$;
+revoke all on function admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean) from public, anon;
+grant execute on function admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean) to authenticated;
