@@ -1,0 +1,5 @@
+-- استعلام قراءة فقط: الدوال التي تتعامل مع النسخ السابقة والمسودات فقط
+select string_agg(pg_get_functiondef(oid), E'\n\n-----\n\n' order by proname) as defs
+from pg_proc
+where pronamespace = 'public'::regnamespace
+  and (prosrc ilike '%plan_versions%' or proname ilike '%revis%');
