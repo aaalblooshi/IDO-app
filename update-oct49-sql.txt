@@ -1,0 +1,19 @@
+-- أوكتوبر 49: عند اعتماد إصدار جديد من الخطة يُسجَّل في سجل تدقيق المشروع أن الإصدار السابق حلّ محله وأُرشف
+-- (النسخة الأصلية محفوظة أصلًا بمحتواها الكامل وتواقيعها في plan_versions؛ هذا الملف يضيف أثرها في سجل التدقيق فقط)
+-- شغّله مرة واحدة في Supabase → SQL editor (بعد 48)
+
+create or replace function plan_version_superseded() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if new.version is not null and new.version > 1 then
+    insert into plan_audit(cr_id, user_name, action)
+    values (new.plan_id, (select full_name from profiles where id = auth.uid()),
+            'superseded|' || (new.version - 1) || '|' || new.version);
+  end if;
+  return new;
+end $fn$;
+
+drop trigger if exists plan_version_superseded_trg on plan_versions;
+create trigger plan_version_superseded_trg
+  after insert on plan_versions
+  for each row execute function plan_version_superseded();

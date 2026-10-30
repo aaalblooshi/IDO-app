@@ -565,6 +565,7 @@ const W=[
 ["revCancelAsk","Cancel the new version and restore the last approved version?","إلغاء الإصدار الجديد واستعادة آخر نسخة معتمدة؟"],
 ["l_revised","A new version was started","بدء إصدار جديد"],
 ["l_revcancelled","The new version was cancelled","إلغاء الإصدار الجديد"],
+["l_superseded","Version {b} replaced version {a}; the earlier version was archived in the project documents","حلّ الإصدار {b} محل الإصدار {a}، وأُرشف الإصدار السابق ضمن وثائق المشروع"],
 ["p_Low","Low","منخفضة"],
 ["p_Medium","Medium","متوسطة"],
 ["p_High","High","عالية"],
@@ -1212,6 +1213,7 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='crlink')return t('l_crlink')+': '+p.slice(1).join('|');
  if(k=='crunlink')return t('l_crunlink');
  if(k=='revcancelled')return t('l_revcancelled');
+ if(k=='superseded')return t('l_superseded').replace('{a}',p[1]||'').replace('{b}',p[2]||'');
  if(k=='revised')return t('l_revised');
  if(k=='stagenote')return t('l_stagenote')+' ('+t('stg_'+p[1])+'): '+p.slice(2).join('|');
  return a}
@@ -2483,7 +2485,7 @@ const isRevDraft=()=>SVC=='plan'&&cr&&cr.version>1&&cr.status!='Approved'&&!cr.a
 async function cancelCR(){
  if(isRevDraft()){const a=lang=='ar';if(!confirm(a?'إلغاء هذه المسودة والعودة إلى الخطة المعتمدة؟ لن تُحذف الخطة المعتمدة، وستُحفظ المسودة الملغاة في سجل التدقيق.':'Cancel this draft and return to the approved plan? The approved plan is not deleted, and the cancelled draft is kept in the audit log.'))return;
   let r=await sb.rpc('pl_discard_revision',{pid:cr.id});if(r.error)r=await sb.rpc('pl_cancel_revision',{pid:cr.id});if(r.error)return msg(r.error.message);
-  await lg(cr.id,'revcancelled');msg(t('revCancelled'));return openCR(cr.id)}
+  msg(t('revCancelled'));return openCR(cr.id)}
  if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
  const w=window.open('','_blank');
