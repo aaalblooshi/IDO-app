@@ -620,6 +620,9 @@ function affRows(r,chg){const pr=r.pr,rows=[];Object.keys(chg).forEach(i=>{const
  return rows}
 function affTL(rows){
  const all=rows.flatMap(z=>[z.os,z.oe,z.ns,z.ne]).filter(v=>v!=null);if(!all.length)return '';
+ const IDS=new Map(rows.map(z=>[String(z.r.x.id),z])),why=z=>{if(z.focus||PS.has(String(z.r.x.id)))return '';const ar=lang=='ar',d=(z.r.preds||[]).find(d=>IDS.has(String(d.x.id)));
+  if(d){const nm=esc(d.x.n||''),ty=(d.y||'FS')+(d.l?(d.l>0?'+':'')+d.l:'');return (ar?'🔗 السبب: تأتي بعد «'+nm+'» (<span dir="ltr">'+ty+'</span>)':'🔗 Because it follows “'+nm+'” (<span dir="ltr">'+ty+'</span>)')+(z.conf?(ar?' — ولم تتحرك، لذلك تتعارض':' — it did not move, so it conflicts'):'')}
+  const pp=z.r.pr&&z.r.pr.m&&z.r.pr.m[z.r.x.p];if(pp&&IDS.has(String(pp.id)))return ar?'🔗 السبب: مهمة فرعية تتبع «'+esc(pp.n||'')+'» وتتحرك معها':'🔗 Because it is a sub-task of “'+esc(pp.n||'')+'” and moves with it';return ''}
  const PS=new Set(rows.map(z=>String(z.r.x.p)).filter(v=>v&&v!='undefined'&&v!='null'));
  const a=Math.min(...all)-2,b=Math.max(...all)+2,W=b-a||1,pc=v=>((v-a)/W*100).toFixed(2)+'%',wd=(s,e)=>(Math.max(1,(e-s+1))/W*100).toFixed(2)+'%';
  const mk=(z)=>`<div style="margin:7px 0${z.focus?';padding:5px;border:2px solid #ca9a3b;border-radius:10px;background:#fffaf0':''}"><div style="font-size:12.5px;font-weight:${z.focus?800:600}">${z.conf?'⚠️ ':''}${esc(z.r.x.n)}${z.conf?` <span style="color:#d1101d;font-weight:600">${t('af_conf')}</span>`:''}</div>
@@ -634,7 +637,7 @@ function affTL(rows){
     else sm=`<b style="color:${c0}">${ar?'تغيّرت المدة':'Duration changed'}</b> <span class="mut">(${ar?'البداية':'start'} ${sg(dl)} · ${ar?'النهاية':'end'} ${sg(de)} ${ar?'يوم':'d'})</span>`;
     if(isP)sm+=`<div class="mut" style="font-size:12px;margin-top:2px">${ar?'مهمة رئيسية: تتسع تلقائيًا لتشمل مهمتها الفرعية المتأثرة':'Parent task: stretches automatically to contain its affected sub-task'}</div>`}}
    const ch=(a,b,st)=>`<span dir="ltr" style="unicode-bidi:isolate;display:inline-block;border-radius:8px;padding:2px 9px;white-space:nowrap;${st}">${fd(ds(a))} → ${fd(ds(b))}</span>`;
-   return `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12.5px;margin-top:6px"><b class="mut">${t('af_old')}</b><div>${ch(z.os,z.oe,'background:#eef0f1;color:#6b6f76;text-decoration:line-through')}</div><b>${t('af_new')}</b><div>${ch(z.ns,z.ne,z.conf?'background:#fdecee;color:#8f0a14;font-weight:800':'background:#e3f1fa;color:#17608a;font-weight:800')}</div></div>${sm?`<div style="margin-top:4px;font-size:12.5px">${sm}</div>`:''}`})()}
+   return `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12.5px;margin-top:6px"><b class="mut">${t('af_old')}</b><div>${ch(z.os,z.oe,'background:#eef0f1;color:#6b6f76;text-decoration:line-through')}</div><b>${t('af_new')}</b><div>${ch(z.ns,z.ne,z.conf?'background:#fdecee;color:#8f0a14;font-weight:800':'background:#e3f1fa;color:#17608a;font-weight:800')}</div></div>${sm?`<div style="margin-top:4px;font-size:12.5px">${sm}</div>`:''}${why(z)?`<div class="mut" style="margin-top:3px;font-size:12px">${why(z)}</div>`:''}`})()}
   </div>`;
  return `<div class="mut" style="font-size:11.5px">┄ ${t('af_old')} · ▬ ${t('af_new')} · <span style="color:#d1101d">|</span> ${t('dg_tdy')}</div>`+rows.map(mk).join('')}
 function affInfo(r){/* للقراءة فقط: المهام التي تعتمد على هذه المهمة */
