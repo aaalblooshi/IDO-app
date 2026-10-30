@@ -1,0 +1,18 @@
+-- =====================================================================
+-- update-oct46: الأدمن لا يظهر ضمن أعضاء محادثة المشروع إلا إذا كان عضوًا فعليًا — يُشغَّل بعد oct45
+--   (مدير/مالك/مكلّف/موقّع، أو أضافه مستخدم آخر). أما إضافة الأدمن لنفسه فلا تُظهره.
+-- =====================================================================
+create or replace function public.chat_members_list(p_cid bigint) returns table(user_id uuid, extra boolean)
+language plpgsql stable security definer set search_path=public as $fn$
+declare pc text;
+begin
+  if not chat_can_access(p_cid) then raise exception 'not allowed'; end if;
+  select c.pcode into pc from chat_channels c where c.id=p_cid and c.kind='project';
+  if pc is null then return; end if;
+  return query select distinct u, false from public.chat_project_members(pc) u
+    union select m.user_id, true from chat_members m
+     where m.channel_id=p_cid and m.user_id not in (select public.chat_project_members(pc))
+       and (m.added_by is distinct from m.user_id or not exists(select 1 from profiles p where p.id=m.user_id and p.role='admin'));
+end $fn$;
+grant execute on function public.chat_members_list(bigint) to authenticated;
+notify pgrst, 'reload schema';

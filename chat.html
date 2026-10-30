@@ -89,6 +89,9 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  off:['خاصية التواصل غير مفعّلة حاليًا. يفعّلها الأدمن من الإعدادات.','Chat is currently disabled. An admin can enable it in Settings.']};
 const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
 let ME=null,UN={},ON=false,PROJ=[],GEN=null,UNR={},PINS=new Set(),DMS={},CUR=null,MSGS=[],MEM=[],ATT=[],REFS=[],Q='',SEL=null,PANEL=null,MENC={},MEN=null,URLC={},DR={},SIG='',BUSY=false,SHOWALL=false;
+const OFFICE=()=>T2('مكتب التطوير المؤسسي','Institutional Development Office');
+const hidAdm=id=>{const u=UN[id];if(!u||u.role!='admin'||id==(ME||{}).id)return false;if(!CUR||CUR.t!='ch')return false;if(!CUR.pcode)return true;return !MEM.some(m=>m.user_id==id)};
+const snm=id=>hidAdm(id)?OFFICE():((UN[id]||{}).full_name||'—');
 const nm=id=>(UN[id]||{}).full_name||'—',ini=n=>((n||'?').trim()[0]||'?'),norm=x=>String(x||'').toLowerCase().replace(/[ً-ٰٟ]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
 const keyOf=c=>c?(c.t+':'+c.id):'';
 const fmtT=x=>new Date(x).toLocaleTimeString(lang=='ar'?'ar':'en-GB',{hour:'2-digit',minute:'2-digit'});
@@ -108,7 +111,7 @@ function items(){
  if(GEN)all.push(mk({t:'ch',id:GEN.id,name:T2('عام — كل المستخدمين','General — everyone'),icon:'🌐',sub:T2('قناة مفتوحة للجميع','Open to everyone'),at:GEN.last||0,kind:'gen'}));
  PROJ.forEach(p=>all.push(mk({t:'ch',id:p.channel_id||('p:'+p.pcode),pcode:p.pcode,name:p.name||p.pcode,icon:'📁',sub:p.pcode,at:p.last_at?+new Date(p.last_at):0,kind:'proj',n0:+p.n||0,_ck:'ch:'+p.channel_id})));
  all.forEach(o=>{if(o.kind=='proj'){o.n=UNR['ch:'+o.id]||0;o.pin=PINS.has('ch:'+o.id)||PINS.has('pc:'+o.pcode);o.mu=PINS.has('m:ch:'+o.id)}});
- Object.keys(UN).filter(i=>i!=ME.id).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:UN[i].full_name||'—',icon:ini(UN[i].full_name),sub:d?(d.deleted?'':d.body||T2('مرفق','Attachment')):(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
+ Object.keys(UN).filter(i=>i!=ME.id&&(ME.role=='admin'||(UN[i]||{}).role!='admin'||DMS[i])).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:UN[i].full_name||'—',icon:ini(UN[i].full_name),sub:d?(d.deleted?'':d.body||T2('مرفق','Attachment')):(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
  all.forEach(o=>{if(ql&&!norm(o.name+' '+(o.pcode||'')).includes(ql))return;
   if(o.pin)out.pin.push(o);else if(o.kind=='proj'||o.kind=='gen')out.proj.push(o);else if(o.has||ql||SHOWALL)out.ppl.push(o)});
  const srt=(a,b)=>((b.n>0&&!b.mu)-(a.n>0&&!a.mu))||(b.at-a.at)||String(a.name).localeCompare(b.name);
@@ -136,7 +139,7 @@ async function loadMsgs(scroll){if(!CUR)return;let q=sb.from('chat_messages').se
  const {data,error}=await q;if(error)return;const L=(data||[]).reverse(),sig=L.map(m=>m.id+(m.pinned?'p':'')+(m.deleted?'d':'')+(m.read_at?'r':'')).join(',');
  if(sig===SIG)return;SIG=sig;MSGS=L;drawMsgs(scroll);drawPinbar()}
 let CANM=false,EXC=[];
-async function loadMem(){if(!CUR||CUR.t!='ch'||!CUR.pcode)return;try{const r=await sb.rpc('chat_members_list',{p_cid:CUR.id});if(!r.error){MEM=r.data||[];drawHead()}}catch(_){}
+async function loadMem(){if(!CUR||CUR.t!='ch'||!CUR.pcode)return;try{const r=await sb.rpc('chat_members_list',{p_cid:CUR.id});if(!r.error){MEM=r.data||[];drawHead();try{drawMsgs()}catch(_){}}}catch(_){}
  try{const m=await sb.rpc('chat_can_manage',{p_cid:CUR.id});CANM=!!(m&&!m.error&&m.data);if(CANM){const e=await sb.rpc('chat_excluded_list',{p_cid:CUR.id});EXC=(e&&!e.error&&e.data)?e.data.map(x=>x.user_id):[]}else EXC=[]}catch(_){CANM=false;EXC=[]}}
 async function markRead(){if(!CUR)return;try{if(CUR.t=='ch')await sb.rpc('chat_read_ch',{p_cid:CUR.id});else await sb.rpc('chat_read',{p_from:CUR.id})}catch(_){}delete UNR[keyOf(CUR)];const p=PROJ.find(x=>x.channel_id==CUR.id);if(p)p.n=0;drawRail()}
 function drawConv(){drawHead();drawPinbar();drawMsgs(true);drawCmp()}
@@ -153,7 +156,7 @@ async function muteConv(){if(CUR)return muteKey(keyOf(CUR))}
 async function muteKey(ck){try{if(ck.startsWith('ch:p:')){const pc=ck.slice(5),r0=await sb.rpc('chat_open_project',{p_pcode:pc});if(r0.error)throw r0.error;const pp=PROJ.find(x=>x.pcode==pc);if(pp)pp.channel_id=r0.data;ck='ch:'+r0.data}}catch(e){return toast(e.message||e)}const k='m:'+ck,on=!PINS.has(k);try{const r=await sb.rpc('chat_pin_conv',{p_k:k,p_on:on});if(r.error)throw r.error;on?PINS.add(k):PINS.delete(k);drawRail();drawHead();toast(on?T2('تم كتم المحادثة: لن يتم تضمين تنبيهات المحادثة في صفحاتك','Chat muted: its alerts will not be included in your pages'):T2('أُلغي الكتم','Unmuted'))}catch(e){toast(e.message||e)}}
 function panel(p){PANEL=PANEL==p?null:p;drawSide()}
 function drawSide(){const el=$('side');if(!el)return;if(!PANEL){el.innerHTML='';el.className='';return}el.className='on';
- if(PANEL=='pin'){const L=MSGS.filter(m=>m.pinned&&!m.deleted);el.innerHTML=`<div class="sp"><div class="sph"><b>📌 ${T2('الرسائل المثبّتة','Pinned messages')}</b><button onclick="panel('')">✕</button></div>${L.length?L.map(m=>`<div class="pm" onclick="jump(${m.id})"><b>${esc(nm(m.from_user))}</b> <span class="mut">${fmtD(m.created_at)} ${fmtT(m.created_at)}</span><div>${esc((m.body||'').slice(0,160))||'📎'}</div></div>`).join(''):`<div class="mut" style="padding:12px">${T2('لا توجد رسائل مثبّتة. اضغط على أي رسالة ثم «تثبيت».','No pinned messages. Tap a message, then “Pin”.')}</div>`}</div>`;return}
+ if(PANEL=='pin'){const L=MSGS.filter(m=>m.pinned&&!m.deleted);el.innerHTML=`<div class="sp"><div class="sph"><b>📌 ${T2('الرسائل المثبّتة','Pinned messages')}</b><button onclick="panel('')">✕</button></div>${L.length?L.map(m=>`<div class="pm" onclick="jump(${m.id})"><b>${esc(snm(m.from_user))}</b> <span class="mut">${fmtD(m.created_at)} ${fmtT(m.created_at)}</span><div>${esc((m.body||'').slice(0,160))||'📎'}</div></div>`).join(''):`<div class="mut" style="padding:12px">${T2('لا توجد رسائل مثبّتة. اضغط على أي رسالة ثم «تثبيت».','No pinned messages. Tap a message, then “Pin”.')}</div>`}</div>`;return}
  if(PANEL=='mem'){const ids=new Set(MEM.map(m=>m.user_id)),cand=Object.values(UN).filter(u=>!ids.has(u.id)&&!EXC.includes(u.id)).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));
   el.innerHTML=`<div class="sp"><div class="sph"><b>👥 ${T2('أعضاء المحادثة','Chat members')} (${MEM.length})</b><button onclick="panel('')">✕</button></div><div class="mut" style="padding:0 12px 6px">${T2('أعضاء المشروع يُضافون تلقائيًا، ويمكنك إضافة أشخاص آخرين.','Project members are added automatically; you can add others.')}</div>
   <div class="ml">${MEM.map(m=>`<div class="mr"><div class="av">${esc(ini(nm(m.user_id)))}</div><div class="tx"><b>${esc(nm(m.user_id))}</b><span>${esc((UN[m.user_id]||{}).job_title||'')}${m.extra?' · '+T2('مضاف','added'):''}</span></div>${(m.extra||CANM)&&m.user_id!=ME.id?`<button class="sm" title="${T2('إزالة من المحادثة','Remove from chat')}" onclick="rmMem('${m.user_id}')">✕</button>`:''}</div>`).join('')}</div>
@@ -163,7 +166,7 @@ async function addMem(){const u=$('addu').value;if(!u)return;const r=await sb.rp
 async function reMem(u){const r=await sb.rpc('chat_add_member',{p_cid:CUR.id,p_user:u});if(r.error)return toast(r.error.message);toast(T2('أُعيد إلى المحادثة','Restored to the chat'));await loadMem();drawSide()}
 async function rmMem(u){if(!confirm(T2('إزالة هذا الشخص من المحادثة؟ لن يرى رسائلها بعد الآن.','Remove this person from the chat? They will no longer see its messages.')))return;const r=await sb.rpc('chat_remove_member',{p_cid:CUR.id,p_user:u});if(r.error)return toast(r.error.message);await loadMem();drawSide()}
 function drawPinbar(){const el=$('pinbar');if(!el)return;const L=MSGS.filter(m=>m.pinned&&!m.deleted);const m=L[L.length-1];
- el.innerHTML=m?`<div class="pb" onclick="jump(${m.id})">📌 <b>${esc(nm(m.from_user))}:</b> ${esc((m.body||'').slice(0,90))||'📎'}${L.length>1?` <span class="mut">(+${L.length-1})</span>`:''}</div>`:''}
+ el.innerHTML=m?`<div class="pb" onclick="jump(${m.id})">📌 <b>${esc(snm(m.from_user))}:</b> ${esc((m.body||'').slice(0,90))||'📎'}${L.length>1?` <span class="mut">(+${L.length-1})</span>`:''}</div>`:''}
 function jump(id){PANEL=null;drawSide();const e=document.querySelector('[data-m="'+id+'"]');if(e){e.scrollIntoView({block:'center',behavior:'smooth'});e.classList.add('fl2');setTimeout(()=>e.classList.remove('fl2'),1600)}}
 function msgHtml(m,prev){const mine=m.from_user==ME.id,grp=CUR.t=='ch'&&!mine,first=!prev||prev.from_user!=m.from_user||(new Date(m.created_at)-new Date(prev.created_at))>3e5||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString();
  let tx=esc(m.body||'').replace(/\n/g,'<br>');const refs=m.refs||[];
@@ -173,7 +176,7 @@ function msgHtml(m,prev){const mine=m.from_user==ME.id,grp=CUR.t=='ch'&&!mine,fi
  const body=m.deleted?`<i class="mut">${T2('تم حذف هذه الرسالة','This message was deleted')}</i>`:`${tx?`<div class="tx2">${tx}</div>`:''}${chips?`<div class="rfs">${chips}</div>`:''}${atts?`<div class="ats">${atts}</div>`:''}`;
  const act=m.deleted?'':`<div class="ac"><button onclick="pinMsg(${m.id},${!m.pinned})">📌 ${m.pinned?T2('إلغاء التثبيت','Unpin'):T2('تثبيت','Pin')}</button><button onclick="cpMsg(${m.id})">⧉ ${T2('نسخ','Copy')}</button>${mine||ME.role=='admin'?`<button class="r" onclick="delMsg(${m.id})">🗑 ${T2('حذف','Delete')}</button>`:''}</div>`;
  return (!prev||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString()?`<div class="dsep"><span>${fmtD(m.created_at)}</span></div>`:'')+
- `<div class="mg ${mine?'me':''} ${first?'first':''}" data-m="${m.id}" onclick="selMsg(${m.id},event)">${grp?`<div class="av sm">${first?esc(ini(nm(m.from_user))):''}</div>`:''}<div class="bb ${SEL==m.id?'sel':''}">${grp&&first?`<div class="nm">${esc(nm(m.from_user))}</div>`:''}${m.pinned?'<span class="pn">📌</span>':''}${body}<small>${fmtT(m.created_at)}${mine&&CUR.t=='dm'&&m.read_at?' ✓✓':''}</small>${SEL==m.id?act:''}</div></div>`}
+ `<div class="mg ${mine?'me':''} ${first?'first':''}" data-m="${m.id}" onclick="selMsg(${m.id},event)">${grp?`<div class="av sm">${first?esc(ini(snm(m.from_user))):''}</div>`:''}<div class="bb ${SEL==m.id?'sel':''}">${grp&&first?`<div class="nm">${esc(snm(m.from_user))}</div>`:''}${m.pinned?'<span class="pn">📌</span>':''}${body}<small>${fmtT(m.created_at)}${mine&&CUR.t=='dm'&&m.read_at?' ✓✓':''}</small>${SEL==m.id?act:''}</div></div>`}
 async function drawMsgs(scroll){const b=$('msgs');if(!b||!CUR)return;const near=scroll||b.scrollHeight-b.scrollTop-b.clientHeight<80;
  b.innerHTML=MSGS.length?MSGS.map((m,i)=>msgHtml(m,MSGS[i-1])).join(''):`<div class="empty"><div style="font-size:38px">${CUR.t=='dm'?'👋':'💬'}</div><b>${T2('ابدأ المحادثة','Start the conversation')}</b><div class="mut">${CUR.pcode?T2('يرى هذه الرسائل كل أعضاء المشروع.','All project members see these messages.'):''}</div></div>`;
  if(near)b.scrollTop=b.scrollHeight;
@@ -203,7 +206,7 @@ async function upFiles(fs){if(!CUR||!fs.length)return;const base=CUR.t=='ch'?'ch
   ATT.push({path,name:f.name,size:f.size,type:f.type||''});drawChips()}}
 function addRef(r){const ta=$('mt');if(!REFS.some(x=>x.k==r.k&&String(x.id)==String(r.id))){r.tk=(r.k=='user'?'@':'#')+String(r.label).replace(/\s+/g,'_');REFS.push(r)}else r.tk=REFS.find(x=>x.k==r.k&&String(x.id)==String(r.id)).tk;
  const v=ta.value;ta.value=(v&&!/\s$/.test(v)?v+' ':v)+r.tk+' ';ta.focus();drawQref();ta.dispatchEvent(new Event('input'))}
-async function menItems(mode){if(mode=='@'){const ids=CUR.pcode?MEM.map(m=>m.user_id):Object.keys(UN);return ids.filter(i=>i!=ME.id).map(i=>({k:'user',id:i,label:nm(i),sub:(UN[i]||{}).job_title||''}))}
+async function menItems(mode){if(mode=='@'){const ids=CUR.pcode?MEM.map(m=>m.user_id):Object.keys(UN);return ids.filter(i=>i!=ME.id&&!(!CUR.pcode&&(UN[i]||{}).role=='admin')).map(i=>({k:'user',id:i,label:nm(i),sub:(UN[i]||{}).job_title||''}))}
  if(!CUR.pcode)return [];if(!MENC[CUR.pcode]){try{const r=await sb.rpc('chat_mentions',{p_pcode:CUR.pcode});MENC[CUR.pcode]=r.error?[]:(r.data||[])}catch(_){MENC[CUR.pcode]=[]}}return MENC[CUR.pcode]}
 function menBtn(mode){const ta=$('mt');ta.focus();const v=ta.value;ta.value=v+(v&&!/\s$/.test(v)?' ':'')+mode;ta.dispatchEvent(new Event('input'))}
 async function menCheck(){const ta=$('mt'),pos=ta.selectionStart,m=/(^|\s)([#@])([^\s#@]*)$/.exec(ta.value.slice(0,pos));
@@ -237,7 +240,7 @@ async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();ME=me;
- const {data:us}=await sb.from('profiles').select('id,full_name,job_title');(us||[]).forEach(u=>UN[u.id]=u);
+ const {data:us}=await sb.from('profiles').select('id,full_name,job_title,role');(us||[]).forEach(u=>UN[u.id]=u);
  const r=await sb.rpc('chat_on');ON=!!r.data;
  if(!ON){$('app').innerHTML=`<div class="card lock"><p>${t('off')}</p></div>`;return}
  try{const g=await sb.from('chat_channels').select('id').eq('kind','general').limit(1);GEN=(g.data||[])[0]||null}catch(_){}
