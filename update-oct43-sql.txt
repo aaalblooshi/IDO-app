@@ -1,0 +1,35 @@
+-- =====================================================================
+-- update-oct43: اختيار ما يُموَّه في المشروع السري — يُشغَّل بعد oct42
+-- =====================================================================
+alter table project_cfg add column if not exists blur text[] not null default '{tasks,people,kpi,team,events}';
+
+-- عرض الخطة: للمكلّف في مشروع سري تُمرَّر المهام مموّهة دائمًا، واسم المدير يُحذف من الخادم إن اختار المكتب تمويهه،
+-- وتُرسَل قائمة التمويه للواجهة (المؤشرات والفريق والأحداث تُموَّه في الشاشة بحسب اختيار المكتب)
+create or replace function pl_view(pid bigint) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare p plans%rowtype; pc text; me text := auth.uid()::text; own boolean; seen boolean; rs boolean; d jsonb; bl text[];
+begin
+  select * into p from plans where id = pid;
+  if p.id is null then return null; end if;
+  pc := coalesce(p.data->>'pcode','');
+  own := (p.status = 'Approved' or p.data->>'_active' = 'true') and not p.archived
+         and exists(select 1 from jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t where t->>'w' = me);
+  seen := pl_can_see(pid);
+  if not (seen or own) then raise exception 'no access'; end if;
+  rs := (not seen) and own and proj_own_only(pc);
+  select coalesce(g.blur,'{tasks,people,kpi,team,events}') into bl from project_cfg g where g.pcode = pc;
+  bl := coalesce(bl, '{tasks,people,kpi,team,events}');
+  d := p.data;
+  if rs then
+    d := jsonb_build_object('pcode', d->'pcode', 'pname', d->'pname', 'sector', d->'sector', 'ptype', d->'ptype', 'wmode', d->'wmode',
+           'pmname', case when 'people' = any(bl) then null else d->'pmname' end, '_active', d->'_active',
+           'tasks', pl_mask(d->'tasks', me),
+           '_base', case when d ? '_base' then pl_mask(d->'_base', '-') else null end);
+  end if;
+  return jsonb_build_object('id', p.id, 'code', p.code, 'status', p.status, 'version', p.version, 'archived', p.archived,
+           'charter_id', p.charter_id, 'created_by', p.created_by, 'restricted', rs, 'blur', to_jsonb(bl), 'data', d);
+end $fn$;
+revoke all on function pl_view(bigint) from public;
+grant execute on function pl_view(bigint) to authenticated;
+
+notify pgrst, 'reload schema';
