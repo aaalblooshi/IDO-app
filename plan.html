@@ -884,6 +884,11 @@ const W=[
 ["pl_track", "Execution tracking", "متابعة التنفيذ"],
 ["pl_note", "Note", "ملاحظة"],
 ["pl_task", "Activity", "نشاط"],
+["pl_typ", "Task type", "نوع المهمة"],
+["pl_tyN", "Regular task (by start / end dates)", "مهمة عادية (حسب تاريخَي البداية والنهاية)"],
+["pl_tyD", "One-day task", "مهمة ليوم واحد"],
+["pl_tyM", "Milestone (marker)", "معلَم"],
+["pl_tyH", "A one-day task is a normal task that starts and ends the same day. A milestone is a key checkpoint marked with ◆ on the schedule.", "المهمة ليوم واحد مهمة عادية تبدأ وتنتهي في اليوم نفسه، أما المعلَم فنقطة إنجاز رئيسية تظهر بعلامة ◆ في الجدول الزمني."],
 ["pl_ms", "Milestone (single-day marker)", "معلَم (علامة ليوم واحد)"],
 ["pl_del", "Delete", "حذف"],
 ["pl_sumAuto", "Calculated automatically from its sub-activities", "تُحسب تلقائيًا من الأنشطة التي تحتها"],
@@ -1938,7 +1943,7 @@ function linkTasks(from,to,ty){const f=byId(from),tt=byId(to);if(!f||!tt||!linkO
  if((tt.dep||[]).some(e=>e.t==from)){renderPlan();return}
  snap();tt.dep=(tt.dep||[]).concat([{t:from,y:ty||'FS',l:0}]);norm();rollup();propagate();rollup();renderPlan();pSave()}
 // ===== task sheet (editor) =====
-function openSheet(id){PL.ed=id;const x=byId(id);PL.shDeps=x?JSON.parse(JSON.stringify(x.dep||[])):[];renderPlan();const s=$('shbox');if(s)s.scrollIntoView({block:'nearest'})}
+function openSheet(id){PL.ed=id;const x=byId(id);PL.shDeps=x?JSON.parse(JSON.stringify(x.dep||[])):[];renderPlan();if($('sh_ty')&&$('sh_ty').value!='n'&&PL.canEdit)shTy();const s=$('shbox');if(s)s.scrollIntoView({block:'nearest'})}
 function closeSheet(){PL.ed=null;renderPlan()}
 function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const m=M[x.id],leaf=!m.kids.length,ed=PL.canEdit,trk=PL.trk,dis=ed?'':'disabled',adv=PL.adv;
  const preds=(PL.shDeps||[]).map((e,i)=>`<div class="row" style="margin:4px 0;flex-wrap:nowrap"><select class="srch" id="sd_t${i}" style="flex:2;min-width:0" ${dis}><option value=""></option>${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${e.t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>${adv?`<select id="sd_y${i}" style="flex:1;min-width:0" ${dis}>${['FS','SS','FF','SF'].map(y=>`<option value="${y}" ${(e.y||'FS')==y?'selected':''}>${t('pl_ty_'+y)}</option>`).join('')}</select><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${t('pl_lag')}">`:`<input type="hidden" id="sd_y${i}" value="${e.y||'FS'}"><input id="sd_l${i}" inputmode="numeric" style="width:64px" value="${e.l||0}" ${dis} title="${lang=='ar'?'فراغ بعد انتهاء السابق (أيام عمل)':'Gap after the predecessor (working days)'}" placeholder="${lang=='ar'?'فراغ':'gap'}">${ed?`<button class="sm" type="button" title="${lang=='ar'?'أسبوع عمل = 5 أيام':'One work week = 5 days'}" onclick="$('sd_l${i}').value=5">${lang=='ar'?'أسبوع':'1 wk'}</button>`:''}`}${ed?`<button class="sm" onclick="shDel(${i})">✕</button>`:''}</div>`).join('');
@@ -1946,13 +1951,14 @@ function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const 
  ${(!ed&&me.role=='admin'&&!PL.arch&&!['Draft','Returned to PM','Cancelled'].includes(PL.st))?`<div class="mut" style="background:#fff8e6;border:1px dashed #BF9849;border-radius:10px;padding:8px 10px;margin:6px 0;font-size:12.5px">${lang=='ar'?'الخطة في وضع القراءة ('+esc(PL.st||'')+'). لتعديل بيانات المهمة بصفة الأدمن فعّل «تعديل بصفة الأدمن» من أعلى الخطة، أو اطلب تغييرًا رسميًا عبر طلب تغيير.':'The plan is read-only ('+esc(PL.st||'')+'). To edit this task as admin, enable admin edit at the top of the plan, or raise a change request.'} <button class="sm" type="button" onclick="closeSheet();adminEditStart()">${lang=='ar'?'تفعيل التعديل بصفة الأدمن':'Enable admin edit'}</button></div>`:''}
  <label>${t('pl_name')}</label><input id="sh_n" value="${esc(x.n)}" ${dis}>
  ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><label>${t('pl_durD')}</label><input id="sh_du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${dis} style="max-width:140px"><div class="mut" id="sh_d" style="margin-top:4px"></div>
- <label class="tg2"><input type="checkbox" id="sh_ms" ${x.ms?'checked':''} ${dis}> ${t('pl_ms')}</label>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
+ <label>${t('pl_typ')}</label><select id="sh_ty" ${dis} onchange="shTy()"><option value="n" ${!x.ms&&!(x.s&&x.s==x.e)?'selected':''}>${t('pl_tyN')}</option><option value="d" ${!x.ms&&x.s&&x.s==x.e?'selected':''}>${t('pl_tyD')}</option><option value="m" ${x.ms?'selected':''}>${t('pl_tyM')}</option></select><div class="mut" style="margin-top:3px">${t('pl_tyH')}</div>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
  <label>${t('pl_who')}</label><select class="srch" id="sh_w" ${dis}>${userOpts(x.w)}</select><input id="sh_wn" placeholder="${t('pl_whoOther')}" value="${esc(x.w?'':x.wn||'')}" ${dis} style="margin-top:4px">
  <label>${t('pl_after')}</label><div class="mut" style="margin:-2px 0 4px">${t('pl_afterH')}</div>${preds}${ed&&(adv||!(PL.shDeps||[]).length)?`<button class="sm" onclick="shAdd()">+ ${t('pl_addPred')}</button>`:''}
  ${trk&&leaf?`<div class="sec" style="margin-top:12px">${t('pl_track')}</div><div class="g2"><div><label>${t('pl_astart')}</label><input id="sh_as" type="date" value="${esc(x.as)}"></div><div><label>${t('pl_aend')}</label><input id="sh_ae" type="date" value="${esc(x.ae)}"></div></div><label>${t('pl_pct')} (0-100)</label><input id="sh_pc" inputmode="numeric" value="${x.pc||0}">`:''}
  <label>${t('pl_note')}</label><textarea id="sh_nt" rows="2" ${dis}>${esc(x.nt||'')}</textarea>
  ${PL.rev?`<label>💬 ${t('pl_revNote')}</label><textarea id="sh_rn" rows="2">${esc(x.rn||'')}</textarea>`:(x.rn?`<div class="rnote ro"><b>💬 ${t('pl_revNote')}</b><div style="white-space:pre-wrap">${esc(x.rn)}</div></div>`:'')}
  <div class="row" style="margin-top:12px">${(ed||trk||PL.rev)?`<button class="p" onclick="shSave()">${t('save')}</button>`:''}${ed&&M[x.id].d<maxDepth()?`<button onclick="shSub()">+ ${t('pl_addSub')}</button>`:''}${ed?`<button class="r" onclick="PL.ed=null;delTask('${x.id}')">🗑 ${t('pl_del')}</button>`:''}<button onclick="closeSheet()">${t('cancel')}</button></div></div></div>`}
+function shTy(){const v=$('sh_ty').value,one=v!='n',e=$('sh_e'),du=$('sh_du');if(!e)return;if(one){e.value=$('sh_s').value;e.disabled=true;if(du){du.value=1;du.disabled=true}}else{e.disabled=!PL.canEdit;if(du)du.disabled=!PL.canEdit}}
 function shAdd(){shRead();(PL.shDeps=PL.shDeps||[]).push({t:'',y:'FS',l:0});renderPlan()}
 function shDel(i){shRead();PL.shDeps.splice(i,1);renderPlan()}
 function shRead(){(PL.shDeps||[]).forEach((e,i)=>{const a=$('sd_t'+i);if(a){e.t=a.value;e.y=$('sd_y'+i).value;e.l=+String($('sd_l'+i).value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0}})}
@@ -1960,12 +1966,13 @@ function shSub(){const id=PL.ed;shSave(true);PL.ed=null;addTask(id)}
 function shSave(keep){norm();const x=byId(PL.ed);if(!x)return;const ed=PL.canEdit,trk=PL.trk,leaf=isLeaf(x);snap();
  if(PL.rev&&$('sh_rn'))x.rn=$('sh_rn').value.trim();
  if(ed){x.n=$('sh_n').value.trim();const w=$('sh_w').value,wn=$('sh_wn').value.trim();x.w=w;x.wn=w?'':wn;x.nt=$('sh_nt').value;
-  if(leaf){const s=$('sh_s').value,e=$('sh_e').value;x.ms=$('sh_ms').checked?1:0;if(x.ms){x.s=s?ds(nextWork(dn(s))):'';x.e=x.s}else{x.s=s?ds(nextWork(dn(s))):'';x.e=e?ds(prevWork(dn(e))):x.e;if(x.s&&x.e&&dn(x.e)<dn(x.s))x.e=x.s}
+  if(leaf){const s=$('sh_s').value,e=$('sh_e').value;const ty=$('sh_ty').value;x.ms=ty=='m'?1:0;if(ty!='n'){x.s=s?ds(nextWork(dn(s))):'';x.e=x.s}else{x.s=s?ds(nextWork(dn(s))):'';x.e=e?ds(prevWork(dn(e))):x.e;if(x.s&&x.e&&dn(x.e)<dn(x.s))x.e=x.s}
   }
   shRead();{const deps=(PL.shDeps||[]).filter(e=>e.t);const ok=[];for(const e of deps){if(reaches(x.id,e.t,succMap())){msg(t('pl_cycle'));continue}if(!ok.some(q=>q.t==e.t))ok.push(e)}x.dep=ok}}
  if(trk&&leaf){x.as=$('sh_as').value;x.ae=$('sh_ae').value;x.pc=Math.max(0,Math.min(100,+String($('sh_pc').value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0));if(x.ae&&x.pc<100)x.pc=100}
  if(!keep)PL.ed=null;norm();rollup();propagate();rollup();renderPlan();pSave()}
 document.addEventListener('input',e=>{const x=e.target;
+ if(x.id=='sh_s'&&$('sh_ty')&&$('sh_ty').value!='n')$('sh_e').value=x.value;
  if(x.id=='sh_s'||x.id=='sh_e'){const a=dn($('sh_s').value),b=dn($('sh_e').value),u=$('sh_du');if(u)u.value=(isNaN(a)||isNaN(b)||b<a)?'':wdays(a,b)}
  if(x.id=='sh_du'){const du=Math.max(1,+String(x.value).replace(/[0-9]/g,c=>'0123456789'.indexOf(c))||0);let a=dn($('sh_s').value);if(!du)return;if(isNaN(a)){const b=dn(cr.data.sdate);a=nextWork(isNaN(b)?todayN():b);$('sh_s').value=ds(a)}a=nextWork(a);$('sh_s').value=ds(a);$('sh_e').value=ds(addWork(a,du-1))}});
 // ===== Excel / paste import & export =====
