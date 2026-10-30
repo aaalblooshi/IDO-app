@@ -1,0 +1,6 @@
+-- استعلام قراءة فقط: يجمع تعريفات دوال الخطط كلها في خانة واحدة
+-- شغّله ثم اضغط على الخانة (result) وانسخ النص كاملًا وأرسله لي
+select string_agg(pg_get_functiondef(oid), E'\n\n-----\n\n' order by proname) as defs
+from pg_proc
+where pronamespace = 'public'::regnamespace
+  and (proname like 'pl\_%' escape '\' or proname like '%revision%' or proname like '%revise%');

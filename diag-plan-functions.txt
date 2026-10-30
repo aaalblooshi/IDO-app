@@ -1,0 +1,13 @@
+-- استعلام قراءة فقط (لا يغيّر شيئًا). انسخه كاملًا وشغّله في Supabase → SQL Editor
+-- ثم أرسل لي النتيجة (انسخ خانة definition لكل صف، أو لقطة شاشة).
+select proname, pg_get_functiondef(oid) as definition
+from pg_proc
+where pronamespace = 'public'::regnamespace
+  and (proname like 'pl\_%' escape '\' or proname like '%revision%' or proname like '%revise%')
+order by proname;
+
+-- أعمدة جدول النسخ السابقة
+select column_name, data_type
+from information_schema.columns
+where table_schema = 'public' and table_name = 'plan_versions'
+order by ordinal_position;
