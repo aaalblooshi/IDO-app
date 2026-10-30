@@ -1,0 +1,37 @@
+-- =====================================================================
+-- update-oct42: المشروع السري = من أُضيف إليه يرى مهامه فقط والباقي مموّه — يُشغَّل بعد oct41
+-- =====================================================================
+-- «السري» يعني: مخفي عن أصحاب الوحدات، أو مفعّل عليه «مهامه فقط»
+create or replace function proj_own_only(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce((select g.own_only or g.hidden from project_cfg g where g.pcode = pc), false)
+$$;
+grant execute on function proj_own_only(text) to authenticated;
+
+-- مرفقات المهام: في المشروع السري يرى المكلّف ويرفع مرفقات مهامه فقط (وفي غيره كما كان)
+create or replace function pl_att_ok(pid bigint, tid text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from plans p where p.id = pid and (p.status = 'Approved' or p.data->>'_active' = 'true')
+    and case when proj_own_only(p.data->>'pcode')
+             then tid is not null and pl_task_owner(p.data, tid, auth.uid())
+             else exists(select 1 from jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t where t->>'w' = auth.uid()::text) end)
+$$;
+create or replace function pl_assign_any(pid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from plans p where p.id = pid and (p.status = 'Approved' or p.data->>'_active' = 'true')
+    and exists(select 1 from jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t where t->>'w' = auth.uid()::text))
+$$;
+grant execute on function pl_att_ok(bigint,text), pl_assign_any(bigint) to authenticated;
+
+drop policy if exists "platt task sel" on plan_attachments;
+create policy "platt task sel" on plan_attachments for select to authenticated using (task_id is not null and pl_att_ok(cr_id, task_id));
+drop policy if exists "platt task ins" on plan_attachments;
+create policy "platt task ins" on plan_attachments for insert to authenticated with check (task_id is not null and uploaded_by = auth.uid() and pl_att_ok(cr_id, task_id));
+do $$ begin
+  execute 'drop policy if exists "pl task obj sel" on storage.objects';
+  execute 'create policy "pl task obj sel" on storage.objects for select to authenticated using (bucket_id=''pl-attachments'' and pl_assign_any(((storage.foldername(name))[1])::bigint))';
+  execute 'drop policy if exists "pl task obj ins" on storage.objects';
+  execute 'create policy "pl task obj ins" on storage.objects for insert to authenticated with check (bucket_id=''pl-attachments'' and pl_assign_any(((storage.foldername(name))[1])::bigint))';
+exception when others then raise notice 'skip storage policies: %', sqlerrm; end $$;
+
+notify pgrst, 'reload schema';
