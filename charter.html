@@ -729,7 +729,7 @@ const W=[
 ["home", "Project charters", "مواثيق المشاريع"]
 ];
 const D={en:{},ar:{}};W.forEach(([k,e,a])=>{D.en[k]=e;D.ar[k]=a});
-let lang='en';try{lang=localStorage.getItem('lang')||((navigator.language||'').startsWith('ar')?'ar':'en')}catch(e){}
+let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(e){}
 const ARN=s=>{if(lang!='ar')return s;const F={'أيام عمل':['يوم عمل واحد','يوما عمل','أيام عمل','يوم عمل'],'يوم عمل':['يوم عمل واحد','يوما عمل','أيام عمل','يوم عمل'],'يوم':['يوم واحد','يومان','أيام','يومًا']};return String(s).replace(/(\d+) (أيام عمل|يوم عمل|يوم)(?![\u0621-\u064a])/g,(m,n,w)=>{n=+n;const f=F[w];return n==1?f[0]:n==2?f[1]:n+' '+((n>=3&&n<=10)||n==0?f[2]:f[3])})};
 /* ===== configurable lists (sectors, departments, goals, types...) and roles ===== */
 let SET={},ROLES={},LST={};
