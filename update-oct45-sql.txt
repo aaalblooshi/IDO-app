@@ -1,0 +1,84 @@
+-- =====================================================================
+-- update-oct45: إزالة أي شخص من محادثة المشروع (للأدمن ومدير المشروع ومالكه) — يُشغَّل بعد oct44
+--   كانت الإزالة تقتصر على من أُضيف يدويًا؛ الآن تشمل أعضاء المشروع الأصليين أيضًا، مع إمكانية إعادتهم
+-- =====================================================================
+create table if not exists public.chat_excl(
+  pcode text not null, user_id uuid not null, by_user uuid default auth.uid(), at timestamptz default now(),
+  primary key(pcode, user_id));
+alter table public.chat_excl enable row level security;
+
+-- مدير محادثة المشروع: الأدمن، أو مدير المشروع، أو مالكه (بحسب الميثاق والخطة)
+create or replace function public.chat_can_manage(p_cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from profiles me where me.id = auth.uid() and me.role = 'admin')
+      or exists(select 1 from chat_channels c, profiles me
+                where c.id = p_cid and c.kind = 'project' and me.id = auth.uid()
+                  and (exists(select 1 from charters ch where ch.code = c.pcode and (ch.data->>'pmname' = me.full_name or ch.data->>'owner' = me.full_name))
+                    or exists(select 1 from plans pl where pl.data->>'pcode' = c.pcode and pl.data->>'pmname' = me.full_name)))
+$$;
+grant execute on function public.chat_can_manage(bigint) to authenticated;
+
+-- أعضاء المشروع الأصليون مع استبعاد من أزالهم المدير
+create or replace function public.chat_project_members(p_pcode text) returns setof uuid
+language sql stable security definer set search_path=public as $$
+  select distinct u from (
+    select c.created_by u from charters c where c.code=p_pcode
+    union all select p.id from profiles p join charters c on c.code=p_pcode and (p.full_name=c.data->>'pmname' or p.full_name=c.data->>'owner')
+    union all select s.user_id from charter_signatories s join charters c on c.id=s.cr_id where c.code=p_pcode
+    union all select pl.created_by from plans pl where pl.data->>'pcode'=p_pcode
+    union all select p.id from profiles p join plans pl on pl.data->>'pcode'=p_pcode and p.full_name=pl.data->>'pmname'
+    union all select case when t->>'w' ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then (t->>'w')::uuid end
+              from plans pl, jsonb_array_elements(coalesce(pl.data->'tasks','[]'::jsonb)) t where pl.data->>'pcode'=p_pcode
+    union all select s.user_id from plan_signatories s join plans pl on pl.id=s.cr_id where pl.data->>'pcode'=p_pcode
+    union all select g.user_id from project_grants g where g.pcode=p_pcode
+  ) z where u is not null and not exists(select 1 from chat_excl x where x.pcode = p_pcode and x.user_id = z.u)
+$$;
+revoke all on function public.chat_project_members(text) from public;
+
+create or replace function public.chat_remove_member(p_cid bigint, p_user uuid) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare pc text; k text; mng boolean;
+begin
+  select pcode, kind into pc, k from chat_channels where id = p_cid;
+  if k is distinct from 'project' then raise exception 'not allowed'; end if;
+  mng := chat_can_manage(p_cid);
+  if not (mng or p_user = auth.uid()
+          or exists(select 1 from chat_members where channel_id = p_cid and user_id = p_user and added_by = auth.uid())) then
+    raise exception 'not allowed'; end if;
+  if p_user <> auth.uid() and exists(select 1 from profiles where id = p_user and role = 'admin') then raise exception 'cannot remove admin'; end if;
+  delete from chat_members where channel_id = p_cid and user_id = p_user;
+  if mng or p_user = auth.uid() then
+    insert into chat_excl(pcode, user_id, by_user) values (pc, p_user, auth.uid()) on conflict do nothing;
+  end if;
+end $fn$;
+grant execute on function public.chat_remove_member(bigint,uuid) to authenticated;
+
+-- إضافة/إعادة عضو: من أزاله المدير لا يعيده إلا المدير
+create or replace function public.chat_add_member(p_cid bigint, p_user uuid) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare pc text;
+begin
+  if not chat_can_access(p_cid) or not exists(select 1 from chat_channels where id=p_cid and kind='project') then raise exception 'not allowed'; end if;
+  if not exists(select 1 from profiles where id=p_user) then raise exception 'bad user'; end if;
+  select pcode into pc from chat_channels where id = p_cid;
+  if exists(select 1 from chat_excl where pcode = pc and user_id = p_user) then
+    if not chat_can_manage(p_cid) then raise exception 'removed by the project manager'; end if;
+    delete from chat_excl where pcode = pc and user_id = p_user;
+  end if;
+  insert into chat_members(channel_id,user_id) values(p_cid,p_user) on conflict do nothing;
+  insert into user_nudges(to_user,from_user,from_name,msg) select p_user,auth.uid(),(select full_name from profiles where id=auth.uid()),'أُضفت إلى محادثة مشروع: '||coalesce((select name from chat_channels where id=p_cid),'') where p_user<>auth.uid();
+end $fn$;
+grant execute on function public.chat_add_member(bigint,uuid) to authenticated;
+
+-- من أُزيلوا من المحادثة (للمدير فقط، لإعادتهم)
+create or replace function public.chat_excluded_list(p_cid bigint) returns table(user_id uuid)
+language plpgsql stable security definer set search_path=public as $fn$
+declare pc text;
+begin
+  if not chat_can_manage(p_cid) then return; end if;
+  select pcode into pc from chat_channels where id = p_cid;
+  return query select x.user_id from chat_excl x where x.pcode = pc;
+end $fn$;
+grant execute on function public.chat_excluded_list(bigint) to authenticated;
+
+notify pgrst, 'reload schema';
