@@ -814,7 +814,7 @@ body.cmon main{padding-top:0}
 #cmres a{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:12px;text-decoration:none;color:inherit;font-size:14px}#cmres a:hover,#cmres a.hl{background:#eaf4fb}#cmres a small{margin-inline-start:auto;color:#6b7280;font-size:11.5px;white-space:nowrap}#cmres .cm-g{font-size:11px;color:#6b7280;padding:6px 12px 2px;font-weight:700}
 .cm-chips{display:flex;gap:8px;flex-wrap:wrap;position:relative;z-index:2}
 .cm-chip{font-family:inherit;display:flex;gap:8px;align-items:center;border:1.5px solid rgba(255,255,255,.4);background:rgba(255,255,255,.16);color:#fff;border-radius:14px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer}.cm-chip b{font-size:20px;line-height:1}
-.cm-chip.on{background:#fff;color:#1d5f8a;border-color:#fff}.cm-chip.late b{color:#ffd7b5}.cm-chip.late.on b{color:var(--cr)}.cm-chip.z{opacity:.6}
+.cm-chip.on{background:#fff;color:#1d5f8a;border-color:#fff}.cm-chip.late b{color:#ffd7b5}.cm-chip.late.on b{color:var(--cr)}.cm-chip.z{opacity:.6}.cm-it.es{border-color:#d1101d!important;border-width:2px;background:#fff6f6}.cm-esb{display:inline-block;background:#d1101d;color:#fff;border-radius:99px;padding:0 8px;font-weight:800;font-size:11.5px}.cm-escb[hidden]{display:none}.cm-escb{background:#fdecee;border:2px solid #d1101d;color:#8f0a14;border-radius:14px;padding:10px 14px;margin:10px 0;font-weight:800;cursor:pointer;display:flex;gap:8px;align-items:center}.eb{background:#d1101d;color:#fff;border-radius:99px;font-size:11px;font-weight:800;min-width:18px;padding:0 5px;line-height:18px;text-align:center;display:inline-block;margin-inline-start:4px;vertical-align:middle}
 .cm-main>*{min-width:0}.cm-main{display:grid;margin-top:16px!important;grid-template-columns:minmax(0,1fr) 300px;gap:14px;margin-top:14px}
 .cm-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:0 2px 10px rgba(30,60,90,.06)}
 .cm-card h3{margin:0 0 10px;font-size:15.5px;display:flex;gap:8px;align-items:center}.cm-card h3 a,.cm-card h3 button{margin-inline-start:auto;font-family:inherit;background:none;border:0;color:var(--cb);font-size:12.5px;font-weight:700;text-decoration:none;cursor:pointer}
@@ -910,23 +910,24 @@ var DY=function(n,acc){n=+n||0;return n==1?'يوم واحد':n==2?(acc?'يومي
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var S={f:null,built:false,sig:'',open:{},tab:'home',side:(function(){try{return localStorage.getItem('cmSide')=='1'}catch(_){return false}})(),cal:{y:null,m:null,sel:null,t:'all'}};
 var dn=function(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};var today=function(){return dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()))};
-var CH=[['act',['بانتظار إجرائي','Awaiting my action']],['late',['متأخرة','Late']],['ret',['مرجعة لي','Returned to me']],['run',['طلباتي الجارية','My open requests']],['fl',['أتابعها','I follow']]];
+var CH=[['act',['بانتظار إجرائي','Awaiting my action']],['late',['متأخرة','Late']],['esc',['مُصعَّدة','Escalated']],['ret',['مرجعة لي','Returned to me']],['run',['طلباتي الجارية','My open requests']],['fl',['أتابعها','I follow']]];
 var TS=[['مهام قادمة','Upcoming'],['حان موعد بدئها','Due to start'],['قيد التنفيذ','In progress'],['متأخرة','Overdue'],['منجزة','Done']];
 var NEW=[['charter',['ميثاق مشروع جديد','New project charter']],['plan',['خطة مشروع جديدة','New project plan']],['cr',['طلب تغيير جديد','New change request']],['closure',['تقرير ختامي جديد','New closure report']]];
 function data(){var X=window.JNX,E=X.E,all=X.vis('all');
  var AC=function(x){return E.role=='fl'?false:E.role=='pt'?!!x.cons:x.act};
  var meta=all.map(function(x){var s=null;try{s=X.slaOf(x)}catch(_){}var act=AC(x);var late=(x.k=='tasks'&&x.late>0)||(s&&s.left<0&&act);
-  return{x:x,k:null,act:!!act,late:!!late,s:s,ret:x.st=='Returned to PM'&&x.roles.has('pm'),fl:x.roles.has('fl')&&!x.roles.has('pm'),run:x.k!='tasks'&&x.stage<5}});
+  var ex=window.ESCP&&window.ESCP[x.k+'|'+x.id],isA=E.me&&E.me.role=='admin';if(ex&&isA)act=true;
+  return{x:x,esc:!!ex,ex:ex||null,k:null,act:!!act,late:!!late,s:s,ret:x.st=='Returned to PM'&&x.roles.has('pm'),fl:x.roles.has('fl')&&!x.roles.has('pm'),run:x.k!='tasks'&&x.stage<5}});
  meta.forEach(function(m){m.k=kindOf(m)});return{X:X,E:E,meta:meta}}
-var KIND={ap:['اعتماد','Approve','#2e8b57'],rv:['مراجعة','Review','#3EA3DC'],pmd:['إكمال وتقديم','Complete & submit','#7a6740'],pmr:['تعديل وإعادة إرسال','Edit & resubmit','#d9534f'],of:['إجراء المكتب','Office action','#1d5f8a'],pt:['مشاركة بالتخطيط','Group planning','#8e6bbf'],tk:['تنفيذ المهمة','Work on task','#BF9849'],ot:['إجراء مطلوب','Action needed','#6b7280']};
-var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review'],pmd:['للإكمال والتقديم','to complete & submit'],pmr:['للتعديل وإعادة الإرسال','to edit & resubmit'],of:['لإجراء المكتب','for office action'],pt:['للمشاركة بالتخطيط','for group planning'],ot:['لإجراء آخر','other action']};
+var KIND={ap:['اعتماد','Approve','#2e8b57'],rv:['مراجعة','Review','#3EA3DC'],pmd:['إكمال وتقديم','Complete & submit','#7a6740'],pmr:['تعديل وإعادة إرسال','Edit & resubmit','#d9534f'],of:['إجراء المكتب','Office action','#1d5f8a'],es:['قرار التصعيد','Escalation decision','#d1101d'],pt:['مشاركة بالتخطيط','Group planning','#8e6bbf'],tk:['تنفيذ المهمة','Work on task','#BF9849'],ot:['إجراء مطلوب','Action needed','#6b7280']};
+var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review'],pmd:['للإكمال والتقديم','to complete & submit'],pmr:['للتعديل وإعادة الإرسال','to edit & resubmit'],of:['لإجراء المكتب','for office action'],es:['لقرار التصعيد','for escalation decision'],pt:['للمشاركة بالتخطيط','for group planning'],ot:['لإجراء آخر','other action']};
 function sumTxt(k,n,l){var t;
  if(k=='tk'){var pl=function(c){return c==1?'مهمة واحدة':c==2?'مهمتان':AR(c)+(c<=10?' مهام':' مهمة')},d=n-l;
   if(lang=='en')return l==n?n+' late task'+(n>1?'s':''):(l?l+' late and ':'')+d+' task'+(d>1?'s':'')+' within the execution period';
   return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة، و ':'')+pl(d)+' في فترة التنفيذ'}
  t=lang=='en'?n+' '+SUMP[k][1]:AR(n)+' '+SUMP[k][0];
  return t+(l?(lang=='en'?' ('+(l==n?(n==1?'late':n==2?'both late':'all late'):l+' late')+')':' ('+(l==n?(n==1?'متأخرة':n==2?'كلاهما متأخر':'كلها متأخرة'):AR(l)+' متأخرة')+')'):'')}
-function kindOf(m){var x=m.x;if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'of';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
+function kindOf(m){var x=m.x;if(m.esc&&m.act&&window.JNX.E.me&&window.JNX.E.me.role=='admin')return'es';if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'of';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
  if(x.st=='Awaiting Approval'&&x.roles.has('ap'))return'ap';if(x.st=='PMO Review'&&x.roles.has('rv'))return'rv';
  if(x.st=='Returned to PM'&&x.roles.has('pm'))return'pmr';if(x.st=='Draft'&&x.roles.has('pm'))return'pmd';
  if(x.roles.has('of'))return'of';return x.roles.has('ap')?'ap':x.roles.has('rv')?'rv':'ot'}
@@ -934,7 +935,7 @@ function E_ok(x){return window.JNX.E.role!='fl'}
 function roleNames(x){var X=window.JNX;return X.ROLES.filter(function(r){return x.roles.has(r[0])&&(r[0]!='of'||(X.E.me&&X.E.me.role=='admin'))}).map(function(r){return P(r[1])}).join('، ')}
 function rolePill(m){var k=m.k;if(k){var K=KIND[k],x=m.x,pk=x.k+'|'+x.id+(x.tid?'|'+x.tid:'');return'<span class="cm-rp ab" data-pop="'+esc(pk)+'" title="'+esc(P(K))+'" style="--k:'+K[2]+'">'+esc(P(K))+' ›</span>'}var r=roleNames(m.x);return r?'<span class="cm-rp n">'+esc(P(['دورك: ','Role: '])+r)+'</span>':''}
 function st(m){var x=m.x;if(x.k=='tasks')return P(TS[x.stage-1]||['','']);return P(window.JNX.stName(x.st))}
-function rank(m){return(m.late?4:0)+(m.act?2:0)+(m.ret?1:0)}
+function rank(m){return(m.esc?8:0)+(m.late?4:0)+(m.act?2:0)+(m.ret?1:0)}
 function build(){document.body.classList.add('cmhome');var main=document.querySelector('main'),hero=document.getElementById('cmanchor');if(!main||!hero||document.getElementById('cmd'))return;
  var c=document.createElement('section');c.id='cmd';
  c.innerHTML='<div class="cm-ban"><div class="cm-top"><div><h1 id="cmh"></h1><p id="cmp"></p></div><div class="cm-rs"><select id="cmrole" aria-label="role"></select></div></div>'+
@@ -982,9 +983,11 @@ function moreBtn(key,total,shown){var pg=key.charAt(0)=='c'?PG:PGS;if(total<=pg)
  if(shown>pg)h+='<button class="cm-more" data-more="'+key+'" data-n="0">'+P(['عرض أقل','Show less'])+' ▴</button>';
  return'<div class="cm-mr">'+h+'</div>'}
 var POP={};
+function escLoad(){try{if(typeof sb=='undefined'||!sb)return;sb.from('escalations').select('svc,cr_id,requested_by,created_at,reason').eq('status','pending').then(function(r){if(!r||r.error)return;var o={};(r.data||[]).forEach(function(e){o[e.svc+'|'+e.cr_id]=e});var a=JSON.stringify(Object.keys(o).sort()),b=JSON.stringify(Object.keys(window.ESCP||{}).sort());window.ESCP=o;if(S.built&&a!=b)upd(true);if(window.escBadge)window.escBadge()})}catch(_){}}
+if(!window.ESCP){window.ESCP={}}setTimeout(escLoad,600);setInterval(escLoad,60000);
 function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  var cnt={};CH.forEach(function(c){cnt[c[0]]=M.filter(function(m){return m[c[0]]}).length});
- var sig=[E.role,S.f,lang,M.length,cnt.act,cnt.late,cnt.ret,(window.TKD&&window.TKD.a),JSON.stringify(S.open),S.side,S.tab,JSON.stringify(S.cal)].join('|');if(!force&&sig==S.sig)return;S.sig=sig;
+ var sig=[E.role,S.f,lang,M.length,cnt.act,cnt.late,cnt.ret,cnt.esc,(window.TKD&&window.TKD.a),JSON.stringify(S.open),S.side,S.tab,JSON.stringify(S.cal)].join('|');if(!force&&sig==S.sig)return;S.sig=sig;
  var nm=(E.me&&E.me.full_name)||'';
  document.getElementById('cmh').textContent=P(['مرحبًا ','Hello '])+nm;
  var bk={},bl={};M.filter(function(m){return m.act}).forEach(function(m){var k=m.k||'ot';bk[k]=(bk[k]||0)+1;if(m.late)bl[k]=(bl[k]||0)+1});
@@ -993,7 +996,9 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  var roles=[['all',['كل أدواري','All my roles']]].concat(window.JNX.ROLES.filter(function(z){return z[0]!='of'||(E.me&&E.me.role=='admin')}).filter(function(z){return E.items.some(function(x){return x.roles.has(z[0])})}));
  document.getElementById('cmrole').innerHTML=roles.map(function(z){return'<option value="'+z[0]+'" '+(E.role==z[0]?'selected':'')+'>'+esc(P(z[1]))+'</option>'}).join('');
  document.getElementById('cmq').placeholder=P(['ابحث عن مشروع أو طلب أو اكتب أمرًا… مثل «ميثاق جديد»','Search a project or request, or type a command… e.g. “new charter”']);
- document.getElementById('cmchips').innerHTML=CH.map(function(c){return'<button class="cm-chip '+(c[0]=='late'?'late ':'')+(S.f==c[0]?'on ':'')+(cnt[c[0]]?'':'z')+'" data-f="'+c[0]+'"><b>'+AR(cnt[c[0]])+'</b>'+esc(P(c[1]))+'</button>'}).join('');
+ var eb=document.getElementById('cmescb');if(!eb){eb=document.createElement('div');eb.id='cmescb';eb.className='cm-escb';eb.onclick=function(){S.f='esc';S.sig='';upd(true)};var cc=document.getElementById('cmchips');cc.parentNode.insertBefore(eb,cc)}
+ var isAd=E.me&&E.me.role=='admin';eb.hidden=!(cnt.esc&&isAd);eb.textContent='⬆ '+P([AR(cnt.esc||0)+' طلبات تصعيد بانتظار قرارك — اضغط لعرضها','Escalations awaiting your decision: '+(cnt.esc||0)+' — tap to view']);
+ document.getElementById('cmchips').innerHTML=CH.map(function(c){return'<button class="cm-chip '+(c[0]=='late'||c[0]=='esc'?'late ':'')+(S.f==c[0]?'on ':'')+(cnt[c[0]]?'':'z')+'" data-f="'+c[0]+'"><b>'+AR(cnt[c[0]])+'</b>'+esc(P(c[1]))+'</button>'}).join('');
  document.getElementById('cmtabs').innerHTML='<button data-tab="home" class="'+(S.tab=='home'?'on':'')+'">🏠 '+P(['لوحتي','My board'])+'</button><button data-tab="cal" class="'+(S.tab=='cal'?'on':'')+'">📅 '+P(['التقويم','Calendar'])+'</button>';
  document.getElementById('cmmain').hidden=S.tab!='home';document.getElementById('cmcal').hidden=S.tab!='cal';if(S.tab=='cal')calRender(D);
  document.getElementById('cmmain').classList.toggle('sc',!S.side);var tg=document.getElementById('cmtg');tg.hidden=S.side;tg.textContent=P(['إظهار المواعيد ◂','Show deadlines ◂']);
@@ -1001,7 +1006,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  var base=M.filter(function(m){return S.f?m[S.f]:m.x.stage<5});
  document.getElementById('cmkb').innerHTML=window.JNX.ORDER.map(function(k){var L=base.filter(function(m){return m.x.k==k}).sort(function(a,b){return rank(b)-rank(a)});
   var lim=Math.max(PG,+S.open['c:'+k]||0),sh=L.slice(0,300);return'<div class="cm-col"><h4><span>'+esc(P(COLT[k]||window.JNX.SV[k].t))+'</span><i>'+AR(L.length)+'</i></h4>'+(sh.length?'<div class="cm-lst" style="--n:'+Math.min(lim,Math.max(L.length,1))+'">'+sh.map(function(m){var x=m.x,s=m.s,tag=m.late?'⏱ '+(s&&s.left<0?P(['متأخر '+DY(-s.left),'Late '+(-s.left)+'d']):P(['متأخرة','Late'])):(m.act?'⏳ '+(s?P([AR(s.left)+' ي متبقية',s.left+'d left']):P(['بانتظار إجرائك','Awaiting you'])):'');
-   var pk=x.k+'|'+x.id+(x.tid?'|'+x.tid:'');POP[pk]=m;return'<a class="cm-it '+(m.late?'l':m.act?'a':'')+'" title="'+esc((x.name||x.code||'')+(st(m)?' — '+st(m):''))+'" href="'+x.p+(x.tid?'#t='+encodeURIComponent(x.id+'|'+x.tid):'#o='+x.id)+'"><b>'+esc(x.name||x.code||'—')+'</b><small>'+esc(st(m))+(tag?' · <em>'+tag+'</em>':'')+'</small>'+'<div class="cm-ft">'+(E.role=='all'||m.k?rolePill(m):'')+(x.pc?'<span class="cm-pj" data-pj="'+esc(x.pc)+'" title="'+esc(P(['ملف المشروع','Project file']))+'">📂</span>':'')+'</div></a>'}).join('')+'</div>':'<div class="cm-none">—</div>')+moreBtn('c:'+k,L.length,lim)+'</div>'}).join('');
+   var pk=x.k+'|'+x.id+(x.tid?'|'+x.tid:'');POP[pk]=m;return'<a class="cm-it '+(m.esc?'es ':'')+(m.late?'l':m.act?'a':'')+'" title="'+esc((x.name||x.code||'')+(st(m)?' — '+st(m):''))+'" href="'+x.p+(x.tid?'#t='+encodeURIComponent(x.id+'|'+x.tid):'#o='+x.id)+'"><b>'+esc(x.name||x.code||'—')+'</b><small>'+(m.esc?'<span class="cm-esb">⬆ '+P(['مُصعَّد','Escalated'])+'</span> ':'')+esc(st(m))+(tag?' · <em>'+tag+'</em>':'')+'</small>'+'<div class="cm-ft">'+(E.role=='all'||m.k?rolePill(m):'')+(x.pc?'<span class="cm-pj" data-pj="'+esc(x.pc)+'" title="'+esc(P(['ملف المشروع','Project file']))+'">📂</span>':'')+'</div></a>'}).join('')+'</div>':'<div class="cm-none">—</div>')+moreBtn('c:'+k,L.length,lim)+'</div>'}).join('');
  var sl=M.filter(function(m){return m.s&&m.act}).sort(function(a,b){return a.s.left-b.s.left}),slA=sl.length,sl=sl.slice(0,Math.max(PGS,+S.open['s:r']||0));
  var td=today(),tl=M.filter(function(m){return m.x.k=='tasks'&&m.x.stage<5&&m.x.tdue!=null}).map(function(m){m.dl=m.x.tdue-td;return m}).sort(function(a,b){return a.dl-b.dl}),tlA=tl.length,tl=tl.slice(0,Math.max(PGS,+S.open['s:t']||0));
  var ring=function(left,d,href,title,sub){var p=left<0?100:Math.max(6,Math.min(100,left/Math.max(1,d)*100)),cc=left<0?'#d9534f':left<=2?'#BF9849':'#3EA3DC';return'<a class="cm-sla" title="'+esc(title+' — '+sub)+'" href="'+href+'"><div class="cm-ring" style="--p:'+p+'%;--c:'+cc+'"><span>'+AR(left)+'</span></div><div><b>'+esc(title)+'</b><small>'+esc(sub)+'</small></div></a>'};
@@ -1070,4 +1075,8 @@ var tries=0,iv=setInterval(function(){tries++;if(!S.built&&tries>120)return clea
  if(!S.built)build();upd(false)},150);
 var d0=window.draw;if(typeof d0=='function'){window.draw=function(){d0.apply(this,arguments);if(S.built)upd(true)}}
 })();
-</script></body></html>
+</script><script>/*escbadge*/(function(){var N=0,ad=null;try{var st=document.createElement('style');st.textContent='.eb{background:#d1101d;color:#fff;border-radius:99px;font-size:11px;font-weight:800;min-width:18px;padding:0 5px;line-height:18px;text-align:center;display:inline-block;margin-inline-start:4px}#gnav .gnb{position:relative}#gnav a[href="inbox.html"] .eb{position:absolute;top:2px;inset-inline-end:18%;margin:0}';document.head.appendChild(st)}catch(e){}
+function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
+function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
+setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
+</body></html>
