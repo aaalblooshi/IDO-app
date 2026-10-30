@@ -477,7 +477,7 @@ async function load(){
  const {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();if(!p)return gate();me=p;
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
  const [ch,pl,cr,cl,mp,lk]=await Promise.all([
-  q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector'),
+  q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,sd:data->>sdate,ed:data->>edate'),
   q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
   sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
@@ -490,7 +490,7 @@ async function load(){
  cr.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].crs.push(x)});cl.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].cls.push(x)});
  PJ=Object.values(by).map(enrich);draw()}
 function enrich(p){const live=p.pls,act=live.filter(x=>x.status=='Approved').sort((a,b)=>b.id-a.id)[0]||live.filter(x=>x.act=='true').sort((a,b)=>b.id-a.id)[0]||live.sort((a,b)=>b.id-a.id)[0]||null;
- p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;p.M=planModel(act&&act.tasks||[],me.id);
+ const c0=p.ch;p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;{let tk=act&&act.tasks||[];/* ميثاق معتمد بلا خطة: المخطط من تاريخي الميثاق */if(!tk.length&&c0&&c0.status=='Approved'&&dn(c0.sd)!=null&&dn(c0.ed)!=null)tk=[{id:'__ch',n:P(['مدة المشروع حسب الميثاق','Project duration per charter']),s:c0.sd,e:c0.ed,pc:0,_ch:1}];p.M=planModel(tk,me.id)}
  const r=[];const c=p.ch;if((c&&(c.created_by==me.id||c.pm==me.full_name))||(act&&act.created_by==me.id))r.push('pm');if(c&&c.sp&&c.sp==me.full_name)r.push('ow');if(p.M.mine)r.push('tk');
  if(LK.some(l=>l.kind=='follower'&&((l.svc=='charter'&&c&&l.id==c.id)||(l.svc=='plan'&&p.pls.some(x=>x.id==l.id)))))r.push('fl');
  if(LK.some(l=>l.kind=='participant'&&p.pls.some(x=>x.id==l.id)))r.push('pt');
