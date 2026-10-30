@@ -1,0 +1,134 @@
+-- أوكتوبر 52: تتبّع مشروع معيّن في سجل التدقيق (كل ما جرى عليه عبر الميثاق والخطة والتواقيع والمهام…)
+-- شغّله مرة واحدة في Supabase → SQL editor (بعد 51)
+
+create or replace function sys_audit_t() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+declare
+  r jsonb; o jsonb; ch jsonb := '{}'::jsonb; k text; v jsonb; v_rid text; pc text; nm text; skip text[]; td jsonb; tk jsonb; ot jsonb; df jsonb; ff text; tid text; ntk int;
+begin
+  skip := array['updated_at','stage_at','last_seen','at','signature_img','img','sig','password','token'];
+  if TG_OP = 'DELETE' then r := to_jsonb(OLD); else r := to_jsonb(NEW); end if;
+  if TG_OP = 'UPDATE' then o := to_jsonb(OLD); end if;
+  v_rid := coalesce(r->>'id', r->>'key', r->>'pcode', r->>'user_id');
+  pc  := coalesce(nullif(r->>'pcode',''), nullif(r->'data'->>'pcode',''), r->>'code');
+  if pc is null then
+    begin
+      pc := case TG_TABLE_NAME
+        when 'signatories' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from change_requests c where c.id = (r->>'cr_id')::bigint)
+        when 'plan_signatories' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from plans c where c.id = (r->>'cr_id')::bigint)
+        when 'plan_consult' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from plans c where c.id = (r->>'plan_id')::bigint)
+        when 'plan_comments' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from plans c where c.id = (r->>'plan_id')::bigint)
+        when 'plan_versions' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from plans c where c.id = (r->>'plan_id')::bigint)
+        when 'charter_signatories' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from charters c where c.id = (r->>'cr_id')::bigint)
+        when 'closure_signatories' then (select coalesce(nullif(c.data->>'pcode',''), c.code) from closure_reports c where c.id = (r->>'cr_id')::bigint)
+        else null end;
+    exception when others then pc := null; end;
+  end if;
+  for k, v in select * from jsonb_each(r) loop
+    if k = any(skip) then continue; end if;
+    if TG_OP = 'UPDATE' then
+      if v is not distinct from (o->k) then continue; end if;
+      if jsonb_typeof(v) in ('object','array') or length(coalesce(v #>> '{}','')) > 300 then
+        ch := ch || jsonb_build_object(k, '(تغيّر المحتوى)');
+      else
+        ch := ch || jsonb_build_object(k, jsonb_build_array(o->k, v));
+      end if;
+    else
+      if jsonb_typeof(v) in ('object','array') or length(coalesce(v #>> '{}','')) > 300 then continue; end if;
+      ch := ch || jsonb_build_object(k, v);
+    end if;
+  end loop;
+  -- تتبّع المهام: ما الذي تغيّر في كل مهمة داخل الخطة (إضافة / حذف / تعديل حقول)
+  if TG_TABLE_NAME = 'plans' and TG_OP = 'UPDATE' and ch ? 'data' then
+    td := '[]'::jsonb;
+    for tk in select value from jsonb_array_elements(coalesce(r->'data'->'tasks','[]'::jsonb)) loop
+      tid := tk->>'id';
+      select x into ot from jsonb_array_elements(coalesce(o->'data'->'tasks','[]'::jsonb)) x where x->>'id' = tid limit 1;
+      if ot is null then
+        td := td || jsonb_build_array(jsonb_build_object('op','add','id',tid,'n',tk->>'n'));
+      else
+        df := '{}'::jsonb;
+        foreach ff in array array['n','s','e','w','wn','pc','as','ae','ms','nt'] loop
+          if (tk->ff) is distinct from (ot->ff) then df := df || jsonb_build_object(ff, jsonb_build_array(ot->ff, tk->ff)); end if;
+        end loop;
+        if df <> '{}'::jsonb then td := td || jsonb_build_array(jsonb_build_object('op','chg','id',tid,'n',tk->>'n','f',df)); end if;
+      end if;
+    end loop;
+    for ot in select value from jsonb_array_elements(coalesce(o->'data'->'tasks','[]'::jsonb)) loop
+      if not exists (select 1 from jsonb_array_elements(coalesce(r->'data'->'tasks','[]'::jsonb)) y where y->>'id' = ot->>'id') then
+        td := td || jsonb_build_array(jsonb_build_object('op','del','id',ot->>'id','n',ot->>'n'));
+      end if;
+    end loop;
+    ntk := jsonb_array_length(td);
+    if ntk > 0 then
+      ch := ch - 'data' || jsonb_build_object('tasks', td);
+      if (r->'data') - 'tasks' is distinct from (o->'data') - 'tasks' then ch := ch || jsonb_build_object('data', '(تغيّر المحتوى)'); end if;
+    end if;
+  end if;
+  if TG_OP = 'UPDATE' and ch = '{}'::jsonb then return NEW; end if;
+  select full_name into nm from profiles where id = auth.uid();
+  -- الحفظ التلقائي المتكرر لمحتوى الخطة: يُدمج في سطر واحد (آخر ١٠ دقائق) بدل إغراق السجل
+  if TG_OP = 'UPDATE' and (select count(*) from jsonb_object_keys(ch)) = 1 and ch ? 'data' then
+    update sys_audit set at = now()
+     where id = (select id from sys_audit where tbl = TG_TABLE_NAME and rid is not distinct from v_rid and actor is not distinct from auth.uid()
+                    and changes = ch and at > now() - interval '10 minutes' order by id desc limit 1);
+    if found then return NEW; end if;
+  end if;
+  insert into sys_audit(actor, actor_name, tbl, op, rid, pcode, summary, changes)
+  values (auth.uid(), coalesce(nm, case when auth.uid() is null then 'النظام' end), TG_TABLE_NAME, TG_OP, v_rid, pc,
+          TG_OP || ' ' || TG_TABLE_NAME || coalesce(' #' || v_rid, ''), ch);
+  if TG_OP = 'DELETE' then return OLD; end if;
+  return NEW;
+end $fn$;
+
+
+
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int);
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean);
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean, text);
+drop function if exists admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean, text, text);
+
+create or replace function admin_audit(
+  p_from timestamptz default null, p_to timestamptz default null,
+  p_src text default null, p_actor text default null, p_q text default null,
+  p_lim int default 100, p_off int default 0, p_hide_dup boolean default false, p_kind text default null, p_pcode text default null)
+returns table(at timestamptz, src text, actor text, tbl text, op text, rid text, pcode text, pname text, summary text, details jsonb, total bigint)
+language plpgsql stable security definer set search_path=public as $fn$
+declare srcs text[] := case when coalesce(p_src,'') = '' then null else string_to_array(p_src, ',') end;
+begin
+  if (select role from profiles where id = auth.uid()) is distinct from 'admin' then
+    raise exception 'admin only';
+  end if;
+  return query
+  with u as (
+    select s.at, 'sys'::text src, s.actor_name actor, s.tbl, s.op, s.rid, s.pcode,
+           (case s.tbl when 'plans' then (select p.data->>'pname' from plans p where p.id::text = s.rid)
+                       when 'charters' then (select p.data->>'pname' from charters p where p.id::text = s.rid)
+                       when 'change_requests' then (select p.data->>'pname' from change_requests p where p.id::text = s.rid)
+                       when 'closure_reports' then (select p.data->>'pname' from closure_reports p where p.id::text = s.rid)
+                       when 'profiles' then (select p.full_name from profiles p where p.id::text = s.rid) end) pname,
+           s.summary, s.changes details from sys_audit s
+    union all
+    select a.at, 'cr', a.user_name, 'audit_log', 'LOG', a.cr_id::text, coalesce(nullif(c.data->>'pcode',''), c.code), c.data->>'pname', a.action, null::jsonb from audit_log a left join change_requests c on c.id = a.cr_id
+    union all
+    select a.at, 'charter', a.user_name, 'charter_audit', 'LOG', a.cr_id::text, coalesce(nullif(c.data->>'pcode',''), c.code), c.data->>'pname', a.action, null from charter_audit a left join charters c on c.id = a.cr_id
+    union all
+    select a.at, 'plan', a.user_name, 'plan_audit', 'LOG', a.cr_id::text, coalesce(nullif(c.data->>'pcode',''), c.code), c.data->>'pname', a.action, null from plan_audit a left join plans c on c.id = a.cr_id
+    union all
+    select a.at, 'closure', a.user_name, 'closure_audit', 'LOG', a.cr_id::text, coalesce(nullif(c.data->>'pcode',''), c.code), c.data->>'pname', a.action, null from closure_audit a left join closure_reports c on c.id = a.cr_id
+  )
+  select x.at, x.src, x.actor, x.tbl, x.op, x.rid, x.pcode, coalesce(x.pname, (select ch.data->>'pname' from charters ch where ch.code = x.pcode limit 1)), x.summary, x.details, count(*) over() total
+    from u x
+   where (p_from is null or x.at >= p_from) and (p_to is null or x.at < p_to)
+     and (srcs is null or x.src = any(srcs) or x.tbl = any(srcs))
+     and not (coalesce(p_hide_dup,false) and x.src = 'sys' and x.op = 'UPDATE' and x.tbl in ('plans','charters','change_requests','closure_reports') and not coalesce(x.details ? 'tasks', false))
+     and (coalesce(p_kind,'') <> 'tasks' or (x.src <> 'sys' and split_part(x.summary,'|',1) in ('taskprog','taskadd','taskrem','taskedit')) or (x.src = 'sys' and x.details ? 'tasks'))
+     and (coalesce(p_pcode,'') = '' or x.pcode = p_pcode)
+     and (coalesce(p_actor, '') = '' or x.actor ilike '%' || p_actor || '%')
+     and (coalesce(p_q, '') = '' or x.summary ilike '%' || p_q || '%' or x.pcode ilike '%' || p_q || '%' or x.pname ilike '%' || p_q || '%'
+          or x.tbl ilike '%' || p_q || '%' or coalesce(x.details::text, '') ilike '%' || p_q || '%')
+   order by x.at desc
+   limit least(coalesce(p_lim, 100), 1000) offset greatest(coalesce(p_off, 0), 0);
+end $fn$;
+revoke all on function admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean, text, text) from public, anon;
+grant execute on function admin_audit(timestamptz, timestamptz, text, text, text, int, int, boolean, text, text) to authenticated;
