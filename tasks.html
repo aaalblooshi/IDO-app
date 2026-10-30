@@ -448,30 +448,32 @@ const setP=(k,v)=>run(async()=>{const r=findR(k);if(!r)return;await rpcProg(r,v,
 /* ---- task sheet ---- */
 let SH=null;
 function closeSheet(){const o=$('sov');if(o)o.remove();SH=null}
+const ic=(n,c)=>window.IDOI?'<span class="dpi '+(c||'')+'">'+IDOI.svg(n)+'</span>':'';
+const sxh=(n,tx)=>'<div class="sxh">'+(window.IDOI?IDOI.svg(n):'')+'<span>'+tx+'</span></div>';
 async function openSheet(k){const r=findR(k);if(!r)return;SH={k,r};closeSheet();SH={k,r};
  const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
  const x=r.x,ro=!r.edit||!r.leaf&&!ADM&&!r.mine,done=isDone(r),dis=ro?'disabled':'';
- const dep=r.preds.map(d=>{const q=r.pr.byId[d.x.id],ok=q&&q.a.a>=100;return `<div>${ok?'✅':'⏳'} ${esc(d.x.n)} <span class="mut num">${pct(q?q.a.a:0)} · ${d.y}${d.l?(d.l>0?' +':' ')+d.l:''}</span></div>`}).join('')||'<span class="mut">—</span>';
+ const dep=r.preds.map(d=>{const q=r.pr.byId[d.x.id],ok=q&&q.a.a>=100;return `<div class="dpr">${ic(ok?'tasks':'clock',ok?'ok':'')} ${esc(d.x.n)} <span class="mut num">${pct(q?q.a.a:0)} · ${d.y}${d.l?(d.l>0?' +':' ')+d.l:''}</span></div>`}).join('')||'<span class="mut">—</span>';
  const sc=r.pr.rs.filter(z=>z.preds.some(d=>d.x.id==r.id));
- const su=sc.map(z=>`<div>${z.a.a>=100?'✅':'⏳'} ${esc(z.x.n)}</div>`).join('')||'<span class="mut">—</span>';
- o.innerHTML=`<div class="sbx"><h3>${x.ms?'◆ ':''}${esc(x.n)}</h3><div style="margin:2px 0">${stChip(r)}${prChip(r)}</div><div class="mut">${pLink(r)}${pathS(r)?' · '+pathS(r):''}</div>
- <div class="mut" style="margin:4px 0">${t('plan')}: ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)} · ${relT(r)}${r.own?' · '+esc(UN[r.own]||''):''}</div>
+ const su=sc.map(z=>`<div class="dpr">${ic(z.a.a>=100?'tasks':'clock',z.a.a>=100?'ok':'')} ${esc(z.x.n)}</div>`).join('')||'<span class="mut">—</span>';
+ o.innerHTML=`<div class="sbx"><div class="shh"><h3>${x.ms?'◆ ':''}${esc(x.n)}</h3><div style="margin:4px 0 6px">${stChip(r)}${prChip(r)}</div><div class="mut">${pLink(r)}${pathS(r)?' · '+pathS(r):''}</div>
+ <div class="mut" style="margin:6px 0 0">${t('plan')}: ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)} · ${relT(r)}${r.own?' · '+esc(UN[r.own]||''):''}</div>
  ${ADM&&r.ew!=null?`<div class="mut">${t('ew')}: <b class="num">${(r.ew<0.01?r.ew.toFixed(3):r.ew.toFixed(2))}%</b></div>`:''}
  ${x.tu?`<div class="mut">${t('sh_last')}: ${esc(x.tu.by||'')} · <span class="num">${fd(String(x.tu.at||'').slice(0,10))}</span></div>`:''}
- ${ro?`<div class="chp o" style="margin:6px 0">${t('sh_ro')}</div>`:''}
- ${r.leaf?`<label>${t('sh_prog')}</label><div style="display:flex;gap:10px;align-items:center"><input type="range" id="sh_rg" min="0" max="100" step="5" value="${r.pcr}" ${dis} style="flex:1;padding:0"><input type="number" id="sh_pc" min="0" max="100" value="${r.pcr}" ${dis} style="width:84px;direction:ltr"></div>
+ ${ro?`<div class="chp o" style="margin:8px 0 0">${t('sh_ro')}</div>`:''}</div>
+ ${r.leaf?`<div class="sx">${sxh('tasks',t('sh_prog'))}<div style="display:flex;gap:10px;align-items:center"><input type="range" id="sh_rg" min="0" max="100" step="5" value="${r.pcr}" ${dis} style="flex:1;padding:0"><input type="number" id="sh_pc" min="0" max="100" value="${r.pcr}" ${dis} style="width:84px;direction:ltr"></div>
  <div class="pb">${[0,25,50,75,100].map(v=>`<button ${dis} onclick="shPc(${v})"><span class="num">${v}%</span></button>`).join('')}</div>
  <div class="g2"><div><label>${t('sh_as')}</label><input type="date" id="sh_as" value="${esc(x.as||'')}" max="${ds(TODAY)}" ${dis}></div><div><label>${t('sh_ae')}</label><input type="date" id="sh_ae" value="${esc(x.ae||'')}" max="${ds(TODAY)}" ${dis}></div></div>
  <div class="pb">${(x.as||r.pcr>0)&&!done?`<button class="p" ${dis} onclick="shD('close',0)">${t('sh_closeT')}</button>`:`<button ${dis} onclick="shD('as',0)">${t('sh_asPlan')}</button>`}<button ${dis} onclick="shD('both',0)">${t('sh_doneAsPlan')}</button>${(x.as||r.pcr>0)?'':`<button ${dis} onclick="shD('as',1)">${t('sh_as')}: ${t('sh_today')}</button>`}<button ${dis} onclick="shD('ae',1)">${t('sh_ae')}: ${t('sh_today')}</button></div>
- <label>${t('sh_nt')}</label><textarea id="sh_nt" ${dis}>${esc(x.tn||'')}</textarea>`:`<div class="mut" style="margin:6px 0">${t('prog')}: <b class="num">${pct(r.a.a)}</b></div>${pbar(r.a.a,r.a.ex)}${x.tn?`<label>${t('sh_nt')}</label><div>${esc(x.tn)}</div>`:''}`}
- ${CFG.deps?`<label>${t('sh_pred')}</label>${dep}<label>${t('sh_succ')}</label>${su}`:''}
+ <label>${t('sh_nt')}</label><textarea id="sh_nt" ${dis}>${esc(x.tn||'')}</textarea></div>`:`<div class="sx">${sxh('tasks',t('prog'))}<div class="mut" style="margin:2px 0 6px"><b class="num">${pct(r.a.a)}</b></div>${pbar(r.a.a,r.a.ex)}${x.tn?`<label>${t('sh_nt')}</label><div>${esc(x.tn)}</div>`:''}</div>`}
+ ${CFG.deps?`<div class="sx">${sxh('link',t('sh_pred'))}${dep}<label>${t('sh_succ')}</label>${su}</div>`:''}
  ${schedBox(r)}
  ${r.edit||addPlans().includes(r.pr)?`<div class="row" style="margin:4px 0"><button onclick="addOpen('${esc(String(r.pr.pid))}','${esc(r.id)}')">＋ ${t('addUnder')}</button></div>`:''}
- <label>${t('sh_att')}</label><div id="sh_atl" class="mut">…</div>
- ${r.edit?`<div class="g2" style="margin-top:6px"><div><input type="text" id="sh_at" placeholder="${t('sh_ft')}"></div><div><input type="file" id="sh_af"></div></div><div class="row" style="margin-top:6px"><button onclick="shUp()">📎 ${t('sh_up')}</button></div>`:''}
- <label>${t('sh_hist')}</label><div id="sh_hl" class="mut">…</div>
- <div class="row">${r.leaf&&!ro?`<button class="p" onclick="shSave()">${t('sh_save')}</button>`:''}<button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;
- if(r.leaf){const rg=$('sh_rg'),pc=$('sh_pc');rg.oninput=()=>pc.value=rg.value;pc.oninput=()=>rg.value=clamp(+pc.value||0,0,100)}
+ <div class="sx">${sxh('clip',t('sh_att'))}<div id="sh_atl" class="mut">…</div>
+ ${r.edit?`<div class="g2" style="margin-top:6px"><div><input type="text" id="sh_at" placeholder="${t('sh_ft')}"></div><div><input type="file" id="sh_af"></div></div><div class="row" style="margin-top:6px"><button onclick="shUp()">📎 ${t('sh_up')}</button></div>`:''}</div>
+ <div class="sx">${sxh('note',t('sh_hist'))}<div id="sh_hl" class="mut">…</div></div>
+ <div class="row shf">${r.leaf&&!ro?`<button class="p" onclick="shSave()">${t('sh_save')}</button>`:''}<button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;
+ if(r.leaf){const rg=$('sh_rg'),pc=$('sh_pc');rg.oninput=()=>pc.value=rg.value;pc.oninput=()=>{rg.value=clamp(+pc.value||0,0,100);rg.dispatchEvent(new Event('rng'))}}
  shAtts();shHist()}
 const fire=id=>{const e=$(id);if(!e)return;['input','change'].forEach(n=>e.dispatchEvent(new Event(n,{bubbles:true})))};
 const shPc=v=>{$('sh_pc').value=v;$('sh_rg').value=v;fire('sh_pc')};
@@ -969,4 +971,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-</body></html>
+<script src="ido-ui.js?v=4"></script></body></html>
