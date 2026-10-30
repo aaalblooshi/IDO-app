@@ -620,6 +620,7 @@ function affRows(r,chg){const pr=r.pr,rows=[];Object.keys(chg).forEach(i=>{const
  return rows}
 function affTL(rows){
  const all=rows.flatMap(z=>[z.os,z.oe,z.ns,z.ne]).filter(v=>v!=null);if(!all.length)return '';
+ const PS=new Set(rows.map(z=>String(z.r.x.p)).filter(v=>v&&v!='undefined'&&v!='null'));
  const a=Math.min(...all)-2,b=Math.max(...all)+2,W=b-a||1,pc=v=>((v-a)/W*100).toFixed(2)+'%',wd=(s,e)=>(Math.max(1,(e-s+1))/W*100).toFixed(2)+'%';
  const mk=(z)=>`<div style="margin:7px 0${z.focus?';padding:5px;border:2px solid #ca9a3b;border-radius:10px;background:#fffaf0':''}"><div style="font-size:12.5px;font-weight:${z.focus?800:600}">${z.conf?'⚠️ ':''}${esc(z.r.x.n)}${z.conf?` <span style="color:#d1101d;font-weight:600">${t('af_conf')}</span>`:''}</div>
   <div style="position:relative;height:30px;direction:ltr;background:#f3f4f4;border-radius:6px;margin-top:3px">
@@ -627,7 +628,11 @@ function affTL(rows){
   ${z.os!=null&&z.oe!=null?`<div title="${t('af_old')}" style="position:absolute;top:3px;height:10px;left:${pc(z.os)};width:${wd(z.os,z.oe)};border:1.5px dashed #949594;border-radius:4px;box-sizing:border-box"></div>`:''}
   ${z.ns!=null&&z.ne!=null?`<div title="${t('af_new')}" style="position:absolute;top:15px;height:11px;left:${pc(z.ns)};width:${wd(z.ns,z.ne)};background:${z.conf?'#d1101d':'#3D96C7'};border-radius:4px"></div>`:''}</div>
   ${(()=>{const ar=lang=='ar',dyT=n=>ar?(n==1?'يوم واحد':n==2?'يومين':ad(n)+((n>=3&&n<=10)?' أيام':' يومًا')):n+' day'+(n>1?'s':''),dl=(z.os!=null&&z.ns!=null)?z.ns-z.os:null,de=(z.oe!=null&&z.ne!=null)?z.ne-z.oe:null,sg=n=>(n>0?'+':n<0?'−':'')+Math.abs(n);
-   let sm='';if(dl!=null&&de!=null){if(dl==0&&de==0)sm=`<span class="mut">${ar?'لم يتغيّر موعدها':'Dates unchanged'}</span>`;else if(dl==de)sm=`<b style="color:${dl>0?'#a8731a':'#1c7a45'}">${dl>0?(ar?'⏩ تتأخر ':'⏩ Moves later by '):(ar?'⏪ تتقدّم ':'⏪ Moves earlier by ')}${dyT(Math.abs(dl))}</b>`;else sm=`<b style="color:#a8731a">${ar?'تغيّرت المدة':'Duration changed'}</b> <span class="mut">(${ar?'البداية':'start'} ${sg(dl)} · ${ar?'النهاية':'end'} ${sg(de)} ${ar?'يوم':'d'})</span>`}
+   let sm='';if(dl!=null&&de!=null){if(dl==0&&de==0)sm=`<span class="mut">${ar?'لم يتغيّر موعدها':'Dates unchanged'}</span>`;else if(dl==de)sm=`<b style="color:${dl>0?'#a8731a':'#1c7a45'}">${dl>0?(ar?'⏩ تتأخر ':'⏩ Moves later by '):(ar?'⏪ تتقدّم ':'⏪ Moves earlier by ')}${dyT(Math.abs(dl))}</b>`;else{const isP=!z.focus&&PS.has(String(z.r.x.id)),c0=isP?'#6b6f76':'#a8731a';
+    if(dl==0)sm=`<b style="color:${de>0?'#a8731a':'#1c7a45'}">${de>0?(ar?'⏩ البداية كما هي، وتتأخر النهاية ':'⏩ Start unchanged; end moves later by '):(ar?'⏪ البداية كما هي، وتتقدّم النهاية ':'⏪ Start unchanged; end moves earlier by ')}${dyT(Math.abs(de))}</b>`;
+    else if(de==0)sm=`<b style="color:${dl>0?'#a8731a':'#1c7a45'}">${dl>0?(ar?'⏩ تتأخر البداية ':'⏩ Start moves later by '):(ar?'⏪ تتقدّم البداية ':'⏪ Start moves earlier by ')}${dyT(Math.abs(dl))}${ar?'، والنهاية كما هي':'; end unchanged'}</b>`;
+    else sm=`<b style="color:${c0}">${ar?'تغيّرت المدة':'Duration changed'}</b> <span class="mut">(${ar?'البداية':'start'} ${sg(dl)} · ${ar?'النهاية':'end'} ${sg(de)} ${ar?'يوم':'d'})</span>`;
+    if(isP)sm+=`<div class="mut" style="font-size:12px;margin-top:2px">${ar?'مهمة رئيسية: تتسع تلقائيًا لتشمل مهمتها الفرعية المتأثرة':'Parent task: stretches automatically to contain its affected sub-task'}</div>`}}
    const ch=(a,b,st)=>`<span dir="ltr" style="unicode-bidi:isolate;display:inline-block;border-radius:8px;padding:2px 9px;white-space:nowrap;${st}">${fd(ds(a))} → ${fd(ds(b))}</span>`;
    return `<div style="display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:12.5px;margin-top:6px"><b class="mut">${t('af_old')}</b><div>${ch(z.os,z.oe,'background:#eef0f1;color:#6b6f76;text-decoration:line-through')}</div><b>${t('af_new')}</b><div>${ch(z.ns,z.ne,z.conf?'background:#fdecee;color:#8f0a14;font-weight:800':'background:#e3f1fa;color:#17608a;font-weight:800')}</div></div>${sm?`<div style="margin-top:4px;font-size:12.5px">${sm}</div>`:''}`})()}
   </div>`;
