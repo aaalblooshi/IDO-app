@@ -89,7 +89,7 @@ const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const ddp=a=>{const b={};(a||[]).forEach(p=>{const k=p.pcode||p.code;if(!b[k]||p.id>b[k].id)b[k]=p});return Object.values(b)};let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
 const D={hacc:['👤 حسابي','👤 My account'],home:['الصفحة الرئيسية','Home page'],title:['مهامي','My tasks'],
  needLogin:['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Please sign in first, then come back.'],signin:['تسجيل الدخول','Sign in'],
  saved:['تم الحفظ','Saved'],err:['تعذّر التنفيذ: ','Failed: '],noacc:['هذه الصفحة غير متاحة لحسابك.','This page is not available for your account.'],
@@ -216,7 +216,7 @@ async function reload(){
  let rows=[];
  try{GRT={};GRPL={};const g=await sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id);(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1;if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRPL[x.pcode]=1})}catch(_){}
  if(MODE=='me'){const {data,error}=await sb.rpc('my_plans');if(error){$('app').innerHTML='<div class="card mut">'+esc(error.message)+'</div>';return}
-  rows=(data||[]).map(p=>({id:p.id,code:p.code,pcode:p.pcode,pname:p.pname,sc:p.sector,pt:p.ptype,wm:p.wmode,pm:p.pm,cb:p.created_by,tasks:p.tasks}))}
+  rows=ddp(data).map(p=>({id:p.id,code:p.code,pcode:p.pcode,pname:p.pname,sc:p.sector,pt:p.ptype,wm:p.wmode,pm:p.pm,cb:p.created_by,tasks:p.tasks}))}
  else{const [pl,cf]=await Promise.all([
    sb.from('plans').select('id,code,status,act:data->>_active,created_by,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks').eq('archived',false).then(r=>(r.data||[]).filter(p=>p.status=='Approved'||p.act=='true'),()=>[]),
    sb.from('project_cfg').select('*').then(r=>r.data||[],()=>[])]);

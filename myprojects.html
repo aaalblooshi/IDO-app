@@ -144,7 +144,7 @@ let me=null;
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
+const ddp=a=>{const b={};(a||[]).forEach(p=>{const k=p.pcode||p.code;if(!b[k]||p.id>b[k].id)b[k]=p});return Object.values(b)};let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
 const A=()=>lang=='ar',P=a=>A()?a[0]:a[1];
 const ARF={task:['مهمة','مهمتان','مهام','مهمة','مهمتين','مهمة واحدة'],phase:['مرحلة','مرحلتان','مراحل','مرحلة','مرحلتين','مرحلة واحدة'],day:['يوم','يومان','أيام','يومًا','يومين','يوم واحد'],req:['طلب','طلبان','طلبات','طلبًا','طلبين','طلب واحد']};
 const ENN={task:['task','tasks'],phase:['phase','phases'],day:['day','days'],req:['request','requests']};
@@ -302,7 +302,7 @@ async function loadHub(){
  const u=new URL(location.href);PC=u.searchParams.get('pc')||'';const pid0=u.searchParams.get('plan');
  TAB=(location.hash||'').replace('#','').split('&')[0];if(!TABS.some(t=>t[0]==TAB))TAB='ov';window._tab0=TAB;
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);r=f(r);return r.then(x=>x.data||[],()=>[])};
- const mp=await sb.rpc('my_plans').then(r=>r.data||[],()=>[]);
+ const mp=await sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]);
  if(!PC&&pid0){const m=mp.find(x=>x.id==pid0);if(m)PC=m.pcode;else{const r=await q('plans','id,pc:data->>pcode',x=>x.eq('id',+pid0));if(r[0])PC=r[0].pc||''}}
  if(!PC){$('app').innerHTML='<div class="card lock"><p>'+P(['لم يُحدَّد مشروع.','No project specified.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
  const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,pt:data->>ptype',x=>x.eq('code',PC))]);
@@ -469,7 +469,7 @@ async function load(){
   q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector'),
   q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
-  sb.rpc('my_plans').then(r=>r.data||[],()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
+  sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
  LK=lk;
  await Promise.all(Object.keys(SVC).map(async k=>{const s=SVC[k];SG[k]=await sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id).eq('status','pending').then(x=>x.data||[],()=>[])}));
  const by={},idc={};

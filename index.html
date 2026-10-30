@@ -272,7 +272,7 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
    const act=(adm&&dp.has(r.id))||(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(s=>s.stage=='reviewed'&&s.status=='pending'))||(st=='Awaiting Approval'&&my.some(s=>s.stage=='approved'&&s.status=='pending'))||(adm&&(st=='Submitted'||st=='Reviewed'||st=='Office Decision'))||(tbl=='plans'&&st=='Draft'&&!mine&&ci.has(r.id));
    if(act)action++});
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(adm?[{k:'del',n:dp.size,c:'#d1101d',href:page+'#f=action'}]:[])};
-const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=r.data}catch(_){return[]}
+const ddp=a=>{const b={};(a||[]).forEach(p=>{const k=p.pcode||p.code;if(!b[k]||p.id>b[k].id)b[k]=p});return Object.values(b)};const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=ddp(r.data)}catch(_){return[]}
  const dn=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
  const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0,done=0,sA=0,sE=0,nn=0,ld=0,mx=0;
  (data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));
@@ -476,7 +476,7 @@ async function load(){
   try{const c=await sb.rpc('my_consults');if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.act=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
   try{const l=await sb.rpc('my_links');if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add(z.kind=='participant'?'pt':'fl')}})}catch(_){}
   /* المهام: ذكيًا من الخطط المعتمدة */
-  try{const r=await sb.rpc('my_plans');const td=today();(r.data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));let open=0;
+  try{const r=await sb.rpc('my_plans');const td=today();ddp(r.data).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));let open=0;
    T.forEach(x=>{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
     const s0=dn(x.s),e0=dn(x.e),pc=+x.pc||0;let stg;if(pc>=100)stg=5;else if(e0!=null&&e0<td)stg=4;else if(pc>0)stg=3;else if(s0!=null&&s0<=td)stg=2;else stg=1;if(pc<100)open++;
     var nums=[];const path=[];{let c=x,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}let pre='';nums=path.map((q,i)=>{const sib=T.filter(z=>(z.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(z=>z.id==q.id)+1);return pre})}
