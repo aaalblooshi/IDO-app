@@ -922,8 +922,8 @@ var KIND={ap:['اعتماد','Approve','#2e8b57'],rv:['مراجعة','Review','#
 var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review'],pmd:['للإكمال والتقديم','to complete & submit'],pmr:['للتعديل وإعادة الإرسال','to edit & resubmit'],of:['لإجراء المكتب','for office action'],pt:['للمشاركة بالتخطيط','for group planning'],ot:['لإجراء آخر','other action']};
 function sumTxt(k,n,l){var t;
  if(k=='tk'){var pl=function(c){return c==1?'مهمة واحدة':c==2?'مهمتان':AR(c)+(c<=10?' مهام':' مهمة')},d=n-l;
-  if(lang=='en')return l==n?n+' late task'+(n>1?'s':''):(l?l+' late and ':'')+d+' task'+(d>1?'s':'')+' in progress, on schedule';
-  return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة، و ':'')+pl(d)+' قيد التنفيذ ضمن موعدها'}
+  if(lang=='en')return l==n?n+' late task'+(n>1?'s':''):(l?l+' late and ':'')+d+' task'+(d>1?'s':'')+' within the execution period';
+  return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة، و ':'')+pl(d)+' في فترة التنفيذ'}
  t=lang=='en'?n+' '+SUMP[k][1]:AR(n)+' '+SUMP[k][0];
  return t+(l?(lang=='en'?' ('+(l==n?(n==1?'late':n==2?'both late':'all late'):l+' late')+')':' ('+(l==n?(n==1?'متأخرة':n==2?'كلاهما متأخر':'كلها متأخرة'):AR(l)+' متأخرة')+')'):'')}
 function kindOf(m){var x=m.x;if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'of';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
