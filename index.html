@@ -996,8 +996,6 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  var roles=[['all',['كل أدواري','All my roles']]].concat(window.JNX.ROLES.filter(function(z){return z[0]!='of'||(E.me&&E.me.role=='admin')}).filter(function(z){return E.items.some(function(x){return x.roles.has(z[0])})}));
  document.getElementById('cmrole').innerHTML=roles.map(function(z){return'<option value="'+z[0]+'" '+(E.role==z[0]?'selected':'')+'>'+esc(P(z[1]))+'</option>'}).join('');
  document.getElementById('cmq').placeholder=P(['ابحث عن مشروع أو طلب أو اكتب أمرًا… مثل «ميثاق جديد»','Search a project or request, or type a command… e.g. “new charter”']);
- var eb=document.getElementById('cmescb');if(!eb){eb=document.createElement('div');eb.id='cmescb';eb.className='cm-escb';eb.onclick=function(){S.f='esc';S.sig='';upd(true)};var cc=document.getElementById('cmchips');cc.parentNode.insertBefore(eb,cc)}
- var isAd=E.me&&E.me.role=='admin';eb.hidden=!(cnt.esc&&isAd);eb.textContent='⬆ '+P([AR(cnt.esc||0)+' طلبات تصعيد بانتظار قرارك — اضغط لعرضها','Escalations awaiting your decision: '+(cnt.esc||0)+' — tap to view']);
  document.getElementById('cmchips').innerHTML=CH.map(function(c){return'<button class="cm-chip '+(c[0]=='late'||c[0]=='esc'?'late ':'')+(S.f==c[0]?'on ':'')+(cnt[c[0]]?'':'z')+'" data-f="'+c[0]+'"><b>'+AR(cnt[c[0]])+'</b>'+esc(P(c[1]))+'</button>'}).join('');
  document.getElementById('cmtabs').innerHTML='<button data-tab="home" class="'+(S.tab=='home'?'on':'')+'">🏠 '+P(['لوحتي','My board'])+'</button><button data-tab="cal" class="'+(S.tab=='cal'?'on':'')+'">📅 '+P(['التقويم','Calendar'])+'</button>';
  document.getElementById('cmmain').hidden=S.tab!='home';document.getElementById('cmcal').hidden=S.tab!='cal';if(S.tab=='cal')calRender(D);
