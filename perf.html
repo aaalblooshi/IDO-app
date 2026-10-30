@@ -191,7 +191,8 @@ const glab=(u,g)=>{if(!u.org_sector)return t('nounit');const s=secN(u.org_sector
  if(g=='sector')return s;if(g=='dept')return d?s+' — '+d:s+' — '+t('nodept');return (d?d:s)+' — '+(u.org_section||t('nosec'))};
 async function start(){
  if(!ADM&&!ME.perf_scope)return gate('noaccP');
- try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.depts))DEPS=L.depts}catch(_){}
+ try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.depts)&&L.depts.length)DEPS=L.depts}catch(_){}
+ if(!DEPS.length)DEPS=[1,2,3,4].map(s=>[1,2,3,4,5].map(q=>['الإدارة '+q+' للقطاع '+s,'Department '+q+' of Sector '+s]))
  const r=await sb.rpc('perf_users');if(r.error){$('app').innerHTML='<div class="card">'+esc(t('err')+r.error.message)+'</div>';return}
  PU=r.data||[];GB=(ADM||ME.perf_scope=='all')?'sector':'dept';draw()}
 function inScope(u){if(SCOPE=='sec')return !!ME.org_sector&&u.org_sector==ME.org_sector;if(SCOPE=='dept')return !!ME.org_dept&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept;if(SCOPE=='sect')return !!ME.org_section&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept&&u.org_section==ME.org_section;return true}
