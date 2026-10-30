@@ -2497,7 +2497,7 @@ async function drawEsc(){if(!cr||SET.esc_on!='1')return;const d0=$('delbox');if(
  if(!ok&&SVC=='plan'&&st=='Draft'&&!cr.archived){try{const c=await sb.from('plan_consult').select('closes_at').eq('plan_id',cr.id);ok=(c.data||[]).some(x=>new Date(x.closes_at)>new Date())}catch(_){}}
  const pend=rows.find(x=>x.status=='pending'),mineP=pend&&pend.requested_by==me.id;
  const nm=id=>(users[id]||{}).full_name||'—',dt=x=>x?new Date(x).toLocaleDateString(a?'ar':'en-GB'):'';
- const LB={pending:T2('بانتظار قرار مكتب التطوير','Awaiting PMO decision'),redirected:T2('تم توجيه الطلب','Redirected'),ignored:T2('لم يُتخذ إجراء','No action taken'),withdrawn:T2('سُحب','Withdrawn')};
+ const LB={pending:T2('بانتظار قرار مكتب التطوير','Awaiting IDO decision'),redirected:T2('تم توجيه الطلب','Redirected'),ignored:T2('لم يُتخذ إجراء','No action taken'),withdrawn:T2('سُحب','Withdrawn')};
  const hist=rows.filter(x=>x!==pend).slice(0,5);
  if(!pend&&!ok&&!hist.length){box.innerHTML='';return}
  let h=`<div class="sig"><b>⬆ ${T2('التصعيد','Escalation')}</b>`;
