@@ -107,6 +107,7 @@ async function reload(){
  cr.forEach(p=>{if(by[p.pc])by[p.pc].cr.push(p)});
  cl.forEach(p=>{if(by[p.pc])by[p.pc].cl.push(p)});
  PJ=Object.values(by).sort((a,b)=>b.ch.id-a.ch.id);
+ const hk=/^#k=(.+)$/.exec(location.hash);if(hk&&ADM){OPEN=decodeURIComponent(hk[1]);Q=OPEN;TAB='act';try{history.replaceState(null,'',location.pathname)}catch(_){}setTimeout(()=>{const e=$('q');if(e)e.value=OPEN;const d=document.querySelector('details.adm[open]');if(d)d.scrollIntoView({block:'center'})},300)}
  draw()}
 const isArc=p=>p.ch.archived;
 const isHid=p=>!!(CFG[p.code]||{}).hidden;

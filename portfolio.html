@@ -218,10 +218,10 @@ async function start(){
  CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
  ss.forEach(s=>{if(s.key=='opt_goals'){try{const g=JSON.parse(s.value);if(Array.isArray(g)&&g.length)OG=g}catch(_){}}if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
  try{const wr=await sb.rpc('project_weights');WM={};if(!wr.error)(wr.data||[]).forEach(x=>WM[x.pcode]=+x.weight)}catch(_){}
- try{const ch=await q('charters','id,code,status,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,sd:data->>sdate,ed:data->>edate,cb:created_by',r=>r.eq('archived',false).eq('status','Approved'));const have=new Set(pl.map(p=>p.pc||p.code));const seen={};ch.sort((a,b)=>b.id-a.id).forEach(c=>{if(have.has(c.code)||seen[c.code])return;seen[c.code]=1;pl.push({id:null,code:c.code,pc:c.code,status:'Approved',pn:c.pn,sc:c.sc,pt:c.pt,pm:c.pm,wm:null,cb:c.cb,bud:c.bud,ow:c.ow,dsc:c.dsc,sd:c.sd,ed:c.ed,tasks:[]})})}catch(_){}
+ try{const ch=await q('charters','id,code,status,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,sd:data->>sdate,ed:data->>edate,sa:stage_at,cb:created_by',r=>r.eq('archived',false).eq('status','Approved'));const have=new Set(pl.map(p=>p.pc||p.code));const seen={};ch.sort((a,b)=>b.id-a.id).forEach(c=>{if(have.has(c.code)||seen[c.code])return;seen[c.code]=1;pl.push({id:null,code:c.code,pc:c.code,status:'Approved',pn:c.pn,sc:c.sc,pt:c.pt,pm:c.pm,wm:null,cb:c.cb,bud:c.bud,ow:c.ow,dsc:c.dsc,sd:c.sd,ed:c.ed,sa:c.sa,tasks:[]})})}catch(_){}
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||(p.id||0)>(best[k].id||0))best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,an=p.id?analyze(p.tasks||[],p.wm):chAn(p),c=CFG[k]||{};
-  return {k,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+  return {k,sa:p.sa,sd:p.sd,ed:p.ed,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:p.pn||k,sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
  PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
  if(ADM&&!window._tabInit){window._tabInit=1;let v=null;try{v=localStorage.getItem('pfTab')}catch(_){}TAB=['exe','sum','tree','wbs','gantt','trd','fil','rec','rep','kan','pln','goal','att','deg','lag','otd','rmap','dq','wts'].includes(v)?v:'att'}
  draw()}
@@ -708,7 +708,7 @@ function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a
   pendW=wReady?P.filter(p=>WLm[p.k]&&+WLm[p.k].pending>0):[],
   noG=P.filter(p=>!p.closed&&!p.goal),noPm=P.filter(p=>!p.closed&&!p.pm),
   closed=scoped().filter(p=>p.closed),
-  noT=P.filter(p=>!(p.tasks||[]).length).map(p=>({name:p.name,t:p.id?'e':'n'})),
+  noT=P.filter(p=>!p.closed&&!(p.tasks||[]).length).map(p=>{const w=p.id?0:Math.max(0,TODAY-(dn(String(p.sa||'').slice(0,10))||TODAY)),s0=dn(p.sd),e0=dn(p.ed),half=!p.id&&s0!=null&&e0!=null&&TODAY>=s0+(e0-s0)/2;return {k:p.k,name:p.name,t:p.id?'e':'n',w,half}}).sort((a,b)=>(b.half-a.half)||b.w-a.w),
   leaf=p=>{const k=new Set((p.tasks||[]).map(x=>x.p).filter(Boolean));return(p.tasks||[]).filter(x=>!k.has(x.id))},
   noD=P.map(p=>({p,n:leaf(p).filter(x=>!x.s||!x.e).length})).filter(z=>z.n),
   noO=P.map(p=>({p,n:leaf(p).filter(x=>!x.w).length})).filter(z=>z.n),
@@ -730,7 +730,7 @@ function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a
  ${box(T('مهام بلا تواريخ بدء/انتهاء','Tasks without dates'),noD,z=>'• '+esc(z.p.name)+' — '+z.n,T('تُحرم من التحليل الزمني والتأخر.','Excluded from time analysis.'),'#d1101d')}
  ${box(T('مهام بلا مكلّف','Tasks without assignee'),noO,z=>'• '+esc(z.p.name)+' — '+z.n,T('لا أحد مسؤول عن تحديث إنجازها.','Nobody owns the progress update.'),'#e9a23b')}
  ${box(T('مهام تأخرت أكثر من 14 يومًا ولم تكتمل','Tasks overdue by more than 14 days'),stale,z=>'• '+esc(z.p.name)+' — '+z.n,T('تجاوزت تاريخ نهايتها بأكثر من أسبوعين ولم تصل 100% (نفس معيار صفحة «الانتباه»).','Past end date by 2+ weeks and below 100% (same rule as the Attention page).'),'#d1101d')}
- ${box(T('مشاريع بلا خطة أو بلا مهام','Projects without a plan or tasks'),noT,p=>'• '+esc(p.name)+' — '+(p.t=='n'?T('ميثاق معتمد بلا خطة','approved charter, no plan yet'):T('خطة بلا مهام','plan without tasks')),T('لا تدخل في أي قياس، لا إنجاز ولا تأخر.','Not measured at all: no progress or lateness.'),'#d1101d')}
+ ${box(T('مشاريع بلا خطة أو بلا مهام','Projects without a plan or tasks'),noT,p=>'• <span style="'+(p.half?'color:#d1101d;font-weight:700':'')+'">'+esc(p.name)+'</span> — '+(p.t=='n'?T('ميثاق معتمد بلا خطة','approved charter, no plan')+(p.w?' · '+T('منذ ','for ')+plr(p.w,'day'):'')+(p.half?' · '+T('تجاوز نصف مدته','past half its duration'):''):T('خطة بلا مهام','plan without tasks'))+(ADM?' <a href="projects.html#k='+esc(p.k)+'"><button class="sm" type="button">'+T('تفعيل الخطة','Activate plan')+'</button></a>':''),T('المخطط لها يُحسب من الميثاق إلى أن تُعتمد أو تُفعَّل خطة. الأحمر: تجاوز نصف مدته بلا خطة، والترتيب الأقدم أولًا.','Planned progress comes from the charter until a plan is approved or activated. Red: past half its duration; oldest first.'),'#d1101d')}
  ${box(T('مشاريع متأخرة (حسب عدد المهام المتأخرة)','Late projects'),lateM,p=>'• '+esc(p.name)+' — '+p.an.lateN,T('للمتابعة الفورية.','For immediate follow-up.'),'#d1101d')}`;}
 
 /* ====== أدوات الأدمن: انتباه اليوم / ملف المشروع / التدهور / من لا يحدّث ====== */
