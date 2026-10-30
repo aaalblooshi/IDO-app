@@ -66,7 +66,7 @@ em_items:['المعايير','Criteria'],em_show:['عرض / تعديل المع�
  s_cal:['أيام العمل والإجازات (خطط المشاريع)','Working days & holidays (project plan)'],s_cal_h:['تُستثنى أيام العطلة الأسبوعية والإجازات الرسمية من حساب مدد الأنشطة وتظهر مظلّلة في المخطط.','Weekends and holidays are excluded from activity durations and shaded in the Gantt chart.'],wk:['العطلة الأسبوعية','Weekend days'],hol:['الإجازات الرسمية','Official holidays'],holAdd:['+ إجازة','+ Holiday'],holN:['اسم الإجازة','Holiday name'],holFrom:['من','From'],holTo:['إلى (اختياري)','To (optional)'],
  d0:['الأحد','Sun'],d1:['الإثنين','Mon'],d2:['الثلاثاء','Tue'],d3:['الأربعاء','Wed'],d4:['الخميس','Thu'],d5:['الجمعة','Fri'],d6:['السبت','Sat'],
  s_lists:['القوائم المنسدلة','Dropdown lists'],s_lists_h:['عدّل عناصر كل قائمة وعددها وترتيبها. تنبيه: حذف أو إعادة ترتيب عنصر مستخدم في نماذج سابقة قد يغيّر ما يظهر فيها.','Edit items, count and order. Warning: removing or reordering items used in existing forms may change what they show.'],
- l_sectors:['القطاعات','Sectors'],l_depts:['الإدارات (لكل قطاع)','Departments (per sector)'],l_goals:['الأهداف الاستراتيجية','Strategic goals'],l_ptype:['نوع المشروع','Project type'],l_prio:['الأولوية','Priority'],l_pstat:['حالة المشروع في التقرير الختامي','Project status in closure report'],
+ l_sectors:['القطاعات','Sectors'],l_depts:['الإدارات (لكل قطاع)','Departments (per sector)'],l_sects:['الأقسام (لكل إدارة)','Sections (per department)'],l_goals:['الأهداف الاستراتيجية','Strategic goals'],l_ptype:['نوع المشروع','Project type'],l_prio:['الأولوية','Priority'],l_pstat:['حالة المشروع في التقرير الختامي','Project status in closure report'],
  ar:['عربي','Arabic'],en:['إنجليزي','English'],addi:['+ إضافة عنصر','+ Add item'],lock:['🔒 له منطق في النظام','🔒 used by system logic'],sector:['القطاع','Sector'],resetL:['استرجاع القوائم الافتراضية','Reset lists to defaults'],askR:['استرجاع القوائم الافتراضية؟','Reset lists to defaults?'],keep1:['يجب أن تبقى قائمة واحدة على الأقل.','At least one item must stay.'],
  s_home:['ترتيب الصفحة الرئيسية والمؤشرات','Home page order & indicators'],s_home_h:['اختر ما يظهر وبأي ترتيب. التغيير يسري على كل المستخدمين.','Choose what shows and in what order. Applies to all users.'],
  h_mine:['إظهار «لوحتي»','Show "My dashboard"'],h_first:['«لوحتي» تأتي قبل المحاور','Dashboard comes before axes'],h_axes:['المحاور','Axes'],h_svcs:['الخدمات داخل المحور','Services inside the axis'],h_tiles:['مؤشرات «لوحتي»','"My dashboard" indicators'],
@@ -237,7 +237,8 @@ let EL=null,OPENL={};
 function initLists(){const d=DEFL();let u={};try{u=JSON.parse(SET.opt_lists||'{}')||{}}catch(_){}
  if(!u.goals&&SET.opt_goals){try{const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length)u.goals=g}catch(_){}}
  EL={};LK.forEach(k=>EL[k]=JSON.parse(JSON.stringify(Array.isArray(u[k])&&u[k].length?u[k]:d[k])));
- while(EL.depts.length<EL.sectors.length)EL.depts.push([]);EL.depts.length=EL.sectors.length}
+ while(EL.depts.length<EL.sectors.length)EL.depts.push([]);EL.depts.length=EL.sectors.length;
+ EL.sects=EL.depts.map((ds,si)=>ds.map((_,di)=>JSON.parse(JSON.stringify((((u.sects||[])[si]||[])[di])||[]))))}
 const keyed=k=>['ptype','prio','pstat'].includes(k);
 function rowsH(arr,path,k){ // arr: array of items; path: JS expression to the array
  return arr.map((it,i)=>{const o=keyed(k)?1:0,lock=keyed(k)&&(LOCK[k]||[]).includes(it[0]);
@@ -245,23 +246,26 @@ function rowsH(arr,path,k){ // arr: array of items; path: JS expression to the a
   <div class="row" style="margin:0 0 2px;grid-column:1/-1;gap:6px"><button onclick="mv('${path}',${i},-1)">▲</button><button onclick="mv('${path}',${i},1)">▼</button>${lock?`<span class="mut">${t('lock')}</span>`:`<button class="r" onclick="rm('${path}',${i})">✕</button>`}</div></div>`}).join('')}
 function ref(p){return Function('EL','return '+p)(EL)}
 function mv(p,i,d){const a=ref(p),j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];drawLists()}
-function rm(p,i){const a=ref(p);if(a.length<=1)return toast(t('keep1'));a.splice(i,1);
+function rm(p,i){const a=ref(p);if(a.length<=1&&!/^EL\.sects/.test(p))return toast(t('keep1'));a.splice(i,1);
  if(p=='EL.sectors'||p==='sectors'){}drawLists()}
-function addI(p,k){const a=ref(p);a.push(keyed(k)?['c'+Date.now().toString(36),'','']:['','']);if(p=='EL.sectors')EL.depts.push([['','']]);drawLists()}
+function addI(p,k){const a=ref(p);a.push(keyed(k)?['c'+Date.now().toString(36),'','']:['','']);if(p=='EL.sectors'){EL.depts.push([['','']]);EL.sects.push([[]])}const m=/^EL\.depts\[(\d+)\]$/.exec(p);if(m)EL.sects[+m[1]].push([]);drawLists()}
 function tgl(id){OPENL[id]=!OPENL[id];drawLists()}
 function drawLists(){const el=$('lists');if(!el)return;if(!EL)initLists();
- const sec=(k,body)=>`<details ${OPENL[k]?'open':''} style="border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:8px 0"><summary style="font-weight:700;cursor:pointer" onclick="event.preventDefault();tgl('${k}')">${t('l_'+k)} <span class="mut">(${k=='depts'?EL.depts.reduce((n,x)=>n+x.length,0):EL[k].length})</span></summary>${OPENL[k]?body:''}</details>`;
+ const sec=(k,body)=>`<details ${OPENL[k]?'open':''} style="border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:8px 0"><summary style="font-weight:700;cursor:pointer" onclick="event.preventDefault();tgl('${k}')">${t('l_'+k)} <span class="mut">(${k=='depts'?EL.depts.reduce((n,x)=>n+x.length,0):k=='sects'?EL.sects.reduce((n,a)=>n+a.reduce((m,l)=>m+l.length,0),0):EL[k].length})</span></summary>${OPENL[k]?body:''}</details>`;
  el.innerHTML=['sectors','goals','ptype','prio','pstat'].map(k=>sec(k,rowsH(EL[k],'EL.'+k,k)+`<div class="row"><button onclick="addI('EL.${k}','${k}')">${t('addi')}</button></div>`)).join('')
+ +sec('sects',EL.sectors.map((s,si)=>`<div style="margin:8px 0"><b>${esc(s[0]||t('sector')+' '+(si+1))}</b>${EL.depts[si].map((dx,di)=>`<div style="margin:6px 0;padding:6px 8px;border:1px solid var(--line);border-radius:10px"><b style="font-size:13.5px">${esc(dx[0]||'—')}</b>${rowsH(EL.sects[si][di],'EL.sects['+si+']['+di+']','sects')}<div class="row"><button onclick="addI('EL.sects[${si}][${di}]','sects')">${t('addi')}</button></div></div>`).join('')}</div>`).join(''))
  +sec('depts',EL.sectors.map((s,si)=>`<div style="margin:8px 0"><b>${esc(s[0]||t('sector')+' '+(si+1))}</b>${rowsH(EL.depts[si],'EL.depts['+si+']','depts')}<div class="row"><button onclick="addI('EL.depts[${si}]','depts')">${t('addi')}</button></div></div>`).join(''))}
 // عند إضافة/حذف قطاع نُبقي عدد مصفوفات الإدارات مطابقًا
-const _rm=rm;rm=function(p,i){if(p=='EL.sectors'){if(EL.sectors.length<=1)return toast(t('keep1'));EL.sectors.splice(i,1);EL.depts.splice(i,1);return drawLists()}_rm(p,i)};
-const _mv=mv;mv=function(p,i,d){if(p=='EL.sectors'){const j=i+d;if(j<0||j>=EL.sectors.length)return;[EL.sectors[i],EL.sectors[j]]=[EL.sectors[j],EL.sectors[i]];[EL.depts[i],EL.depts[j]]=[EL.depts[j],EL.depts[i]];return drawLists()}_mv(p,i,d)};
+const _rm=rm;rm=function(p,i){if(p=='EL.sectors'){if(EL.sectors.length<=1)return toast(t('keep1'));EL.sectors.splice(i,1);EL.depts.splice(i,1);EL.sects.splice(i,1);return drawLists()}const m=/^EL\.depts\[(\d+)\]$/.exec(p);if(m){if(EL.depts[+m[1]].length<=1)return toast(t('keep1'));EL.sects[+m[1]].splice(i,1)}_rm(p,i)};
+const _mv=mv;mv=function(p,i,d){if(p=='EL.sectors'){const j=i+d;if(j<0||j>=EL.sectors.length)return;[EL.sectors[i],EL.sectors[j]]=[EL.sectors[j],EL.sectors[i]];[EL.depts[i],EL.depts[j]]=[EL.depts[j],EL.depts[i]];[EL.sects[i],EL.sects[j]]=[EL.sects[j],EL.sects[i]];return drawLists()}const m=/^EL\.depts\[(\d+)\]$/.exec(p);if(m){const a=EL.sects[+m[1]],j=i+d;if(j>=0&&j<a.length)[a[i],a[j]]=[a[j],a[i]]}_mv(p,i,d)};
 const saveLists=()=>run(async()=>{const out={};
  for(const k of LK){const a=k=='depts'?EL.depts:EL[k];
+  if(k=='sects')continue;
   if(k=='depts'){out.depts=EL.depts.map((l,si)=>l.map((it,i)=>{if(!String(it[0]).trim())throw new Error(t('l_depts')+' '+(si+1)+'/'+(i+1));return[it[0].trim(),(it[1]||'').trim()||it[0].trim()]}))}
   else if(keyed(k)){out[k]=a.map((it,i)=>{if(!String(it[1]).trim())throw new Error(t('l_'+k)+' '+(i+1));return[it[0],it[1].trim(),(it[2]||'').trim()||it[1].trim()]});
    for(const L of (LOCK[k]||[]))if(!out[k].some(x=>x[0]==L))throw new Error(t('lock'))}
   else out[k]=a.map((it,i)=>{if(!String(it[0]).trim())throw new Error(t('l_'+k)+' '+(i+1));return[it[0].trim(),(it[1]||'').trim()||it[0].trim()]})}
+ out.sects=EL.sects.map(sl=>sl.map(l=>l.filter(it=>String(it[0]).trim()).map(it=>[it[0].trim(),(it[1]||'').trim()||it[0].trim()])));
  const j=JSON.stringify(out);await setS('opt_lists',j);SET.opt_lists=j});
 const resetLists=()=>{if(!confirm(t('askR')))return;run(async()=>{await setS('opt_lists','');SET.opt_lists='';EL=null;drawLists()})};
 /* ---------- أيام العمل والإجازات ---------- */

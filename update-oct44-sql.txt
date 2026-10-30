@@ -1,0 +1,21 @@
+-- =====================================================================
+-- update-oct44: ربط المشروع بالإدارة والقسم من إعدادات المشروع — يُشغَّل بعد oct43
+--   القطاع من الميثاق · الإدارة (اختياري: تخصيص دون نقل) والقسم يحددهما مكتب التطوير من إعدادات المشاريع
+--   من له صلاحية قطاع المشروع أو إدارته أو قسمه يراه
+-- =====================================================================
+alter table project_cfg add column if not exists dept_ov text;   -- إدارة مخصصة للمشروع (رقمها) وإلا فمن الميثاق
+alter table project_cfg add column if not exists section text;   -- اسم القسم من قائمة الأقسام في الإعدادات
+
+create or replace function units_cover(u text[], sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  with p as (select coalesce(nullif(g.dept_ov,''), nullif(dept,'')) d, nullif(g.section,'') sc
+             from (select 1) x left join project_cfg g on g.pcode = pc)
+  select coalesce(sec,'') ~ '^[0-9]+$' and exists(
+    select 1 from p, unnest(coalesce(u,'{}')) e
+    where e = sec
+       or (p.d ~ '^[0-9]+$' and e = sec||':'||p.d)
+       or (p.d ~ '^[0-9]+$' and p.sc is not null and e = sec||':'||p.d||':'||p.sc))
+$$;
+grant execute on function units_cover(text[],text,text,text) to authenticated;
+
+notify pgrst, 'reload schema';
