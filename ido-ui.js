@@ -38,6 +38,9 @@
     fwd: '<path d="m6 7 5 5-5 5M13 7l5 5-5 5"/>',
     rew: '<path d="m18 7-5 5 5 5M11 7l-5 5 5 5"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/>',
+    map: '<path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 7z"/><path d="M9 4v13M15 7v12.5"/>',
+    list: '<path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/>',
+    grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
     dot: '<circle cx="12" cy="12" r="4"/>'
   };
   var BY = {
@@ -73,7 +76,7 @@
     '.hm{flex-wrap:nowrap!important}.hm .hmb{padding:7px 11px!important}.hm .hmm{display:inline-flex;align-items:center;gap:5px}.hm .hmm svg{width:16px;height:16px}',
     /* page title row: the banner already carries it */
     '#hd2 .ttl:before,.ttl:before{background:linear-gradient(#BF9849,#3EA3DC)!important}',
-    'body:has(.hero) .ttl,body:has(.pgban) .ttl,body:has(.cm-ban) .ttl{display:none!important}',
+    'body:has(.hero) .ttl,body:has(.pgban) .ttl,body:has(.cm-ban) .ttl,body:has(.ban) .ttl{display:none!important}',
     /* bottom sheets & dialogs */
     '.sov,#hqs,.nov{background:rgba(24,28,50,.5)!important;-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}',
     '.sbx,#hqs>div{border-radius:28px 28px 0 0!important;box-shadow:0 -14px 44px rgba(29,95,138,.28)!important}',
@@ -128,9 +131,9 @@
     }
   }
   /* ---------- emoji -> line icons inside buttons / links / chips ---------- */
-  var EMO = { '📅': 'calendar', '⚙': 'gear', '⬇': 'download', '❔': 'help', '❓': 'help', '✏': 'edit', '🔗': 'link', '🔍': 'search', '🗑': 'trash', '📎': 'clip', '📝': 'note', '⬆': 'up', '👁': 'eye', '🔔': 'inbox', '🏠': 'home', '🧭': 'compass', '✅': 'tasks', '📂': 'folder', '📁': 'folder', '⏩': 'fwd', '⏪': 'rew', '👤': 'user' };
+  var EMO = { '📅': 'calendar', '⚙': 'gear', '⬇': 'download', '❔': 'help', '❓': 'help', '✏': 'edit', '🔗': 'link', '🔍': 'search', '🗑': 'trash', '📎': 'clip', '📝': 'note', '⬆': 'up', '👁': 'eye', '🔔': 'inbox', '🏠': 'home', '🧭': 'compass', '✅': 'tasks', '📂': 'folder', '📁': 'folder', '⏩': 'fwd', '⏪': 'rew', '👤': 'user', '🔎': 'search', '🗺': 'map', '☰': 'list', '▦': 'grid', '📋': 'note' };
   var RE = new RegExp('(' + Object.keys(EMO).join('|') + ')\\uFE0F?', 'g');
-  var SEL = '.cm-bar,button,summary,.hb,.hbtn,#tkfab,.fab,.cm-chip,.cm-fm a,.chp,.lk,.lk2';
+  var SEL = 'label,.cm-bar,button,summary,.hb,.hbtn,#tkfab,.fab,.cm-chip,.cm-fm a,.chp,.lk,.lk2';
   function emoji(root) {
     (root || document).querySelectorAll(SEL).forEach(function (el) {
       if (el.id === 'hm_m' || el.closest('#gnav,.hmp')) return;
