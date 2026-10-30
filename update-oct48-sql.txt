@@ -1,0 +1,118 @@
+-- أوكتوبر 48: سجل التدقيق الشامل للأدمن (حوكمة وتتبّع كل ما يجري في النظام)
+-- شغّله مرة واحدة في Supabase → SQL editor (بعد 47)
+
+-- 1) جدول السجل المركزي (لا يقرؤه إلا الأدمن عبر الدالة admin_audit)
+create table if not exists sys_audit (
+  id bigserial primary key,
+  at timestamptz not null default now(),
+  actor uuid,
+  actor_name text,
+  tbl text not null,
+  op text not null,            -- INSERT / UPDATE / DELETE
+  rid text,                    -- معرّف السجل
+  pcode text,                  -- رمز المشروع/الطلب إن وُجد
+  summary text,
+  changes jsonb
+);
+create index if not exists sys_audit_at_idx on sys_audit (at desc);
+create index if not exists sys_audit_tbl_idx on sys_audit (tbl, at desc);
+create index if not exists sys_audit_actor_idx on sys_audit (actor, at desc);
+alter table sys_audit enable row level security;
+revoke all on sys_audit from anon, authenticated;
+
+-- 2) دالة المُشغِّل العامة: تسجّل من فعل ماذا ومتى وما الذي تغيّر
+create or replace function sys_audit_t() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+declare
+  r jsonb; o jsonb; ch jsonb := '{}'::jsonb; k text; v jsonb; v_rid text; pc text; nm text; skip text[];
+begin
+  skip := array['updated_at','stage_at','last_seen','at','signature_img','img','sig','password','token'];
+  if TG_OP = 'DELETE' then r := to_jsonb(OLD); else r := to_jsonb(NEW); end if;
+  if TG_OP = 'UPDATE' then o := to_jsonb(OLD); end if;
+  v_rid := coalesce(r->>'id', r->>'key', r->>'pcode', r->>'user_id');
+  pc  := coalesce(r->>'pcode', r->>'code');
+  for k, v in select * from jsonb_each(r) loop
+    if k = any(skip) then continue; end if;
+    if TG_OP = 'UPDATE' then
+      if v is not distinct from (o->k) then continue; end if;
+      if jsonb_typeof(v) in ('object','array') or length(coalesce(v #>> '{}','')) > 300 then
+        ch := ch || jsonb_build_object(k, '(تغيّر المحتوى)');
+      else
+        ch := ch || jsonb_build_object(k, jsonb_build_array(o->k, v));
+      end if;
+    else
+      if jsonb_typeof(v) in ('object','array') or length(coalesce(v #>> '{}','')) > 300 then continue; end if;
+      ch := ch || jsonb_build_object(k, v);
+    end if;
+  end loop;
+  if TG_OP = 'UPDATE' and ch = '{}'::jsonb then return NEW; end if;
+  select full_name into nm from profiles where id = auth.uid();
+  -- الحفظ التلقائي المتكرر لمحتوى الخطة: يُدمج في سطر واحد (آخر ١٠ دقائق) بدل إغراق السجل
+  if TG_OP = 'UPDATE' and (select count(*) from jsonb_object_keys(ch)) = 1 and ch ? 'data' then
+    update sys_audit set at = now()
+     where id = (select id from sys_audit where tbl = TG_TABLE_NAME and rid is not distinct from v_rid and actor is not distinct from auth.uid()
+                    and changes = ch and at > now() - interval '10 minutes' order by id desc limit 1);
+    if found then return NEW; end if;
+  end if;
+  insert into sys_audit(actor, actor_name, tbl, op, rid, pcode, summary, changes)
+  values (auth.uid(), coalesce(nm, case when auth.uid() is null then 'النظام' end), TG_TABLE_NAME, TG_OP, v_rid, pc,
+          TG_OP || ' ' || TG_TABLE_NAME || coalesce(' #' || v_rid, ''), ch);
+  if TG_OP = 'DELETE' then return OLD; end if;
+  return NEW;
+end $fn$;
+
+-- 3) ربط المُشغِّل بالجداول المهمة الموجودة فعلًا (يتجاهل غير الموجود)
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'profiles','app_settings','app_roles','project_cfg','project_grants','project_blocks',
+    'plans','charters','change_requests','closure_reports',
+    'signatories','plan_signatories','charter_signatories','closure_signatories',
+    'del_requests','escalations','plan_versions','plan_consult','plan_comments',
+    'project_transfer','project_handover','project_links','followers',
+    'user_groups','user_group_members','chat_channels','chat_members','chat_excl',
+    'user_nudges','service_ratings','request_sla','eval_model','project_evals'
+  ] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('drop trigger if exists sys_audit_trg on %I', t);
+      execute format('create trigger sys_audit_trg after insert or update or delete on %I for each row execute function sys_audit_t()', t);
+    end if;
+  end loop;
+end $$;
+
+-- 4) قراءة السجل (للأدمن فقط): يجمع السجل المركزي + سجلات الخدمات (ميثاق/خطة/تغيير/إقفال)
+create or replace function admin_audit(
+  p_from timestamptz default null, p_to timestamptz default null,
+  p_src text default null, p_actor text default null, p_q text default null,
+  p_lim int default 100, p_off int default 0)
+returns table(at timestamptz, src text, actor text, tbl text, op text, rid text, pcode text, summary text, details jsonb, total bigint)
+language plpgsql stable security definer set search_path=public as $fn$
+begin
+  if (select role from profiles where id = auth.uid()) is distinct from 'admin' then
+    raise exception 'admin only';
+  end if;
+  return query
+  with u as (
+    select s.at, 'sys'::text src, s.actor_name actor, s.tbl, s.op, s.rid, s.pcode, s.summary, s.changes details from sys_audit s
+    union all
+    select a.at, 'cr', a.user_name, 'audit_log', 'LOG', a.cr_id::text, c.code, a.action, null::jsonb from audit_log a left join change_requests c on c.id = a.cr_id
+    union all
+    select a.at, 'charter', a.user_name, 'charter_audit', 'LOG', a.cr_id::text, c.code, a.action, null from charter_audit a left join charters c on c.id = a.cr_id
+    union all
+    select a.at, 'plan', a.user_name, 'plan_audit', 'LOG', a.cr_id::text, c.code, a.action, null from plan_audit a left join plans c on c.id = a.cr_id
+    union all
+    select a.at, 'closure', a.user_name, 'closure_audit', 'LOG', a.cr_id::text, c.code, a.action, null from closure_audit a left join closure_reports c on c.id = a.cr_id
+  )
+  select x.at, x.src, x.actor, x.tbl, x.op, x.rid, x.pcode, x.summary, x.details, count(*) over() total
+    from u x
+   where (p_from is null or x.at >= p_from) and (p_to is null or x.at < p_to)
+     and (coalesce(p_src, '') = '' or x.src = p_src or x.tbl = p_src)
+     and (coalesce(p_actor, '') = '' or x.actor ilike '%' || p_actor || '%')
+     and (coalesce(p_q, '') = '' or x.summary ilike '%' || p_q || '%' or x.pcode ilike '%' || p_q || '%'
+          or x.tbl ilike '%' || p_q || '%' or coalesce(x.details::text, '') ilike '%' || p_q || '%')
+   order by x.at desc
+   limit least(coalesce(p_lim, 100), 1000) offset greatest(coalesce(p_off, 0), 0);
+end $fn$;
+revoke all on function admin_audit(timestamptz, timestamptz, text, text, text, int, int) from public, anon;
+grant execute on function admin_audit(timestamptz, timestamptz, text, text, text, int, int) to authenticated;
