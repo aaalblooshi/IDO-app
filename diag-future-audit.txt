@@ -1,0 +1,13 @@
+-- استعلام قراءة فقط: يعرض أي سجلات تدقيق مؤرَّخة في المستقبل (بعد الآن)
+select 'charter_audit' as src, a.id, a.at, a.user_name, a.action, c.code
+  from charter_audit a left join charters c on c.id = a.cr_id where a.at > now()
+union all
+select 'plan_audit', a.id, a.at, a.user_name, a.action, c.code
+  from plan_audit a left join plans c on c.id = a.cr_id where a.at > now()
+union all
+select 'audit_log', a.id, a.at, a.user_name, a.action, c.code
+  from audit_log a left join change_requests c on c.id = a.cr_id where a.at > now()
+union all
+select 'closure_audit', a.id, a.at, a.user_name, a.action, c.code
+  from closure_audit a left join closure_reports c on c.id = a.cr_id where a.at > now()
+order by at desc;
