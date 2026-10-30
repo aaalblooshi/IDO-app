@@ -585,7 +585,7 @@ Object.assign(D,{
  sc_staged:['معدّلة في المسودة (لم تُرسل)','Changed in draft (not sent)'],sc_undo:['إلغاء تعديل هذه المهمة','Undo this task’s change'],
  sc_bad:['تأكد من التواريخ (النهاية بعد البداية).','Check the dates (end after start).'],sc_none:['لا تغيير في التواريخ.','No date change.'],
  af_h:['المهام المتأثرة','Affected tasks'],af_chip:['تؤثر على {n} مهمة','Affects {n} tasks'],af_ok:['تأكيد وإضافة للمسودة','Confirm and add to draft'],
- af_old:['قبل','Before'],af_new:['بعد','After'],af_none:['لا توجد مهام أخرى متأثرة.','No other tasks are affected.'],af_conf:['يتعارض مع المهمة السابقة','Conflicts with its predecessor'],
+ af_old:['قبل','Before'],af_opt:['تحسين الجدولة','Optimise schedule'],af_opt_on:['✔ تم تحسين الجدولة: تتأخر اللاحقة بالقدر اللازم فقط.','✔ Schedule optimised: later tasks move only as much as needed.'],af_opt_back:['رجوع للحساب السابق','Back to previous calculation'],af_new:['بعد','After'],af_none:['لا توجد مهام أخرى متأثرة.','No other tasks are affected.'],af_conf:['يتعارض مع المهمة السابقة','Conflicts with its predecessor'],
  sg_bar:['{n} مهمة معدّلة في المسودة','{n} task(s) changed in draft'],sg_rev:['مراجعة وإرسال','Review & send'],sg_drop:['تجاهل الكل','Discard all'],
  sg_h:['تعديلات الخطة قبل الإرسال','Plan changes before sending'],sg_send:['إرسال للاعتماد','Send for approval'],sg_nt:['ملاحظة للمعتمدين (اختياري)','Note for approvers (optional)'],
  sg_ok:['أُنشئت مسودة التعديل. أكمل الإرسال من صفحة الخطة.','Change draft created. Finish sending from the plan page.'],
@@ -661,13 +661,40 @@ function schedBox(r){
  <div class="row" style="margin-top:8px"><button class="p" onclick="scApply()">${t('sc_ap')}</button></div></div>`}
 function scQ(v){const s=dn($('sc_s').value),e=dn($('sc_e').value);if(s==null||e==null)return;
  if(v=='m'){$('sc_s').value=ds(addM(s,1));$('sc_e').value=ds(addM(e,1))}else{$('sc_s').value=ds(s+v);$('sc_e').value=ds(e+v)}}
-function scApply(){if(!SH)return;const r=SH.r,s=dn($('sc_s').value),e=dn($('sc_e').value);
+let CALC=null;
+async function calLoad(){if(CALC)return CALC;let off=[0,6],hol={};try{const q=await sb.from('app_settings').select('key,value').in('key',['wk_off','holidays']),S={};(q.data||[]).forEach(z=>S[z.key]=z.value);
+ if(S.wk_off!=null&&String(S.wk_off).trim()!==''){off=String(S.wk_off).split(',').map(Number).filter(x=>x>=0&&x<=6)}else if(S.wk_off!=null&&String(S.wk_off)==='-')off=[];if(off.length>=7)off=[];
+ try{(JSON.parse(S.holidays||'[]')||[]).forEach(h=>{if(!h||!h.d)return;const a=dn(h.d),b=h.d2?dn(h.d2):a;if(isNaN(a))return;for(let i=a;i<=(isNaN(b)?a:Math.min(b,a+60));i++)hol[ds(i)]=1})}catch(_){}}catch(_){}
+ return CALC={off,hol}}
+const wkD=n=>!CALC.off.includes(new Date(n*DAY).getUTCDay())&&!CALC.hol[ds(n)];
+const nwk=n=>{let i=0;while(!wkD(n)&&i++<400)n++;return n},pwk=n=>{let i=0;while(!wkD(n)&&i++<400)n--;return n};
+const awk=(n,k)=>{n=nwk(n);let i=0;while(k>0&&i++<5000){n=nwk(n+1);k--}return n},swk=(n,k)=>{n=pwk(n);let i=0;while(k>0&&i++<5000){n=pwk(n-1);k--}return n};
+const lgd=(n,l)=>l>=0?awk(n,l):swk(n,-l);
+/* الحساب الأدق: لا تتحرك اللاحقة إلا بقدر ما تقتضيه العلاقة، ويُحترم الفراغ الأصلي */
+function planOpt(r,ns,ne){const pr=r.pr,out={},cur0=effD(pr,r.x),d0=ns-cur0.s;out[r.id]={s:ns,e:ne};
+ descOf(pr,r.id,[]).forEach(i=>{const b=pr.byId[i];if(!b)return;const d=effD(pr,b.x);if(d.s==null||d.e==null)return;out[i]={s:d.s+d0,e:d.e+d0}});
+ const get=i=>out[i]||effD(pr,pr.m[i]);
+ for(let pass=0;pass<60;pass++){let ch=false;
+  pr.rs.forEach(z=>{if(!z.preds.length||z.id==r.id)return;const d=get(z.id);if(d.s==null||d.e==null)return;let sh=0;
+   z.preds.forEach(p=>{const q=get(p.x.id);if(q.s==null||q.e==null)return;const l=p.l||0,y=p.y||'FS';
+    if(y=='FS'){const m=lgd(nwk(q.e+1),l);if(d.s+sh<m)sh=m-d.s}else if(y=='SS'){const m=lgd(nwk(q.s),l);if(d.s+sh<m)sh=m-d.s}else if(y=='FF'){const m=lgd(nwk(q.e),l);if(d.e+sh<m)sh=m-d.e}else{const m=lgd(nwk(q.s),l);if(d.e+sh<m)sh=m-d.e}});
+   if(sh>0){out[z.id]={s:d.s+sh,e:d.e+sh};ch=true}});
+  if(!ch)break}
+ Object.keys(out).forEach(i=>{let c=pr.m[i],g=0;while(c&&c.p&&pr.m[c.p]&&g++<10){const p=pr.m[c.p],pd=out[p.id]||effD(pr,p),cd=out[c.id]||effD(pr,c);
+   let s0=pd.s,e0=pd.e,ch=false;if(cd.s!=null&&(s0==null||cd.s<s0)){s0=cd.s;ch=true}if(cd.e!=null&&(e0==null||cd.e>e0)){e0=cd.e;ch=true}if(ch)out[p.id]={s:s0,e:e0};c=p}});
+ return out}
+const sameChg=(a,b)=>{const ka=Object.keys(a),kb=Object.keys(b);return ka.length==kb.length&&ka.every(k=>b[k]&&b[k].s==a[k].s&&b[k].e==a[k].e)};
+async function scApply(){if(!SH)return;const r=SH.r,s=dn($('sc_s').value),e=dn($('sc_e').value);
  if(s==null||e==null||e<s)return toast(t('sc_bad'));
  const cur=effD(r.pr,r.x);if(s==cur.s&&e==cur.e)return toast(t('sc_none'));
- const chg=planShift(r,s,e,$('sc_c').checked),rows=affRows(r,chg);
- closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e2=>{if(e2.target==o)closeSheet()};document.body.appendChild(o);
- window.__chg={pid:r.pr.pid,chg};
- o.innerHTML=`<div class="sbx"><h3>${t('af_h')}</h3>${rows.length>1?`<div class="mut">${ad(rows.length-1)} ${t('af_h')}</div>`:`<div class="mut">${t('af_none')}</div>`}${affTL(rows)}
+ const chg=planShift(r,s,e,$('sc_c').checked);let opt=null;try{await calLoad();const o=planOpt(r,s,e);if(!sameChg(chg,o))opt=o}catch(_){}
+ window.__aff={r,chg,opt,on:false};
+ closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e2=>{if(e2.target==o)closeSheet()};document.body.appendChild(o);affPaint()}
+function affOpt(on){window.__aff.on=!!on;affPaint()}
+function affPaint(){const A=window.__aff,o=$('sov');if(!A||!o)return;const chg=A.on&&A.opt?A.opt:A.chg,rows=affRows(A.r,chg);window.__chg={pid:A.r.pr.pid,chg};
+ o.innerHTML=`<div class="sbx"><h3>${t('af_h')}</h3>${rows.length>1?`<div class="mut">${ad(rows.length-1)} ${t('af_h')}</div>`:`<div class="mut">${t('af_none')}</div>`}
+ ${A.opt?(A.on?`<div class="mut" style="margin:6px 0;color:#1c7a45;font-weight:700">${t('af_opt_on')} <a href="#" onclick="affOpt(0);return false">${t('af_opt_back')}</a></div>`:`<div style="margin:6px 0"><button onclick="affOpt(1)">⚙️ ${t('af_opt')}</button></div>`):''}
+ ${affTL(rows)}
  <div class="row" style="margin-top:10px"><button class="p" onclick="stgAdd()">${t('af_ok')}</button><button onclick="closeSheet()">${t('addX')}</button></div></div>`}
 function stgAdd(){const c=window.__chg;if(!c)return;STG[c.pid]=STG[c.pid]||{};Object.keys(c.chg).forEach(i=>{const v=c.chg[i];STG[c.pid][i]={s:ds(v.s),e:ds(v.e)}});
  /* إن عادت المهمة لتواريخها الأصلية احذف التعديل */
