@@ -52,7 +52,7 @@
     'audit.html': 'audit', 'ratings.html': 'star', 'access.html': 'key'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
-  window.IDOI = { svg: svg, names: Object.keys(P) };
+  window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
   function base(a) { var h = (a.getAttribute('href') || '').split('#')[0].split('?')[0]; if (h === './' || h === '') return 'index.html'; return h.replace(/^.*\//, ''); }
 
   /* ---------- styles ---------- */
@@ -118,7 +118,7 @@
 
   function addCss() {
     if (document.getElementById('idoui')) return;
-    var s = document.createElement('style'); s.id = 'idoui'; s.textContent = CSS;
+    var s = document.createElement('style'); s.id = 'idoui'; s.textContent = CSS + '.ih{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;margin-inline-start:6px;border-radius:50%;border:1.5px solid #B39A6B;background:#fff;color:#7a6740;font:italic 700 12px/1 Georgia,serif;cursor:pointer;padding:0;vertical-align:middle}.ih:active{background:#f3ecdc}.ihs{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgba(24,28,50,.5)}.ihs .sbx{background:#fff;width:100%;max-width:520px;padding:18px 18px calc(22px + env(safe-area-inset-bottom));border-radius:28px 28px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.2)}.ihs h3{margin:0 0 4px;font-size:17px}';
     (document.body || document.documentElement).appendChild(s);
   }
 
@@ -204,6 +204,43 @@
     }
   }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fsClose(); });
+
+  /* ===== أيقونات المعلومة (i) — منهجية أوزان المشاريع ===== */
+  var IH = {
+    ptype: ['نوع المشروع', 'استراتيجي أم تشغيلي؟ يُحدَّد من «تقييم المشروع» (٣٣ سؤالًا في ١٥ محورًا): إن بلغت النسبة ٧٠٪ فأكثر فهو استراتيجي، وإلا تشغيلي. التوصية تُعتمد من مكتب التطوير المؤسسي، وتؤثر على وزن المشروع في إنجاز القطاع والمركز.',
+      'Project type', 'Strategic or operational? Set by the project assessment (33 questions over 15 axes): 70% or more is strategic, otherwise operational. The Institutional Development Office approves it, and it affects the project weight in sector and centre progress.'],
+    cat: ['فئة المشروع', 'تصنيف يحدد معامل ضرب القيمة قبل احتساب الوزن:\n• الفئة أ — مشروع تحول / استراتيجي رئيسي (×٣)\n• الفئة د — مشروع إلزامي (×٢)\n• الفئة ب — استراتيجي / استراتيجي ممكّن (×١٫٥)\n• الفئة ج — مشروع تشغيلي (×١) وهي الافتراضية عند عدم التحديد.\nإن لم يُقيَّم المشروع تُستخدم القيمة الافتراضية للفئة (أ ٧٠، ب ٦٠، د ٦٥، ج ٥٠).',
+      'Project category', 'A classification that sets the multiplier applied before the weight is computed:\n• A — transformational / major strategic (×3)\n• D — mandatory (×2)\n• B — strategic / enabling strategic (×1.5)\n• C — operational (×1), the default when unset.\nIf the project is not assessed, the category default is used (A 70, B 60, D 65, C 50).'],
+    eval: ['نسبة التقييم', 'مجموع درجات إجابات التقييم موزونة بأهمية كل سؤال، منسوبة إلى أعلى درجة ممكنة (٠–١٠٠٪). ٧٠٪ فأكثر = استراتيجي. تظهر «بلا تقييم» حتى يُعتمد أول تقييم، وتُستخدم عندها القيمة الافتراضية لفئة المشروع.',
+      'Assessment score', 'The sum of answer scores weighted by each question’s importance, as a share of the maximum possible (0–100%). 70% or more = strategic. Shows “Not assessed” until the first assessment is approved; the category default is used meanwhile.'],
+    adj: ['النتيجة بعد التصنيف', 'القيمة المعتمدة (نسبة التقييم أو الافتراضية) × معامل الفئة. هذه هي الحصة الخام للمشروع قبل تحويلها إلى نسبة من المحفظة.',
+      'Adjusted score', 'The base value (assessment or default) × the category multiplier. This is the project’s raw share before it is turned into a percentage of the portfolio.'],
+    weight: ['وزن المشروع %', 'نصيب المشروع من المحفظة = النتيجة بعد التصنيف ÷ مجموع النتائج لكل المشاريع × (١٠٠ − مجموع الأوزان اليدوية). يستخدم في حساب الإنجاز الكلي للمحفظة والقطاعات. المجموع دائمًا ١٠٠٪.',
+      'Project weight %', 'The project’s share of the portfolio = adjusted score ÷ sum of all adjusted scores × (100 − total manual weights). Used in overall portfolio and sector progress. Always totals 100%.'],
+    man: ['وزن يدوي %', 'اتركه فارغًا ليُحتسب الوزن تلقائيًا. إن أدخلت رقمًا يُثبَّت للمشروع كما هو، ويُوزَّع الباقي على بقية المشاريع.',
+      'Manual weight %', 'Leave empty for the automatic weight. A number you enter is fixed for the project, and the remainder is shared among the other projects.'],
+    evq: ['تقييم المشروع', 'أسئلة قصيرة تقيس أثر المشروع عبر ١٥ محورًا (الأهداف، الأفق الزمني، نطاق التأثير، الموارد، النتائج، القيمة المالية، الابتكار، السوق، الاستدامة، الشراكات، التقنية، الثقافة، التكيف، العملاء، الموظفون). أجب بحسب الواقع المتوقع؛ كل سؤال له وزن يحدده المكتب. النتيجة توصية تُعتمد من مكتب التطوير.',
+      'Project assessment', 'Short questions measuring impact over 15 axes (objectives, time horizon, scope, resources, results, financial value, innovation, market fit, sustainability, partnerships, technology, culture, adaptability, customers, employees). Answer realistically; each question has a weight set by the office. The result is a recommendation approved by the office.'],
+    wratio: ['وزن الاستراتيجي مقابل التشغيلي', 'يُستخدم فقط للمشاريع التي لا يوجد لها وزن محسوب من منهجية التقييم والفئات. الأوزان المحسوبة من تبويب «الأوزان» في المحفظة تتقدم عليه.',
+      'Strategic vs operational weight', 'Only used for projects with no weight computed from the assessment/category methodology. Weights from the portfolio “Weights” tab take priority.'],
+    wsec: ['وزن القطاع', 'أهمية القطاع عند تجميع إنجاز المركز من القطاعات. القيمة ١ تعني وزنًا متساويًا.',
+      'Sector weight', 'The sector’s importance when centre progress is aggregated from sectors. 1 means equal weight.']
+  };
+  IH.thr = IH.ptype;
+  function lg() { try { return (typeof lang !== 'undefined' ? lang : document.documentElement.lang || 'ar').slice(0, 2); } catch (e) { return 'ar'; } }
+  function ihOpen(k) {
+    var c = IH[k]; if (!c) return; var ar = lg() == 'ar', o = document.createElement('div');
+    o.className = 'sov ihs'; o.style.zIndex = 100000; o.onclick = function (e) { if (e.target == o) o.remove(); };
+    o.innerHTML = '<div class="sbx"><h3></h3><p style="white-space:pre-line;line-height:1.8;margin:6px 0 12px"></p><button type="button" class="p"></button></div>';
+    o.querySelector('h3').textContent = c[ar ? 0 : 2]; o.querySelector('p').textContent = c[ar ? 1 : 3];
+    var b = o.querySelector('button'); b.textContent = ar ? 'حسنًا' : 'OK'; b.onclick = function () { o.remove(); };
+    document.body.appendChild(o);
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('.ih'); if (!b) return;
+    e.preventDefault(); e.stopPropagation(); ihOpen(b.getAttribute('data-ih'));
+  }, true);
+  function ihBtn(k) { return '<button type="button" class="ih" data-ih="' + k + '" aria-label="info">i</button>'; }
   var raf = 0;
   function sched() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; navIcons(); emoji(); rngAll(); fsBars(); }); }
 

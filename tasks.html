@@ -869,7 +869,7 @@ function vDig(rs){
   dept:['الإدارة داخل القطاع. اختر «لا ينطبق» إن كان المشروع على مستوى القطاع.','The department within the sector. Choose “Not applicable” for a sector-level project.'],
   pmname:['مدير المشروع المسؤول عن التنفيذ والمتابعة.','The project manager responsible for delivery and follow-up.'],
   owner:['مالك المشروع: صاحب القرار والمستفيد الرئيس من النتيجة.','Project owner: the decision-maker and main beneficiary.'],
-  ptype:['استراتيجي أم تشغيلي. المشاريع الاستراتيجية لها وزن أعلى في احتساب إنجاز القطاع والمركز.','Strategic or operational. Strategic projects weigh more in sector and centre progress.'],
+  ptype:['استراتيجي أم تشغيلي. يُحدَّد من «تقييم المشروع»: ٧٠٪ فأكثر = استراتيجي، وإلا تشغيلي، ويعتمده مكتب التطوير. الاستراتيجي يرفع وزن المشروع في إنجاز القطاع والمركز.','Strategic or operational. Set by the project assessment: 70% or more is strategic, otherwise operational, approved by the Development Office. Strategic raises the project’s weight in sector and centre progress.'],
   sdate:['تاريخ البدء المخطط. في التقرير الختامي يُعبَّأ تلقائيًا من الخطة (أول بداية فعلية) ويمكن تعديله.','Planned start. In the closure report it is filled from the plan (earliest actual start) and can be edited.'],
   edate:['تاريخ الانتهاء المخطط. في التقرير الختامي يُعبَّأ من آخر نهاية فعلية إذا اكتملت كل المهام.','Planned end. In the closure report it is filled from the latest actual end once all tasks are complete.'],
   dur:['مدة التنفيذ تُحسب تلقائيًا من التاريخين.','Duration is calculated automatically from the two dates.'],
@@ -971,4 +971,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=7"></script></body></html>
+<script src="ido-ui.js?v=8"></script></body></html>

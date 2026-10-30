@@ -696,12 +696,18 @@ boot();
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
 
 /* ---- جودة البيانات (للأدمن): ما يُضعف دقة المحفظة وأين يجب التدخل ---- */
-function vDq(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=PL,ds_=x=>x.name;
- const unW=P.filter(p=>WM[p.k]==null&&(CFG[p.k]||{}).weight==null),closed=P.filter(p=>p.closed),
+function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=gsc(),ds_=x=>x.name;
+ const WLm={};(Array.isArray(WL)?WL:[]).forEach(w=>WLm[w.pcode]=w);const wReady=Array.isArray(WL);
+ const unW=wReady?P.filter(p=>!p.closed&&(WLm[p.k]||{}).score==null):[],
+  unC=wReady?P.filter(p=>!p.closed&&WLm[p.k]&&!WLm[p.k].cat_set):[],
+  chgW=wReady?P.filter(p=>!p.closed&&WLm[p.k]&&WLm[p.k].changed):[],
+  pendW=wReady?P.filter(p=>WLm[p.k]&&+WLm[p.k].pending>0):[],
+  noG=P.filter(p=>!p.closed&&!p.goal),noPm=P.filter(p=>!p.closed&&!p.pm),
+  closed=scoped().filter(p=>p.closed),
   noT=P.filter(p=>!(p.tasks||[]).length),
   leaf=p=>{const k=new Set((p.tasks||[]).map(x=>x.p).filter(Boolean));return(p.tasks||[]).filter(x=>!k.has(x.id))},
   noD=P.map(p=>({p,n:leaf(p).filter(x=>!x.s||!x.e).length})).filter(z=>z.n),
-  noO=P.map(p=>({p,n:leaf(p).filter(x=>!x.w&&!x.wn).length})).filter(z=>z.n),
+  noO=P.map(p=>({p,n:leaf(p).filter(x=>!x.w).length})).filter(z=>z.n),
   stale=P.map(p=>({p,n:leaf(p).filter(x=>x.e&&dn(x.e)<TODAY-14&&(+x.pc||0)<100&&!x.as).length})).filter(z=>z.n),
   done=P.filter(p=>!p.closed&&p.a>=100),
   lateM=P.filter(p=>!p.closed&&p.an&&p.an.lateN>0).sort((a,b)=>b.an.lateN-a.an.lateN);
@@ -709,7 +715,13 @@ function vDq(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=PL,ds_=x=>x.n
  const sn=SNP||[],days=new Set(sn.map(z=>z.snap_date)).size;
  B.innerHTML=`<div class="card"><b>🩺 ${T('جودة بيانات المحفظة','Portfolio data quality')}</b><div class="mut" style="font-size:12.5px;margin-top:4px">${T('ما يؤثر على دقة الأرقام. المشاريع المغلقة (تقرير ختامي معتمد) تُستبعد من المؤشرات افتراضيًا.','What affects accuracy. Closed projects (approved closure report) are excluded from indicators by default.')}</div>
  <div class="row" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${SHC?'checked':''} onchange="SHC=this.checked;vDq()"> ${T('احتساب المشاريع المغلقة في المؤشرات','Count closed projects in indicators')}</label><span class="chp b">${T('مغلقة','Closed')}: <b class="num">${closed.length}</b></span><span class="chp g">${T('لقطات يومية','Daily snapshots')}: <b class="num">${days}</b></span></div></div>
- ${box(T('مشاريع بلا تقييم وزن (وزن متساوٍ)','Projects without weight assessment'),unW,p=>'• '+esc(p.name),T('الأوزان متساوية لحين تقييم المشاريع من تبويب «الأوزان».','Weights stay equal until assessed in the Weights tab.'),'#e9a23b')}
+ ${WL!=null?'':`<div class="card mut">${T('جارٍ تحميل بيانات الأوزان…','Loading weights data…')}</div>`}
+ ${box(T('مشاريع بلا تقييم وزن','Projects without weight assessment'),unW,p=>'• '+esc(p.name),T('تُحتسب بقيمة الفئة الافتراضية إلى أن يُعتمد تقييمها من تبويب «الأوزان».','Counted at the category default until an assessment is approved in the Weights tab.'),'#e9a23b')}
+ ${box(T('مشاريع بلا فئة محددة (أ/ب/ج/د)','Projects without a set category'),unC,p=>'• '+esc(p.name),T('تُعامل كفئة «ج» (تشغيلي) تلقائيًا، وهذا يخفّض وزنها.','Treated as category C (operational) by default, which lowers its weight.'),'#e9a23b')}
+ ${box(T('خطة عُدّلت بعد آخر تقييم','Plan changed since last assessment'),chgW,p=>'• '+esc(p.name),T('أعد التقييم إن تغيّر نطاق المشروع أو أثره.','Re-assess if scope or impact changed.'),'#e9a23b')}
+ ${box(T('تقييمات بانتظار الاعتماد','Assessments awaiting approval'),pendW,p=>'• '+esc(p.name),T('لا تؤثر في الوزن إلا بعد اعتماد المكتب.','No effect on weight until the office approves.'),'#e9a23b')}
+ ${box(T('مشاريع غير مربوطة بهدف استراتيجي','Projects not linked to a strategic goal'),noG,p=>'• '+esc(p.name),T('لا تظهر في تحليل الأهداف.','Missing from the goals analysis.'),'#e9a23b')}
+ ${box(T('مشاريع بلا مدير مشروع','Projects without a project manager'),noPm,p=>'• '+esc(p.name),T('لا جهة تتابع تحديثها.','Nobody follows its updates.'),'#e9a23b')}
  ${box(T('إنجاز 100% دون تقرير ختامي معتمد','100% complete without approved closure'),done,p=>'• '+esc(p.name),T('أُنجزت مهامها كلها، يلزم إغلاقها لتخرج من المؤشرات.','All tasks done; close it to leave the indicators.'),'#e9a23b')}
  ${box(T('مهام بلا تواريخ بدء/انتهاء','Tasks without dates'),noD,z=>'• '+esc(z.p.name)+' — '+z.n,T('تُحرم من التحليل الزمني والتأخر.','Excluded from time analysis.'),'#d1101d')}
  ${box(T('مهام بلا مكلّف','Tasks without assignee'),noO,z=>'• '+esc(z.p.name)+' — '+z.n,T('لا أحد مسؤول عن تحديث إنجازها.','Nobody owns the progress update.'),'#e9a23b')}
@@ -1007,7 +1019,7 @@ function vWts(){const B=$('body');if(WL==null){if(!WBUSY)wLoad();B.innerHTML=`<d
  const pend=WPEND.map(e=>{const pr=L.find(x=>x.pcode==e.pcode);return `<div class="tk"><b>${esc(pr?pr.name||e.pcode:e.pcode)}</b> <span class="mut num">${esc(e.pcode)}</span><div class="mut">${t('w_by')} ${esc(e.by_name||'')} · <span class="num">${fd(e.created_at)}</span> · <span class="num">${wN(e.score)}%</span> · ${t(e.cls=='strategic'?'w_st':'w_op')}</div><div class="pb"><button class="p" onclick="wOpen('${e.pcode}',${e.id})">${t('w_rev')}</button></div></div>`}).join('');
  const rows=L.map((x,i)=>`<tr><td class="num">${i+1}</td><td style="min-width:150px"><b>${esc(x.name||x.pcode)}</b><div class="mut num">${esc(x.pcode)}</div>${x.changed?`<div class="chp o" title="${t('w_chg')}">⚠ ${t('w_chg')}</div>`:''}${x.pending?`<div class="chp b">${x.pending}</div>`:''}</td>
  <td>${x.score!=null?`<b class="num">${wN(x.score)}%</b><div class="mut">${t(x.cls=='strategic'?'w_st':'w_op')} · <span class="num">${fd(x.eval_at)}</span></div>`:`<span class="mut">${t('w_noeval')}</span><div class="mut">${t('w_def')}: <span class="num">${wN(x.base)}</span></div>`}</td>
- <td><select onchange="wCat('${x.pcode}',this.value)"><option value="" ${!x.cat_set?'selected':''}>${x.cat_set?'—':cn(x.cat)+' ('+t('w_def')+')'}</option>${cats.map(c=>`<option value="${c.k}" ${x.cat_set&&x.cat==c.k?'selected':''}>${esc(lang=='ar'?c.ar:c.en)}</option>`).join('')}</select></td>
+ <td><select onchange="wCat('${x.pcode}',this.value)"><option value="" ${!x.cat_set?'selected':''}>${x.cat_set?'—':cn(x.cat)+' ('+t('w_def')+')'}</option>${cats.map(c=>`<option value="${c.k}" ${x.cat_set&&x.cat==c.k?'selected':''}>${esc((lang=='ar'?c.ar+' — '+(c.d_ar||''):c.en+' — '+(c.d_en||''))+' (×'+c.f+')')}</option>`).join('')}</select></td>
  <td class="num">${wN(x.adj)}</td><td style="min-width:110px"><b class="num">${wN(x.weight,2)}%</b><div class="bar"><i style="width:${Math.round(100*(+x.weight||0)/mx)}%;background:#B39A6B"></i></div></td>
  <td><input type="number" step="any" min="0" max="100" style="width:72px;direction:ltr" value="${x.w_manual==null?'':x.w_manual}" onchange="wMan('${x.pcode}',this.value)"></td>
  <td><button onclick="wOpen('${x.pcode}')">${x.score!=null?t('w_re'):t('w_do')}</button></td></tr>`).join('');
@@ -1015,7 +1027,7 @@ function vWts(){const B=$('body');if(WL==null){if(!WBUSY)wLoad();B.innerHTML=`<d
  <div class="kpg" style="margin-top:8px"><div><b class="num">${L.length}</b><span>${t('w_n')}</span></div><div><b class="num">${wN(tot,1)}%</b><span>${t('w_tot')}</span></div><div><b class="num ${unc?'wa':''}">${unc}</b><span>${t('w_nc')}</span></div><div><b class="num">${WPEND.length}</b><span>${t('w_pend')}</span></div></div>
  <div class="row" style="margin-top:8px"><button onclick="wDl()">${t('w_dl')}</button></div></div>
  ${WPEND.length?`<div class="card"><h2 class="xs">${t('w_pend')}</h2>${pend}</div>`:''}
- <div class="card" style="overflow:auto">${L.length?`<table class="xt" style="min-width:760px"><tr><th>#</th><th>${t('w_p')}</th><th>${t('w_ev')}</th><th>${t('w_cat')}</th><th>${t('w_adj')}</th><th>${t('w_w')}</th><th>${t('w_man')}</th><th>${t('w_act')}</th></tr>${rows}</table>`:`<div class="mut">${t('w_none')}</div>`}</div>${EVD?wModal():''}`}
+ <div class="card" style="overflow:auto">${L.length?`<table class="xt" style="min-width:760px"><tr><th>#</th><th>${t('w_p')}</th><th>${t('w_ev')}<button type="button" class="ih" data-ih="eval" aria-label="info">i</button></th><th>${t('w_cat')}<button type="button" class="ih" data-ih="cat" aria-label="info">i</button></th><th>${t('w_adj')}<button type="button" class="ih" data-ih="adj" aria-label="info">i</button></th><th>${t('w_w')}<button type="button" class="ih" data-ih="weight" aria-label="info">i</button></th><th>${t('w_man')}<button type="button" class="ih" data-ih="man" aria-label="info">i</button></th><th>${t('w_act')}</th></tr>${rows}</table>`:`<div class="mut">${t('w_none')}</div>`}</div>${EVD?wModal():''}`}
 async function wModel(){try{const r=await sb.from('eval_model').select('model').eq('id',1).maybeSingle();EMOD=r.data?r.data.model:{items:[],sets:{},cats:[],thr:70}}catch(_){EMOD={items:[],sets:{},cats:[],thr:70}}}
 const wCat=(pc,v)=>run(async()=>{const r=await sb.rpc('eval_set_cat',{p_code:pc,p_cat:v||''});if(r.error)throw r.error;await wLoad()});
 const wMan=(pc,v)=>run(async()=>{const n=v===''?null:Math.max(0,Math.min(100,+v));const r=await sb.rpc('eval_set_manual',{p_code:pc,p_w:n});if(r.error)throw r.error;await wLoad()});
@@ -1025,7 +1037,7 @@ async function wOpen(pc,evId){if(!EFRM){const r=await sb.rpc('eval_form');if(r.e
 function wScore(ans){const m=EMOD;if(!m||!m.items)return null;let tot=0,mx=0;m.items.forEach(it=>{const s=m.sets[it.set]||[],i=ans[it.id];if(i==null||i==='')return;tot+=(+it.w||0)*(+(s[i]||[])[2]||0);mx+=(+it.w||0)*Math.max(...s.map(o=>+o[2]||0))});return mx?Math.round(tot/mx*1000)/10:0}
 function wModal(){const d=EVD,a=lang=='ar',ans=d.ans,cnt=Object.keys(ans).filter(k=>ans[k]!=='').length,all=cnt==EFRM.length,sc=all?wScore(ans):null;let ax='';
  const qs=EFRM.map(q=>{let h='';if(q.ax!=ax){ax=q.ax;h=`<h3 style="margin:12px 0 2px;font-size:14px;color:#7a6330">${esc(a?q.ax:q.axe)}</h3>`}return h+`<div style="margin:4px 0"><div style="font-size:13px">${esc(a?q.q:q.qe)}</div><select onchange="EVD.ans['${q.id}']=this.value===''?'':+this.value;draw2()"><option value="">${t('w_pick')}</option>${q.opts.map((o,i)=>`<option value="${i}" ${ans[q.id]===i?'selected':''}>${esc(a?o.ar:o.en)}</option>`).join('')}</select></div>`}).join('');
- return `<div class="sov" onclick="if(event.target==this){EVD=null;draw()}"><div class="sbx"><h3>${esc(d.name)}</h3><div class="mut num">${esc(d.pc)}</div>${qs}
+ return `<div class="sov" onclick="if(event.target==this){EVD=null;draw()}"><div class="sbx"><h3>${esc(d.name)}<button type="button" class="ih" data-ih="evq" aria-label="info">i</button></h3><div class="mut num">${esc(d.pc)}</div>${qs}
  <div class="card" style="margin-top:10px">${sc==null?`<span class="mut">${t('w_all')} (${cnt}/${EFRM.length})</span>`:`${t('w_pre')}: <b class="num">${wN(sc)}%</b> — ${t(sc>=(+EMOD.thr||70)?'w_st':'w_op')}`}</div>
  <div class="row" style="margin-top:10px"><button class="p" ${all?'':'disabled style="opacity:.5"'} onclick="wSave()">${d.evId?t('w_ap'):t('w_sv')}</button>${d.evId?`<button onclick="wDelEv()" style="color:#d1101d">${t('w_del')}</button>`:''}<button onclick="EVD=null;draw()">${t('w_cl')}</button></div></div></div>`}
 function draw2(){const y=(document.querySelector('.sbx')||{}).scrollTop||0;draw();const e=document.querySelector('.sbx');if(e)e.scrollTop=y}
@@ -1163,7 +1175,7 @@ function wDl(){const a=lang=='ar',q=v=>'"'+String(v==null?'':v).replace(/"/g,'""
   dept:['الإدارة داخل القطاع. اختر «لا ينطبق» إن كان المشروع على مستوى القطاع.','The department within the sector. Choose “Not applicable” for a sector-level project.'],
   pmname:['مدير المشروع المسؤول عن التنفيذ والمتابعة.','The project manager responsible for delivery and follow-up.'],
   owner:['مالك المشروع: صاحب القرار والمستفيد الرئيس من النتيجة.','Project owner: the decision-maker and main beneficiary.'],
-  ptype:['استراتيجي أم تشغيلي. المشاريع الاستراتيجية لها وزن أعلى في احتساب إنجاز القطاع والمركز.','Strategic or operational. Strategic projects weigh more in sector and centre progress.'],
+  ptype:['استراتيجي أم تشغيلي. يُحدَّد من «تقييم المشروع»: ٧٠٪ فأكثر = استراتيجي، وإلا تشغيلي، ويعتمده مكتب التطوير. الاستراتيجي يرفع وزن المشروع في إنجاز القطاع والمركز.','Strategic or operational. Set by the project assessment: 70% or more is strategic, otherwise operational, approved by the Development Office. Strategic raises the project’s weight in sector and centre progress.'],
   sdate:['تاريخ البدء المخطط. في التقرير الختامي يُعبَّأ تلقائيًا من الخطة (أول بداية فعلية) ويمكن تعديله.','Planned start. In the closure report it is filled from the plan (earliest actual start) and can be edited.'],
   edate:['تاريخ الانتهاء المخطط. في التقرير الختامي يُعبَّأ من آخر نهاية فعلية إذا اكتملت كل المهام.','Planned end. In the closure report it is filled from the latest actual end once all tasks are complete.'],
   dur:['مدة التنفيذ تُحسب تلقائيًا من التاريخين.','Duration is calculated automatically from the two dates.'],
@@ -1309,4 +1321,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=7"></script></body></html>
+<script src="ido-ui.js?v=8"></script></body></html>
