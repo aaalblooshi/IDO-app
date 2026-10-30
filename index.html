@@ -911,7 +911,7 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){re
 var S={f:null,built:false,sig:'',open:{},tab:'home',side:(function(){try{return localStorage.getItem('cmSide')=='1'}catch(_){return false}})(),cal:{y:null,m:null,sel:null,t:'all'}};
 var dn=function(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};var today=function(){return dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()))};
 var CH=[['act',['بانتظار إجرائي','Awaiting my action']],['late',['متأخرة','Late']],['esc',['مُصعَّدة','Escalated']],['ret',['مرجعة لي','Returned to me']],['run',['طلباتي الجارية','My open requests']],['fl',['أتابعها','I follow']]];
-var TS=[['مهام قادمة','Upcoming'],['حان موعد بدئها','Due to start'],['قيد التنفيذ','In progress'],['متأخرة','Overdue'],['منجزة','Done']];
+var TS=[['مهمة قادمة','Upcoming task'],['حان موعد بدئها','Due to start'],['قيد التنفيذ','In progress'],['متأخرة','Overdue'],['منجزة','Done']];
 var NEW=[['charter',['ميثاق مشروع جديد','New project charter']],['plan',['خطة مشروع جديدة','New project plan']],['cr',['طلب تغيير جديد','New change request']],['closure',['تقرير ختامي جديد','New closure report']]];
 function data(){var X=window.JNX,E=X.E,all=X.vis('all');
  var AC=function(x){return E.role=='fl'?false:E.role=='pt'?!!x.cons:x.act};
