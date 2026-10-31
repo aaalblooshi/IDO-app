@@ -200,11 +200,31 @@ function sumU(u,d){if(capOf(u,'svc.cr',d).adm)return P('أدمن كامل: ير�
  const sv=capOf(u,'sec.view',d).v=='true';o.push('🔒 '+(sv?P('يرى المشاريع السرية كلها','Sees all secret projects'):d.acc.secret.length?P('مستثنى في ','Excepted in ')+d.acc.secret.length+P(' مشروع سري',' secret projects'):P('لا يرى المشاريع السرية (إلا ما له دور فيه)','No secret projects (except where involved)')));
  if(d.acc.grants.length)o.push('🎫 '+P('منح على ','Grants on ')+d.acc.grants.length+P(' مشروع: ',' projects: ')+d.acc.grants.map(g=>pjName(g.pcode)+(g.lvl=='edit'?P(' (تعديل)',' (edit)'):'')).join(P('، ',', ')));
  if(d.scope.view_units.length)o.push('➕ '+P('وحدات إضافية: ','Extra units: ')+d.scope.view_units.map(ukLab).join(P('، ',', ')));
- if(d.scope.head_units.length)o.push('👑 '+P('مسؤول عن: ','Head of: ')+d.scope.head_units.map(ukLab).join(P('، ',', ')));
+ if(d.scope.head_units.length)o.push('🏢 '+P('مسؤول عن: ','Head of: ')+d.scope.head_units.map(ukLab).join(P('، ',', ')));
  const gs=GM.filter(m=>m.user_id==u.id).map(m=>GR.find(g=>g.id==m.group_id)).filter(Boolean);if(gs.length)o.push('👥 '+P('مجموعات: ','Groups: ')+gs.map(g=>A()?g.name_ar:(g.name_en||g.name_ar)).join(P('، ',', ')));
  const ad=KEYS.filter(k=>KL[k].g=='adm'&&capOf(u,k,d).v=='true');if(ad.length)o.push('🛠 '+P('صلاحيات إدارية: ','Admin: ')+ad.map(kl).join(P('، ',', ')));
  const bl=BLK.filter(b=>b.user_id==u.id);if(bl.length)o.push('⛔ '+P('محجوب عن: ','Blocked from: ')+bl.map(b=>pjName(b.pcode)).join(P('، ',', ')));
  return o.map(x=>`<div style="margin:3px 0">${esc(x)}</div>`).join('')}
+
+
+let ADMO=false,ADMQ='',ADMS=new Set(),ADMR=null;
+const FULLA=()=>ME&&ME.role=='admin'&&!ME._base;
+const admRoles=()=>ROLES.filter(r=>r.base=='admin');
+function admBox(fadm){const can=FULLA();
+ let h=`<div>${fadm.map(u=>`<span class="ch2" style="background:#23272b;color:#fff;cursor:pointer" onclick="openU('${u.id}')">${esc(un(u))}</span>${can&&u.id!=ME.id?`<a href="javascript:void 0" onclick="ADMR=ADMR=='${u.id}'?null:'${u.id}';draw()" style="color:#c0101d;text-decoration:none;margin-inline-end:6px">✕</a>`:''}`).join('')||'—'}</div>`;
+ if(can&&ADMR){const u=UMAP[ADMR];h+=`<div class="nt">${P('إزالة الأدمن عن ','Remove admin from ')}<b>${esc(un(u))}</b> — ${P('ويصبح دوره:','new role:')} <select id="admr" style="width:auto">${ROLES.filter(r=>r.base!='admin').map(r=>`<option value="${r.key}" ${r.key=='user'?'selected':''}>${esc(rn(r))}</option>`).join('')}</select> <button class="r" onclick="admRemove()">${P('إزالة','Remove')}</button> <button onclick="ADMR=null;draw()">${P('إلغاء','Cancel')}</button></div>`}
+ if(can){h+=ADMO?`<div class="nt"><b>${P('إضافة أدمن (شخص أو أكثر)','Add admins (one or more)')}</b>
+  <input id="admq" placeholder="${P('ابحث بالاسم…','Search…')}" value="${esc(ADMQ)}" oninput="ADMQ=this.value;$('adml').innerHTML=admList()" style="margin:6px 0">
+  <div id="adml" style="max-height:240px;overflow:auto">${admList()}</div>
+  ${admRoles().length>1?`<label>${P('دور الأدمن','Admin role')}</label><select id="admk" style="width:auto">${admRoles().map(r=>`<option value="${r.key}">${esc(rn(r))}</option>`).join('')}</select>`:''}
+  <div class="row"><button class="p" onclick="admAdd()">${P('تعيين كأدمن','Make admin')} (<span id="admn">${ADMS.size}</span>)</button><button onclick="ADMO=false;ADMS.clear();draw()">${P('إلغاء','Cancel')}</button></div></div>`
+  :`<div class="row"><button onclick="ADMO=true;draw()">＋ ${P('إضافة أدمن','Add admin')}</button></div>`}
+ return h}
+function admList(){const q=ADMQ.trim().toLowerCase();return USERS.filter(u=>u.role!='admin'&&(!q||un(u).toLowerCase().includes(q))).map(u=>`<label class="sw"><input type="checkbox" ${ADMS.has(u.id)?'checked':''} onchange="this.checked?ADMS.add('${u.id}'):ADMS.delete('${u.id}');$('admn').textContent=ADMS.size">${esc(un(u))} <span class="mut">${esc(u.job_title||'')}</span></label>`).join('')||`<div class="mut">—</div>`}
+async function admAdd(){if(!ADMS.size)return toast(P('اختر شخصًا على الأقل','Pick at least one person'));const k=($('admk')||{}).value||(admRoles()[0]||{}).key;if(!k)return toast(P('لا يوجد دور أدمن','No admin role'));
+ if(!confirm(P('منح صلاحيات الأدمن الكاملة لـ ','Give full admin to ')+ADMS.size+P(' شخص؟ (يرى ويعدّل كل شيء)',' people?')))return;
+ let n=0;try{for(const id of ADMS){const r=await sb.rpc('perm_user_set',{p_uid:id,p_role:k,p_extra:null,p_caps:null,p_note:'تعيين أدمن'});if(r.error)throw r.error;n++}toast(P('أصبح أدمن: ','Now admin: ')+n);ADMO=false;ADMS.clear();ADMQ='';reload()}catch(e){err(e);if(n)reload()}}
+async function admRemove(){const id=ADMR,k=$('admr').value;if(!confirm(P('إزالة صلاحيات الأدمن الكاملة؟','Remove full admin?')))return;try{const r=await sb.rpc('perm_user_set',{p_uid:id,p_role:k,p_extra:null,p_caps:null,p_note:'إزالة أدمن'});if(r.error)throw r.error;ADMR=null;toast(P('أُزيلت صلاحية الأدمن','Admin removed'));reload()}catch(e){err(e)}}
 
 /* ===== الرسم ===== */
 function setTab(k){TAB=k;try{history.replaceState(null,'','#'+k)}catch(_){}draw();if(k=='log'&&!LOG)loadLog();window.scrollTo(0,0)}
@@ -221,7 +241,7 @@ function vOv(){
  const fadm=USERS.filter(u=>u.role=='admin'),part=USERS.filter(u=>u.role!='admin').map(u=>({u,ks:KEYS.filter(k=>(KL[k].g=='adm'||k=='sec.view')&&capOf(u,k).v=='true')})).filter(x=>x.ks.length);
  return `<div class="kg">${kp(P('الأدوار','Roles'),ROLES.length,"setTab('roles')",'#0a6b3d')}${kp(P('المستخدمون','Users'),USERS.length,"UF='';setTab('users')",'#1d5f8a')}${kp(P('بتخصيص فردي','Customised'),cust.length,"UF='cust';setTab('users')",'#a8561a')}${kp(P('منع صريح','Explicit denies'),deny.length,"UF='deny';setTab('users')",'#c0101d')}${kp(P('صلاحيات مؤقتة','Temporary'),tmp.length+(soon.length?` <small style="font-size:12px;color:#c0101d">${soon.length} ${P('تنتهي قريبًا','ending soon')}</small>`:''),"UF='tmp';setTab('users')",'#5b3a9e')}${kp(P('بلا وحدة تنظيمية','No unit'),noU.length,"UF='nounit';setTab('users')",'#b08a00')}${kp(P('أدمن كامل','Full admins'),adm.length,"UF='admin';setTab('users')",'#23272b')}</div>
  <div class="card" style="border-top:4px solid #23272b"><h2>${P('الأدمن','Administrators')}</h2>
- <label>${P('أدمن كامل','Full admins')} (${fadm.length})<small class="mut" style="font-weight:400"> — ${P('يملكون كل شيء دون قيود','have everything')}</small></label><div>${fadm.map(u=>`<span class="ch2" style="cursor:pointer;background:#23272b;color:#fff" onclick="openU('${u.id}')">👑 ${esc(un(u))}</span>`).join('')||'—'}</div>
+ <label>${P('أدمن كامل','Full admins')} (${fadm.length})<small class="mut" style="font-weight:400"> — ${P('يملكون كل شيء دون قيود','have everything')}</small></label>${admBox(fadm)}
  <label>${P('صلاحيات إدارية جزئية','Partial admin permissions')} (${part.length})</label>${part.map(x=>`<div class="ur2" onclick="openU('${x.u.id}')"><div class="tx"><b>${esc(un(x.u))}</b><span>${x.ks.map(k=>esc(kl(k))).join(' · ')}</span></div></div>`).join('')||`<div class="mut">${P('لا أحد.','None.')}</div>`}</div>
  <div class="card"><h2>${P('كيف تُحسب صلاحية المستخدم؟','How is a user\'s access computed?')}</h2>
  <div class="ctx" style="margin-top:8px"><div><b>١. ${P('الأدوار','Roles')}</b>${P('دور أساسي + أدوار إضافية (يمكن أن تكون مؤقتة). يُؤخذ الأوسع بينها.','A primary role plus extra roles (optionally temporary). The widest wins.')}</div><div><b>٢. ${P('المجموعات','Groups')}</b>${P('تضيف صلاحيات لأعضائها (منح فقط).','Add grants to their members.')}</div><div><b>٣. ${P('التخصيص الفردي','Per-user override')}</b>${P('يحدد قيمة لصلاحية معيّنة لهذا المستخدم فوق أدواره، ويمكن أن يكون مؤقتًا.','Sets a value for one permission above the roles; can be temporary.')}</div><div><b>٤. ${P('المنع الصريح','Explicit deny')}</b>${P('يغلب كل ما سبق.','Overrides everything.')}</div></div>
