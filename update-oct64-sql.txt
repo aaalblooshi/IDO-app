@@ -1,0 +1,20 @@
+-- =====================================================================
+-- update-oct64: إصلاح — استثناء المشاريع السرية من الملخص الأسبوعي (يُشغَّل بعد oct63)
+--   في oct63 أعادت خطوة «إعادة التطبيق» بناء weekly_digest2 من نسختها الأصلية فأزالت الاستثناء.
+--   نضيف الاستثناء إلى النسخة الاحتياطية نفسها ثم نعيد التطبيق، فيبقى ثابتًا في أي إعادة لاحقة.
+-- =====================================================================
+update perm_fn_backup
+   set def = regexp_replace(def, $r$(where \(p\.status='Approved' or p\.data->>'_active'='true'\) and not p\.archived)$r$,
+             $s$\1 /*hidden_guard*/ and (mode='pm' or not coalesce((select g.hidden from project_cfg g where g.pcode = p.data->>'pcode'), false))$s$)
+ where sig like '%weekly_digest2%' and def not like '%hidden_guard%';
+
+select perm_phase2_apply() as reapply;
+
+-- تحقق: يجب أن تظهر «نعم» في الاثنين
+select 'weekly_digest2' as "الدالة",
+       case when position('hidden_guard' in pg_get_functiondef(p.oid)) > 0 then 'نعم' else 'لا' end as "تستثني السرية"
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'weekly_digest2'
+union all
+select 'perf_users',
+       case when position('hidden_guard' in pg_get_functiondef(p.oid)) > 0 then 'نعم' else 'لا' end
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'perf_users';
