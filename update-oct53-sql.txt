@@ -1,0 +1,17 @@
+-- سجل تدخلات مكتب التطوير (غرفة المتابعة): تعيين، تأجيل، إغلاق، مراجعة الصلاحيات
+create table if not exists office_actions(
+  key text primary key,
+  status text not null default 'open' check (status in ('open','assigned','snoozed','done')),
+  assignee uuid,
+  assignee_name text,
+  due date,
+  note text,
+  snooze_until date,
+  updated_by uuid,
+  updated_by_name text,
+  updated_at timestamptz not null default now()
+);
+alter table office_actions enable row level security;
+drop policy if exists "oa admin" on office_actions;
+create policy "oa admin" on office_actions for all to authenticated using (_is_admin()) with check (_is_admin());
+grant select, insert, update, delete on office_actions to authenticated;

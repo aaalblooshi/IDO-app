@@ -49,7 +49,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'ratings.html': 'star', 'access.html': 'key'
+    'audit.html': 'audit', 'control.html': 'compass', 'ratings.html': 'star', 'access.html': 'key'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
