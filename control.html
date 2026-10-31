@@ -462,7 +462,7 @@ function vWk(){const tx=weeklyText();return `<div class="card"><h2>${P('المل
 function wkCopy(){const tx=($('wkt')||{}).textContent||'';try{navigator.clipboard.writeText(tx).then(()=>toast(P('تم النسخ','Copied')),()=>fb())}catch(e){fb()}function fb(){const a=document.createElement('textarea');a.value=tx;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast(P('تم النسخ','Copied'))}catch(_){}a.remove()}}
 
 /* ====== إجراءات سريعة ====== */
-let SETS={},WLW=null,CATS=[],DELR=[],EVP=[];
+let SETS={},WLW=null,CATS=[],DELR=[],EVP=[],CJR=[];
 const AUDT={cr:'audit_log',charter:'charter_audit',plan:'plan_audit',closure:'closure_audit'};
 const sOn=(k,d)=>String(SETS[k]!=null?SETS[k]:d)=='1';
 const card=(id,ti,hint,body)=>`<div class="card" id="${id}"><h2>${ti}${hint?`<small>${hint}</small>`:''}</h2>${body}</div>`;
@@ -476,6 +476,10 @@ async function qEsc(id,act,svc,cid){const u=($('qe_u_'+id)||{}).value,v=(($('qe_
  try{const r=await sb.rpc('esc_decide',{p_id:id,p_action:act,p_to:act=='redirect'?u:null,p_note:v||null});if(r.error)throw r.error;
   if(v&&AUDT[svc])try{await sb.from(AUDT[svc]).insert({cr_id:cid,user_name:ME.full_name,action:'escnote|'+(act=='redirect'?'r':'i')+'|'+v})}catch(_){}
   ESC=ESC.filter(x=>x.id!=id);rebuild();toast(P('تم تسجيل القرار','Decision recorded'));draw()}catch(e){toast(String(e.message||e))}}
+function cjrPanel(){return card('q_cjr','💬 '+P('طلبات الانضمام للمحادثات','Chat join requests'),P('أشخاص صاروا طرفًا في مشروع (مهمة، توقيع، مراجعة، صلاحية) أو طلب مسؤول وحدة إضافتهم. الموافقة تضيفهم لمحادثة المشروع.','People who became part of a project (task, signature, review, access) or whom a unit head asked to add. Approving adds them to the project chat.'),
+  CJR.length?CJR.map(q=>`<div class="rw" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px"><b>${esc(US[q.user_id]||'')}</b> — ${esc(q.pname)}<div class="mut">${esc(q.why||'')}${q.requested_by?' · '+P('طلبه ','requested by ')+esc(US[q.requested_by]||''):''}</div></span><button type="button" class="p" onclick="cjrGo(${q.id},true)">${P('إضافة','Add')}</button><button type="button" onclick="cjrGo(${q.id},false)">${P('لا','No')}</button></div>`).join(''):`<div class="mut">✓ ${P('لا طلبات','No requests')}</div>`)}
+async function cjrGo(id,ok){try{const r=await sb.rpc('chat_join_decide',{p_id:id,p_ok:ok,p_note:null});if(r.error)throw r.error;CJR=CJR.filter(x=>x.id!=id);toast(ok?P('أُضيف','Added'):P('رُفض','Declined'));draw()}catch(e){toast(String(e.message||e))}}
+async function cjrLoad(){try{const r=await sb.rpc('chat_join_pending',{p_pcode:null});CJR=r.error?[]:(r.data||[]);if(TAB=='quick')draw()}catch(_){}}
 function delPanel(){return card('q_del','🗑 '+P('طلبات الحذف المعلّقة','Pending deletion requests'),P('القرار يتم من صفحة الوثيقة لأن الحذف يشمل خطوات مرتبطة (أرشفة، إلغاء إصدار…).','Decide from the document page because deletion involves linked steps (archiving, cancelling a version…).'),
   DELR.length?DELR.map(d=>`<div class="rw">• <b>${P(SVN[d.svc]?SVN[d.svc][0]:d.svc,SVN[d.svc]?SVN[d.svc][1]:d.svc)} #${d.cr_id}</b> — ${esc(US[d.requested_by]||'')} · ${DAYS(ageD(d.requested_at))}${d.note?' · '+esc(d.note):''} <a class="dqt" href="${PGF[d.svc]}#o=${d.cr_id}">${P('فتح واتخاذ القرار','Open & decide')}</a></div>`).join(''):`<div class="mut">✓ ${P('لا طلبات حذف','No deletion requests')}</div>`)}
 function actPanel(){const L=Object.values(PJ).filter(p=>!p.hidden&&!p.closed).map(p=>({p,x:p.plans.find(x=>x.status!='Approved')})).filter(z=>z.x&&!(z.p.plan&&z.p.plan.status=='Approved'&&z.p.plan.id>z.x.id));
@@ -511,7 +515,7 @@ async function qMnt(k){const out=$('q_out');const say=h=>{if(out)out.innerHTML=h
   else if(k=='rec'){if(!confirm(P('إعادة احتساب كل التقييمات بالنموذج الحالي؟','Recompute all assessments with the current model?')))return;const r=await sb.rpc('eval_recompute');if(r.error)throw r.error;say(P('أُعيد احتساب ','Recomputed ')+r.data)}
  }catch(e){toast(String(e.message||e))}}
 function vQuick(){const n=[ESC.length,DELR.length,EVP.length+(WLW||[]).filter(x=>!x.cat_set).length];
- return `<div class="chips qn">${[['q_esc','⬆ '+P('التصعيد','Escalations'),n[0]],['q_del','🗑 '+P('الحذف','Deletions'),n[1]],['q_act','⚡ '+P('تفعيل الخطط','Plan activation'),''],['q_cat','⚖ '+P('التصنيف','Categories'),n[2]],['q_sw','🎛 '+P('المفاتيح','Switches'),''],['q_mnt','🛠 '+P('تشغيل يدوي','Run now'),'']].map(c=>`<button type="button" onclick="document.getElementById('${c[0]}').scrollIntoView({behavior:'smooth',block:'start'})">${c[1]}${c[2]?` <i class="bd">${c[2]}</i>`:''}</button>`).join('')}</div>`+escPanel()+delPanel()+actPanel()+catPanel()+swPanel()+mntPanel()}
+ return `<div class="chips qn">${[['q_esc','⬆ '+P('التصعيد','Escalations'),n[0]],['q_cjr','💬 '+P('المحادثات','Chats'),CJR.length],['q_del','🗑 '+P('الحذف','Deletions'),n[1]],['q_act','⚡ '+P('تفعيل الخطط','Plan activation'),''],['q_cat','⚖ '+P('التصنيف','Categories'),n[2]],['q_sw','🎛 '+P('المفاتيح','Switches'),''],['q_mnt','🛠 '+P('تشغيل يدوي','Run now'),'']].map(c=>`<button type="button" onclick="document.getElementById('${c[0]}').scrollIntoView({behavior:'smooth',block:'start'})">${c[1]}${c[2]?` <i class="bd">${c[2]}</i>`:''}</button>`).join('')}</div>`+escPanel()+cjrPanel()+delPanel()+actPanel()+catPanel()+swPanel()+mntPanel()}
 
 /* ====== كل الأدوات: فهرس موحّد لكل خصائص الأدمن ====== */
 const F_=(t)=>'#find='+encodeURIComponent(t);
@@ -644,7 +648,7 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
  try{const cur=JSON.parse(localStorage.getItem('ctl_cur')||'null');if(cur&&Date.now()-cur.at>4*36e5)localStorage.setItem('ctl_prev',JSON.stringify(cur));
   const pv=JSON.parse(localStorage.getItem('ctl_prev')||'null');PREV=pv&&pv.keys?new Set(pv.keys):null;rebuild();
   if(!cur||Date.now()-cur.at>4*36e5)localStorage.setItem('ctl_cur',JSON.stringify({at:Date.now(),keys:ITEMS.map(i=>i.key)}))}catch(e){PREV=null;rebuild()}
- LOADED=true;draw()}
+ LOADED=true;draw();cjrLoad();sb.rpc('chat_sync_all').then(r=>{if(r&&!r.error&&r.data>0)cjrLoad()},()=>{})}
 load().catch(e=>{console.error(e);$('app').innerHTML='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>'});
 
 </script>
