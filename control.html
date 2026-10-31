@@ -66,11 +66,16 @@ main .kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:
 .swg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}.sw{display:flex;gap:8px;align-items:center;font-weight:600;margin:0;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}.sw input{width:auto}
 .tl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}.tl>div{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fbfaf6}
 .qn{position:sticky;top:100px;z-index:3;background:var(--bg);padding:4px 0}[id^=q_]{scroll-margin-top:200px}
+main button.kp{display:block;text-align:start;font:inherit;font-weight:400;cursor:pointer;width:100%;border-radius:14px;color:var(--ink)}main button.kp.kon{box-shadow:inset 0 0 0 2px #2a6a90;background:#f2f8fd}
+.cn{cursor:pointer}
+.ptb{display:inline-flex;flex:none;border:1.5px solid #3EA3DC;border-radius:99px;overflow:hidden;background:#fff}.ptb button{border:0;border-radius:0;padding:6px 10px;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}.ptb .px{padding:6px 9px;color:#d1101d}.ptb.on{background:#e7f3fb}.ptb.on button:first-child{color:#1d5f8a}.tsep{flex:none;width:1px;background:#cfd6dd;margin:4px 2px}
+.pvh{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 8px}.pvh .ab button{padding:5px 11px;font-size:12.5px}
+body.pgon main{padding-bottom:0!important}#pvs{display:none;max-width:980px;margin:0 auto;padding:0 14px 90px}.pvf{width:100%;height:calc(100dvh - 250px);min-height:460px;border:1px solid var(--line);border-radius:16px;background:#fff;display:none}
 @media print{.top,.tabs,#gnav,#pgban,.ab,.row button,.hm,#hd2{display:none!important}body{background:#fff}}
 </style>
 </head><body>
 <div class="top"><button onclick="location.href='settings.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
-<main id="app"></main><div id="toast"></div>
+<main id="app"></main><div id="pvs"></div><div id="toast"></div>
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
@@ -99,7 +104,7 @@ const SVN={charter:['ميثاق','Charter'],plan:['خطة','Plan'],cr:['طلب �
 const DAYS=(n)=>A()?(n==1?'يوم':n==2?'يومان':n>=3&&n<=10?n+' أيام':n+' يومًا'):(n+(n==1?' day':' days'));
 
 /* ====== حالة ====== */
-let TAB='room',KF='all',SHOWQ=false,ONLYNEW=false,LOADED=false,LOADERR=[];
+let SF='',CF='',TAB='room',KF='all',SHOWQ=false,ONLYNEW=false,LOADED=false,LOADERR=[];
 let US={},PRF=[],CH=[],PLN=[],CRS=[],CLR=[],SGP=[],ESC=[],PERF=[],SNP=[],CFG={},WM={},AUD=[],OA={},OAMODE='db';
 let PJ={},ITEMS=[],CHECKS=[],PREV=null,RULES=[],ELOG=[],LEAVE=[],SIGNED=[],SEEN={},CHKSRC='local',LADRES=null;
 const Q=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){LOADERR.push(tb);return []}};
@@ -279,8 +284,9 @@ function itemH(i){const sv=SEVN[i.sev]||SEVN[2],o=i.st.o||{},k=esc(i.key);
 function vRoom(){const all=ITEMS,op=all.filter(vis),q=all.filter(i=>!vis(i));
  const by=s=>op.filter(i=>i.sev==s).length,nw=op.filter(i=>i.isNew).length,asg=all.filter(i=>i.st.s=='assigned');
  const kc={};op.forEach(i=>kc[i.kind]=(kc[i.kind]||0)+1);
- let L=(SHOWQ?all:op).filter(i=>KF=='all'||i.kind==KF).filter(i=>!ONLYNEW||i.isNew);
- return `<div class="kg">${[5,4,3,2].map(s=>`<div class="kp" style="border-top:4px solid ${SEVN[s][2]}"><span>${P(SEVN[s][0],SEVN[s][1])}</span><b>${by(s)}</b></div>`).join('')}<div class="kp" style="border-top:4px solid #2a6a90"><span>${P('جديد منذ آخر زيارة','New since last visit')}</span><b>${PREV?nw:'—'}</b></div><div class="kp" style="border-top:4px solid #7a5aa8"><span>${P('مكلّف به','Assigned')}</span><b>${asg.length}</b></div></div>
+ let L=(SHOWQ||SF=='asg'?all:op).filter(i=>KF=='all'||i.kind==KF).filter(i=>!ONLYNEW||i.isNew).filter(i=>!SF||(SF=='new'?i.isNew:SF=='asg'?i.st.s=='assigned':String(i.sev)==SF));
+ const kp=(k,c,l,v)=>`<button type="button" class="kp ${SF==k?'kon':''}" style="border-top:4px solid ${c}" onclick="SF=SF=='${k}'?'':'${k}';draw()"><span>${l}</span><b>${v}</b></button>`;
+ return `<div class="kg">${[5,4,3,2].map(s=>kp(String(s),SEVN[s][2],P(SEVN[s][0],SEVN[s][1]),by(s))).join('')}${kp('new','#2a6a90',P('جديد منذ آخر زيارة','New since last visit'),PREV?nw:'—')}${kp('asg','#7a5aa8',P('مكلّف به','Assigned'),asg.length)}</div>${SF?`<div class="nt">${P('مُصفّى حسب البطاقة المختارة','Filtered by the selected card')} · <a href="#" class="dqt" onclick="SF='';draw();return false">${P('إلغاء التصفية','Clear filter')}</a></div>`:''}
  ${OAMODE=='local'?`<div class="card warn">${P('سجل التدخلات يُحفظ مؤقتًا على هذا الجهاز فقط. شغّل ملف SQL المرفق ليُحفظ للمكتب كله.','The intervention log is stored on this device only for now. Run the attached SQL file to share it across the office.')}</div>`:''}
  ${LOADERR.length?`<div class="card warn">${P('تعذّر تحميل بعض المصادر: ','Some sources failed to load: ')}${esc([...new Set(LOADERR)].join('، '))}</div>`:''}
  <div class="chips"><button class="${KF=='all'?'on':''}" onclick="KF='all';draw()">${P('الكل','All')} (${op.length})</button>${Object.keys(KINDS).filter(k=>kc[k]).map(k=>`<button class="${KF==k?'on':''}" onclick="KF='${k}';draw()">${P(KINDS[k][0],KINDS[k][1])} (${kc[k]})</button>`).join('')}</div>
@@ -358,8 +364,8 @@ let WKRES=null;
 
 function vChk(){const bad=CHECKS.filter(c=>c.bad.length).length;
  const tr=k=>{const ds=Object.keys(CHK_H).sort().slice(-7);if(ds.length<2)return '';const v=ds.map(d=>(CHK_H[d]||{})[k]);const a=v[0],b=v[v.length-1];if(a==null||b==null)return '';return `<span class="mut" title="${ds.length}d">${b>a?'↗':b<a?'↘':'→'} ${a}→${b}</span>`};
- return `<div class="card"><h2>${P('فحوصات سلامة النظام','System integrity checks')}<small>${CHKSRC=='db'?P('تُشغَّل عند كل فتح للصفحة. الاتجاه مشترك لكل المكتب.','Run each time the page opens. The trend is shared across the office.'):P('تُشغَّل عند كل فتح للصفحة. الاتجاه محفوظ على هذا الجهاز (شغّل ملف SQL ليصبح مشتركًا).','Run each time the page opens. The trend is kept on this device (run the SQL file to share it).')}</small></h2><div class="kg" style="margin:8px 0 0"><div class="kp" style="border-top:4px solid #2e8b57"><span>${P('ناجحة','Passed')}</span><b>${CHECKS.length-bad}</b></div><div class="kp" style="border-top:4px solid #d1101d"><span>${P('تحتاج معالجة','Need attention')}</span><b>${bad}</b></div></div></div>
- ${CHECKS.slice().sort((a,b)=>(b.bad.length>0)-(a.bad.length>0)||b.sev-a.sev).map(c=>`<div class="card" style="border-inline-start:5px solid ${c.bad.length?SEVN[c.sev][2]:'#2e8b57'}"><div class="ih2"><b>${P(c.ar,c.en)}</b><span class="cn ${c.bad.length?'':'ok'}">${c.bad.length||'✓'}</span> ${tr(c.k)}</div>${c.hint?`<div class="mut">${esc(c.hint)}</div>`:''}${c.bad.length?`<div class="ls">${ex(c.bad,b=>`• <a href="${esc(b.href)}">${esc(b.t)}</a>`,6)}</div>`:''}</div>`).join('')}`}
+ return `<div class="card"><h2>${P('فحوصات سلامة النظام','System integrity checks')}<small>${CHKSRC=='db'?P('تُشغَّل عند كل فتح للصفحة. الاتجاه مشترك لكل المكتب.','Run each time the page opens. The trend is shared across the office.'):P('تُشغَّل عند كل فتح للصفحة. الاتجاه محفوظ على هذا الجهاز (شغّل ملف SQL ليصبح مشتركًا).','Run each time the page opens. The trend is kept on this device (run the SQL file to share it).')}</small></h2><div class="kg" style="margin:8px 0 0"><button type="button" class="kp ${CF=='ok'?'kon':''}" style="border-top:4px solid #2e8b57" onclick="CF=CF=='ok'?'':'ok';draw()"><span>${P('ناجحة','Passed')}</span><b>${CHECKS.length-bad}</b></button><button type="button" class="kp ${CF=='bad'?'kon':''}" style="border-top:4px solid #d1101d" onclick="CF=CF=='bad'?'':'bad';draw()"><span>${P('تحتاج معالجة','Need attention')}</span><b>${bad}</b></button><button type="button" class="kp ${CF==''?'kon':''}" style="border-top:4px solid #2a6a90" onclick="CF='';draw()"><span>${P('الكل','All')}</span><b>${CHECKS.length}</b></button></div></div>
+ ${CHECKS.filter(c=>!CF||(CF=='bad'?c.bad.length:!c.bad.length)).slice().sort((a,b)=>(b.bad.length>0)-(a.bad.length>0)||b.sev-a.sev).map(c=>`<div class="card" style="border-inline-start:5px solid ${c.bad.length?SEVN[c.sev][2]:'#2e8b57'}"><div class="ih2"><b>${P(c.ar,c.en)}</b><span class="cn ${c.bad.length?'':'ok'}">${c.bad.length||'✓'}</span> ${tr(c.k)}</div>${c.hint?`<div class="mut">${esc(c.hint)}</div>`:''}${c.bad.length?`<div class="ls">${ex(c.bad,b=>`• <a href="${esc(b.href)}">${esc(b.t)}</a>`,6)}</div>`:''}</div>`).join('')}`}
 
 /* ---- التدقيق ---- */
 function vAud(){const rows=AUD.filter(r=>r.src=='sys'||true),dubH=r=>(new Date(r.at).getUTCHours()+4)%24,day=r=>new Date(new Date(r.at).getTime()+4*36e5).toISOString().slice(0,10);
@@ -518,11 +524,33 @@ function vTools(){const q=TQ.trim().toLowerCase(),L=TOOLS.filter(x=>!q||(x[2]+' 
 /* ====== التحميل والتشغيل ====== */
 let ME=null,LEAVEOK=true,RULESOK=true,CHK_DB=[];
 function rebuild(){gen();ITEMS.forEach(i=>i.isNew=!!PREV&&!PREV.has(i.key))}
+/* ====== تبويبات الصفحات المفتوحة داخل التحكم ====== */
+let PGS=[],PGN=0;
+const pgTitle=u=>{const f=(u.split('#')[0].split('/').pop()||'').replace('.html','');const m={inbox:['الإشعارات','Notifications'],audit:['سجل التدقيق','Audit'],perf:['أداء المستخدمين','Performance'],ratings:['التقييمات','Ratings'],portfolio:['المحفظة','Portfolio'],projects:['إعدادات المشاريع','Project settings'],archive:['الأرشيف','Archive'],myprojects:['مشاريعي','My projects'],charter:['الميثاق','Charter'],plan:['الخطة','Plan'],cr:['طلب التغيير','Change request'],closure:['التقرير الختامي','Closure'],tasks:['المهام','Tasks'],users:['المستخدمون','Users'],access:['الصلاحيات','Access'],roles:['الأدوار','Roles'],settings:['الإعدادات','Settings'],chat:['التواصل','Chat'],help:['المساعدة','Help'],account:['حسابي','Account'],index:['الرئيسية','Home']}[f];return m?P(m[0],m[1]):f};
+function openPg(url,title){url=String(url||'');if(!url||url.charAt(0)=='#')return;
+ const base=url.split('#')[0],h=url.split('#')[1]||'';let pg=PGS.find(x=>x.base==base);
+ if(pg){pg.title=title||pg.title;const fr=document.getElementById('fr_'+pg.n);if(fr){if(h){fr.src='about:blank';setTimeout(()=>fr.src=url,30)}}}
+ else{if(PGS.length>=6){const old=PGS.shift();const fo=document.getElementById('fr_'+old.n);if(fo)fo.remove()}
+  pg={n:++PGN,base,url,title:title||pgTitle(url)};PGS.push(pg);const fr=document.createElement('iframe');fr.id='fr_'+pg.n;fr.className='pvf';fr.src=url;fr.setAttribute('title',pg.title);$('pvs').appendChild(fr)}
+ TAB='pg:'+pg.n;draw();window.scrollTo(0,0)}
+function closePg(n){const i=PGS.findIndex(x=>x.n==n);if(i<0)return;PGS.splice(i,1);const fr=document.getElementById('fr_'+n);if(fr)fr.remove();if(TAB=='pg:'+n)TAB=PGS.length?'pg:'+PGS[PGS.length-1].n:'room';draw()}
+function reloadPg(n){const fr=document.getElementById('fr_'+n);if(fr)try{fr.contentWindow.location.reload()}catch(_){fr.src=fr.src}}
+/* كل رابط داخل التحكم يُفتح كتبويب داخلي */
+document.addEventListener('click',function(e){const c=e.target.closest&&e.target.closest('#app .cn');if(!c)return;const cd=c.closest('.card,.fl');const t=cd&&cd.querySelector('.dqt');if(t&&cd.querySelector('.dqm[hidden]'))t.click();else if(cd)cd.scrollIntoView({behavior:'smooth',block:'start'})});
+document.addEventListener('click',function(e){const a=e.target.closest&&e.target.closest('a[href]');if(!a||!a.closest('#app,#mdl'))return;const h=a.getAttribute('href')||'';
+ if(!h||h.charAt(0)=='#'||/^(javascript|mailto|tel):/i.test(h)||a.target=='_top')return;e.preventDefault();e.stopPropagation();
+ const tt=(a.querySelector('b')||a).textContent.trim().slice(0,40);openPg(h,tt.length>2?tt:'')},true);
+let TABSL=0;
 function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));const lb=$('lb');if(lb)lb.textContent=A()?'EN':'ع';
+ const tb0=a.querySelector('.tabs');if(tb0)TABSL=tb0.scrollLeft;
+ const isPg=TAB.indexOf('pg:')==0,cur=isPg?PGS.find(x=>'pg:'+x.n==TAB):null;if(isPg&&!cur)TAB='room';
  const V={quick:vQuick,tools:vTools,room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
  const op=ITEMS.filter(vis).length,bad=CHECKS.filter(c=>c.bad.length).length;
- let body='';try{body=V()}catch(e){body='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>';console.error(e)}
- a.innerHTML=`<div class="tabs">${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}${x[0]=='quick'&&(ESC.length+DELR.length+EVP.length)?` <i class="bd">${ESC.length+DELR.length+EVP.length}</i>`:''}</button>`).join('')}</div>${body}`}
+ let body='';if(!cur){try{body=V()}catch(e){body='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>';console.error(e)}}
+ const pgT=PGS.map(x=>`<span class="ptb ${TAB=='pg:'+x.n?'on':''}"><button type="button" onclick="TAB='pg:${x.n}';draw()">📄 ${esc(x.title)}</button><button type="button" class="px" title="${P('إغلاق','Close')}" onclick="closePg(${x.n})">✕</button></span>`).join('');
+ a.innerHTML=`<div class="tabs">${pgT}${pgT?'<i class="tsep"></i>':''}${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}${x[0]=='quick'&&(ESC.length+DELR.length+EVP.length)?` <i class="bd">${ESC.length+DELR.length+EVP.length}</i>`:''}</button>`).join('')}</div>${cur?`<div class="pvh"><b>📄 ${esc(cur.title)}</b><span class="ab" style="margin:0"><button type="button" onclick="reloadPg(${cur.n})">↻ ${P('تحديث','Reload')}</button><a href="${esc(cur.base)}" target="_top" onclick="event.stopPropagation()"><button type="button">↗ ${P('فتح كصفحة كاملة','Open full page')}</button></a><button type="button" onclick="closePg(${cur.n})">✕ ${P('إغلاق','Close')}</button></span></div>`:''}${body}`;
+ document.querySelectorAll('#pvs .pvf').forEach(f=>f.style.display=cur&&f.id=='fr_'+cur.n?'block':'none');$('pvs').style.display=cur?'block':'none';document.body.classList.toggle('pgon',!!cur);
+ const tb=a.querySelector('.tabs');if(tb){tb.scrollLeft=TABSL;const on=tb.querySelector('.on');if(on){const r=on.getBoundingClientRect(),R=tb.getBoundingClientRect();if(r.left<R.left||r.right>R.right)on.scrollIntoView({inline:'center',block:'nearest'})}}}
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('id,full_name,role').eq('id',session.user.id).single();if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  $('app').innerHTML='<div class="card mut" style="text-align:center">'+P('جارٍ جمع الصورة الكاملة…','Gathering the full picture…')+'</div>';
@@ -790,4 +818,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=10"></script></body></html>
+<script src="ido-ui.js?v=11"></script></body></html>

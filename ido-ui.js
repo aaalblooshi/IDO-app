@@ -275,6 +275,14 @@
   var raf = 0;
   function sched() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; navIcons(); emoji(); rngAll(); fsBars(); }); }
 
+  /* داخل التحكم (iframe): إخفاء ترويسة الصفحة وشريطها السفلي */
+  var EMB = false; try { EMB = window.self !== window.top; } catch (e) { EMB = true; }
+  if (EMB) {
+    document.documentElement.classList.add('embed');
+    var es = document.createElement('style'); es.id = 'idoemb';
+    es.textContent = 'html.embed #hd2,html.embed .top,html.embed #gnav,html.embed .hm,html.embed .hmp,html.embed #pgban,html.embed .pgban,html.embed .ttl,html.embed #fdbar+x{display:none!important}html.embed body{padding-bottom:12px!important;--gnh:0px}html.embed main{padding-top:8px!important}';
+    (document.head || document.documentElement).appendChild(es);
+  }
   function start() {
     addCss(); navIcons(); emoji(); rngAll(); fsBars();
     try { deep(); } catch (e) {}
