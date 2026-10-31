@@ -1,0 +1,108 @@
+-- =====================================================================
+-- update-oct55: مسؤولو الوحدات التنظيمية (قطاع / إدارة / قسم) — يُشغَّل بعد oct54
+--   المسؤول عن وحدة: يرى مشاريعها، ويعدّل كل خدماتها ومهامها (مثل منحة «تعديل» على كل مشروع في الوحدة)،
+--   ويتابع أداء مستخدميها — عدا من له صلاحية على وحدة أعلى من وحدته (أو مسؤول آخر عن الوحدة نفسها).
+--   تبقى صلاحيات المركز والقطاع والإدارة والقسم السابقة كما هي.
+-- =====================================================================
+
+alter table profiles add column if not exists head_units text[];   -- '2' قطاع · '2:3' إدارة · '2:3:اسم القسم' قسم
+
+-- 1) ضبط المسؤوليات (للأدمن)
+create or replace function admin_set_heads(uid uuid, p_units text[]) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare u text[];
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'admin only'; end if;
+  select coalesce(array_agg(distinct trim(x)), '{}') into u from unnest(coalesce(p_units,'{}')) x where trim(x) ~ '^[0-9]+(:[0-9]+(:.+)?)?$';
+  update profiles set head_units = case when cardinality(u) > 0 then u end where id = uid;
+end $fn$;
+revoke all on function admin_set_heads(uuid,text[]) from public, anon;
+grant execute on function admin_set_heads(uuid,text[]) to authenticated;
+
+-- 2) هل أنا مسؤول عن الوحدة التي يتبعها هذا المشروع؟ (المشروع السري والمحجوب مستثنيان)
+create or replace function unit_head_of(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce(pc,'') <> '' and not proj_hidden_me(pc) and not proj_blocked_me(pc) and exists(
+    select 1 from profiles me where me.id = auth.uid() and coalesce(cardinality(me.head_units),0) > 0
+      and exists(select 1 from charters c where c.code = pc and not c.archived
+                 and units_cover(me.head_units, c.data->>'sector', c.data->>'dept', pc)))
+$$;
+grant execute on function unit_head_of(text) to authenticated;
+
+-- 3) منحة المشروع تشمل المسؤولية عن الوحدة (اطلاع وتعديل على كل الخدمات)
+create or replace function has_grant(pc text, sv text, need text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce(pc,'') <> '' and (
+    exists(select 1 from project_grants g
+           where g.user_id = auth.uid() and g.pcode = pc and (g.svcs is null or sv = any(g.svcs))
+             and (need = 'view' or g.lvl = 'edit'))
+    or unit_head_of(pc))
+$$;
+
+-- 4) رؤية الوحدة تشمل وحدات المسؤولية
+create or replace function scope_view_p(sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select scope_view(sec) or exists(select 1 from profiles p where p.id = auth.uid() and (
+      (coalesce(cardinality(p.view_units),0) > 0 and units_cover(p.view_units, sec, dept, pc))
+   or (coalesce(cardinality(p.head_units),0) > 0 and units_cover(p.head_units, sec, dept, pc) and not proj_hidden_me(pc))))
+$$;
+
+-- 5) منحي الفعلية (للواجهات): المنح اليدوية + مشاريع وحداتي بصلاحية تعديل كاملة
+create or replace function my_grants() returns table(pcode text, lvl text, svcs text[])
+language sql stable security definer set search_path=public as $$
+  with h as (
+    select distinct c.code from charters c, profiles me
+    where me.id = auth.uid() and coalesce(cardinality(me.head_units),0) > 0 and not c.archived
+      and units_cover(me.head_units, c.data->>'sector', c.data->>'dept', c.code)
+      and not proj_hidden_me(c.code) and not proj_blocked_me(c.code))
+  select g.pcode, g.lvl, g.svcs from project_grants g where g.user_id = auth.uid() and g.pcode not in (select code from h)
+  union all
+  select h.code, 'edit', null::text[] from h
+$$;
+grant execute on function my_grants() to authenticated;
+
+-- 6) أداء المستخدمين: + المسؤول يرى مستخدمي وحدته
+--    لا يرى (عبر الوحدات) من له صلاحية على وحدة أعلى من الوحدة التي يراه من خلالها، ولا مسؤولًا آخر عن الوحدة نفسها، ولا الأدمن والإدارة العليا
+create or replace function unit_member(e text, s int, d int, sc text) returns boolean
+language sql immutable as $$
+  select s is not null and (e = s::text
+      or (d is not null and e = s::text || ':' || d::text)
+      or (d is not null and sc is not null and e = s::text || ':' || d::text || ':' || sc))
+$$;
+create or replace function unit_above(t text[], e text) returns boolean
+language sql immutable as $$
+  select exists(select 1 from unnest(coalesce(t,'{}')) x where e like x || ':%')
+$$;
+
+create or replace function perf_can(target uuid) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(
+    select 1 from profiles me, profiles tg
+    where me.id = auth.uid() and tg.id = target and (
+      me.role = 'admin' or me.perf_scope = 'all' or me.id = tg.id or coalesce(me.role_key,me.role) = 'exec'
+      or (tg.role is distinct from 'admin' and coalesce(tg.role_key,tg.role,'') <> 'exec' and tg.org_sector is not null and exists(
+            select 1 from unnest((case when me.scope_perf then coalesce(me.view_units,'{}') else '{}'::text[] end) || coalesce(me.head_units,'{}')) e
+            where unit_member(e, tg.org_sector, tg.org_dept, tg.org_section)
+              and not unit_above(coalesce(tg.view_units,'{}') || coalesce(tg.head_units,'{}'), e)
+              and not (e = any(coalesce(tg.head_units,'{}')))))
+      or (me.perf_scope = 'units' and (
+            (tg.org_sector is not null and tg.org_sector = any(coalesce(me.perf_sectors,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and (tg.org_sector::text||':'||tg.org_dept::text) = any(coalesce(me.perf_depts,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and tg.org_section is not null and (tg.org_sector::text||':'||tg.org_dept::text||':'||tg.org_section) = any(coalesce(me.perf_depts,'{}')))))))
+$$;
+grant execute on function perf_can(uuid) to authenticated;
+
+-- 7) مشاريع وحدة (لصفحة «وحدتي»): للأدمن أو لمسؤول الوحدة أو وحدة أعلى منها
+create or replace function unit_projects(p_unit text) returns table(pcode text, name text, charter_id bigint, status text)
+language plpgsql stable security definer set search_path=public as $fn$
+begin
+  if not (exists(select 1 from profiles where id = auth.uid() and role = 'admin')
+       or exists(select 1 from profiles me, unnest(coalesce(me.head_units,'{}')) h where me.id = auth.uid() and (p_unit = h or p_unit like h || ':%'))) then
+    raise exception 'not allowed';
+  end if;
+  return query
+    select distinct on (c.code) c.code, c.data->>'pname', c.id, c.status from charters c
+    where not c.archived and units_cover(array[p_unit], c.data->>'sector', c.data->>'dept', c.code) and not proj_hidden_me(c.code)
+    order by c.code, (c.status = 'Approved') desc, c.id desc;
+end $fn$;
+grant execute on function unit_projects(text) to authenticated;

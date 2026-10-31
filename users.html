@@ -104,6 +104,7 @@ function unitsBox(u){
   <label class="tg"><input type="checkbox" class="ux_${u.id}" value="${s}" ${has(String(s))?'checked':''}> ${t('un_sec')}</label>
   ${ds.map((dx,j)=>{const d=j+1,ss=sectionsOf(s,d);return `<div class="k"><label class="tg"><input type="checkbox" class="ux_${u.id}" value="${s}:${d}" ${has(s+':'+d)?'checked':''}> ${esc(nm(dx))}</label>${ss.map(c=>`<label class="tg k"><input type="checkbox" class="ux_${u.id}" value="${esc(s+':'+d+':'+c)}" ${has(s+':'+d+':'+c)?'checked':''}> ${esc(c)}</label>`).join('')}</div>`}).join('')}</details>`}).join('');
  return `<div class="card" style="margin-top:10px;background:var(--bg,#f7f5ef)"><b>${t('un_t')}</b><div class="mut">${t('un_h')}</div>
+  ${(u.head_units||[]).length?`<div class="mut" style="margin-top:6px"><b>👑 ${lang=='ar'?'مسؤول عن: ':'Head of: '}</b>${u.head_units.map(k=>esc(ukLab(k))).join(' · ')} <span>(${lang=='ar'?'من تبويب الوحدات':'from the Units tab'})</span></div>`:''}
   <div class="mut" style="margin-top:6px"><b>${t('un_sum')}</b>${cur.length?cur.map(k=>esc(ukLab(k))).join(' · '):t('un_none')}</div>${tree}
   <label class="tg" style="display:flex;gap:8px;align-items:center;margin:8px 0 0;font-weight:700"><input type="checkbox" id="up_${u.id}" ${u.scope_perf?'checked':''} style="width:auto"> ${t('un_perf')}</label>
   <label class="tg" style="display:flex;gap:8px;align-items:center;margin:4px 0;font-weight:700"><input type="checkbox" id="uc_${u.id}" ${u.scope_complete?'checked':''} style="width:auto"> ${t('un_cmp')}</label>
@@ -119,12 +120,14 @@ const inUnit=(x,k)=>{const p=String(k).split(':'),s=+p[0],d=p[1]?+p[1]:null,c=p.
 const inTree=(x,k)=>{const p=String(k).split(':'),s=+p[0],d=p[1]?+p[1]:null;return d?(x.org_sector==s&&x.org_dept==d):x.org_sector==s};
 function nodeH(k,lv){
  const open=OPN[k],mem=USERS.filter(x=>inUnit(x,k)),tot=USERS.filter(x=>lv==2?inUnit(x,k):inTree(x,k)).length;
- const vw=USERS.filter(x=>!isAll(x)&&x.view_units&&ukCov(x.view_units,k)),kq=esc(JSON.stringify(k)).replace(/"/g,'&quot;');
- const head=`<div class="nh" onclick="OPN[${kq}]=${open?'false':'true'};draw()"><b>${esc(ukLab(k).split(' — ').pop())}</b><span class="mut"><span class="num">${tot}</span> ${t('o_mem')} · <span class="num">${vw.length}</span> ${t('o_view')} ${open?'▾':'▸'}</span></div>`;
+ const vw=USERS.filter(x=>!isAll(x)&&x.view_units&&ukCov(x.view_units,k)),kq=esc(JSON.stringify(k)).replace(/"/g,'&quot;'),hd=USERS.filter(x=>(x.head_units||[]).includes(k)),AR=lang=='ar';
+ const head=`<div class="nh" onclick="OPN[${kq}]=${open?'false':'true'};draw()"><b>${esc(ukLab(k).split(' — ').pop())}</b><span class="mut"><span class="num">${tot}</span> ${t('o_mem')} · <span class="num">${vw.length}</span> ${t('o_view')}${hd.length?` · 👑 <span class="num">${hd.length}</span> ${AR?'مسؤول':'head'}`:''} ${open?'▾':'▸'}</span></div>`;
  let body='';
  if(open){
   body=`<div class="mut" style="margin-top:6px">${t('o_mem')}</div><div>${mem.map(x=>`<span class="cp">${esc(x.full_name)}</span>`).join('')||`<span class="mut">${t('o_nom')}</span>`}</div>
   <select onchange="addMem(this,${kq})"><option value="">${t('o_addm')}</option>${USERS.filter(x=>!inUnit(x,k)).map(x=>`<option value="${x.id}">${esc(x.full_name)}</option>`).join('')}</select>
+  <div class="mut" style="margin-top:8px">👑 ${AR?'مسؤولو الوحدة — يعدّلون كل خدمات ومهام مشاريعها ويتابعون أداء مستخدميها':'Unit heads — edit all services and tasks of its projects and follow its users’ performance'}</div><div>${hd.map(x=>`<span class="cp v">${esc(x.full_name)} <i onclick="event.stopPropagation();rmHead('${x.id}',${kq})">×</i></span>`).join('')||`<span class="mut">${AR?'لا مسؤول':'No head'}</span>`}</div>
+  <select onchange="addHead(this,${kq})"><option value="">${AR?'+ تعيين مسؤول عن الوحدة…':'+ Assign a unit head…'}</option>${USERS.filter(x=>!(x.head_units||[]).includes(k)&&rk(x)!='admin').map(x=>`<option value="${x.id}">${esc(x.full_name)}</option>`).join('')}</select>
   <div class="mut" style="margin-top:8px">${t('o_view')}</div><div>${vw.map(x=>{const dir=(x.view_units||[]).includes(k);return `<span class="cp v ${dir?'':'i'}">${esc(x.full_name)}${dir?` <i onclick="event.stopPropagation();rmView('${x.id}',${kq})">×</i>`:' '+t('o_inh')}</span>`}).join('')||`<span class="mut">${t('o_nov')}</span>`}</div>
   <select onchange="addView(this,${kq})"><option value="">${t('o_addv')}</option>${USERS.filter(x=>!isAll(x)&&!(x.view_units&&ukCov(x.view_units,k))).map(x=>`<option value="${x.id}">${esc(x.full_name)}</option>`).join('')}</select>`;
   if(lv==1)body+=`<div class="mut" style="margin-top:8px">${t('o_secs')} <a href="settings.html">${t('o_setl')}</a></div>`;
@@ -149,6 +152,10 @@ const addView=(sel,k)=>{const id=sel.value;if(!id)return;const u=USERS.find(x=>x
  run(async()=>{const {error}=await sb.rpc('admin_set_units',{uid:id,p_units:a,p_perf:!!u.scope_perf,p_complete:!!u.scope_complete});if(error)throw error;u.view_units=a;u.view_scope='units';draw()})};
 const rmView=(id,k)=>{const u=USERS.find(x=>x.id==id);const a=(u.view_units||[]).filter(z=>z!==k);
  run(async()=>{const {error}=await sb.rpc('admin_set_units',{uid:id,p_units:a,p_perf:!!u.scope_perf&&a.length>0,p_complete:!!u.scope_complete&&a.length>0});if(error)throw error;u.view_units=a.length?a:null;if(!a.length){u.scope_perf=false;u.scope_complete=false}draw()})};
+const addHead=(sel,k)=>{const id=sel.value;if(!id)return;const u=USERS.find(x=>x.id==id);const a=[...new Set([...(u.head_units||[]),k])];
+ run(async()=>{const {error}=await sb.rpc('admin_set_heads',{uid:id,p_units:a});if(error)throw new Error(/admin_set_heads|function/i.test(error.message)?(lang=='ar'?'شغّل ملف SQL (update-oct55) أولًا':'Run the SQL file (update-oct55) first'):error.message);u.head_units=a;draw()})};
+const rmHead=(id,k)=>{const u=USERS.find(x=>x.id==id);const a=(u.head_units||[]).filter(z=>z!==k);
+ run(async()=>{const {error}=await sb.rpc('admin_set_heads',{uid:id,p_units:a});if(error)throw error;u.head_units=a.length?a:null;draw()})};
 const newSec=k=>{const id0=esc(k).replace(/:/g,'_'),nmv=($('ns_'+id0).value||'').trim(),uid=$('nm_'+id0).value;if(!nmv||!uid)return toast(t('err')+t('o_newsec'));
  const p=k.split(':'),s=+p[0],d=+p[1];run(async()=>{const {error}=await sb.rpc('admin_set_org',{uid,p_sector:s,p_dept:d,p_section:nmv});if(error)throw error;const u=USERS.find(x=>x.id==uid);u.org_sector=s;u.org_dept=d;u.org_section=nmv;OPN[k+':'+nmv]=true;draw()})};
 
@@ -434,4 +441,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=11"></script></body></html>
+<script src="ido-ui.js?v=12"></script></body></html>

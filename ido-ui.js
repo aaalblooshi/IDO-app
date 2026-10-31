@@ -49,7 +49,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'control.html': 'compass', 'ratings.html': 'star', 'access.html': 'key'
+    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
@@ -272,8 +272,27 @@
       }, 350);
     }, 400);
   }
+
+  /* روابط إضافية في القائمة: «وحدتي» لمسؤولي الوحدات والأدمن، و«التحكم» للأدمن */
+  function menuX() {
+    var boxes = document.querySelectorAll('.hmp'); if (!boxes.length) return;
+    var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
+    boxes.forEach(function (box) {
+      [['unit.html', adm || head, 'وحدتي', 'My unit'], ['control.html', adm, 'التحكم', 'Control']].forEach(function (x) {
+        if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
+        var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
+        var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
+        var ar = (document.documentElement.lang || 'ar') === 'ar', sp = a.querySelector('span'), lab = ar ? x[2] : x[3];
+        if (sp) sp.textContent = lab; else a.textContent = lab;
+        var ic = a.querySelector('i'); if (ic) { ic.textContent = x[0] === 'unit.html' ? '👥' : '🧭'; ic.removeAttribute('data-ui'); }
+        if (cur === x[0]) a.classList.add('on');
+        ref.parentNode.insertBefore(a, ref.nextSibling);
+      });
+    });
+  }
   var raf = 0;
-  function sched() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; navIcons(); emoji(); rngAll(); fsBars(); }); }
+  function sched() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; try { menuX(); } catch (e) {} navIcons(); emoji(); rngAll(); fsBars(); }); }
 
   /* داخل التحكم (iframe): إخفاء ترويسة الصفحة وشريطها السفلي */
   var EMB = false; try { EMB = window.self !== window.top; } catch (e) { EMB = true; }
@@ -284,7 +303,7 @@
     (document.head || document.documentElement).appendChild(es);
   }
   function start() {
-    addCss(); navIcons(); emoji(); rngAll(); fsBars();
+    addCss(); try { menuX(); } catch (e) {} navIcons(); emoji(); rngAll(); fsBars();
     try { deep(); } catch (e) {}
     try { new MutationObserver(sched).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) {}
   }

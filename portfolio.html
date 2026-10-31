@@ -211,7 +211,7 @@ async function start(){
   q('plans','id,code,status,act:data->>_active,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,cb:created_by,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,tasks:data->tasks',r=>r.eq('archived',false)).then(a=>a.filter(p=>p.status=='Approved'||p.act=='true')),
   q('project_cfg','*'),
   q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
-  q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector','opt_goals'])),q('project_grants','pcode,lvl,svcs',r=>r.eq('user_id',ME.id))]);
+  q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector','opt_goals'])),sb.rpc('my_grants').then(r=>r.error?q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)):(r.data||[]),()=>q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)))]);
  try{const gz=await q('charters','code,gl:data->>goal',r=>r.eq('archived',false));GL={};gz.forEach(x=>{if(x.gl)GL[x.code]=+x.gl})}catch(_){GL={}}
  try{const cz=await q('closure_reports','status,archived,pc:data->>pcode',r=>r.eq('archived',false).eq('status','Approved'));CLS={};cz.forEach(x=>{if(x.pc)CLS[x.pc]=1})}catch(_){CLS={}}
  GRP={};gr.forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRP[x.pcode]=1});
@@ -1326,4 +1326,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=11"></script></body></html>
+<script src="ido-ui.js?v=12"></script></body></html>

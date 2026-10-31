@@ -190,7 +190,7 @@ const gkey=(u,g)=>g=='sector'?String(u.org_sector||0):g=='dept'?(u.org_sector||0
 const glab=(u,g)=>{if(!u.org_sector)return t('nounit');const s=secN(u.org_sector),d=depN(u.org_sector,u.org_dept);
  if(g=='sector')return s;if(g=='dept')return d?s+' — '+d:s+' — '+t('nodept');return (d?d:s)+' — '+(u.org_section||t('nosec'))};
 async function start(){
- if(!ADM&&!ME.perf_scope)return gate('noaccP');
+ if(!ADM&&!ME.perf_scope&&!ME.scope_perf&&!(ME.head_units||[]).length)return gate('noaccP');
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.depts)&&L.depts.length)DEPS=L.depts}catch(_){}
  if(!DEPS.length)DEPS=[1,2,3,4].map(s=>[1,2,3,4,5].map(q=>['الإدارة '+q+' للقطاع '+s,'Department '+q+' of Sector '+s]))
  const r=await sb.rpc('perf_users');if(r.error){$('app').innerHTML='<div class="card">'+esc(t('err')+r.error.message)+'</div>';return}
@@ -486,4 +486,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=11"></script></body></html>
+<script src="ido-ui.js?v=12"></script></body></html>

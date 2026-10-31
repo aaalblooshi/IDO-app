@@ -303,7 +303,7 @@ async function loadMine(){
   try{const {data:ep}=await sb.rpc('my_perms');if(ep&&me.role!='admin'){const sv0=ep.svc||{},pg0=ep.pages||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false).map(k=>k+'.html').concat(Object.keys(pg0).filter(k=>pg0[k]===false).map(k=>k+'.html'));applySvc()}else if(!ep){const {data:rr}=await sb.from('app_roles').select('perms').eq('key',me.role_key||me.role).maybeSingle();const sv0=((rr||{}).perms||{}).svc||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false&&me.role!='admin').map(k=>k+'.html');applySvc()}}catch(e){}
   try{const {data:co}=await sb.rpc('chat_on');if(!co){ROLEOFF=ROLEOFF.concat(['chat.html']);applySvc()}else{const {data:un}=await sb.rpc('chat_unread');const n=(un||[]).reduce((x,y)=>x+(+y.n||0),0);if(n)document.querySelectorAll('a[href="chat.html"]').forEach(a=>{if(!a.dataset.b){a.dataset.b=1;a.insertAdjacentHTML('beforeend',' <b style="background:#d1101d;color:#fff;border-radius:99px;padding:0 6px;font-size:11px">'+n+'</b>')}})}}catch(e){}
   ME0=me;try{USRCFG=me.home_cfg?JSON.parse(me.home_cfg):null}catch(e){USRCFG=null}setCfg();if(USRCFG)applyCfg();
-  hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role);localStorage.setItem('hdrScope',me.view_scope?'1':'0');localStorage.setItem('hdrPerf',me.perf_scope?'1':'0')}catch(e){}
+  hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role);localStorage.setItem('hdrScope',me.view_scope?'1':'0');localStorage.setItem('hdrPerf',(me.perf_scope||me.scope_perf||(me.head_units||[]).length)?'1':'0');localStorage.setItem('hdrHead',(me.head_units||[]).length?'1':'0')}catch(e){}
   const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
   MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
  }catch(e){MINE={state:'error',msg:String(e&&e.message||e)}}
@@ -1077,4 +1077,4 @@ var d0=window.draw;if(typeof d0=='function'){window.draw=function(){d0.apply(thi
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=11"></script></body></html>
+<script src="ido-ui.js?v=12"></script></body></html>
