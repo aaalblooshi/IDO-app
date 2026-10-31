@@ -49,7 +49,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key'
+    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
@@ -279,13 +279,13 @@
     var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
     var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
     boxes.forEach(function (box) {
-      [['unit.html', adm || head, 'وحدتي', 'My unit'], ['control.html', adm, 'التحكم', 'Control']].forEach(function (x) {
+      [['unit.html', adm || head, 'وحدتي', 'My unit'], ['control.html', adm, 'التحكم', 'Control'], ['perms.html', adm, 'الصلاحيات', 'Permissions']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
         var ar = (document.documentElement.lang || 'ar') === 'ar', sp = a.querySelector('span'), lab = ar ? x[2] : x[3];
         if (sp) sp.textContent = lab; else a.textContent = lab;
-        var ic = a.querySelector('i'); if (ic) { ic.textContent = x[0] === 'unit.html' ? '👥' : '🧭'; ic.removeAttribute('data-ui'); }
+        var ic = a.querySelector('i'); if (ic) { ic.textContent = x[0] === 'unit.html' ? '👥' : x[0] === 'perms.html' ? '🔐' : '🧭'; ic.removeAttribute('data-ui'); }
         if (cur === x[0]) a.classList.add('on');
         ref.parentNode.insertBefore(a, ref.nextSibling);
       });

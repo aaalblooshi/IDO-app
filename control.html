@@ -225,7 +225,7 @@ function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>{bad.forEach(b=
  add('chdates','مواثيق معتمدة بلا تاريخ بدء/انتهاء','Approved charters without dates',2,Object.values(PJ).filter(p=>p.chOk&&(dn(p.sd)==null||dn(p.ed)==null)).map(p=>({t:p.name,href:'charter.html#o='+p.ch.id})),P('بدونها لا يُحسب المخطط من الميثاق.','Without them, planned progress cannot come from the charter.'));
  const orph={};Object.values(PJ).forEach(p=>{if(!p.plan)return;(p.plan.tasks||[]).forEach(x=>{if(x.w&&!US[x.w]){(orph[x.w]=orph[x.w]||new Set()).add(p.name)}})});
  add('orph','مهام مسندة لمستخدم غير موجود','Tasks assigned to an unknown user',3,Object.keys(orph).map(k=>({t:[...orph[k]].join('، ')+' ('+k.slice(0,8)+'…)',href:'tasks.html'})),P('لن تصل لأحد ولن تُحدَّث.','They reach nobody and will not be updated.'));
- add('norole','مستخدمون بلا دور','Users without a role',2,PRF.filter(u=>!u.role&&!u.role_key).map(u=>({t:u.full_name||u.email||u.id,href:'access.html'})),'');
+ add('norole','مستخدمون بلا دور','Users without a role',2,PRF.filter(u=>!u.role&&!u.role_key).map(u=>({t:u.full_name||u.email||u.id,href:'perms.html#users'})),'');
  const ws=Object.values(WM).reduce((a,b)=>a+(+b||0),0);
  add('wsum','مجموع الأوزان لا يساوي ١٠٠٪','Weights do not total 100%',3,Object.keys(WM).length&&Math.abs(ws-100)>0.5?[{t:P('المجموع الحالي ','Current total ')+ws.toFixed(2)+'%',href:'portfolio.html'}]:[],P('راجع تبويب «الأوزان» في المحفظة.','Review the Weights tab in the portfolio.'));
  const crUp=[];Object.values(PJ).forEach(p=>{if(!p.plan)return;p.crs.filter(c=>c.status=='Approved'&&ageD(c.stage_at)<=90).forEach(c=>{if(p.plan.stage_at&&new Date(p.plan.stage_at)<new Date(c.stage_at)-864e5)crUp.push({t:p.name+' — '+(c.code||''),href:'cr.html#o='+c.id,id:'cr'+c.id,cr:c,plan:p.plan,pc:p.code,pname:p.name})})});
@@ -237,7 +237,7 @@ function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>{bad.forEach(b=
  add('plnch','خطة فعّالة وميثاقها غير معتمد','Active plan with an unapproved charter',3,Object.values(PJ).filter(p=>p.plan&&!p.chOk).map(p=>({t:p.name,href:'charter.html#o='+p.ch.id})),'');
  add('plnot','خطة فعّالة بلا مهام','Active plan with no tasks',3,Object.values(PJ).filter(p=>p.plan&&p.A&&!p.A.n).map(p=>({t:p.name,href:'plan.html#o='+p.plan.id})),'');
  const adm=PRF.filter(u=>u.role=='admin');
- add('adm','عدد الأدمن كبير','Many administrators',2,adm.length>4?adm.map(u=>({t:u.full_name,href:'access.html'})):[],P('الأدمن يملك كل الصلاحيات؛ راجع الحاجة.','Admins hold every permission; review the need.'));
+ add('adm','عدد الأدمن كبير','Many administrators',2,adm.length>4?adm.map(u=>({t:u.full_name,href:'perms.html#users'})):[],P('الأدمن يملك كل الصلاحيات؛ راجع الحاجة.','Admins hold every permission; review the need.'));
  /* اتجاه الفحوصات على هذا الجهاز */
  try{const k='ctl_chk',h=JSON.parse(localStorage.getItem(k)||'{}');h[TODAY]=Object.fromEntries(CHECKS.map(c=>[c.k,c.bad.length]));Object.keys(h).sort().slice(0,-30).forEach(d=>delete h[d]);localStorage.setItem(k,JSON.stringify(h));CHK_H=h}catch(_){CHK_H={}}}
 let CHK_H={};
@@ -548,8 +548,8 @@ const TOOLS=[
  ['svc','🏁','التقرير الختامي','Closure report','إغلاق المشاريع','Project closure','closure.html'],
  ['svc','✅','المهام','Tasks','مهام الفريق وتحديثها','Team tasks and updates','tasks.html'],
  ['usr','👥','المستخدمون','Users','إضافة وتعديل المستخدمين','Add and edit users','users.html'],
- ['usr','🔐','الصلاحيات والمجموعات','Access and groups','صلاحيات الأفراد والمجموعات والتعديل الجماعي','Individual and group permissions, bulk edits','access.html'],
- ['usr','🎭','الأدوار','Roles','الأدوار وصلاحياتها','Roles and their permissions','roles.html'],
+ ['usr','🔐','الأدوار والصلاحيات','Roles & permissions','الأدوار، صلاحيات كل مستخدم ومصدرها، المؤقتة والمنع، التطبيق الجماعي والسجل','Roles, per-user access and its source, temporary/deny, bulk and history','perms.html'],
+ ['usr','👁','معاينة كمستخدم','View as user','ما يراه أي مستخدم ويستطيعه ولماذا','What any user can see and do, and why','perms.html#pv'],
  ['usr','👑','مسؤولو الوحدات التنظيمية','Unit heads','تعيين مسؤول عن قطاع أو إدارة أو قسم (تبويب الوحدات)','Assign heads of sectors, departments or sections (Units tab)','users.html'+F_('الوحدات التنظيمية')],
  ['prj','👥','وحدتي','My unit','مشاريع أي وحدة وفريقها وما يحتاج قرار مسؤولها','Any unit’s projects, team and decisions','unit.html'],
  ['usr','🛡','مراجعة الصلاحيات','Access review','تأكيد دوري وآخر دخول','Periodic confirmation and last sign-in','#acc'],
@@ -881,4 +881,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=13"></script></body></html>
+<script src="ido-ui.js?v=14"></script></body></html>

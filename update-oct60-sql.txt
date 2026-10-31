@@ -1,0 +1,572 @@
+-- =====================================================================
+-- update-oct60: الأدوار والصلاحيات — المرحلة الأولى (يُشغَّل بعد oct59)
+--   • كتالوج صلاحيات موحّد بمفاتيح:  svc.X (إظهار الخدمة) · new.X (إنشاء) · view.X (own | unit | all) · page.X (الصفحات)
+--     و adm.* / off.* (صلاحيات إدارية جزئية: تُحفظ الآن وتُطبَّق في المرحلة الثانية)
+--   • المستخدم = دور أساسي + أدوار إضافية (بتاريخ انتهاء اختياري) + مجموعات + تخصيص فردي (منح أو منع صريح، بتاريخ انتهاء اختياري)
+--     القاعدة: المنع الصريح يغلب كل شيء ← ثم التخصيص الفردي ← ثم الأوسع من الأدوار والمجموعات
+--   • «الوحدة»: كل مستخدم يرى كل شيء ضمن وحدته التنظيمية (view.X = unit)، وأي مستخدم يستطيع إنشاء ميثاق
+--   • سجل لكل تغيير مع إمكانية التراجع
+--   الدوال القديمة (my_perms / eff_perms / admin_all_perms) تبقى بنفس الشكل، وتُحسب الآن من الكتالوج الجديد
+-- =====================================================================
+
+-- ===== (١) الجداول =====
+alter table public.app_roles add column if not exists caps jsonb;
+alter table public.app_roles add column if not exists descr text;
+alter table public.app_roles add column if not exists color text;
+alter table public.user_groups add column if not exists caps jsonb;
+
+create table if not exists public.user_roles(
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  role_key text not null references public.app_roles(key) on delete cascade,
+  expires_at timestamptz, note text,
+  granted_by uuid default auth.uid(), created_at timestamptz default now(),
+  primary key(user_id, role_key));
+create table if not exists public.user_caps(
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  cap text not null,
+  mode text not null check (mode in ('set','deny')),
+  val text, expires_at timestamptz, note text,
+  granted_by uuid default auth.uid(), created_at timestamptz default now(),
+  primary key(user_id, cap));
+create table if not exists public.perm_audit(
+  id bigint generated always as identity primary key,
+  at timestamptz not null default now(),
+  actor uuid default auth.uid(), actor_name text,
+  kind text not null,            -- role | role_del | user | scope | bulk | setting | revert
+  target text, target_name text, summary text,
+  before jsonb, after jsonb,
+  reverted_at timestamptz, reverted_by uuid);
+
+alter table public.user_roles enable row level security;
+alter table public.user_caps enable row level security;
+alter table public.perm_audit enable row level security;
+create or replace function public.perm_is_admin() returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from profiles where id = auth.uid() and role = 'admin') $$;
+grant execute on function public.perm_is_admin() to authenticated;
+drop policy if exists ur_sel on public.user_roles;
+create policy ur_sel on public.user_roles for select to authenticated using (user_id = auth.uid() or perm_is_admin());
+drop policy if exists uc_sel on public.user_caps;
+create policy uc_sel on public.user_caps for select to authenticated using (user_id = auth.uid() or perm_is_admin());
+drop policy if exists pa_sel on public.perm_audit;
+create policy pa_sel on public.perm_audit for select to authenticated using (perm_is_admin());
+grant select on public.user_roles, public.user_caps, public.perm_audit to authenticated;
+
+-- ===== (٢) محرك الصلاحيات =====
+create or replace function public.cap_rank(v text) returns int language sql immutable as $$
+  select case v when 'all' then 3 when 'unit' then 2 when 'true' then 1 when 'own' then 1 else 0 end $$;
+
+create or replace function public.cap_default(k text) returns text language sql immutable as $$
+  select case
+    when k like 'svc.%' then 'true'
+    when k = 'new.charter' then 'true'
+    when k like 'new.%' then 'false'
+    when k like 'view.%' then 'unit'
+    when k = 'page.projects' then 'false'
+    when k like 'page.%' then 'true'
+    else 'false' end $$;
+
+-- قيمة صلاحية واحدة لمستخدم
+create or replace function public.cap_val(uid uuid, k text) returns text
+language sql stable security definer set search_path=public as $$
+  with u as (select mode, val from user_caps where user_id = uid and cap = k and (expires_at is null or expires_at > now())),
+  r as (
+    select a.caps->>k v from profiles p join app_roles a on a.key = coalesce(p.role_key, p.role) where p.id = uid
+    union all
+    select a.caps->>k from user_roles x join app_roles a on a.key = x.role_key
+     where x.user_id = uid and (x.expires_at is null or x.expires_at > now())
+    union all
+    select g.caps->>k from user_group_members m join user_groups g on g.id = m.group_id where m.user_id = uid)
+  select case
+    when exists(select 1 from u where mode = 'deny') then (case when k like 'view.%' then 'own' else 'false' end)
+    when exists(select 1 from u where mode = 'set') then (select val from u where mode = 'set' limit 1)
+    else coalesce((select v from r where v is not null order by cap_rank(v) desc limit 1), cap_default(k)) end
+$$;
+revoke all on function public.cap_val(uuid,text) from public, anon;
+
+create or replace function public.my_cap(k text) returns text
+language sql stable security definer set search_path=public as $$ select cap_val(auth.uid(), k) $$;
+grant execute on function public.my_cap(text) to authenticated;
+
+-- كل الصلاحيات الفعلية (للمستخدم نفسه): كل المفاتيح المعروفة في الأدوار والتخصيص
+create or replace function public.my_caps() returns jsonb
+language sql stable security definer set search_path=public as $$
+  select case when perm_is_admin() then jsonb_build_object('_admin', true) else
+    coalesce((select jsonb_object_agg(k, cap_val(auth.uid(), k)) from (
+       select distinct jsonb_object_keys(caps) k from app_roles where caps is not null
+       union select distinct cap from user_caps where user_id = auth.uid()) z), '{}'::jsonb) end
+$$;
+grant execute on function public.my_caps() to authenticated;
+
+-- وحدة المستخدم (حسب مستوى «الوحدة» في الإعدادات: exact | dept | sector | off)
+create or replace function public.unit_code_of(uid uuid) returns text
+language sql stable security definer set search_path=public as $$
+  select case when p.org_sector is null then null
+    else case coalesce((select value from app_settings where key = 'unit_view_level'), 'exact')
+      when 'off' then null
+      when 'sector' then p.org_sector::text
+      when 'dept' then p.org_sector::text || coalesce(':' || p.org_dept::text, '')
+      else p.org_sector::text || coalesce(':' || p.org_dept::text || coalesce(':' || nullif(p.org_section,''), ''), '') end end
+  from profiles p where p.id = uid
+$$;
+grant execute on function public.unit_code_of(uuid) to authenticated;
+
+-- يرى عبر وحدته (لخدمة معيّنة)
+create or replace function public.svc_view_unit(sv text, sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce(pc,'') <> '' and cap_val(auth.uid(), 'view.' || sv) = 'unit'
+     and coalesce(units_cover(array[unit_code_of(auth.uid())], sec, dept, pc), false)
+$$;
+grant execute on function public.svc_view_unit(text,text,text,text) to authenticated;
+
+-- «يرى الكل» لخدمة (بديل أسرع للنسخة القديمة)
+create or replace function public.role_view_all(sv text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from profiles p join app_roles r on r.key = coalesce(p.role_key,p.role) where p.id = auth.uid() and r.base = 'admin')
+      or cap_val(auth.uid(), 'view.' || sv) = 'all'
+$$;
+
+-- الشكل القديم (تستخدمه كل الصفحات): يُحسب الآن من الكتالوج
+create or replace function public.eff_perms(uid uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare o jsonb := '{"svc":{},"create":{},"view":{},"pages":{},"unit":{}}'; sv text; pg text; v text;
+begin
+  foreach sv in array array['cr','charter','closure','plan'] loop
+    o := jsonb_set(o, array['svc',sv], to_jsonb(cap_val(uid,'svc.'||sv) = 'true'));
+    o := jsonb_set(o, array['create',sv], to_jsonb(cap_val(uid,'new.'||sv) = 'true'));
+    v := cap_val(uid,'view.'||sv);
+    o := jsonb_set(o, array['view',sv], to_jsonb(case when v = 'all' then 'all' else 'own' end));
+    o := jsonb_set(o, array['unit',sv], to_jsonb(v = 'unit'));
+  end loop;
+  foreach pg in array array['portfolio','perf','ratings','archive','projects','myprojects','inbox','tasks'] loop
+    o := jsonb_set(o, array['pages',pg], to_jsonb(cap_val(uid,'page.'||pg) = 'true'));
+  end loop;
+  return o;
+end $fn$;
+revoke all on function public.eff_perms(uuid) from public;
+
+-- ===== (٣) الرؤية عبر الوحدة في الخدمات =====
+create or replace function pl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select pl_is_admin() or is_follower('plan',cid)
+      or exists(select 1 from plans c where c.id = cid and (c.created_by = auth.uid()
+            or has_grant(c.data->>'pcode','plan','view') or has_grant(c.data->>'pcode','tasks','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('plan') or svc_view_unit('plan', c.data->>'sector', c.data->>'dept', c.data->>'pcode')
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from plan_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+      or pl_assignee(cid)
+      or pl_pm_ok(cid)
+      or pl_was_invited(cid)
+$$;
+
+create or replace function ch_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select ch_is_admin() or is_follower('charter',cid)
+      or exists(select 1 from charters c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.code,'charter','view')
+            or (not proj_hidden_me(c.code) and (role_view_all('charter') or svc_view_unit('charter', c.data->>'sector', c.data->>'dept', c.code)
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.code)))))
+      or exists(select 1 from charter_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+
+create or replace function cl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select cl_is_admin() or is_follower('closure',cid)
+      or exists(select 1 from closure_reports c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.data->>'pcode','closure','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('closure') or svc_view_unit('closure', c.data->>'sector', c.data->>'dept', c.data->>'pcode')
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from closure_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+
+create or replace function cr_scope_see(cid bigint, need text default 'view') returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from change_requests c where c.id = cid and not proj_blocked_me(c.data->>'pcode')
+     and ((need = 'view' and not proj_hidden_me(c.data->>'pcode')
+           and (scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode') or svc_view_unit('cr', c.data->>'sector', c.data->>'dept', c.data->>'pcode')))
+          or has_grant(c.data->>'pcode','cr',need)))
+      or (need = 'view' and exists(select 1 from signatories s where s.cr_id = cid and proxy_ok(s.user_id)))
+$$;
+
+-- ملف وصول المستخدم (للأدمن): + سبب «وحدته»
+create or replace function admin_user_access(p_uid uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb := '[]'::jsonb; c record; a jsonb; e jsonb; hu text[]; tk jsonb; uc text; uv boolean;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  select head_units into hu from profiles where id = p_uid;
+  uc := unit_code_of(p_uid);
+  uv := uc is not null and (cap_val(p_uid,'view.charter') = 'unit' or cap_val(p_uid,'view.plan') = 'unit');
+  for c in select distinct on (code) code, data->>'pname' pn, status, data->>'sector' sec, data->>'dept' dpt
+           from charters where not archived and coalesce(code,'') <> '' order by code, (status = 'Approved') desc, id desc loop
+    a := project_access(c.code);
+    select x into e from jsonb_array_elements(a) x where x->>'user_id' = p_uid::text limit 1;
+    if coalesce(cardinality(hu),0) > 0 and units_cover(hu, c.sec, c.dpt, c.code) then
+      e := coalesce(e, jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb));
+      e := jsonb_set(e, '{reasons}', (e->'reasons') || '["unit_head"]'::jsonb);
+    end if;
+    if uv and units_cover(array[uc], c.sec, c.dpt, c.code)
+       and not exists(select 1 from project_cfg g where g.pcode = c.code and g.hidden and not (p_uid = any(coalesce(g.hidden_users,'{}')))) then
+      e := coalesce(e, jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb));
+      e := jsonb_set(e, '{reasons}', (e->'reasons') || '["own_unit"]'::jsonb);
+    end if;
+    if exists(select 1 from project_blocks b where b.pcode = c.code and b.user_id = p_uid) then
+      e := coalesce(e, jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb)) || '{"blocked":true}'::jsonb;
+    end if;
+    if e is not null then
+      select jsonb_build_object(
+          'open', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100),
+          'late', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100 and nullif(t->>'e','') is not null and (t->>'e')::date < current_date),
+          'done', count(*) filter (where coalesce((t->>'pc')::numeric,0) >= 100))
+        into tk
+        from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t
+        where p.data->>'pcode' = c.code and not p.archived and (p.status = 'Approved' or p.data->>'_active' = 'true') and t->>'w' = p_uid::text;
+      r := r || jsonb_build_array(e || jsonb_build_object('pcode', c.code, 'pname', c.pn, 'status', c.status, 'tasks', tk,
+             'grant', (select jsonb_build_object('id', g.id, 'lvl', g.lvl, 'svcs', g.svcs) from project_grants g where g.pcode = c.code and g.user_id = p_uid)));
+    end if;
+  end loop;
+  return jsonb_build_object('projects', r, 'unit', uc);
+end $fn$;
+revoke all on function admin_user_access(uuid) from public, anon;
+grant execute on function admin_user_access(uuid) to authenticated;
+
+-- ===== (٤) ترحيل الإعدادات الحالية إلى الكتالوج (مرة واحدة، لا يغيّر ما سبق ترحيله) =====
+do $mig$
+declare r record; c jsonb; sv text; pg text; g record; m record;
+begin
+  for r in select * from app_roles where caps is null loop
+    c := '{}'::jsonb;
+    foreach sv in array array['cr','charter','closure','plan'] loop
+      c := c || jsonb_build_object('svc.'||sv, coalesce((r.perms->'svc'->>sv)::boolean, true));
+      c := c || jsonb_build_object('new.'||sv, sv = 'charter' or coalesce((r.perms->'create'->>sv)::boolean, r.base in ('pm','admin')));
+      c := c || jsonb_build_object('view.'||sv, case when r.base = 'admin' or r.perms->'view'->>sv = 'all' or r.key = 'exec' then 'all' else 'unit' end);
+    end loop;
+    foreach pg in array array['portfolio','perf','ratings','archive','projects','myprojects','inbox','tasks'] loop
+      c := c || jsonb_build_object('page.'||pg, r.base = 'admin' or pg <> 'projects');
+    end loop;
+    if r.base = 'admin' then
+      c := c || '{"adm.users":true,"adm.roles":true,"adm.settings":true,"adm.control":true,"off.review":true,"off.approve":true,"off.activate":true,"off.delete":true,"off.weights":true,"off.escalate":true,"chat.all":true,"tasks.others":true,"audit.view":true}'::jsonb;
+    end if;
+    update app_roles set caps = c where key = r.key;
+  end loop;
+
+  -- المجموعات: المنح فقط (إخفاء صفحة في مجموعة يتحول إلى منع فردي لأعضائها)
+  for g in select * from user_groups where caps is null loop
+    c := '{}'::jsonb;
+    foreach sv in array array['cr','charter','closure','plan'] loop
+      if g.perms->'svc'->>sv = 'true' then c := c || jsonb_build_object('svc.'||sv, true); end if;
+      if g.perms->'create'->>sv = 'true' then c := c || jsonb_build_object('new.'||sv, true); end if;
+      if g.perms->'view'->>sv = 'all' then c := c || jsonb_build_object('view.'||sv, 'all'); end if;
+    end loop;
+    foreach pg in array array['portfolio','perf','ratings','archive','projects','myprojects','inbox','tasks'] loop
+      if g.perms->'pages'->>pg = 'true' then c := c || jsonb_build_object('page.'||pg, true); end if;
+      if g.perms->'pages'->>pg = 'false' then
+        insert into user_caps(user_id, cap, mode, note, granted_by)
+          select m2.user_id, 'page.'||pg, 'deny', 'مرحّل من مجموعة: '||g.name_ar, null from user_group_members m2
+           where m2.group_id = g.id
+             and not exists(select 1 from user_group_members m3 join user_groups g3 on g3.id = m3.group_id
+                            where m3.user_id = m2.user_id and g3.perms->'pages'->>pg = 'true')
+        on conflict do nothing;
+      end if;
+    end loop;
+    update user_groups set caps = c where id = g.id;
+  end loop;
+
+  -- التخصيص الفردي السابق
+  for m in select id, perm_ov from profiles where perm_ov is not null and perm_ov <> '{}'::jsonb
+           and not exists(select 1 from user_caps u where u.user_id = profiles.id and u.note like 'مرحّل من التخصيص%') loop
+    foreach sv in array array['cr','charter','closure','plan'] loop
+      if m.perm_ov->'svc' ? sv then insert into user_caps(user_id,cap,mode,val,note,granted_by) values(m.id,'svc.'||sv,'set',m.perm_ov->'svc'->>sv,'مرحّل من التخصيص السابق',null) on conflict do nothing; end if;
+      if m.perm_ov->'create' ? sv then insert into user_caps(user_id,cap,mode,val,note,granted_by) values(m.id,'new.'||sv,'set',m.perm_ov->'create'->>sv,'مرحّل من التخصيص السابق',null) on conflict do nothing; end if;
+      if m.perm_ov->'view'->>sv = 'all' then insert into user_caps(user_id,cap,mode,val,note,granted_by) values(m.id,'view.'||sv,'set','all','مرحّل من التخصيص السابق',null) on conflict do nothing; end if;
+    end loop;
+    foreach pg in array array['portfolio','perf','ratings','archive','projects','myprojects','inbox','tasks'] loop
+      if m.perm_ov->'pages' ? pg then insert into user_caps(user_id,cap,mode,val,note,granted_by) values(m.id,'page.'||pg,'set',m.perm_ov->'pages'->>pg,'مرحّل من التخصيص السابق',null) on conflict do nothing; end if;
+    end loop;
+  end loop;
+end $mig$;
+
+insert into app_settings(key,value) values('unit_view_level','exact') on conflict (key) do nothing;
+
+-- ===== (٥) السجل =====
+create or replace function public.perm_log(p_kind text, p_target text, p_tname text, p_sum text, p_before jsonb, p_after jsonb) returns bigint
+language plpgsql security definer set search_path=public as $fn$
+declare i bigint;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  insert into perm_audit(kind,target,target_name,summary,before,after,actor_name)
+    values(p_kind,p_target,p_tname,p_sum,p_before,p_after,(select full_name from profiles where id = auth.uid())) returning id into i;
+  return i;
+end $fn$;
+revoke all on function public.perm_log(text,text,text,text,jsonb,jsonb) from public, anon;
+grant execute on function public.perm_log(text,text,text,text,jsonb,jsonb) to authenticated;
+
+-- لقطات تُستخدم للسجل والتراجع
+create or replace function public.perm_snap_user(p_uid uuid) returns jsonb
+language sql stable security definer set search_path=public as $$
+  select jsonb_build_object(
+    'role_key', (select coalesce(role_key, role) from profiles where id = p_uid),
+    'extra', coalesce((select jsonb_agg(jsonb_build_object('role',role_key,'exp',expires_at,'note',note) order by role_key) from user_roles where user_id = p_uid), '[]'::jsonb),
+    'caps',  coalesce((select jsonb_agg(jsonb_build_object('cap',cap,'mode',mode,'val',val,'exp',expires_at,'note',note) order by cap) from user_caps where user_id = p_uid), '[]'::jsonb))
+$$;
+create or replace function public.perm_snap_scope(p_uid uuid) returns jsonb
+language sql stable security definer set search_path=public as $$
+  select jsonb_build_object('org_sector',org_sector,'org_dept',org_dept,'org_section',org_section,
+    'view_scope',view_scope,'view_sectors',view_sectors,'view_units',view_units,'head_units',head_units,
+    'scope_perf',scope_perf,'scope_complete',scope_complete,'perf_scope',perf_scope,'perf_sectors',perf_sectors,'perf_depts',perf_depts)
+  from profiles where id = p_uid
+$$;
+revoke all on function public.perm_snap_user(uuid), public.perm_snap_scope(uuid) from public, anon;
+
+-- ===== (٦) حفظ الأدوار =====
+create or replace function public.perm_role_save(p_key text, p_ar text, p_en text, p_descr text, p_base text, p_caps jsonb, p_notif_off text[], p_color text, p_new boolean) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb; sysr boolean;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  if coalesce(trim(p_ar),'') = '' then raise exception 'name required'; end if;
+  if p_key !~ '^[a-z0-9_]{2,30}$' then raise exception 'bad key'; end if;
+  select to_jsonb(r) - 'perms', system into b, sysr from app_roles r where key = p_key;
+  if p_new and b is not null then raise exception 'key exists'; end if;
+  if not p_new and b is null then raise exception 'role not found'; end if;
+  if p_base not in ('admin','exec','user','pmo','pm','sponsor') then raise exception 'bad base'; end if;
+  if b is null then
+    insert into app_roles(key,name_ar,name_en,base,perms,caps,descr,color,notif_off,sort)
+      values(p_key,trim(p_ar),coalesce(nullif(trim(p_en),''),trim(p_ar)),p_base,'{}',coalesce(p_caps,'{}'),nullif(trim(p_descr),''),p_color,coalesce(p_notif_off,'{}'),100);
+  else
+    update app_roles set name_ar = trim(p_ar), name_en = coalesce(nullif(trim(p_en),''),trim(p_ar)),
+      base = case when sysr then base else p_base end, caps = coalesce(p_caps,'{}'), descr = nullif(trim(p_descr),''),
+      color = p_color, notif_off = coalesce(p_notif_off,'{}') where key = p_key;
+    update profiles set role = (select base from app_roles where key = p_key) where role_key = p_key;
+  end if;
+  select to_jsonb(r) - 'perms' into a from app_roles r where key = p_key;
+  perform perm_log('role', p_key, trim(p_ar), case when b is null then 'new' else 'edit' end, b, a);
+end $fn$;
+grant execute on function public.perm_role_save(text,text,text,text,text,jsonb,text[],text,boolean) to authenticated;
+
+create or replace function public.perm_role_delete(p_key text) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  if exists(select 1 from app_roles where key = p_key and system) then raise exception 'system role'; end if;
+  if exists(select 1 from profiles where coalesce(role_key,role) = p_key) then raise exception 'role in use'; end if;
+  select to_jsonb(r) into b from app_roles r where key = p_key;
+  delete from user_roles where role_key = p_key;
+  delete from app_roles where key = p_key;
+  perform perm_log('role_del', p_key, b->>'name_ar', 'delete', b, null);
+end $fn$;
+grant execute on function public.perm_role_delete(text) to authenticated;
+
+-- ===== (٧) صلاحيات مستخدم: الدور الأساسي + الإضافية + التخصيص (استبدال كامل) =====
+create or replace function public.perm_user_set(p_uid uuid, p_role text, p_extra jsonb, p_caps jsonb, p_note text default null) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb; x jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  if not exists(select 1 from profiles where id = p_uid) then raise exception 'bad user'; end if;
+  if p_role is not null and not exists(select 1 from app_roles where key = p_role) then raise exception 'bad role'; end if;
+  if p_uid = auth.uid() and p_role is not null and (select base from app_roles where key = p_role) <> 'admin' then raise exception 'cannot remove your own admin role'; end if;
+  b := perm_snap_user(p_uid);
+  if p_role is not null then
+    update profiles set role_key = p_role, role = (select base from app_roles where key = p_role) where id = p_uid;
+  end if;
+  if p_extra is not null then
+    delete from user_roles where user_id = p_uid;
+    for x in select * from jsonb_array_elements(p_extra) loop
+      if exists(select 1 from app_roles where key = x->>'role') and x->>'role' is distinct from coalesce(p_role, b->>'role_key') then
+        insert into user_roles(user_id,role_key,expires_at,note) values(p_uid, x->>'role', nullif(x->>'exp','')::timestamptz, nullif(x->>'note',''))
+        on conflict (user_id, role_key) do update set expires_at = excluded.expires_at, note = excluded.note;
+      end if;
+    end loop;
+  end if;
+  if p_caps is not null then
+    delete from user_caps where user_id = p_uid;
+    for x in select * from jsonb_array_elements(p_caps) loop
+      if coalesce(x->>'cap','') ~ '^[a-z]+\.[a-z_]+$' and x->>'mode' in ('set','deny') then
+        insert into user_caps(user_id,cap,mode,val,expires_at,note) values(p_uid, x->>'cap', x->>'mode', nullif(x->>'val',''), nullif(x->>'exp','')::timestamptz, nullif(x->>'note',''))
+        on conflict (user_id, cap) do update set mode = excluded.mode, val = excluded.val, expires_at = excluded.expires_at, note = excluded.note;
+      end if;
+    end loop;
+  end if;
+  a := perm_snap_user(p_uid);
+  if a is distinct from b then
+    perform perm_log('user', p_uid::text, (select full_name from profiles where id = p_uid), coalesce(nullif(trim(p_note),''),'edit'), b, a);
+  end if;
+end $fn$;
+grant execute on function public.perm_user_set(uuid,text,jsonb,jsonb,text) to authenticated;
+
+-- ===== (٨) الوحدة والنطاق لمستخدم =====
+create or replace function public.perm_user_scope(p_uid uuid, p jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  b := perm_snap_scope(p_uid);
+  if b is null then raise exception 'bad user'; end if;
+  update profiles set
+    org_sector   = case when p ? 'org_sector'   then nullif(p->>'org_sector','')::int else org_sector end,
+    org_dept     = case when p ? 'org_dept'     then nullif(p->>'org_dept','')::int else org_dept end,
+    org_section  = case when p ? 'org_section'  then nullif(p->>'org_section','') else org_section end,
+    view_units   = case when p ? 'view_units'   then perm_jarr(p->'view_units') else view_units end,
+    head_units   = case when p ? 'head_units'   then perm_jarr(p->'head_units') else head_units end,
+    view_scope   = case when p ? 'view_scope'   then nullif(p->>'view_scope','') else view_scope end,
+    scope_perf   = case when p ? 'scope_perf'   then coalesce((p->>'scope_perf')::boolean,false) else scope_perf end,
+    scope_complete = case when p ? 'scope_complete' then coalesce((p->>'scope_complete')::boolean,false) else scope_complete end,
+    perf_scope   = case when p ? 'perf_scope'   then nullif(p->>'perf_scope','') else perf_scope end
+  where id = p_uid;
+  a := perm_snap_scope(p_uid);
+  if a is distinct from b then
+    perform perm_log('scope', p_uid::text, (select full_name from profiles where id = p_uid), 'scope', b, a);
+  end if;
+end $fn$;
+grant execute on function public.perm_user_scope(uuid,jsonb) to authenticated;
+
+-- ===== (٩) تطبيق جماعي: دور إضافي أو تخصيص لعدة مستخدمين =====
+create or replace function public.perm_bulk(p_uids uuid[], p_role text, p_cap text, p_mode text, p_val text, p_exp timestamptz, p_note text, p_remove boolean default false) returns int
+language plpgsql security definer set search_path=public as $fn$
+declare u uuid; n int := 0; b jsonb; a jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  foreach u in array coalesce(p_uids,'{}') loop
+    b := perm_snap_user(u);
+    if p_role is not null then
+      if p_remove then delete from user_roles where user_id = u and role_key = p_role;
+      elsif exists(select 1 from app_roles where key = p_role) and (select coalesce(role_key,role) from profiles where id = u) is distinct from p_role then
+        insert into user_roles(user_id,role_key,expires_at,note) values(u,p_role,p_exp,nullif(trim(p_note),''))
+        on conflict (user_id,role_key) do update set expires_at = excluded.expires_at, note = excluded.note;
+      end if;
+    end if;
+    if p_cap is not null then
+      if p_remove then delete from user_caps where user_id = u and cap = p_cap;
+      elsif p_mode in ('set','deny') then
+        insert into user_caps(user_id,cap,mode,val,expires_at,note) values(u,p_cap,p_mode,nullif(p_val,''),p_exp,nullif(trim(p_note),''))
+        on conflict (user_id,cap) do update set mode = excluded.mode, val = excluded.val, expires_at = excluded.expires_at, note = excluded.note;
+      end if;
+    end if;
+    a := perm_snap_user(u);
+    if a is distinct from b then
+      perform perm_log('user', u::text, (select full_name from profiles where id = u), coalesce(nullif(trim(p_note),''),'bulk'), b, a); n := n + 1;
+    end if;
+  end loop;
+  return n;
+end $fn$;
+grant execute on function public.perm_bulk(uuid[],text,text,text,text,timestamptz,text,boolean) to authenticated;
+
+-- صلاحيات مجموعة (منح فقط)
+create or replace function public.perm_group_caps(p_id bigint, p_caps jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; n text;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  select caps, name_ar into b, n from user_groups where id = p_id;
+  if n is null then raise exception 'not found'; end if;
+  update user_groups set caps = coalesce(p_caps,'{}') where id = p_id;
+  if coalesce(b,'{}') is distinct from coalesce(p_caps,'{}') then
+    perform perm_log('group', p_id::text, n, 'edit', jsonb_build_object('caps',b), jsonb_build_object('caps',p_caps));
+  end if;
+end $fn$;
+grant execute on function public.perm_group_caps(bigint,jsonb) to authenticated;
+
+-- مصفوفة نصية من JSON (تتجاهل null)
+create or replace function public.perm_jarr(j jsonb) returns text[] language sql immutable as $$
+  select case when jsonb_typeof(j) = 'array' and jsonb_array_length(j) > 0 then array(select jsonb_array_elements_text(j)) end $$;
+
+-- ===== (١٠) التراجع عن تغيير من السجل =====
+create or replace function public.perm_revert(p_id bigint) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare e perm_audit; x jsonb; u uuid; cur jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  select * into e from perm_audit where id = p_id;
+  if e.id is null then raise exception 'not found'; end if;
+  if e.reverted_at is not null then raise exception 'already reverted'; end if;
+  if e.kind in ('role','role_del') then
+    select to_jsonb(r) - 'perms' into cur from app_roles r where key = e.target;
+    if e.before is null then
+      if exists(select 1 from profiles where coalesce(role_key,role) = e.target) then raise exception 'role in use'; end if;
+      delete from user_roles where role_key = e.target; delete from app_roles where key = e.target;
+    elsif cur is null then
+      insert into app_roles(key,name_ar,name_en,base,perms,caps,descr,color,notif_off,sort,system)
+        values(e.target, e.before->>'name_ar', e.before->>'name_en', e.before->>'base', coalesce(e.before->'perms','{}'), nullif(e.before->'caps','null'::jsonb),
+               e.before->>'descr', e.before->>'color', coalesce(perm_jarr(e.before->'notif_off'),'{}'),
+               coalesce((e.before->>'sort')::int,100), coalesce((e.before->>'system')::boolean,false));
+    else
+      update app_roles set name_ar = e.before->>'name_ar', name_en = e.before->>'name_en', base = e.before->>'base', caps = nullif(e.before->'caps','null'::jsonb),
+        descr = e.before->>'descr', color = e.before->>'color', notif_off = coalesce(perm_jarr(e.before->'notif_off'),'{}')
+       where key = e.target;
+      update profiles set role = (select base from app_roles where key = e.target) where role_key = e.target;
+    end if;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, (select to_jsonb(r) - 'perms' from app_roles r where key = e.target));
+  elsif e.kind = 'user' then
+    u := e.target::uuid; cur := perm_snap_user(u);
+    if u = auth.uid() and (select base from app_roles where key = e.before->>'role_key') <> 'admin' then raise exception 'cannot remove your own admin role'; end if;
+    update profiles set role_key = e.before->>'role_key', role = (select base from app_roles where key = e.before->>'role_key') where id = u;
+    delete from user_roles where user_id = u;
+    insert into user_roles(user_id,role_key,expires_at,note)
+      select u, z->>'role', nullif(z->>'exp','')::timestamptz, z->>'note' from jsonb_array_elements(coalesce(e.before->'extra','[]')) z
+      where exists(select 1 from app_roles where key = z->>'role');
+    delete from user_caps where user_id = u;
+    insert into user_caps(user_id,cap,mode,val,expires_at,note)
+      select u, z->>'cap', z->>'mode', z->>'val', nullif(z->>'exp','')::timestamptz, z->>'note' from jsonb_array_elements(coalesce(e.before->'caps','[]')) z;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_user(u));
+  elsif e.kind = 'scope' then
+    u := e.target::uuid; cur := perm_snap_scope(u);
+    update profiles set org_sector = (e.before->>'org_sector')::int, org_dept = (e.before->>'org_dept')::int, org_section = e.before->>'org_section',
+      view_scope = e.before->>'view_scope',
+      view_sectors = perm_jarr(e.before->'view_sectors')::int[],
+      view_units = perm_jarr(e.before->'view_units'),
+      head_units = perm_jarr(e.before->'head_units'),
+      scope_perf = coalesce((e.before->>'scope_perf')::boolean,false), scope_complete = coalesce((e.before->>'scope_complete')::boolean,false),
+      perf_scope = e.before->>'perf_scope',
+      perf_sectors = perm_jarr(e.before->'perf_sectors')::int[],
+      perf_depts = perm_jarr(e.before->'perf_depts')
+     where id = u;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_scope(u));
+  elsif e.kind = 'group' then
+    update user_groups set caps = nullif(e.before->'caps','null'::jsonb) where id = e.target::bigint;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, e.after, e.before);
+  elsif e.kind = 'setting' then
+    insert into app_settings(key,value) values(e.target, e.before->>'value') on conflict (key) do update set value = excluded.value;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, e.after, e.before);
+  else
+    raise exception 'cannot revert this entry';
+  end if;
+  update perm_audit set reverted_at = now(), reverted_by = auth.uid() where id = p_id;
+end $fn$;
+grant execute on function public.perm_revert(bigint) to authenticated;
+
+-- إعداد عام مع تسجيل
+create or replace function public.perm_setting(k text, v text) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b text;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  if k not in ('unit_view_level') then raise exception 'bad key'; end if;
+  select value into b from app_settings where key = k;
+  insert into app_settings(key,value) values(k,v) on conflict (key) do update set value = excluded.value;
+  if b is distinct from v then perform perm_log('setting', k, k, v, jsonb_build_object('value',b), jsonb_build_object('value',v)); end if;
+end $fn$;
+grant execute on function public.perm_setting(text,text) to authenticated;
+
+-- ===== (١١) الشرح: من أين جاءت كل صلاحية =====
+create or replace function public.perm_explain(p_uid uuid, p_keys text[]) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare k text; o jsonb := '{}'; src jsonb; ov jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  foreach k in array coalesce(p_keys,'{}') loop
+    select coalesce(jsonb_agg(z), '[]'::jsonb) into src from (
+      select 'role' t, a.key, a.name_ar n, a.caps->>k v, null::timestamptz exp from profiles p join app_roles a on a.key = coalesce(p.role_key,p.role) where p.id = p_uid
+      union all
+      select 'xrole', a.key, a.name_ar, a.caps->>k, x.expires_at from user_roles x join app_roles a on a.key = x.role_key
+       where x.user_id = p_uid and (x.expires_at is null or x.expires_at > now())
+      union all
+      select 'group', g.id::text, g.name_ar, g.caps->>k, null from user_group_members m join user_groups g on g.id = m.group_id where m.user_id = p_uid and g.caps ? k) z;
+    select jsonb_build_object('mode',mode,'val',val,'exp',expires_at,'note',note) into ov from user_caps
+     where user_id = p_uid and cap = k and (expires_at is null or expires_at > now());
+    o := o || jsonb_build_object(k, jsonb_build_object('v', cap_val(p_uid, k), 'src', src, 'ov', ov, 'def', cap_default(k)));
+  end loop;
+  return jsonb_build_object('caps', o, 'admin', exists(select 1 from profiles where id = p_uid and role = 'admin'), 'unit', unit_code_of(p_uid));
+end $fn$;
+grant execute on function public.perm_explain(uuid,text[]) to authenticated;
+
+notify pgrst, 'reload schema';
