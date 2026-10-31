@@ -62,6 +62,10 @@ main .kg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:
 .xt{border-collapse:collapse;width:100%;font-size:13px}.xt th,.xt td{border-bottom:1px solid var(--line);padding:7px 6px;text-align:start;vertical-align:top}.xt td.nm{text-align:center}
 .wk{white-space:pre-wrap;font:inherit;background:#fbfaf6;border:1px solid var(--line);border-radius:12px;padding:12px;line-height:1.9;margin:8px 0}
 .mv{position:fixed;inset:0;z-index:100000;background:rgba(24,28,50,.5);display:flex;align-items:flex-end;justify-content:center}.mb{background:#fff;width:100%;max-width:520px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}.mb h3{margin:0 0 4px;font-size:16px}.mb textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:10px}
+.tgd{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}.tc2{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-decoration:none;color:var(--ink);background:#fff}.tc2:active{background:#f3f6fa}.tc2 .ti{font-size:20px;width:30px;text-align:center;flex:none}.tc2 .tx{flex:1;min-width:0}.tc2 .tx b{display:block;font-size:14px}.tc2 .tx small{display:block;color:var(--mut);font-size:12px;line-height:1.5}
+.swg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}.sw{display:flex;gap:8px;align-items:center;font-weight:600;margin:0;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:#fff}.sw input{width:auto}
+.tl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}.tl>div{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fbfaf6}
+.qn{position:sticky;top:100px;z-index:3;background:var(--bg);padding:4px 0}[id^=q_]{scroll-margin-top:200px}
 @media print{.top,.tabs,#gnav,#pgban,.ab,.row button,.hm,#hd2{display:none!important}body{background:#fff}}
 </style>
 </head><body>
@@ -256,7 +260,7 @@ async function ctlSave(key,mode){const v=id=>($(id)||{}).value||'';let patch={};
  await oaSave(key,patch);mclose();toast(P('تم الحفظ','Saved'));rebuild();draw()}catch(e){toast(String((e&&e.message)||e))}}
 
 /* ====== العرض ====== */
-const TABS=[['room','المطلوب الآن','Needs action'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['lad','التصعيد التلقائي','Auto-escalation'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
+const TABS=[['room','المطلوب الآن','Needs action'],['quick','إجراءات سريعة','Quick actions'],['tools','كل الأدوات','All tools'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['lad','التصعيد التلقائي','Auto-escalation'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
 const bar=(n,mx,c)=>`<i class="bb"><u style="width:${mx?Math.max(3,Math.round(100*n/mx)):0}%;background:${c||'#2a6a90'}"></u></i>`;
 const ex=(arr,fx,n)=>{n=n||6;if(!arr.length)return '';return arr.slice(0,n).map(fx).join('<br>')+(arr.length>n?`<span class="dqm" hidden><br>${arr.slice(n).map(fx).join('<br>')}</span><div style="margin-top:4px"><a href="#" class="dqt" data-n="${arr.length}" data-a="${P('عرض الكل','Show all')}" data-b="${P('عرض أقل','Show less')}" onclick="return dqT(this)">${P('عرض الكل','Show all')} (${arr.length}) ▾</a></div>`:'')};
 function dqT(a){const m=a.parentNode.previousElementSibling;if(!m)return false;const o=m.hidden;m.hidden=!o;a.textContent=o?a.dataset.b+' ▴':a.dataset.a+' ('+a.dataset.n+') ▾';return false}
@@ -394,14 +398,131 @@ function weeklyText(){const op=ITEMS.filter(vis),by=s=>op.filter(i=>i.sev==s).le
 function vWk(){const tx=weeklyText();return `<div class="card"><h2>${P('الملخص الأسبوعي','Weekly summary')}<small>${P('يُبنى من الحالة الحالية. انسخه للبريد أو اطبعه.','Built from the current state. Copy it into an email or print it.')}</small></h2><pre id="wkt" class="wk">${esc(tx)}</pre><div class="row"><button class="p" onclick="wkCopy()">${P('نسخ النص','Copy text')}</button><button onclick="window.print()">${P('طباعة','Print')}</button><button onclick="wkSend(true)">${P('معاينة البريد','Preview email')}</button><button onclick="wkSend(false)">${P('إرسال للمكتب بالبريد الآن','Email the office now')}</button></div>${WKRES?`<div class="nt">${P('ملخص البريد (يُحسب في الخادم): اعتمادات متأخرة ','Email digest (computed on the server): late approvals ')}${WKRES.appr} · ${P('تصعيدات ','escalations ')}${WKRES.esc} · ${P('مواثيق بلا خطة ','charters without plan ')}${WKRES.nopln} · ${P('تجاوزات ','overrides ')}${WKRES.ovr} · ${P('مهام متأخرة ','late tasks ')}${WKRES.late} · ${P('المستلمون ','recipients ')}${WKRES.to}</div>`:''}<div class="mut" style="margin-top:8px">${P('يُرسل تلقائيًا كل أحد ٩ صباحًا إن كانت pg_cron مفعّلة في Supabase، ويمكن إرساله الآن من هنا. الإرسال الأسبوعي للمستخدمين له إعداده الخاص في «الإعدادات».','Sent automatically every Sunday at 9 am if pg_cron is enabled in Supabase, or send it now from here. The weekly email to users has its own setting in “Settings”.')}</div></div>`}
 function wkCopy(){const tx=($('wkt')||{}).textContent||'';try{navigator.clipboard.writeText(tx).then(()=>toast(P('تم النسخ','Copied')),()=>fb())}catch(e){fb()}function fb(){const a=document.createElement('textarea');a.value=tx;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast(P('تم النسخ','Copied'))}catch(_){}a.remove()}}
 
+/* ====== إجراءات سريعة ====== */
+let SETS={},WLW=null,CATS=[],DELR=[],EVP=[];
+const AUDT={cr:'audit_log',charter:'charter_audit',plan:'plan_audit',closure:'closure_audit'};
+const sOn=(k,d)=>String(SETS[k]!=null?SETS[k]:d)=='1';
+const card=(id,ti,hint,body)=>`<div class="card" id="${id}"><h2>${ti}${hint?`<small>${hint}</small>`:''}</h2>${body}</div>`;
+function escPanel(){const op=PRF.slice().sort((a,b)=>String(a.full_name).localeCompare(String(b.full_name),'ar')).map(u=>`<option value="${esc(u.id)}">${esc(u.full_name||'')}</option>`).join('');
+ return card('q_esc','⬆ '+P('قرارات التصعيد','Escalation decisions'),P('توجيه الخطوة المعلّقة لشخص آخر، أو التجاهل مع إبقاء المسار. الملاحظة تُسجَّل في سجل الطلب.','Redirect the pending step to someone else, or ignore and keep the path. The note is logged on the request.'),
+  ESC.length?ESC.map(e=>`<div class="it" style="border-inline-start:5px solid #d1101d"><div class="ih2"><b>${P(SVN[e.svc]?SVN[e.svc][0]:e.svc,SVN[e.svc]?SVN[e.svc][1]:e.svc)} #${e.cr_id}</b><span class="mut">${P('منذ ','for ')}${DAYS(ageD(e.created_at))} · ${esc(US[e.requested_by]||'')}</span></div>${e.reason?`<div class="mut">${esc(e.reason)}</div>`:''}
+   <div class="g2" style="margin-top:6px"><select id="qe_u_${e.id}"><option value="">${P('توجيه إلى…','Redirect to…')}</option>${op}</select><input id="qe_n_${e.id}" placeholder="${P('ملاحظة المكتب (اختياري)','Office note (optional)')}"></div>
+   <div class="ab"><a href="${PGF[e.svc]||'inbox.html'}#o=${e.cr_id}"><button type="button">${P('فتح الطلب','Open')}</button></a><button type="button" class="p" onclick="qEsc(${e.id},'redirect','${e.svc}',${e.cr_id})">${P('تصعيد (توجيه)','Escalate (redirect)')}</button><button type="button" onclick="qEsc(${e.id},'ignore','${e.svc}',${e.cr_id})">${P('تجاهل','Ignore')}</button></div></div>`).join(''):`<div class="mut">✓ ${P('لا تصعيدات معلّقة','No pending escalations')}</div>`)}
+async function qEsc(id,act,svc,cid){const u=($('qe_u_'+id)||{}).value,v=(($('qe_n_'+id)||{}).value||'').trim();if(act=='redirect'&&!u)return toast(P('اختر الشخص الذي سيُوجَّه إليه الطلب','Pick who to redirect to'));
+ if(!confirm(act=='redirect'?P('توجيه الخطوة المعلّقة إلى '+(US[u]||'')+'؟','Redirect the pending step to '+(US[u]||'')+'?'):P('تجاهل التصعيد وإبقاء المسار كما هو؟','Ignore the escalation and keep the path?')))return;
+ try{const r=await sb.rpc('esc_decide',{p_id:id,p_action:act,p_to:act=='redirect'?u:null,p_note:v||null});if(r.error)throw r.error;
+  if(v&&AUDT[svc])try{await sb.from(AUDT[svc]).insert({cr_id:cid,user_name:ME.full_name,action:'escnote|'+(act=='redirect'?'r':'i')+'|'+v})}catch(_){}
+  ESC=ESC.filter(x=>x.id!=id);rebuild();toast(P('تم تسجيل القرار','Decision recorded'));draw()}catch(e){toast(String(e.message||e))}}
+function delPanel(){return card('q_del','🗑 '+P('طلبات الحذف المعلّقة','Pending deletion requests'),P('القرار يتم من صفحة الوثيقة لأن الحذف يشمل خطوات مرتبطة (أرشفة، إلغاء إصدار…).','Decide from the document page because deletion involves linked steps (archiving, cancelling a version…).'),
+  DELR.length?DELR.map(d=>`<div class="rw">• <b>${P(SVN[d.svc]?SVN[d.svc][0]:d.svc,SVN[d.svc]?SVN[d.svc][1]:d.svc)} #${d.cr_id}</b> — ${esc(US[d.requested_by]||'')} · ${DAYS(ageD(d.requested_at))}${d.note?' · '+esc(d.note):''} <a class="dqt" href="${PGF[d.svc]}#o=${d.cr_id}">${P('فتح واتخاذ القرار','Open & decide')}</a></div>`).join(''):`<div class="mut">✓ ${P('لا طلبات حذف','No deletion requests')}</div>`)}
+function actPanel(){const L=Object.values(PJ).filter(p=>!p.hidden&&!p.closed).map(p=>({p,x:p.plans.find(x=>x.status!='Approved')})).filter(z=>z.x&&!(z.p.plan&&z.p.plan.status=='Approved'&&z.p.plan.id>z.x.id));
+ return card('q_act','⚡ '+P('تفعيل الخطط قبل اعتمادها','Activate plans before approval'),P('يفعّل المهام والحساب للمكلّفين مع بقاء مسار الاعتماد مفتوحًا. يُسجَّل ضمن التجاوزات.','Enables tasks and calculations while approval stays open. Logged under overrides.'),
+  L.length?L.map(z=>`<div class="rw" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px"><b>${esc(z.p.name)}</b> <span class="mut" dir="ltr">${esc(z.x.code||'')}</span> <span class="mut">· ${esc(z.x.status)}</span>${z.x.act=='true'?' · <b style="color:#0a6b3d">✓ '+P('مفعّلة','active')+'</b>':''}</span><a href="plan.html#o=${z.x.id}"><button type="button">${P('فتح','Open')}</button></a><button type="button" class="${z.x.act=='true'?'':'p'}" onclick="qAct(${z.x.id},${z.x.act=='true'?'false':'true'})">${z.x.act=='true'?P('إيقاف التفعيل','Deactivate'):P('تفعيل','Activate')}</button></div>`).join(''):`<div class="mut">✓ ${P('لا خطط بانتظار الاعتماد','No plans awaiting approval')}</div>`)}
+async function qAct(id,f){if(!confirm(f?P('تفعيل الخطة قبل اعتمادها؟','Activate the plan before approval?'):P('إيقاف تفعيل الخطة؟','Deactivate the plan?')))return;
+ try{const r=await sb.rpc('pl_set_active',{pid:id,flag:f});if(r.error)throw r.error;const x=PLN.find(z=>z.id==id);if(x)x.act=f?'true':null;buildProjects();runChecks();rebuild();toast(P('تم','Done'));draw()}catch(e){toast(String(e.message||e))}}
+function catPanel(){if(WLW===false)return card('q_cat','⚖ '+P('تصنيف المشاريع','Project categories'),'',`<div class="mut">${P('تعذّر تحميل الأوزان.','Could not load weights.')}</div>`);
+ const L=(WLW||[]).filter(x=>!x.cat_set),c=CATS;
+ return card('q_cat','⚖ '+P('تصنيف المشاريع والتقييمات','Project categories and assessments'),P('المشاريع بلا فئة تُعامل كفئة «ج». التصنيف يغيّر وزن المشروع في المحفظة مباشرة.','Unclassified projects are treated as category C. Classifying changes the portfolio weight immediately.'),
+  `${EVP.length?`<div class="nt">📝 ${P('تقييمات بانتظار اعتمادك: ','Assessments awaiting your approval: ')}${EVP.map(e=>`<a class="dqt" href="portfolio.html#eval=${encodeURIComponent(e.pcode)}">${esc(pname(e.pcode)||e.pcode)}</a>`).join('، ')}</div>`:''}
+  ${L.length?L.map(x=>`<div class="rw" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:160px"><b>${esc(x.name||x.pcode)}</b> <span class="mut">${x.score!=null?P('التقييم ','assessed ')+x.score+'%':P('بلا تقييم','not assessed')}</span></span><select style="width:auto;max-width:240px" onchange="qCat('${esc(x.pcode)}',this.value)"><option value="">${P('— اختر الفئة —','— choose —')}</option>${c.map(k=>`<option value="${esc(k.k)}">${esc((A()?k.ar+' — '+(k.d_ar||''):k.en+' — '+(k.d_en||''))+' (×'+k.f+')')}</option>`).join('')}</select></div>`).join(''):`<div class="mut">✓ ${P('كل المشاريع مصنّفة','All projects are classified')}</div>`}
+  <div class="row"><a href="portfolio.html#find=${encodeURIComponent('الأوزان')}"><button type="button">${P('تبويب الأوزان الكامل','Full weights tab')}</button></a></div>`)}
+async function qCat(pc,v){if(!v)return;try{const r=await sb.rpc('eval_set_cat',{p_code:pc,p_cat:v});if(r.error)throw r.error;const x=(WLW||[]).find(z=>z.pcode==pc);if(x){x.cat_set=true;x.cat=v}
+ try{const w=await sb.rpc('project_weights');if(!w.error){WM={};(w.data||[]).forEach(z=>WM[z.pcode]=+z.weight)}}catch(_){}buildProjects();runChecks();rebuild();toast(P('تم التصنيف','Classified'));draw()}catch(e){toast(String(e.message||e))}}
+const SWS=[['esc_on','0','التصعيد (يرفعه المستخدمون للمكتب)','Escalation (users raise to the office)'],['chat_on','0','التواصل داخل المشاريع','Project chat'],['proxy_on','0','الإنابة في التوقيع','Proxy signing'],['jny_on','1','رحلة المتعامل في الرئيسية','Customer journey on home'],
+ ['svc_tasks','1','خدمة: مهامي','Service: My tasks'],['svc_charter','1','خدمة: ميثاق المشروع','Service: Charter'],['svc_plan','1','خدمة: خطط المشاريع','Service: Plans'],['svc_cr','1','خدمة: طلبات التغيير','Service: Change requests'],['svc_closure','1','خدمة: التقرير الختامي','Service: Closure report']];
+function swPanel(){return card('q_sw','🎛 '+P('مفاتيح النظام','System switches'),P('تُحفظ فور التغيير وتنطبق على الجميع. الإعداد التفصيلي في «الإعدادات».','Saved on change and applied to everyone. Detailed settings live in “Settings”.'),
+ `<div class="swg">${SWS.map(s=>`<label class="sw"><input type="checkbox" ${sOn(s[0],s[1])?'checked':''} onchange="qSw('${s[0]}',this)"><span>${P(s[2],s[3])}</span></label>`).join('')}</div><div class="row"><a href="settings.html"><button type="button">${P('كل الإعدادات','All settings')}</button></a></div>`)}
+async function qSw(k,el){const v=el.checked?'1':'0';try{const r=await sb.rpc('admin_set_setting',{k,v});if(r.error)throw r.error;SETS[k]=v;toast(P('تم الحفظ','Saved'))}catch(e){el.checked=!el.checked;toast(String(e.message||e))}}
+function mntPanel(){return card('q_mnt','🛠 '+P('تشغيل يدوي','Run now'),P('مهام تعمل تلقائيًا عادةً؛ شغّلها من هنا عند الحاجة.','Jobs that normally run automatically; run them here when needed.'),
+ `<div class="tl">
+  <div><b>${P('الملخص الأسبوعي للمستخدمين','Weekly digest to users')}</b><div class="mut">${P('بالإعداد المحفوظ في «الإعدادات».','Using the saved settings.')}</div><div class="ab"><button type="button" onclick="qMnt('wdp')">${P('معاينة','Preview')}</button><button type="button" onclick="qMnt('wds')">${P('إرسال الآن','Send now')}</button></div></div>
+  <div><b>${P('ملخص المكتب الأسبوعي','Office weekly digest')}</b><div class="mut">${P('بريد لكل أدمن.','Email to every admin.')}</div><div class="ab"><button type="button" onclick="wkSend(true)">${P('معاينة','Preview')}</button><button type="button" onclick="wkSend(false)">${P('إرسال الآن','Send now')}</button></div></div>
+  <div><b>${P('التصعيد المتدرّج','Tiered escalation')}</b><div class="mut">${P('تذكير المتأخرين حسب المُهل.','Remind by thresholds.')}</div><div class="ab"><button type="button" onclick="TAB='lad';draw();ladRun(true)">${P('معاينة','Preview')}</button><button type="button" onclick="ladRun(false)">${P('تشغيل الآن','Run now')}</button></div></div>
+  <div><b>${P('لقطة المحفظة اليومية','Daily portfolio snapshot')}</b><div class="mut">${P('تغذّي مسار الإنجاز والإنذار المبكر.','Feeds trends and early warning.')}</div><div class="ab"><button type="button" onclick="qMnt('snap')">${P('التقاط الآن','Take now')}</button></div></div>
+  <div><b>${P('إعادة احتساب التقييمات','Recompute assessments')}</b><div class="mut">${P('بعد تعديل نموذج التقييم.','After changing the assessment model.')}</div><div class="ab"><button type="button" onclick="qMnt('rec')">${P('إعادة الاحتساب','Recompute')}</button></div></div>
+ </div><div id="q_out" class="mut" style="margin-top:8px"></div>`)}
+async function qMnt(k){const out=$('q_out');const say=h=>{if(out)out.innerHTML=h};
+ try{if(k=='wdp'){const r=await sb.rpc('weekly_digest2',{p_cfg:null,p_only:null,p_dry:true});if(r.error)throw r.error;say('<b>'+r.data.n+'</b> '+P('مستلم: ','recipients: ')+esc((r.data.names||[]).slice(0,30).join('، ')))}
+  else if(k=='wds'){if(!confirm(P('إرسال الملخص الأسبوعي الآن لكل المستلمين حسب الإعداد المحفوظ؟','Send the weekly digest now to all recipients per the saved settings?')))return;const r=await sb.rpc('weekly_digest2',{p_cfg:null,p_only:null,p_dry:false});if(r.error)throw r.error;say(P('أُرسل إلى ','Sent to ')+r.data.n)}
+  else if(k=='snap'){const r=await sb.rpc('snap_ensure');if(r.error)throw r.error;say(r.data?P('تم التقاط لقطة اليوم','Today’s snapshot taken'):P('لقطة اليوم موجودة مسبقًا','Today’s snapshot already exists'))}
+  else if(k=='rec'){if(!confirm(P('إعادة احتساب كل التقييمات بالنموذج الحالي؟','Recompute all assessments with the current model?')))return;const r=await sb.rpc('eval_recompute');if(r.error)throw r.error;say(P('أُعيد احتساب ','Recomputed ')+r.data)}
+ }catch(e){toast(String(e.message||e))}}
+function vQuick(){const n=[ESC.length,DELR.length,EVP.length+(WLW||[]).filter(x=>!x.cat_set).length];
+ return `<div class="chips qn">${[['q_esc','⬆ '+P('التصعيد','Escalations'),n[0]],['q_del','🗑 '+P('الحذف','Deletions'),n[1]],['q_act','⚡ '+P('تفعيل الخطط','Plan activation'),''],['q_cat','⚖ '+P('التصنيف','Categories'),n[2]],['q_sw','🎛 '+P('المفاتيح','Switches'),''],['q_mnt','🛠 '+P('تشغيل يدوي','Run now'),'']].map(c=>`<button type="button" onclick="document.getElementById('${c[0]}').scrollIntoView({behavior:'smooth',block:'start'})">${c[1]}${c[2]?` <i class="bd">${c[2]}</i>`:''}</button>`).join('')}</div>`+escPanel()+delPanel()+actPanel()+catPanel()+swPanel()+mntPanel()}
+
+/* ====== كل الأدوات: فهرس موحّد لكل خصائص الأدمن ====== */
+const F_=(t)=>'#find='+encodeURIComponent(t);
+const TOOLS=[
+ ['mon','📡','المطلوب الآن','Needs action','كل ما يحتاج تدخلك مرتّبًا بالأهمية','Everything needing you, ranked','#room'],
+ ['mon','⬆','قرارات التصعيد','Escalation decisions','توجيه أو تجاهل من هنا مباشرة','Redirect or ignore right here','#quick'],
+ ['mon','🔔','الإشعارات والإجراءات','Notifications & actions','ما ينتظر توقيعك أو قرارك','What awaits your signature or decision','inbox.html'],
+ ['mon','⏱','التصعيد التلقائي','Auto-escalation','المُهل، المعاينة، التشغيل، السجل','Thresholds, preview, run, log','#lad'],
+ ['mon','🧾','سجل التدقيق','Audit log','من فعل ماذا ومتى','Who did what and when','audit.html'],
+ ['mon','🔎','مراقبة التغييرات','Change watch','حذف، تعديل جماعي، تعديل بصفة الأدمن','Deletions, bulk edits, admin edits','#aud'],
+ ['mon','📈','أداء المستخدمين','User performance','المهام والاعتمادات لكل شخص والتذكير','Tasks and approvals per person, reminders','perf.html'],
+ ['mon','⭐','تقييمات الخدمات','Service ratings','رضا المتعاملين لكل خدمة','Customer satisfaction per service','ratings.html'],
+ ['mon','📰','ملخص المكتب الأسبوعي','Office weekly summary','نسخ، طباعة، إرسال بالبريد','Copy, print, email','#wk'],
+ ['prj','📊','المحفظة','Portfolio','الإنجاز على مستوى القطاعات والمركز','Delivery across sectors and the centre','portfolio.html'],
+ ['prj','🚨','تنبيهات اليوم','Today’s alerts','المتأخر وبلا تحديث وطلبات التغيير المفتوحة','Late, stale and open change requests','portfolio.html'+F_('تنبيهات اليوم')],
+ ['prj','🩺','جودة البيانات','Data quality','ما يُضعف دقة الأرقام','What weakens the numbers','portfolio.html'+F_('جودة البيانات')],
+ ['prj','📉','مسار الإنجاز','Progress trajectory','تراجع المشاريع عبر الأيام','Projects declining over days','portfolio.html'+F_('مسار الإنجاز')],
+ ['prj','💤','من لا يحدّث','Not updating','المكلّفون الذين توقفوا عن التحديث','Assignees who stopped updating','portfolio.html'+F_('من لا يحدّث')],
+ ['prj','🎯','الإنجاز في الموعد','On-time delivery','نسبة المهام المنجزة في موعدها','Share of tasks done on time','portfolio.html'+F_('الإنجاز في الموعد')],
+ ['prj','🗺','خارطة المشاريع','Projects roadmap','الترابط بين المشاريع','Links between projects','portfolio.html'+F_('خارطة المشاريع')],
+ ['prj','⚖','أوزان المشاريع','Project weights','التقييم والفئات والوزن اليدوي','Assessment, categories, manual weight','portfolio.html'+F_('الأوزان')],
+ ['prj','🧭','دورة المشاريع','Project lifecycle','أين يقف كل مشروع وانحراف الأساس','Where each project stands, baseline drift','#flow'],
+ ['prj','⚡','تفعيل الخطط','Plan activation','تفعيل قبل الاعتماد من هنا مباشرة','Activate before approval right here','#quick'],
+ ['prj','🗂','إعدادات المشاريع','Project settings','إخفاء، وزن، تسليم، نقل، أرشفة، صلاحيات','Hide, weight, hand over, transfer, archive, access','projects.html'],
+ ['prj','🗄','الأرشيف','Archive','الوثائق والمشاريع المؤرشفة والمحذوفة','Archived and deleted documents','archive.html'],
+ ['prj','🗃','مشاريعي','My projects','مشاريعك ومراحلها','Your projects and their stages','myprojects.html'],
+ ['svc','📜','ميثاق المشروع','Charter','الطلبات والتوقيعات والتقديم بصفة الأدمن','Requests, signatures, admin submission','charter.html'],
+ ['svc','🗓','خطط المشاريع','Plans','الخطط والإصدارات والاستشارات','Plans, versions, consultations','plan.html'],
+ ['svc','🔁','طلبات التغيير','Change requests','مراجعة واعتماد التغييرات','Review and approve changes','cr.html'],
+ ['svc','🏁','التقرير الختامي','Closure report','إغلاق المشاريع','Project closure','closure.html'],
+ ['svc','✅','المهام','Tasks','مهام الفريق وتحديثها','Team tasks and updates','tasks.html'],
+ ['usr','👥','المستخدمون','Users','إضافة وتعديل المستخدمين','Add and edit users','users.html'],
+ ['usr','🔐','الصلاحيات والمجموعات','Access and groups','صلاحيات الأفراد والمجموعات والتعديل الجماعي','Individual and group permissions, bulk edits','access.html'],
+ ['usr','🎭','الأدوار','Roles','الأدوار وصلاحياتها','Roles and their permissions','roles.html'],
+ ['usr','🛡','مراجعة الصلاحيات','Access review','تأكيد دوري وآخر دخول','Periodic confirmation and last sign-in','#acc'],
+ ['usr','🌴','إجازات المعتمِدين','Approver leave','البديل أثناء الإجازة','Substitute during leave','#appr'],
+ ['set','⚙','كل الإعدادات','All settings','الصفحة الكاملة','The full page','settings.html'],
+ ['set','🎛','مفاتيح النظام','System switches','التصعيد، التواصل، الإنابة، الخدمات','Escalation, chat, proxy, services','#quick'],
+ ['set','⚖','الأوزان (الاستراتيجي والقطاعات)','Weights (strategic & sectors)','','','settings.html'+F_('الأوزان')],
+ ['set','✍','الإنابة في التوقيع','Proxy signing','','','settings.html'+F_('الإنابة في التوقيع')],
+ ['set','🪪','ظهور الأدمن في الخطوات','Admin identity in steps','','','settings.html'+F_('ظهور الأدمن')],
+ ['set','🧮','نموذج تقييم المشروع','Project assessment model','الأسئلة والأوزان والفئات','Questions, weights, categories','settings.html'+F_('نموذج تقييم المشروع')],
+ ['set','📋','إدارة نتائج التقييم','Assessment results','','','settings.html'+F_('إدارة نتائج التقييم')],
+ ['set','⏳','مدد إنجاز الخدمات','Service turnaround','مدة المراجعة والاعتماد','Review and approval durations','settings.html'+F_('مدد إنجاز الخدمات')],
+ ['set','🧳','رحلة المتعامل وتقييم الخدمة','Customer journey & rating','','','settings.html'+F_('رحلة المتعامل')],
+ ['set','🧩','الخدمات','Services','تشغيل وإيقاف الخدمات','Turn services on/off','settings.html'+F_('الخدمات')],
+ ['set','📎','المرفقات','Attachments','الحد الأقصى للحجم','Maximum size','settings.html'+F_('المرفقات')],
+ ['set','✉','تنبيهات البريد','Email alerts','أي الأحداث تُرسل','Which events are emailed','settings.html'+F_('تنبيهات البريد')],
+ ['set','🌐','إعدادات البريد والموقع','Mail & site settings','','','settings.html'+F_('إعدادات البريد والموقع')],
+ ['set','📨','الملخص الأسبوعي للمستخدمين','Weekly digest to users','المحتوى والمستلمون والموعد','Content, recipients, schedule','settings.html'+F_('الملخص الأسبوعي')],
+ ['set','📅','أيام العمل والإجازات','Working days & holidays','للخطط والجدولة','For plans and scheduling','settings.html'+F_('أيام العمل والإجازات')],
+ ['set','📝','القوائم المنسدلة','Dropdown lists','عناصر القوائم وترتيبها','List items and order','settings.html'+F_('القوائم المنسدلة')],
+ ['set','🏠','ترتيب الصفحة الرئيسية','Home layout','المؤشرات والأقسام','Indicators and sections','settings.html'+F_('ترتيب الصفحة الرئيسية')],
+ ['set','🤝','التواصل','Chat','','','settings.html'+F_('التواصل')],
+ ['set','⬆','التصعيد (الإعداد)','Escalation (setting)','','','settings.html'+F_('التصعيد')],
+ ['oth','💬','التواصل','Chat','محادثات المشاريع','Project conversations','chat.html'],
+ ['oth','❓','المساعدة','Help','الدليل والأسئلة','Guide and FAQ','help.html'],
+ ['oth','👤','حسابي','My account','التوقيع والبيانات','Signature and details','account.html']];
+const TG={mon:['المتابعة والقرارات','Monitoring & decisions'],prj:['المحفظة والمشاريع','Portfolio & projects'],svc:['الخدمات والوثائق','Services & documents'],usr:['المستخدمون والصلاحيات','Users & access'],set:['الإعدادات','Settings'],oth:['أخرى','Other']};
+let TQ='';
+function toolH(x){const h=x[6],inT=h.charAt(0)=='#'&&!/^#find/.test(h);const badge=inT?`<span class="nw">${P('هنا','here')}</span>`:'';
+ return `<a class="tc2" href="${inT?'#':esc(h)}" ${inT?`onclick="TAB='${h.slice(1)}';draw();window.scrollTo(0,0);return false"`:''}><span class="ti">${x[1]}</span><span class="tx"><b>${esc(P(x[2],x[3]))}</b>${x[4]?`<small>${esc(P(x[4],x[5]))}</small>`:''}</span>${badge}</a>`}
+function vTools(){const q=TQ.trim().toLowerCase(),L=TOOLS.filter(x=>!q||(x[2]+' '+x[3]+' '+x[4]+' '+x[5]).toLowerCase().includes(q));
+ return `<div class="card"><input id="tq" placeholder="${P('ابحث في كل خصائص الأدمن…','Search all admin features…')}" value="${esc(TQ)}" oninput="TQ=this.value;const p=this.selectionStart;draw();const e=$('tq');if(e){e.focus();try{e.setSelectionRange(p,p)}catch(_){}}"><div class="mut" style="margin-top:6px">${P('كل خاصية تبقى في صفحتها الأصلية؛ هذا فهرس يوصلك إليها مباشرة. «هنا» تعني أنها تعمل داخل صفحة التحكم.','Every feature stays on its own page; this index takes you straight to it. “here” means it works inside Control.')}</div></div>
+ ${Object.keys(TG).map(g=>{const it=L.filter(x=>x[0]==g);return it.length?`<div class="card"><h2>${P(TG[g][0],TG[g][1])}</h2><div class="tgd">${it.map(toolH).join('')}</div></div>`:''}).join('')||`<div class="card mut">${P('لا نتائج','No results')}</div>`}`}
+
 /* ====== التحميل والتشغيل ====== */
 let ME=null,LEAVEOK=true,RULESOK=true,CHK_DB=[];
 function rebuild(){gen();ITEMS.forEach(i=>i.isNew=!!PREV&&!PREV.has(i.key))}
 function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));const lb=$('lb');if(lb)lb.textContent=A()?'EN':'ع';
- const V={room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
+ const V={quick:vQuick,tools:vTools,room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
  const op=ITEMS.filter(vis).length,bad=CHECKS.filter(c=>c.bad.length).length;
  let body='';try{body=V()}catch(e){body='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>';console.error(e)}
- a.innerHTML=`<div class="tabs">${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}</button>`).join('')}</div>${body}`}
+ a.innerHTML=`<div class="tabs">${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}${x[0]=='quick'&&(ESC.length+DELR.length+EVP.length)?` <i class="bd">${ESC.length+DELR.length+EVP.length}</i>`:''}</button>`).join('')}</div>${body}`}
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.from('profiles').select('id,full_name,role').eq('id',session.user.id).single();if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  $('app').innerHTML='<div class="card mut" style="text-align:center">'+P('جارٍ جمع الصورة الكاملة…','Gathering the full picture…')+'</div>';
@@ -422,11 +543,14 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
  RULES=rules;ELOG=elog;LEAVE=leave;LEAVEOK=!LOADERR.includes('approver_leave');RULESOK=!LOADERR.includes('escalation_rules');
  SIGNED=[].concat(sd1.map(x=>Object.assign(x,{svc:'charter'})),sd2.map(x=>Object.assign(x,{svc:'plan'})),sd3.map(x=>Object.assign(x,{svc:'cr'})),sd4.map(x=>Object.assign(x,{svc:'closure'})));
  CHK_DB=chkh;
+ const [sets,delr,evp,em]=await Promise.all([Q('app_settings','key,value'),Q('del_requests','*',r=>r.eq('status','pending')),Q('project_evals','id,pcode,created_at',r=>r.eq('status','pending')),Q('eval_model','model',r=>r.eq('id',1))]);
+ SETS={};sets.forEach(x=>SETS[x.key]=x.value);DELR=delr;EVP=evp;CATS=((em[0]||{}).model||{}).cats||[];
  PRF=prf;PRF.forEach(u=>US[u.id]=u.full_name);CH=ch;PLN=pln;CRS=crs;CLR=clr;ESC=esc_;SNP=snp;CFG={};cfg.forEach(x=>CFG[x.pcode]=x);
  SGP=[].concat(sg1.map(x=>Object.assign(x,{svc:'charter'})),sg2.map(x=>Object.assign(x,{svc:'plan'})),sg3.map(x=>Object.assign(x,{svc:'cr'})),sg4.map(x=>Object.assign(x,{svc:'closure'})));
  const R=async(fn,args)=>{try{const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data||[]}catch(e){LOADERR.push(fn);return null}};
  const [perf,wm,aud,seen]=await Promise.all([R('perf_users'),R('project_weights'),R('admin_audit',{p_from:from,p_lim:1000,p_off:0,p_hide_dup:false}),R('admin_last_seen')]);
  SEEN={};(seen||[]).forEach(x=>SEEN[x.user_id]=x.last_sign_in_at);
+ try{const w=await sb.rpc('weights_list');if(w.error)throw w.error;WLW=w.data||[]}catch(_){WLW=false}
  PERF=perf||[];WM={};(wm||[]).forEach(x=>WM[x.pcode]=+x.weight);AUD=aud||[];AUDTOT=AUD.length?+AUD[0].total:0;
  await oaLoad();
  buildProjects();runChecks();await chkSync();
@@ -666,4 +790,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=9"></script></body></html>
+<script src="ido-ui.js?v=10"></script></body></html>

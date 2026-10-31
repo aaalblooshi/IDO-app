@@ -241,11 +241,43 @@
     e.preventDefault(); e.stopPropagation(); ihOpen(b.getAttribute('data-ih'));
   }, true);
   function ihBtn(k) { return '<button type="button" class="ih" data-ih="' + k + '" aria-label="info">i</button>'; }
+
+  /* ===== رابط عميق: page.html#find=نص — يفتح القسم/التبويب المطابق ويُبرزه ===== */
+  function deep() {
+    var m = /#find=([^&]+)/.exec(location.hash); if (!m) return;
+    var q; try { q = decodeURIComponent(m[1]).replace(/\s+/g, ' ').trim(); } catch (e) { return; }
+    var SELS = ['.card.fd>h2', 'summary', 'button', 'h2', 'h3', 'a', 'label'], n = 0;
+    var tick = setInterval(function () {
+      n++; var el = null;
+      for (var s = 0; s < SELS.length && !el; s++) {
+        var c = document.querySelectorAll(SELS[s]);
+        for (var i = 0; i < c.length; i++) {
+          if (c[i].closest('#gnav,.hmp,#hd2,.top,.hm,#pgban,#idofsv,#fdbar,.ttl')) continue;
+          var tx = (c[i].textContent || '').replace(/\s+/g, ' ').trim();
+          if (tx.indexOf(q) === 0 || (tx.indexOf(q) >= 0 && tx.length < q.length + 30)) { el = c[i]; break; }
+        }
+      }
+      if (!el && n < 30) return;
+      clearInterval(tick); if (!el) return;
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+      var card = el.closest('.card.fd'), tgt = el;
+      if (card) { card.classList.remove('cl'); tgt = card; }
+      else if (el.tagName === 'SUMMARY') { el.parentNode.open = true; tgt = el.parentNode; }
+      else if (el.tagName === 'BUTTON' || el.tagName === 'A') { el.click(); tgt = null; }
+      setTimeout(function () {
+        var t = tgt && tgt.isConnected ? tgt : (document.querySelector('main') || document.body);
+        t.style.scrollMarginTop = '130px';
+        try { t.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { t.scrollIntoView(); }
+        if (tgt) { tgt.style.transition = 'box-shadow .3s'; tgt.style.boxShadow = '0 0 0 3px #3EA3DC'; setTimeout(function () { tgt.style.boxShadow = ''; }, 2200); }
+      }, 350);
+    }, 400);
+  }
   var raf = 0;
   function sched() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; navIcons(); emoji(); rngAll(); fsBars(); }); }
 
   function start() {
     addCss(); navIcons(); emoji(); rngAll(); fsBars();
+    try { deep(); } catch (e) {}
     try { new MutationObserver(sched).observe(document.body, { childList: true, subtree: true, characterData: true }); } catch (e) {}
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
