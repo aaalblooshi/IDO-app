@@ -496,6 +496,7 @@ async function load(){
      let stg;if(e0!=null&&e0<td)stg=4;else if(pc>0)stg=3;else if(s0!=null&&s0<=td)stg=2;else stg=1;if(stg==1&&!(e0!=null&&e0-td<=14))return;
      const path=[];{let c=z,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}}let pre='';const nums=path.map((q,i)=>{const sib=T.filter(y=>(y.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(y=>y.id==q.id)+1);return pre});
      E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:z.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:z.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(z.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:false,roles:new Set([pm?'pm':hd?'uh':'of']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})})})}catch(_){}
+  {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
   if(!E.scope)E.scope=E.items.some(i=>i.oth)?'all':'mine';
   /* مدد مخصصة لكل طلب */
   try{const r=await sb.from('request_sla').select('svc,req_id,stage,days');(r.data||[]).forEach(x=>{E.sla[x.svc+':'+x.req_id+':'+x.stage]=x.days})}catch(_){}
