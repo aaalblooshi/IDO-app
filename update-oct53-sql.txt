@@ -1,4 +1,4 @@
--- سجل تدخلات مكتب التطوير (غرفة المتابعة): تعيين، تأجيل، إغلاق، مراجعة الصلاحيات
+-- سجل تدخلات مكتب التطوير (صفحة التحكم): تعيين، تأجيل، إغلاق، مراجعة الصلاحيات
 create table if not exists office_actions(
   key text primary key,
   status text not null default 'open' check (status in ('open','assigned','snoozed','done')),
