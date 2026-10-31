@@ -1,0 +1,146 @@
+-- =====================================================================
+-- update-oct56: (١) ملف صلاحيات المستخدم الكامل للأدمن  (٢) مجموعات فرعية داخل محادثة المشروع — يُشغَّل بعد oct55
+-- =====================================================================
+
+-- ===== (١) كل مشروع يراه مستخدم معيّن، ولماذا، وما عليه فيه =====
+create or replace function admin_user_access(p_uid uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb := '[]'::jsonb; c record; a jsonb; e jsonb; hu text[]; tk jsonb;
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'admin only'; end if;
+  select head_units into hu from profiles where id = p_uid;
+  for c in select distinct on (code) code, data->>'pname' pn, status, data->>'sector' sec, data->>'dept' dpt
+           from charters where not archived and coalesce(code,'') <> '' order by code, (status = 'Approved') desc, id desc loop
+    a := project_access(c.code);
+    select x into e from jsonb_array_elements(a) x where x->>'user_id' = p_uid::text limit 1;
+    if coalesce(cardinality(hu),0) > 0 and units_cover(hu, c.sec, c.dpt, c.code) then
+      e := coalesce(e, jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb));
+      e := jsonb_set(e, '{reasons}', (e->'reasons') || '["unit_head"]'::jsonb);
+    end if;
+    if e is null and exists(select 1 from project_blocks b where b.pcode = c.code and b.user_id = p_uid) then
+      e := jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb, 'blocked', true);
+    end if;
+    if e is not null then
+      select jsonb_build_object(
+          'open', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100),
+          'late', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100 and nullif(t->>'e','') is not null and (t->>'e')::date < current_date),
+          'done', count(*) filter (where coalesce((t->>'pc')::numeric,0) >= 100))
+        into tk
+        from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t
+        where p.data->>'pcode' = c.code and not p.archived and (p.status = 'Approved' or p.data->>'_active' = 'true') and t->>'w' = p_uid::text;
+      r := r || jsonb_build_array(e || jsonb_build_object('pcode', c.code, 'pname', c.pn, 'status', c.status, 'tasks', tk,
+             'grant', (select jsonb_build_object('id', g.id, 'lvl', g.lvl, 'svcs', g.svcs) from project_grants g where g.pcode = c.code and g.user_id = p_uid)));
+    end if;
+  end loop;
+  return jsonb_build_object('projects', r);
+end $fn$;
+revoke all on function admin_user_access(uuid) from public, anon;
+grant execute on function admin_user_access(uuid) to authenticated;
+
+-- ===== (٢) مجموعات فرعية داخل محادثة المشروع =====
+alter table public.chat_channels drop constraint if exists chat_channels_kind_check;
+alter table public.chat_channels add constraint chat_channels_kind_check check (kind in ('project','general','group'));
+alter table public.chat_channels add column if not exists created_by uuid default auth.uid();
+
+-- الوصول: المجموعة لأعضائها فقط
+create or replace function public.chat_can_access(p_cid bigint) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare k text; pc text;
+begin
+  select kind,pcode into k,pc from chat_channels where id=p_cid;
+  if k is null or auth.uid() is null then return false; end if;
+  if k='general' then return true; end if;
+  if k='group' then return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid()); end if;
+  return exists(select 1 from profiles where id=auth.uid() and role='admin')
+      or exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid())
+      or auth.uid() in (select public.chat_project_members(pc));
+end $fn$;
+grant execute on function public.chat_can_access(bigint) to authenticated;
+
+-- إدارة المجموعة: منشئها، أو الأدمن، أو مدير المشروع ومالكه
+create or replace function public.chat_can_manage(p_cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from profiles me where me.id = auth.uid() and me.role = 'admin')
+      or exists(select 1 from chat_channels c where c.id = p_cid and c.kind = 'group' and c.created_by = auth.uid())
+      or exists(select 1 from chat_channels c, profiles me
+                where c.id = p_cid and c.kind in ('project','group') and me.id = auth.uid()
+                  and (exists(select 1 from charters ch where ch.code = c.pcode and (ch.data->>'pmname' = me.full_name or ch.data->>'owner' = me.full_name))
+                    or exists(select 1 from plans pl where pl.data->>'pcode' = c.pcode and pl.data->>'pmname' = me.full_name)))
+$$;
+grant execute on function public.chat_can_manage(bigint) to authenticated;
+
+-- إنشاء مجموعة: لمن يصل إلى محادثة المشروع، ويضم من يختارهم (من المشروع أو غيره)
+create or replace function public.chat_group_create(p_pcode text, p_name text, p_users uuid[]) returns bigint
+language plpgsql security definer set search_path=public as $fn$
+declare i bigint; me text; pn text; u uuid;
+begin
+  if not chat_on() then raise exception 'chat disabled'; end if;
+  if coalesce(trim(p_name),'') = '' then raise exception 'name required'; end if;
+  if not (exists(select 1 from profiles where id=auth.uid() and role='admin') or auth.uid() in (select public.chat_project_members(p_pcode))
+          or exists(select 1 from chat_members m join chat_channels c on c.id=m.channel_id where c.kind='project' and c.pcode=p_pcode and m.user_id=auth.uid())) then
+    raise exception 'not allowed'; end if;
+  insert into chat_channels(kind,pcode,name,created_by) values('group',p_pcode,left(trim(p_name),80),auth.uid()) returning id into i;
+  insert into chat_members(channel_id,user_id) values(i,auth.uid()) on conflict do nothing;
+  select full_name into me from profiles where id=auth.uid();
+  pn := coalesce((select data->>'pname' from charters where code=p_pcode order by id desc limit 1), p_pcode);
+  foreach u in array coalesce(p_users,'{}') loop
+    if u <> auth.uid() and exists(select 1 from profiles where id=u) then
+      insert into chat_members(channel_id,user_id) values(i,u) on conflict do nothing;
+      insert into user_nudges(to_user,from_user,from_name,msg) values(u,auth.uid(),me,'أُضفت إلى مجموعة «'||left(trim(p_name),80)||'» في محادثة مشروع: '||pn);
+    end if;
+  end loop;
+  return i;
+end $fn$;
+grant execute on function public.chat_group_create(text,text,uuid[]) to authenticated;
+
+-- مجموعاتي (مع غير المقروء)
+create or replace function public.chat_my_groups() returns table(id bigint, pcode text, name text, project text, last_at timestamptz, n bigint)
+language sql stable security definer set search_path=public as $$
+  select c.id, c.pcode, c.name,
+    coalesce((select data->>'pname' from charters where code=c.pcode order by id desc limit 1), c.pcode),
+    (select max(m.created_at) from chat_messages m where m.channel_id=c.id and not m.deleted),
+    coalesce((select count(*) from chat_messages m where m.channel_id=c.id and not m.deleted and m.from_user<>auth.uid()
+       and m.created_at>coalesce((select r.last_read from chat_reads r where r.user_id=auth.uid() and r.channel_id=c.id),'-infinity'::timestamptz)),0)
+  from chat_channels c
+  where c.kind='group' and exists(select 1 from chat_members m where m.channel_id=c.id and m.user_id=auth.uid())
+$$;
+grant execute on function public.chat_my_groups() to authenticated;
+
+-- أعضاء المحادثة: للمجموعة = أعضاؤها
+create or replace function public.chat_members_list(p_cid bigint) returns table(user_id uuid, extra boolean)
+language plpgsql stable security definer set search_path=public as $fn$
+declare pc text; k text;
+begin
+  if not chat_can_access(p_cid) then raise exception 'not allowed'; end if;
+  select c.pcode, c.kind into pc, k from chat_channels c where c.id=p_cid;
+  if k = 'group' then return query select m.user_id, false from chat_members m where m.channel_id=p_cid; return; end if;
+  if k is distinct from 'project' or pc is null then return; end if;
+  return query select distinct u, false from public.chat_project_members(pc) u
+    union select m.user_id, true from chat_members m
+     where m.channel_id=p_cid and m.user_id not in (select public.chat_project_members(pc))
+       and (m.added_by is distinct from m.user_id or not exists(select 1 from profiles p where p.id=m.user_id and p.role='admin'));
+end $fn$;
+grant execute on function public.chat_members_list(bigint) to authenticated;
+
+-- إضافة وإزالة في المجموعة: أي عضو يضيف، ومدير المجموعة يزيل (ويمكن لأي عضو مغادرتها)
+create or replace function public.chat_group_add(p_cid bigint, p_user uuid) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not exists(select 1 from chat_channels where id=p_cid and kind='group') or not (chat_can_access(p_cid) or chat_can_manage(p_cid)) then raise exception 'not allowed'; end if;
+  if not exists(select 1 from profiles where id=p_user) then raise exception 'bad user'; end if;
+  insert into chat_members(channel_id,user_id) values(p_cid,p_user) on conflict do nothing;
+  insert into user_nudges(to_user,from_user,from_name,msg)
+    select p_user,auth.uid(),(select full_name from profiles where id=auth.uid()),'أُضفت إلى مجموعة: '||coalesce((select name from chat_channels where id=p_cid),'') where p_user<>auth.uid();
+end $fn$;
+grant execute on function public.chat_group_add(bigint,uuid) to authenticated;
+
+create or replace function public.chat_group_remove(p_cid bigint, p_user uuid) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not exists(select 1 from chat_channels where id=p_cid and kind='group') then raise exception 'not allowed'; end if;
+  if not (chat_can_manage(p_cid) or p_user = auth.uid()) then raise exception 'not allowed'; end if;
+  delete from chat_members where channel_id=p_cid and user_id=p_user;
+end $fn$;
+grant execute on function public.chat_group_remove(bigint,uuid) to authenticated;
+
+notify pgrst, 'reload schema';

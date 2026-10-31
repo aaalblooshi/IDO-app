@@ -158,7 +158,7 @@ Object.assign(D,{
  title:['مهامي','My tasks'],search:['ابحث في المهام…','Search tasks…'],allP:['كل المشاريع','All projects'],allS:['كل القطاعات','All sectors'],allU:['كل المكلّفين','All assignees'],
  mMe:['مهامي','My tasks'],mTeam:['مهام الفريق','Team tasks'],
  vList:['قائمة','List'],vProj:['حسب المشروع','By project'],vGantt:['مخطط زمني','Timeline'],
- tOpen:['المتبقية','Remaining'],tProg:['قيد التنفيذ','In progress'],tFut:['لم تبدأ بعد','Not started yet'],tLate:['متأخرة','Late'],tToday:['موعد إنجازها اليوم','Due today'],tWeek:['هذا الأسبوع','This week'],tMonth:['هذا الشهر','This month'],tDone:['منجزة','Done'],tAll:['الكل','All'],
+ tOpen:['المتبقية','Remaining'],tProg:['قيد التنفيذ','In progress'],tFut:['لم تبدأ بعد','Not started yet'],tLate:['متأخرة','Late'],tToday:['موعد إنجازها اليوم','Due today'],tWeek:['هذا الأسبوع','This week'],tMonth:['هذا الشهر','This month'],tDone:['منجزة','Done'],tStale:['بلا تحديث +١٤ يومًا','Not updated 14d+'],tAll:['الكل','All'],
  none:['لا توجد مهام هنا.','No tasks here.'],noany:['لا توجد مهام مسندة إليك في خطط معتمدة.','No tasks are assigned to you in approved plans.'],
  plan:['الفترة','Period'],prog:['الإنجاز','Progress'],done:['✓ أنجزتها','✓ Done'],undo:['تراجع','Undo'],open:['فتح','Open'],
  ics:['📅 تصدير إلى التقويم','📅 Export to calendar'],icsH:['يُصدّر مهامك المتبقية إلى تقويم الهاتف مع تذكير قبل الموعد بيوم.','Exports your remaining tasks to your phone calendar with a 1-day reminder.'],
@@ -271,10 +271,12 @@ function scope(){
   return true})}
 const leaves=rs=>rs.filter(r=>r.leaf);
 function tabF(r){const w0=mon0(TODAY),w1=w0+6,s=stOf(r);
- switch(TAB){case'open':return s!='done';case'late':return s=='late';case'prog':return s=='prog';case'fut':return s=='fut';case'today':return s!='done'&&r.e==TODAY;case'week':return s!='done'&&r.s!=null&&r.e!=null&&r.s<=w1&&r.e>=w0;case'done':return s=='done';default:return true}}
+ switch(TAB){case'open':return s!='done';case'late':return s=='late';case'prog':return s=='prog';case'fut':return s=='fut';case'today':return s!='done'&&r.e==TODAY;case'week':return s!='done'&&r.s!=null&&r.e!=null&&r.s<=w1&&r.e>=w0;case'done':return s=='done';case'stale':return isStaleR(r);default:return true}}
+function isStaleR(r){if(!r.leaf||(+r.pcr||0)>=100||r.s==null||r.s>=TODAY)return false;const u=r.x.tu&&r.x.tu.at?dnS(String(r.x.tu.at).slice(0,10)):null;return u!=null?TODAY-u>14:TODAY-r.s>14}
+const dnS=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
 const cntTab=k=>{const s=TAB;TAB=k;const n=leaves(scope()).filter(tabF).length;TAB=s;return n};
 const sortP=(a,b)=>prio(b)-prio(a)||(a.e==null)-(b.e==null)||a.e-b.e;
-const TABS=[['open','tOpen'],['late','tLate'],['prog','tProg'],['fut','tFut'],['today','tToday'],['week','tWeek'],['done','tDone'],['all','tAll']];
+const TABS=[['open','tOpen'],['late','tLate'],['prog','tProg'],['fut','tFut'],['today','tToday'],['week','tWeek'],['done','tDone'],['stale','tStale'],['all','tAll']];
 const legend=()=>`<div class="stp">${['fut','prog','late','done'].map(k=>`<span style="--c:${SCOL[k]}">${t('st_'+k)}</span>`).join('')}</div>`;
 /* ---- shell ---- */
 function draw(){
@@ -439,7 +441,10 @@ function tFocus(k){const r=window.GR2&&GR2[k];const w=document.querySelector('.g
 const findR=k=>{const [pid,tid]=k.split('|');return ALLR.find(z=>String(z.pr.pid)==pid&&z.id==tid)};
 function utoast(m,fn){let e=$('ut');if(e)e.remove();e=document.createElement('div');e.id='ut';e.className='ut';e.innerHTML=`<span>${esc(m)}</span><button id="utb">${t('undo')}</button>`;document.body.appendChild(e);
  $('utb').onclick=()=>{e.remove();fn()};setTimeout(()=>e.remove(),7000)}
-async function rpcProg(r,v,as,ae,note){const args={pid:+r.pr.pid,tid:r.id,p_pc:v,p_as:as||'',p_ae:ae||''};if(note!==undefined)args.p_note=note;
+async function rpcProg(r,v,as,ae,note){
+ if(+v>=100&&(+r.pcr||0)<100&&r.own&&r.own!=ME.id&&!rpcProg.ok){const who=UN[r.own]||(lang=='ar'?'مستخدم آخر':'another user');
+  if(!confirm(lang=='ar'?'هذه المهمة مسندة إلى '+who+'.\nهل تريد تأكيد إغلاقها (إنجاز ١٠٠٪) نيابةً عنه؟ سيُسجَّل الإغلاق باسمك.':'This task is assigned to '+who+'.\nConfirm closing it (100%) on their behalf? The closure will be logged under your name.'))throw new Error(lang=='ar'?'أُلغي الإغلاق':'Closing cancelled')}
+const args={pid:+r.pr.pid,tid:r.id,p_pc:v,p_as:as||'',p_ae:ae||''};if(note!==undefined)args.p_note=note;
  const {error}=await sb.rpc('set_task_progress',args);if(error)throw error}
 function quick(k){const r=findR(k);if(!r)return;const old={pc:r.pcr,as:r.x.as||'',ae:r.x.ae||''},tdy=ds(TODAY);
  const as=r.x.as||(r.s!=null&&r.s<=TODAY?r.x.s:tdy);
