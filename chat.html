@@ -103,6 +103,23 @@ body.emb .chat{height:var(--vvh,100dvh)!important}
 body.emb .chat.has .conv{position:fixed;inset:0;height:var(--vvh,100dvh)}
  .ha{position:relative}.ha button{font-size:19px;color:#54656f}.hmn{position:absolute;top:100%;inset-inline-end:0;z-index:20;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;min-width:220px;display:flex;flex-direction:column}.hmn button{font-size:14.5px!important;text-align:start;padding:10px 12px!important;color:var(--ink)!important;white-space:nowrap}
  .hmn[hidden],.pls[hidden]{display:none!important}
+ .msgs>:first-child{margin-top:auto}
+ .cmp{padding-bottom:max(10px,env(safe-area-inset-bottom))!important}
+ @media(pointer:coarse){.cmp{padding-bottom:max(22px,env(safe-area-inset-bottom))!important}}
+ .chd .tx{min-width:0}.chd .av{position:relative;font-size:16px}.chd .av .gb2{position:absolute;bottom:-3px;inset-inline-end:-4px;font-style:normal;font-size:12px;background:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+ .bb{position:relative}.mg.first:not(.me) .bb:before,.mg.me.first .bb:before{content:"";position:absolute;top:0;width:8px;height:13px}
+ .mg.first:not(.me) .bb:before{inset-inline-start:-7px;background:#fff;clip-path:polygon(100% 0,0 0,100% 100%)}
+ html[dir=rtl] .mg.first:not(.me) .bb:before{clip-path:polygon(0 0,100% 0,0 100%)}
+ .mg.me.first .bb:before{inset-inline-end:-7px;background:#d9fdd3;clip-path:polygon(0 0,100% 0,0 100%)}
+ html[dir=rtl] .mg.me.first .bb:before{clip-path:polygon(100% 0,0 0,100% 100%)}
+ .mg{gap:6px}.mg:not(.first){margin-top:0}.mg.first{margin-top:6px}
+ .rq{display:flex;flex-direction:column;background:rgba(0,0,0,.05);border-inline-start:4px solid var(--qc,#06cf9c);border-radius:8px;padding:4px 8px;margin:2px 0 4px;cursor:pointer;max-width:100%}.rq b{color:var(--qc,#06cf9c);font-size:12.5px}.rq span{font-size:13px;color:#54656f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .rpq{flex-direction:row;align-items:center;gap:8px;background:#fff;margin:0 4px 6px}.rpq span{flex:1}.rpq button{border:0;background:none;font-size:16px;color:#54656f}
+ .tpb .bb{padding:8px 12px}.dots{display:inline-flex;gap:4px}.dots i{width:7px;height:7px;border-radius:50%;background:#8696a0;animation:dt 1.2s infinite}.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}@keyframes dt{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+ .sdb{position:absolute;bottom:84px;inset-inline-start:14px;width:40px;height:40px;border-radius:50%;border:0;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);font-size:22px;color:#54656f;z-index:4;padding:0;line-height:1}.sdb[hidden]{display:none}
+ .snd{transition:transform .12s,opacity .15s}.snd.dim{opacity:.55}.snd:active{transform:scale(.92)}
+ .cin textarea:focus{outline:none!important;box-shadow:0 0 0 2px rgba(0,168,132,.35)!important;border-color:transparent!important}
+ .ac{gap:4px}.ac button{border-radius:99px;background:#f0f2f5;border:0;font-size:12.5px}
  .rk{font-weight:700;color:#8696a0}.rk.r{color:#53bdeb}
 </style>
 </head><body>
@@ -125,7 +142,7 @@ const T2=(a,e)=>lang=='ar'?a:e;
 const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخروج','Sign out'],home:['الرئيسية','Home'],title:['التواصل','Chat'],needLogin:['سجّل الدخول أولًا.','Please sign in first.'],signin:['تسجيل الدخول','Sign in'],
  off:['خاصية التواصل غير مفعّلة حاليًا. يفعّلها الأدمن من الإعدادات.','Chat is currently disabled. An admin can enable it in Settings.']};
 const t=k=>(D[k]||[k,k])[lang=='ar'?0:1];
-let LAST={},TYP={},ONL=new Set(),RTG=null,CHF='all',PLUS=false,GRPS=[],GSEL=new Set(),ME=null,UN={},ON=false,PROJ=[],GEN=null,UNR={},PINS=new Set(),DMS={},CUR=null,MSGS=[],MEM=[],ATT=[],REFS=[],Q='',SEL=null,PANEL=null,MENC={},MEN=null,URLC={},DR={},SIG='',BUSY=false,SHOWALL=false;
+let REPLY=null,LAST={},TYP={},ONL=new Set(),RTG=null,CHF='all',PLUS=false,GRPS=[],GSEL=new Set(),ME=null,UN={},ON=false,PROJ=[],GEN=null,UNR={},PINS=new Set(),DMS={},CUR=null,MSGS=[],MEM=[],ATT=[],REFS=[],Q='',SEL=null,PANEL=null,MENC={},MEN=null,URLC={},DR={},SIG='',BUSY=false,SHOWALL=false;
 const OFFICE=()=>T2('مكتب التطوير المؤسسي','Institutional Development Office');
 let AIDC='both';
 const admCtx=id=>{const u=UN[id];if(!u||u.role!='admin'||id==(ME||{}).id)return false;if(!CUR||CUR.t!='ch')return false;if(!CUR.pcode)return true;return !MEM.some(m=>m.user_id==id)};
@@ -142,7 +159,7 @@ const KI={task:'✅',plan:'🗂',charter:'📄',cr:'🔁',closure:'🏁',user:'�
 const refHref=r=>r.k=='task'?'tasks.html#t='+encodeURIComponent(r.id):(['charter','plan','cr','closure'].includes(r.k)?r.k+'.html#o='+r.id:'');
 function shell(){
  $('app').innerHTML=`<div class="chat ${CUR?'has':''}" id="chat"><aside class="rail" id="rail"><div class="rh"><input id="q" type="search" autocomplete="off" placeholder="${T2('ابحث عن مشروع أو زميل…','Search project or colleague…')}" value="${esc(Q)}">${EMB?'<button class="xb" onclick="parent.postMessage({chatClose:1},\'*\')">✕</button>':''}</div><div id="rl" class="rl"></div></aside>
- <section class="conv" id="conv"><div class="chd" id="chead"></div><div id="pinbar"></div><div class="msgs" id="msgs"></div><div id="side"></div><div class="cmp" id="cmp"></div></section></div>`;
+ <section class="conv" id="conv"><div class="chd" id="chead"></div><div id="pinbar"></div><div class="msgs" id="msgs" onscroll="sdbUpd()"></div><button id="sdb" class="sdb" hidden onclick="const b=$('msgs');b.scrollTo({top:b.scrollHeight,behavior:'smooth'})">⌄</button><div id="side"></div><div class="cmp" id="cmp"></div></section></div>`;
  $('q').oninput=e=>{Q=e.target.value;drawRail()};
  drawRail();drawConv()}
 const hue=t=>{let h=0;String(t||'').split('').forEach(c=>h=(h*31+c.charCodeAt(0))%360);return h};
@@ -203,13 +220,13 @@ function drawHead(){const el=$('chead');if(!el)return;
  if(!CUR){el.innerHTML='';el.style.display='none';$('msgs').innerHTML=`<div class="empty"><div style="font-size:42px">💬</div><b>${T2('اختر محادثة','Pick a conversation')}</b><div class="mut">${T2('محادثة لكل مشروع، ورسائل مباشرة مع الزملاء.','One chat per project, plus direct messages.')}</div></div>`;$('cmp').style.display='none';return}
  el.style.display='';$('cmp').style.display='';
  const pin=PINS.has(keyOf(CUR))||(CUR.pcode&&PINS.has('pc:'+CUR.pcode)),pn=MSGS.filter(m=>m.pinned&&!m.deleted).length,mu=PINS.has('m:'+keyOf(CUR));
- el.innerHTML=`<button class="bk" onclick="backRail()">${lang=='ar'?'→':'←'}</button><div class="av ${CUR.t=='dm'?'':'sq'}" style="${CUR.t=='dm'?avC(CUR.name):''}">${CUR.t=='dm'?esc(ini(CUR.name)):(CUR.grp?'👥':CUR.pcode?'📁':'🌐')}</div><div class="tx"><b>${esc(CUR.name||'')}</b><span id="hst" class="${hstTyp()?'typ':''}">${hstTxt()||(CUR.t=='dm'?esc(CUR.sub||''):CUR.pcode?(CUR.grp?T2('مجموعة في: ','Group in: ')+esc(CUR.sub||''):esc(CUR.pcode))+' · '+(MEM.length?MEM.length+' '+T2('عضو','members'):''):T2('كل المستخدمين','Everyone'))}</span></div>
- <div class="ha">${CUR.pcode?`<button title="${T2('الأعضاء','Members')}" onclick="panel('mem')">👥</button>`:''}<button title="${T2('المزيد','More')}" onclick="hmT(event)">⋮</button>${EMB?`<button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}<div class="hmn" id="hmn" hidden><button onclick="hmT();panel('pin')">📌 ${T2('الرسائل المثبّتة','Pinned messages')}${pn?' ('+pn+')':''}</button><button onclick="hmT();muteConv()">${mu?'🔔 '+T2('إلغاء الكتم','Unmute'):'🔕 '+T2('كتم الإشعارات','Mute notifications')}</button><button onclick="hmT();pinConv()">${pin?'★ '+T2('إلغاء تثبيت المحادثة','Unpin conversation'):'☆ '+T2('تثبيت المحادثة في الأعلى','Pin conversation to top')}</button>${EMB?`<button onclick="hmT();fullPage()">↗ ${T2('فتح في صفحة كاملة','Open full page')}</button>`:''}</div></div>`}
+ el.innerHTML=`<button class="bk" onclick="backRail()">${lang=='ar'?'→':'←'}</button><div class="av" style="${avC(CUR.name)}">${CUR.t=='dm'?esc(ini(CUR.name)):(CUR.pcode?esc(ini(CUR.name)):'🌐')}${CUR.t=='dm'&&ONL.has(CUR.id)?'<i class="on"></i>':''}${CUR.grp?'<i class="gb2">👥</i>':''}</div><div class="tx" ${CUR.pcode?`onclick="panel('mem')" style="cursor:pointer"`:''}><b>${esc(CUR.name||'')}</b><span id="hst" class="${hstTyp()?'typ':''}">${hstTxt()||(CUR.t=='dm'?esc(CUR.sub||''):CUR.pcode?(CUR.grp?T2('مجموعة في: ','Group in: ')+esc(CUR.sub||''):esc(CUR.pcode))+' · '+(MEM.length?MEM.length+' '+T2('عضو','members'):''):T2('كل المستخدمين','Everyone'))}</span></div>
+ <div class="ha"><button title="${T2('المزيد','More')}" onclick="hmT(event)">⋮</button>${EMB?`<button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}<div class="hmn" id="hmn" hidden>${CUR.pcode?`<button onclick="hmT();panel('mem')">👥 ${T2('الأعضاء والمجموعات','Members & groups')}</button>`:''}<button onclick="hmT();panel('pin')">📌 ${T2('الرسائل المثبّتة','Pinned messages')}${pn?' ('+pn+')':''}</button><button onclick="hmT();muteConv()">${mu?'🔔 '+T2('إلغاء الكتم','Unmute'):'🔕 '+T2('كتم الإشعارات','Mute notifications')}</button><button onclick="hmT();pinConv()">${pin?'★ '+T2('إلغاء تثبيت المحادثة','Unpin conversation'):'☆ '+T2('تثبيت المحادثة في الأعلى','Pin conversation to top')}</button>${EMB?`<button onclick="hmT();fullPage()">↗ ${T2('فتح في صفحة كاملة','Open full page')}</button>`:''}</div></div>`}
 function hmT(e){if(e)e.stopPropagation();const m=$('hmn');if(m)m.hidden=!m.hidden}
 document.addEventListener('click',e=>{const m=$('hmn');if(m&&!m.hidden&&!e.target.closest('#hmn'))m.hidden=true});
 function hstTyp(){return CUR&&typingIn(keyOf(CUR)).length>0}
 function hstTxt(){if(!CUR)return '';const tp=typingIn(keyOf(CUR));if(tp.length)return CUR.t=='dm'?T2('يكتب الآن…','typing…'):esc(tp.map(u=>snm(u).split(' ')[0]).join('، '))+' '+T2('يكتب…','typing…');if(CUR.t=='dm'&&ONL.has(CUR.id))return T2('متصل الآن','online');return ''}
-function updHst(){const e=$('hst');if(!e||!CUR)return;const t=hstTxt();if(t){e.innerHTML=t;e.className=hstTyp()?'typ':''}else drawHead()}
+function updHst(){tpBubble();const e=$('hst');if(!e||!CUR)return;const t=hstTxt();if(t){e.innerHTML=t;e.className=hstTyp()?'typ':''}else drawHead()}
 function backRail(){CUR=null;$('chat').classList.remove('has');drawRail();drawHead()}
 function fullPage(){const u='chat.html'+(CUR&&CUR.pcode?'?p='+encodeURIComponent(CUR.pcode):'');try{top.location.href=u}catch(_){location.href=u}}
 async function pinConv(){if(!CUR)return;const k=keyOf(CUR),on=!PINS.has(k);try{const r=await sb.rpc('chat_pin_conv',{p_k:k,p_on:on});if(r.error)throw r.error;on?PINS.add(k):PINS.delete(k);drawRail();drawHead();toast(on?T2('تم تثبيت المحادثة','Conversation pinned'):T2('أُلغي التثبيت','Unpinned'))}catch(e){toast(e.message||e)}}
@@ -240,18 +257,24 @@ function jump(id){PANEL=null;drawSide();const e=document.querySelector('[data-m=
 function msgHtml(m,prev){const mine=m.from_user==ME.id,grp=CUR.t=='ch'&&!mine,first=!prev||prev.from_user!=m.from_user||(new Date(m.created_at)-new Date(prev.created_at))>3e5||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString();
  let tx=esc(m.body||'').replace(/\n/g,'<br>');const refs=m.refs||[];
  refs.forEach(r=>{if(r.tk){const e=esc(r.tk);tx=tx.split(e).join('<b class="tk">'+e+'</b>')}});
- const chips=refs.filter(r=>r.k!='user').map(r=>{const h=refHref(r);return `<a class="rf" ${h?`href="${h}" target="_top"`:''}>${KI[r.k]||'🔗'} ${esc(r.label||'')}</a>`}).join('');
+ const rq=refs.find(r=>r.k=='reply');const chips=refs.filter(r=>r.k!='user'&&r.k!='reply').map(r=>{const h=refHref(r);return `<a class="rf" ${h?`href="${h}" target="_top"`:''}>${KI[r.k]||'🔗'} ${esc(r.label||'')}</a>`}).join('');
  const atts=(m.attachments||[]).map(a=>/^image\//.test(a.type||'')?`<img class="ai" data-p="${esc(a.path)}" alt="${esc(a.name)}" onclick="openAtt('${esc(a.path)}')">`:`<a class="fl" href="#" onclick="openAtt('${esc(a.path)}');return false">📎 ${esc(a.name)}${a.size?' <small>'+sz(a.size)+'</small>':''}</a>`).join('');
- const body=m.deleted?`<i class="mut">${T2('تم حذف هذه الرسالة','This message was deleted')}</i>`:`${tx?`<div class="tx2">${tx}</div>`:''}${chips?`<div class="rfs">${chips}</div>`:''}${atts?`<div class="ats">${atts}</div>`:''}`;
- const act=m.deleted?'':`<div class="ac"><button onclick="pinMsg(${m.id},${!m.pinned})">📌 ${m.pinned?T2('إلغاء التثبيت','Unpin'):T2('تثبيت','Pin')}</button><button onclick="cpMsg(${m.id})">⧉ ${T2('نسخ','Copy')}</button>${mine||ME.role=='admin'?`<button class="r" onclick="delMsg(${m.id})">🗑 ${T2('حذف','Delete')}</button>`:''}</div>`;
+ const body=m.deleted?`<i class="mut">${T2('تم حذف هذه الرسالة','This message was deleted')}</i>`:`${rq?`<div class="rq" onclick="event.stopPropagation();jump(${+rq.id||0})" style="--qc:hsl(${hue(snm(rq.u))},55%,40%)"><b>${esc(rq.u==ME.id?T2('أنت','You'):snm(rq.u))}</b><span>${esc(rq.label||'')}</span></div>`:''}${tx?`<div class="tx2">${tx}</div>`:''}${chips?`<div class="rfs">${chips}</div>`:''}${atts?`<div class="ats">${atts}</div>`:''}`;
+ const act=m.deleted?'':`<div class="ac"><button onclick="replyTo(${m.id})">↩ ${T2('رد','Reply')}</button><button onclick="pinMsg(${m.id},${!m.pinned})">📌 ${m.pinned?T2('إلغاء التثبيت','Unpin'):T2('تثبيت','Pin')}</button><button onclick="cpMsg(${m.id})">⧉ ${T2('نسخ','Copy')}</button>${mine||ME.role=='admin'?`<button class="r" onclick="delMsg(${m.id})">🗑 ${T2('حذف','Delete')}</button>`:''}</div>`;
  return (!prev||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString()?`<div class="dsep"><span>${fmtD(m.created_at)}</span></div>`:'')+
  `<div class="mg ${mine?'me':''} ${first?'first':''}" data-m="${m.id}" onclick="selMsg(${m.id},event)">${grp?`<div class="av sm">${first?esc(ini(snm(m.from_user))):''}</div>`:''}<div class="bb ${SEL==m.id?'sel':''}">${grp&&first?`<div class="nm">${esc(snm(m.from_user))}</div>`:''}${m.pinned?'<span class="pn">📌</span>':''}${body}<small>${fmtT(m.created_at)}${mine&&CUR.t=='dm'?(m.read_at?' <b class="rk r">✓✓</b>':' <b class="rk">✓</b>'):''}</small>${SEL==m.id?act:''}</div></div>`}
 async function drawMsgs(scroll){const b=$('msgs');if(!b||!CUR)return;const near=scroll||b.scrollHeight-b.scrollTop-b.clientHeight<80;
  b.innerHTML=MSGS.length?MSGS.map((m,i)=>msgHtml(m,MSGS[i-1])).join(''):`<div class="empty"><div style="font-size:38px">${CUR.t=='dm'?'👋':'💬'}</div><b>${T2('ابدأ المحادثة','Start the conversation')}</b><div class="mut">${CUR.pcode?T2('يرى هذه الرسائل كل أعضاء المشروع.','All project members see these messages.'):''}</div></div>`;
- if(near)b.scrollTop=b.scrollHeight;
+ tpBubble();if(near)b.scrollTop=b.scrollHeight;
  const imgs=[...b.querySelectorAll('img.ai')];const need=imgs.map(i=>i.dataset.p).filter(p=>!URLC[p]);
  if(need.length){try{const r=await sb.storage.from('chat').createSignedUrls(need,3600);(r.data||[]).forEach(x=>{if(x.signedUrl)URLC[x.path]=x.signedUrl})}catch(_){}}
  imgs.forEach(i=>{if(URLC[i.dataset.p])i.src=URLC[i.dataset.p]});if(near)b.scrollTop=b.scrollHeight}
+function replyTo(id){const m=MSGS.find(x=>x.id==id);if(!m)return;REPLY={id:m.id,u:m.from_user,label:(m.body||'📎').slice(0,90)};SEL=null;drawMsgs(false);drawRpb();const ta=$('mt');if(ta)ta.focus()}
+function drawRpb(){const el=$('rpb');if(!el)return;el.innerHTML=REPLY?`<div class="rq rpq" style="--qc:hsl(${hue(snm(REPLY.u))},55%,40%)"><b>${esc(REPLY.u==ME.id?T2('أنت','You'):snm(REPLY.u))}</b><span>${esc(REPLY.label)}</span><button onclick="REPLY=null;drawRpb()">✕</button></div>`:''}
+function sndSt(){const ta=$('mt'),b=document.querySelector('.snd');if(b&&ta)b.classList.toggle('dim',!ta.value.trim()&&!ATT.length)}
+function tpBubble(){const b=$('msgs');if(!b||!CUR)return;let t=b.querySelector('.tpb');const tp=typingIn(keyOf(CUR));
+ if(tp.length){const near=b.scrollHeight-b.scrollTop-b.clientHeight<90;if(!t){t=document.createElement('div');t.className='mg tpb';b.appendChild(t)}t.innerHTML=`<div class="bb">${CUR.t=='ch'?`<div class="nm">${esc(snm(tp[0]).split(' ')[0])}</div>`:''}<span class="dots"><i></i><i></i><i></i></span></div>`;if(near)b.scrollTop=b.scrollHeight}else if(t)t.remove()}
+function sdbUpd(){const b=$('msgs'),s=$('sdb');if(!b||!s)return;s.hidden=b.scrollHeight-b.scrollTop-b.clientHeight<160}
 function selMsg(id,e){if(e.target.closest('a,button,img'))return;SEL=SEL==id?null:id;drawMsgs(false)}
 async function openAtt(p){try{let u=URLC[p];if(!u){const r=await sb.storage.from('chat').createSignedUrl(p,3600);u=r.data&&r.data.signedUrl;URLC[p]=u}if(u)window.open(u,'_blank')}catch(e){toast(e.message||e)}}
 async function pinMsg(id,on){const r=await sb.rpc('chat_pin_msg',{p_id:id,p_on:on});if(r.error)return toast(r.error.message);SEL=null;SIG='';await loadMsgs(false)}
@@ -259,13 +282,14 @@ async function delMsg(id){if(!confirm(T2('حذف هذه الرسالة؟','Delet
 function cpMsg(id){const m=MSGS.find(x=>x.id==id);if(m){try{navigator.clipboard.writeText(m.body||'');toast(T2('تم النسخ','Copied'))}catch(_){}}SEL=null;drawMsgs(false)}
 /* ---- المحرّر ---- */
 function drawCmp(){const el=$('cmp');if(!el||!CUR)return;const canRef=!!CUR.pcode,canAt=CUR.t=='ch';
- el.innerHTML=`<div id="qref"></div><div id="achips" class="achips"></div><div id="menpop"></div><div class="pls" id="pls" hidden><button onclick="plusT();$('fi').click()">📎 ${T2('ملف أو صورة','File or photo')}</button>${canRef?`<button onclick="plusT();menBtn('#')"># ${T2('مهمة أو طلب','Task or request')}</button>`:''}${canAt?`<button onclick="plusT();menBtn('@')">@ ${T2('إشارة لشخص','Mention someone')}</button>`:''}</div><div class="cin"><button class="ib plb" title="${T2('إرفاق وإشارة','Attach & mention')}" onclick="plusT()">＋</button><textarea id="mt" rows="1" enterkeyhint="send" placeholder="${T2('اكتب رسالة','Message')}"></textarea><button class="snd" aria-label="${T2('إرسال','Send')}" onclick="sendM()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button></div><input type="file" id="fi" multiple style="display:none">`;
- const ta=$('mt');ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping()};
+ el.innerHTML=`<div id="qref"></div><div id="achips" class="achips"></div><div id="menpop"></div><div id="rpb"></div><div class="pls" id="pls" hidden><button onclick="plusT();$('fi').click()">📎 ${T2('ملف أو صورة','File or photo')}</button>${canRef?`<button onclick="plusT();menBtn('#')"># ${T2('مهمة أو طلب','Task or request')}</button>`:''}${canAt?`<button onclick="plusT();menBtn('@')">@ ${T2('إشارة لشخص','Mention someone')}</button>`:''}</div><div class="cin"><button class="ib plb" title="${T2('إرفاق وإشارة','Attach & mention')}" onclick="plusT(event)">＋</button><textarea id="mt" rows="1" enterkeyhint="send" placeholder="${T2('اكتب رسالة','Message')}"></textarea><button class="snd" aria-label="${T2('إرسال','Send')}" onclick="sendM()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button></div><input type="file" id="fi" multiple style="display:none">`;
+ const ta=$('mt');ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping();sndSt()};ta.onfocus=()=>{const p=$('pls');if(p)p.hidden=true;setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},250)};
  ta.onkeydown=e=>{if(MEN&&['ArrowDown','ArrowUp','Enter','Escape','Tab'].includes(e.key)){e.preventDefault();menKey(e.key);return}if(e.key=='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendM()}};
  $('fi').onchange=e=>upFiles([...e.target.files]).then(()=>{e.target.value=''});
  ta.addEventListener('paste',e=>{const f=[...(e.clipboardData||{}).files||[]];if(f.length){e.preventDefault();upFiles(f)}});
- drawChips();drawQref()}
-function plusT(){const p=$('pls');if(p)p.hidden=!p.hidden}
+ drawChips();drawQref();drawRpb();sndSt()}
+function plusT(e){if(e&&e.stopPropagation)e.stopPropagation();const p=$('pls');if(p)p.hidden=!p.hidden}
+document.addEventListener('click',e=>{const p=$('pls');if(p&&!p.hidden&&!e.target.closest('#pls,.plb'))p.hidden=true},true);
 function drawQref(){const el=$('qref');if(!el)return;const p=R0.split(':');if(!R0||p.length<3||!CUR||!CUR.pcode||REFS.some(r=>r.k==p[0]&&String(r.id)==p[1])){el.innerHTML='';return}
  const lb=decodeURIComponent(p.slice(2).join(':'));el.innerHTML=`<div class="qr"><span>${T2('أشر إلى هذا الطلب:','Mention this record:')} <b>${esc(lb)}</b></span><button onclick="addRef({k:'${p[0]}',id:'${p[1]}',label:${JSON.stringify(lb).replace(/"/g,'&quot;')}})">＋ ${T2('إضافة إشارة','Add mention')}</button></div>`}
 function drawChips(){const el=$('achips');if(!el)return;el.innerHTML=ATT.map((a,i)=>`<span class="ac2">📎 ${esc(a.name)} <small>${sz(a.size||0)}</small><button onclick="ATT.splice(${i},1);drawChips()">✕</button></span>`).join('')}
@@ -293,10 +317,10 @@ function menPick(i){const x=(MEN.list||[])[i];if(!x)return;const ta=$('mt'),r={k
  if(!REFS.some(q=>q.k==r.k&&String(q.id)==String(r.id)))REFS.push(r);
  ta.value=ta.value.slice(0,MEN.from)+r.tk+' '+ta.value.slice(MEN.pos);const p=MEN.from+r.tk.length+1;ta.setSelectionRange(p,p);MEN=null;$('menpop').innerHTML='';ta.focus();drawQref();ta.dispatchEvent(new Event('input'))}
 async function sendM(){if(BUSY||!CUR)return;const ta=$('mt'),v=ta.value.trim();if(!v&&!ATT.length)return;BUSY=true;
- const refs=REFS.filter(r=>v.includes(r.tk)).map(r=>({k:r.k,id:String(r.id),label:r.label,tk:r.tk}));
+ const refs=REFS.filter(r=>v.includes(r.tk)).map(r=>({k:r.k,id:String(r.id),label:r.label,tk:r.tk}));if(REPLY)refs.push({k:'reply',id:String(REPLY.id),label:REPLY.label,u:REPLY.u});
  const {error}=await sb.rpc('chat_post',{p_to:CUR.t=='dm'?CUR.id:null,p_cid:CUR.t=='ch'?CUR.id:null,p_body:v,p_refs:refs,p_att:ATT});BUSY=false;
  if(error)return toast(T2('تعذّر الإرسال: ','Could not send: ')+(error.message||error));
- rtPing();ta.value='';ta.style.height='auto';ATT=[];REFS=[];delete DR[keyOf(CUR)];MEN=null;$('menpop').innerHTML='';drawChips();drawQref();SIG='';await loadMsgs(true);ta.focus();
+ rtPing();REPLY=null;drawRpb();const pl=$('pls');if(pl)pl.hidden=true;ta.value='';ta.style.height='auto';ATT=[];REFS=[];delete DR[keyOf(CUR)];MEN=null;$('menpop').innerHTML='';drawChips();drawQref();SIG='';await loadMsgs(true);ta.focus();
  if(CUR.t=='dm'){DMS[CUR.id]=MSGS[MSGS.length-1];drawRail()}else{const p=PROJ.find(x=>x.channel_id==CUR.id);if(p){p.last_at=new Date().toISOString();drawRail()}}}
 /* ---- حيوية: من يكتب الآن، المتصلون، وصول الرسائل فورًا ---- */
 function myKeyFor(){if(!CUR)return null;return CUR.t=='dm'?{to:CUR.id}:{cid:CUR.id}}
