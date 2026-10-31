@@ -708,7 +708,7 @@ async function start(){
  if(!session)return loginView();
  const {data:ps,error:pe}=await sb.from('profiles').select('*');
  if(pe||!ps||!ps.find(p=>p.id==session.user.id)){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('loadErr')}</p><p dir="ltr" class="mut">${esc(pe?pe.message:'profile not found')}</p><button class="p" onclick="sb.auth.signOut().then(()=>location.reload())">${t('signOut')}</button></div>`;return}
- users={};ps.forEach(p=>users[p.id]=p);me=await capAs(users[session.user.id],['off.review']);await loadSet();
+ users={};ps.forEach(p=>users[p.id]=p);me=await capAs(users[session.user.id],['off.review.closure']);await loadSet();
  if(!svcOn()){app.innerHTML=`<div class="card" style="max-width:460px;margin:40px auto"><h1>${t('appTitle')}</h1><p>${t('noAccess')}</p><button class="p" onclick="location.href='./'">${t('goHome')}</button></div>`;return}
  if(location.hash=='#me'||(location.hash=='#admin'&&me.role=='admin')){const h=location.hash;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}await homeView();if(h=='#admin')return adminView();return editMe()}
  const hs=/^#start=(.+)/.exec(location.hash||'');

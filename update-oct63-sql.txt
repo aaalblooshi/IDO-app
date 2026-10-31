@@ -1,0 +1,671 @@
+-- =====================================================================
+-- update-oct63: توحيد الصلاحيات (يُشغَّل بعد oct62)
+--   ١) مستويات الاطلاع في الدور: ما يخصّه · قسمه · إدارته · قطاعه · المركز (لكل خدمة) — بدل «وحدته» العامة
+--   ٢) الأداء في الدور: perf.view بالمستويات نفسها (والإدارة العليا = المركز كصلاحية لا كامتياز ثابت)
+--   ٣) صلاحية صريحة «يرى المشاريع السرية» sec.view — ولا تتجاوز أي صلاحية أخرى السرية بدونها
+--      (المكتب، كل المحادثات، المعاينة، الملخص الأسبوعي، أرقام الأداء)
+--   ٤) المجموعات: وحدات اطلاع، وحدات أداء، منح مشاريع، واستثناء من سرية مشروع
+--   ٥) مستويات التعديل edit.X بالمستويات نفسها (لنماذج غيره)
+--   ٦) فصل المراجعة عن الاعتماد ولكل خدمة: off.review.X و off.approve.X (+ off.esc لقرارات التصعيد)
+--   ٧) للمستخدم: منح المشاريع والاستثناء من السرية ونطاق الأداء من الصفحة نفسها، مع السجل والتراجع
+-- =====================================================================
+
+-- ===== (أ) الأعمدة والجداول =====
+alter table public.user_groups add column if not exists view_units text[];
+alter table public.user_groups add column if not exists perf_units text[];
+alter table public.project_cfg add column if not exists hidden_groups bigint[] not null default '{}';
+create table if not exists public.project_group_grants(
+  id bigint generated always as identity primary key,
+  pcode text not null, group_id bigint not null references public.user_groups(id) on delete cascade,
+  lvl text not null default 'view' check (lvl in ('view','edit')), svcs text[],
+  created_by uuid default auth.uid(), created_at timestamptz default now(),
+  unique(pcode, group_id));
+alter table public.project_group_grants enable row level security;
+drop policy if exists pgg_sel on public.project_group_grants;
+create policy pgg_sel on public.project_group_grants for select to authenticated using (perm_view_ok());
+grant select on public.project_group_grants to authenticated;
+
+-- ===== (ب) المستويات =====
+create or replace function public.cap_rank(v text) returns int language sql immutable as $$
+  select case v when 'all' then 5 when 'sector' then 4 when 'dept' then 3 when 'section' then 2 when 'unit' then 2 when 'true' then 1 when 'own' then 1 else 0 end $$;
+
+create or replace function public.cap_default(k text) returns text language sql immutable as $$
+  select case
+    when k like 'svc.%' then 'true'
+    when k = 'new.charter' then 'true'
+    when k like 'new.%' then 'false'
+    when k like 'view.%' then 'section'
+    when k like 'edit.%' then 'own'
+    when k = 'perf.view' then 'own'
+    when k = 'page.projects' then 'false'
+    when k like 'page.%' then 'true'
+    else 'false' end $$;
+
+-- رمز وحدة المستخدم عند مستوى معيّن
+create or replace function public.unit_code_lvl(uid uuid, lvl text) returns text
+language sql stable security definer set search_path=public as $$
+  select case when p.org_sector is null then null
+    when lvl = 'sector' then p.org_sector::text
+    when lvl = 'dept' then p.org_sector::text || coalesce(':' || p.org_dept::text, '')
+    when lvl in ('section','unit') then p.org_sector::text || coalesce(':' || p.org_dept::text || coalesce(':' || nullif(p.org_section,''), ''), '')
+    end
+  from profiles p where p.id = uid
+$$;
+grant execute on function public.unit_code_lvl(uuid,text) to authenticated;
+
+create or replace function public.lvl_covers(uid uuid, lvl text, sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select case when lvl = 'all' then true
+              when lvl in ('section','unit','dept','sector') then coalesce(units_cover(array[unit_code_lvl(uid, lvl)], sec, dept, pc), false)
+              else false end
+$$;
+
+-- الاطلاع عبر المستوى (يحل محل «وحدته»)
+create or replace function public.svc_view_unit(sv text, sec text, dept text, pc text) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare v text;
+begin
+  if coalesce(pc,'') = '' then return false; end if;
+  v := cap_val(auth.uid(), 'view.' || sv);
+  if v not in ('section','unit','dept','sector') then return false; end if;
+  return lvl_covers(auth.uid(), v, sec, dept, pc);
+end $fn$;
+
+create or replace function public.eff_perms(uid uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare o jsonb := '{"svc":{},"create":{},"view":{},"pages":{},"unit":{},"lvl":{},"edit":{}}'; sv text; pg text; v text;
+begin
+  foreach sv in array array['cr','charter','closure','plan'] loop
+    o := jsonb_set(o, array['svc',sv], to_jsonb(cap_val(uid,'svc.'||sv) = 'true'));
+    o := jsonb_set(o, array['create',sv], to_jsonb(cap_val(uid,'new.'||sv) = 'true'));
+    v := cap_val(uid,'view.'||sv);
+    o := jsonb_set(o, array['view',sv], to_jsonb(case when v = 'all' then 'all' else 'own' end));
+    o := jsonb_set(o, array['unit',sv], to_jsonb(v in ('section','unit','dept','sector')));
+    o := jsonb_set(o, array['lvl',sv], to_jsonb(v));
+    o := jsonb_set(o, array['edit',sv], to_jsonb(cap_val(uid,'edit.'||sv)));
+  end loop;
+  foreach pg in array array['portfolio','perf','ratings','archive','projects','myprojects','inbox','tasks'] loop
+    o := jsonb_set(o, array['pages',pg], to_jsonb(cap_val(uid,'page.'||pg) = 'true'));
+  end loop;
+  o := o || jsonb_build_object('perf', cap_val(uid,'perf.view'), 'secret', cap_val(uid,'sec.view') = 'true');
+  return o;
+end $fn$;
+
+-- ===== (ج) ترحيل القيم =====
+do $mig$
+declare lv text; m text; r record;
+begin
+  lv := coalesce((select value from app_settings where key = 'unit_view_level'), 'exact');
+  m := case lv when 'dept' then 'dept' when 'sector' then 'sector' when 'off' then 'own' else 'section' end;
+  -- «وحدته» ← المستوى المقابل
+  for r in select key, caps from app_roles where caps is not null loop
+    update app_roles set caps = (select jsonb_object_agg(k, case when k like 'view.%' and v = '"unit"'::jsonb then to_jsonb(m) else v end) from jsonb_each(r.caps) z(k,v)) where key = r.key;
+  end loop;
+  for r in select id, caps from user_groups where caps is not null and caps <> '{}'::jsonb loop
+    update user_groups set caps = (select jsonb_object_agg(k, case when k like 'view.%' and v = '"unit"'::jsonb then to_jsonb(m) else v end) from jsonb_each(r.caps) z(k,v)) where id = r.id;
+  end loop;
+  update user_caps set val = m where cap like 'view.%' and val = 'unit';
+  -- مراجعة المكتب ← لكل خدمة (مراجعة + اعتماد)، وقرارات التصعيد ← off.esc
+  update app_roles set caps = caps || '{"off.review.cr":true,"off.review.charter":true,"off.review.plan":true,"off.review.closure":true,"off.approve.cr":true,"off.approve.charter":true,"off.approve.plan":true,"off.approve.closure":true}'::jsonb
+    where caps->>'off.review' = 'true';
+  update app_roles set caps = caps || '{"off.esc":true}'::jsonb where caps->>'off.approve' = 'true';
+  update app_roles set caps = caps - 'off.review' - 'off.approve' where caps ? 'off.review' or caps ? 'off.approve';
+  insert into user_caps(user_id,cap,mode,val,expires_at,note,granted_by)
+    select u.user_id, x, u.mode, u.val, u.expires_at, u.note, u.granted_by from user_caps u,
+      unnest(array['off.review.cr','off.review.charter','off.review.plan','off.review.closure','off.approve.cr','off.approve.charter','off.approve.plan','off.approve.closure']) x
+    where u.cap = 'off.review' on conflict do nothing;
+  insert into user_caps(user_id,cap,mode,val,expires_at,note,granted_by)
+    select user_id, 'off.esc', mode, val, expires_at, note, granted_by from user_caps where cap = 'off.approve' on conflict do nothing;
+  delete from user_caps where cap in ('off.review','off.approve');
+  -- الأدمن: كل الجديد · الإدارة العليا: الأداء = المركز + رؤية السرية (بدل الامتياز الثابت)
+  update app_roles set caps = caps || '{"sec.view":true,"perf.view":"all","off.esc":true,"off.review.cr":true,"off.review.charter":true,"off.review.plan":true,"off.review.closure":true,"off.approve.cr":true,"off.approve.charter":true,"off.approve.plan":true,"off.approve.closure":true,"edit.cr":"all","edit.charter":"all","edit.plan":"all","edit.closure":"all"}'::jsonb
+    where base = 'admin' and caps is not null;
+  update app_roles set caps = caps || jsonb_build_object('sec.view', true, 'perf.view', 'all')
+    where (key = 'exec' or base = 'exec') and caps is not null and not caps ? 'sec.view';
+  -- مستويات التعديل والأداء صريحة في كل دور
+  update app_roles set caps = caps || '{"edit.cr":"own","edit.charter":"own","edit.plan":"own","edit.closure":"own"}'::jsonb
+    where caps is not null and not caps ? 'edit.plan';
+  update app_roles set caps = caps || '{"perf.view":"own","sec.view":false}'::jsonb - (case when caps ? 'perf.view' then 'perf.view' else '' end) - (case when caps ? 'sec.view' then 'sec.view' else '' end)
+    where caps is not null and (not caps ? 'perf.view' or not caps ? 'sec.view');
+end $mig$;
+
+-- ===== (د) السرية =====
+create or replace function proj_hidden_me(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce((select g.hidden and not has_cap('sec.view')
+                          and not (auth.uid() = any(coalesce(g.hidden_users,'{}')))
+                          and not exists(select 1 from user_group_members m where m.user_id = auth.uid() and m.group_id = any(coalesce(g.hidden_groups,'{}')))
+                   from project_cfg g where g.pcode = pc), false)
+$$;
+grant execute on function proj_hidden_me(text) to authenticated;
+
+-- المكتب (بصلاحية جزئية) لا يرى السري إلا بـ sec.view
+create or replace function pl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select (pl_is_admin() and not exists(select 1 from plans c where c.id = cid and proj_hidden_me(c.data->>'pcode'))) or is_follower('plan',cid)
+      or exists(select 1 from plans c where c.id = cid and (c.created_by = auth.uid()
+            or has_grant(c.data->>'pcode','plan','view') or has_grant(c.data->>'pcode','tasks','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('plan') or svc_view_unit('plan', c.data->>'sector', c.data->>'dept', c.data->>'pcode')
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from plan_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+      or pl_assignee(cid)
+      or pl_pm_ok(cid)
+      or pl_was_invited(cid)
+$$;
+create or replace function ch_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select (ch_is_admin() and not exists(select 1 from charters c where c.id = cid and proj_hidden_me(c.code))) or is_follower('charter',cid)
+      or exists(select 1 from charters c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.code,'charter','view')
+            or (not proj_hidden_me(c.code) and (role_view_all('charter') or svc_view_unit('charter', c.data->>'sector', c.data->>'dept', c.code)
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.code)))))
+      or exists(select 1 from charter_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+create or replace function cl_can_see_raw(cid bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select (cl_is_admin() and not exists(select 1 from closure_reports c where c.id = cid and proj_hidden_me(c.data->>'pcode'))) or is_follower('closure',cid)
+      or exists(select 1 from closure_reports c where c.id = cid and (c.created_by = auth.uid() or has_grant(c.data->>'pcode','closure','view')
+            or (not proj_hidden_me(c.data->>'pcode') and (role_view_all('closure') or svc_view_unit('closure', c.data->>'sector', c.data->>'dept', c.data->>'pcode')
+                or scope_view_p(c.data->>'sector', c.data->>'dept', c.data->>'pcode')))))
+      or exists(select 1 from closure_signatories s where s.cr_id = cid and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+$$;
+
+-- المحادثات: «كل المحادثات» لا تشمل المشاريع السرية إلا بـ sec.view
+create or replace function public.chat_can_access(p_cid bigint) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare k text; pc text;
+begin
+  select kind,pcode into k,pc from chat_channels where id=p_cid;
+  if k is null or auth.uid() is null then return false; end if;
+  if k='general' then return true; end if;
+  if has_cap('chat.all') and (coalesce(pc,'') = '' or not proj_hidden_me(pc)) then return true; end if;
+  if k='group' then return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid()); end if;
+  return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid())
+      or auth.uid() in (select public.chat_project_members(pc));
+end $fn$;
+grant execute on function public.chat_can_access(bigint) to authenticated;
+
+create or replace function public.chat_my_projects() returns table(pcode text, name text, channel_id bigint, last_at timestamptz, n bigint)
+language sql stable security definer set search_path=public as $$
+  select p.pc, p.nm, c.id,
+    (select max(m.created_at) from chat_messages m where m.channel_id=c.id and not m.deleted),
+    coalesce((select count(*) from chat_messages m where m.channel_id=c.id and not m.deleted and m.from_user<>auth.uid()
+       and m.created_at>coalesce((select r.last_read from chat_reads r where r.user_id=auth.uid() and r.channel_id=c.id),'-infinity'::timestamptz)),0)
+  from (select distinct on (code) code pc, coalesce(data->>'pname',code) nm from charters where code is not null order by code, id desc) p
+  left join chat_channels c on c.kind='project' and c.pcode=p.pc
+  where (has_cap('chat.all') and not proj_hidden_me(p.pc))
+     or auth.uid() in (select public.chat_project_members(p.pc))
+     or exists(select 1 from chat_members m where m.channel_id=c.id and m.user_id=auth.uid())
+$$;
+grant execute on function public.chat_my_projects() to authenticated;
+
+create or replace function public.chat_my_groups() returns table(id bigint, pcode text, name text, project text, last_at timestamptz, n bigint)
+language sql stable security definer set search_path=public as $$
+  select c.id, c.pcode, c.name,
+    coalesce((select data->>'pname' from charters where code=c.pcode order by id desc limit 1), c.pcode),
+    (select max(m.created_at) from chat_messages m where m.channel_id=c.id and not m.deleted),
+    coalesce((select count(*) from chat_messages m where m.channel_id=c.id and not m.deleted and m.from_user<>auth.uid()
+       and m.created_at>coalesce((select r.last_read from chat_reads r where r.user_id=auth.uid() and r.channel_id=c.id),'-infinity'::timestamptz)),0)
+  from chat_channels c
+  where c.kind='group' and (exists(select 1 from chat_members m where m.channel_id=c.id and m.user_id=auth.uid())
+                            or (has_cap('chat.all') and not proj_hidden_me(coalesce(c.pcode,''))))
+$$;
+grant execute on function public.chat_my_groups() to authenticated;
+
+-- لا تُعاد كتابة هذه الدوال من خريطة المرحلة الثانية بعد الآن
+delete from perm_fn_map where fn in ('chat_can_access','chat_my_projects','chat_my_groups','admin_user_access');
+delete from perm_fn_backup where split_part(sig,'(',1) in ('chat_can_access','chat_my_projects','chat_my_groups','admin_user_access','public.chat_can_access','public.chat_my_projects','public.chat_my_groups','public.admin_user_access');
+
+-- الملخص الأسبوعي (لغير مديري المشاريع) وأرقام الأداء: دون المشاريع السرية لمن لا يراها
+do $p$
+declare d text; n text; o oid;
+begin
+  select p.oid into o from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = 'weekly_digest2' limit 1;
+  if o is not null then
+    d := pg_get_functiondef(o);
+    if d not like '%hidden_guard%' then
+      n := regexp_replace(d, $r$(where \(p\.status='Approved' or p\.data->>'_active'='true'\) and not p\.archived)$r$,
+             $s$\1 /*hidden_guard*/ and (mode='pm' or not coalesce((select g.hidden from project_cfg g where g.pcode = p.data->>'pcode'), false))$s$);
+      if n <> d then execute n; raise notice 'weekly_digest2: secret projects excluded'; else raise notice 'weekly_digest2: anchor not found (unchanged)'; end if;
+    end if;
+  end if;
+  select p.oid into o from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = 'perf_users' limit 1;
+  if o is not null then
+    d := pg_get_functiondef(o);
+    if d not like '%hidden_guard%' then
+      n := replace(d, 'and not p.archived and p.id = (select max(q.id)', 'and not p.archived /*hidden_guard*/ and not proj_hidden_me(p.data->>''pcode'') and p.id = (select max(q.id)');
+      if n <> d then execute n; raise notice 'perf_users: secret projects excluded'; else raise notice 'perf_users: anchor not found (unchanged)'; end if;
+    end if;
+  end if;
+end $p$;
+
+-- ===== (هـ) المجموعات: وحدات ومنح =====
+create or replace function scope_view_p(sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select scope_view(sec) or exists(select 1 from profiles p where p.id = auth.uid() and (
+      (coalesce(cardinality(p.view_units),0) > 0 and units_cover(p.view_units, sec, dept, pc))
+   or (coalesce(cardinality(p.head_units),0) > 0 and units_cover(p.head_units, sec, dept, pc) and not proj_hidden_me(pc))))
+   or exists(select 1 from user_group_members m join user_groups g on g.id = m.group_id
+             where m.user_id = auth.uid() and coalesce(cardinality(g.view_units),0) > 0 and units_cover(g.view_units, sec, dept, pc))
+$$;
+
+-- مستوى التعديل
+create or replace function public.edit_cover(sv text, pc text) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare v text; s text := case sv when 'tasks' then 'plan' else sv end; c record;
+begin
+  if coalesce(pc,'') = '' or auth.uid() is null then return false; end if;
+  v := cap_val(auth.uid(), 'edit.' || s);
+  if v not in ('section','unit','dept','sector','all') then return false; end if;
+  if proj_hidden_me(pc) or proj_blocked_me(pc) then return false; end if;
+  select data->>'sector' sec, data->>'dept' dpt into c from charters where code = pc and not archived order by (status = 'Approved') desc, id desc limit 1;
+  if not found then return false; end if;
+  return lvl_covers(auth.uid(), v, c.sec, c.dpt, pc);
+end $fn$;
+grant execute on function public.edit_cover(text,text) to authenticated;
+
+create or replace function has_grant(pc text, sv text, need text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce(pc,'') <> '' and (
+    exists(select 1 from project_grants g
+           where g.user_id = auth.uid() and g.pcode = pc and (g.svcs is null or sv = any(g.svcs))
+             and (need = 'view' or g.lvl = 'edit'))
+    or exists(select 1 from project_group_grants g join user_group_members m on m.group_id = g.group_id
+           where m.user_id = auth.uid() and g.pcode = pc and (g.svcs is null or sv = any(g.svcs))
+             and (need = 'view' or g.lvl = 'edit'))
+    or unit_head_of(pc)
+    or edit_cover(sv, pc))
+$$;
+
+-- منحي الفعلية (للواجهات): يدوية + مجموعاتي + وحداتي + مستوى التعديل — صف واحد لكل مشروع
+create or replace function my_grants() returns table(pcode text, lvl text, svcs text[])
+language sql stable security definer set search_path=public as $$
+  with h as (
+    select distinct c.code from charters c, profiles me
+    where me.id = auth.uid() and coalesce(cardinality(me.head_units),0) > 0 and not c.archived
+      and units_cover(me.head_units, c.data->>'sector', c.data->>'dept', c.code)
+      and not proj_hidden_me(c.code) and not proj_blocked_me(c.code)),
+  e as (
+    select c.code, array_agg(distinct s) sv from (select distinct code from charters where not archived and coalesce(code,'') <> '') c,
+      unnest(array['charter','plan','cr','closure']) s
+    where edit_cover(s, c.code) group by c.code),
+  r as (
+    select code pcode, 'edit' lvl, null::text[] svcs from h
+    union all select code, 'edit', sv || case when 'plan' = any(sv) then array['tasks'] else '{}'::text[] end from e
+    union all select g.pcode, g.lvl, g.svcs from project_grants g where g.user_id = auth.uid()
+    union all select g.pcode, g.lvl, g.svcs from project_group_grants g join user_group_members m on m.group_id = g.group_id where m.user_id = auth.uid())
+  select pcode, case when bool_or(lvl = 'edit') then 'edit' else 'view' end,
+         case when bool_or(svcs is null) then null else (select array_agg(distinct x) from r r2, unnest(r2.svcs) x where r2.pcode = r.pcode) end
+  from r group by pcode
+$$;
+grant execute on function my_grants() to authenticated;
+
+-- ===== (و) الأداء =====
+create or replace function perf_can(target uuid) returns boolean
+language sql stable security definer set search_path=public as $$
+  with me as (select p.*, cap_val(p.id, 'perf.view') pv from profiles p where p.id = auth.uid())
+  select exists(
+    select 1 from me, profiles tg
+    where tg.id = target and (
+      me.role = 'admin' or me.perf_scope = 'all' or me.id = tg.id or me.pv = 'all'
+      or (tg.role is distinct from 'admin' and coalesce(tg.role_key,tg.role,'') <> 'exec' and tg.org_sector is not null and exists(
+            select 1 from unnest(
+                (case when me.scope_perf then coalesce(me.view_units,'{}') else '{}'::text[] end)
+              || coalesce(me.head_units,'{}')
+              || coalesce((select array_agg(x) from user_group_members m join user_groups g on g.id = m.group_id, unnest(coalesce(g.perf_units,'{}')) x where m.user_id = me.id), '{}')
+              || (case when me.pv in ('section','dept','sector') and unit_code_lvl(me.id, me.pv) is not null then array[unit_code_lvl(me.id, me.pv)] else '{}'::text[] end)) e
+            where unit_member(e, tg.org_sector, tg.org_dept, tg.org_section)
+              and not unit_above(coalesce(tg.view_units,'{}') || coalesce(tg.head_units,'{}'), e)
+              and not (e = any(coalesce(tg.head_units,'{}')))))
+      or (me.perf_scope = 'units' and (
+            (tg.org_sector is not null and tg.org_sector = any(coalesce(me.perf_sectors,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and (tg.org_sector::text||':'||tg.org_dept::text) = any(coalesce(me.perf_depts,'{}')))
+         or (tg.org_sector is not null and tg.org_dept is not null and tg.org_section is not null and (tg.org_sector::text||':'||tg.org_dept::text||':'||tg.org_section) = any(coalesce(me.perf_depts,'{}')))))))
+$$;
+grant execute on function perf_can(uuid) to authenticated;
+
+-- ===== (ز) المراجعة والاعتماد لكل خدمة =====
+update perm_fn_map set expr = 'has_cap(''off.review.charter'')' where fn = 'ch_is_admin';
+update perm_fn_map set expr = 'has_cap(''off.review.plan'')' where fn in ('pl_is_admin','pl_review_save','pl_revise','pl_discard_revision','pl_cancel_revision','pl_propose','pl_comment','pl_add_task','pl_can_edit','pl_set_crlink');
+update perm_fn_map set expr = 'has_cap(''off.review.closure'')' where fn = 'cl_is_admin';
+update perm_fn_map set expr = '(has_cap(''off.review.cr'') or has_cap(''off.review.charter'') or has_cap(''off.review.plan'') or has_cap(''off.review.closure''))' where fn = 'can_manage_follow';
+update perm_fn_map set expr = 'has_cap(''off.esc'')' where fn = 'esc_decide';
+
+create or replace function public.perm_pol_cap(t text, cmd text, q text) returns table(expr text, h boolean)
+language sql immutable as $$
+  select * from (values (case
+    when t in ('charters','plans','closure_reports','change_requests') and cmd = 'DELETE' then 'has_cap(''off.delete'')'
+    when t in ('change_requests','signatories','audit_log','cr_attachments','attachments') then 'has_cap(''off.review.cr'')'
+    when t = 'del_requests' then 'has_cap(''off.delete'')'
+    when t = 'escalations' then 'has_cap(''off.esc'')'
+    when t in ('eval_model','project_evals','project_meta','portfolio_snapshots') then 'has_cap(''off.weights'')'
+    when t in ('office_actions','ctl_check_history') then 'has_cap(''adm.control'')'
+    when t in ('escalation_rules','escalation_log','approver_leave') then 'has_cap(''off.escalate'')'
+    when t in ('project_cfg','project_links','project_handover','project_transfer') then 'has_cap(''adm.projects'')'
+    when t in ('project_grants','project_blocks','profiles') then 'has_cap(''adm.users'')'
+    when t in ('user_groups','user_group_members','app_roles') then 'has_cap(''adm.roles'')'
+    when t in ('app_settings','app_config') then 'has_cap(''adm.settings'')'
+    when t = 'objects' and q like '%templates%' then 'has_cap(''adm.settings'')'
+    when t like 'chat\_%' then 'has_cap(''chat.all'')'
+    when t in ('service_ratings','ratings','ideas','idea_votes') then 'has_cap(''adm.control'')'
+    when t like '%audit%' then 'has_cap(''audit.view'')'
+    end,
+    (t in ('charters','plans','closure_reports','change_requests') and cmd = 'DELETE')
+      or t in ('eval_model','project_evals','project_meta','office_actions','ctl_check_history'))) v(expr, h)
+$$;
+update perm_pol_backup set cap = null;
+select perm_phase2_apply() as reapply;
+
+-- الاعتماد النهائي من الواجهة: للمعتمد المحدد (أو المفوَّض عنه)، أو لمن يملك «الاعتماد كمكتب» لهذه الخدمة
+create or replace function public.appr_ok(p_svc text, p_id bigint) returns boolean
+language sql stable security definer set search_path=public as $$
+  select auth.uid() is null or is_full_admin() or has_cap('off.approve.' || p_svc)
+      or case p_svc
+           when 'charter' then exists(select 1 from charter_signatories s where s.cr_id = p_id and s.stage = 'approved' and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+           when 'plan'    then exists(select 1 from plan_signatories s where s.cr_id = p_id and s.stage = 'approved' and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+           when 'closure' then exists(select 1 from closure_signatories s where s.cr_id = p_id and s.stage = 'approved' and (s.user_id = auth.uid() or proxy_ok(s.user_id)))
+           else exists(select 1 from signatories s where s.cr_id = p_id and s.stage = 'approved' and (s.user_id = auth.uid() or proxy_ok(s.user_id))) end
+$$;
+grant execute on function public.appr_ok(text,bigint) to authenticated;
+
+-- (تعمل فقط على التعديل المباشر من الواجهة؛ الدوال الداخلية لا تتأثر) ويمكن إيقافها من الإعدادات: approve_guard = off
+create or replace function public.approve_guard() returns trigger language plpgsql as $fn$
+begin
+  if new.status = 'Approved' and old.status is distinct from 'Approved' and current_user = 'authenticated'
+     and coalesce((select value from app_settings where key = 'approve_guard'), 'on') = 'on'
+     and not appr_ok(tg_argv[0], new.id) then
+    raise exception 'الاعتماد النهائي للمعتمِد المحدد أو لمن يملك «الاعتماد كمكتب» لهذه الخدمة (approval requires the office approve permission)';
+  end if;
+  return new;
+end $fn$;
+drop trigger if exists approve_guard on public.charters;
+create trigger approve_guard before update of status on public.charters for each row execute function public.approve_guard('charter');
+drop trigger if exists approve_guard on public.plans;
+create trigger approve_guard before update of status on public.plans for each row execute function public.approve_guard('plan');
+drop trigger if exists approve_guard on public.closure_reports;
+create trigger approve_guard before update of status on public.closure_reports for each row execute function public.approve_guard('closure');
+drop trigger if exists approve_guard on public.change_requests;
+create trigger approve_guard before update of status on public.change_requests for each row execute function public.approve_guard('cr');
+insert into app_settings(key,value) values('approve_guard','on') on conflict (key) do nothing;
+
+-- ===== (ح) منح المشاريع والسرية للمستخدم والمجموعة (مع السجل) =====
+create or replace function public.perm_snap_access(p_uid uuid) returns jsonb
+language sql stable security definer set search_path=public as $$
+  select jsonb_build_object(
+    'grants', coalesce((select jsonb_agg(jsonb_build_object('pcode',pcode,'lvl',lvl,'svcs',svcs) order by pcode) from project_grants where user_id = p_uid), '[]'::jsonb),
+    'secret', coalesce((select jsonb_agg(pcode order by pcode) from project_cfg where p_uid = any(coalesce(hidden_users,'{}'))), '[]'::jsonb))
+$$;
+create or replace function public.perm_snap_group(p_id bigint) returns jsonb
+language sql stable security definer set search_path=public as $$
+  select jsonb_build_object('caps', g.caps, 'view_units', g.view_units, 'perf_units', g.perf_units,
+    'grants', coalesce((select jsonb_agg(jsonb_build_object('pcode',pcode,'lvl',lvl,'svcs',svcs) order by pcode) from project_group_grants where group_id = p_id), '[]'::jsonb),
+    'secret', coalesce((select jsonb_agg(pcode order by pcode) from project_cfg where p_id = any(coalesce(hidden_groups,'{}'))), '[]'::jsonb))
+  from user_groups g where g.id = p_id
+$$;
+revoke all on function public.perm_snap_access(uuid), public.perm_snap_group(bigint) from public, anon;
+
+create or replace function public._perm_user_access_apply(p_uid uuid, p jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare x jsonb;
+begin
+  if p ? 'grants' then
+    delete from project_grants where user_id = p_uid;
+    for x in select * from jsonb_array_elements(coalesce(p->'grants','[]')) loop
+      if coalesce(x->>'pcode','') <> '' then
+        insert into project_grants(pcode,user_id,lvl,svcs) values(x->>'pcode', p_uid, case when x->>'lvl' = 'edit' then 'edit' else 'view' end, perm_jarr(x->'svcs'))
+        on conflict (pcode,user_id) do update set lvl = excluded.lvl, svcs = excluded.svcs;
+      end if;
+    end loop;
+  end if;
+  if p ? 'secret' then
+    update project_cfg set hidden_users = array_remove(hidden_users, p_uid) where p_uid = any(coalesce(hidden_users,'{}'))
+      and not (pcode = any(coalesce(perm_jarr(p->'secret'),'{}')));
+    update project_cfg set hidden_users = array_append(coalesce(hidden_users,'{}'), p_uid)
+      where pcode = any(coalesce(perm_jarr(p->'secret'),'{}')) and not (p_uid = any(coalesce(hidden_users,'{}')));
+  end if;
+end $fn$;
+revoke all on function public._perm_user_access_apply(uuid,jsonb) from public, anon, authenticated;
+
+create or replace function public._perm_group_scope_apply(p_id bigint, p jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare x jsonb;
+begin
+  update user_groups set
+    caps = case when p ? 'caps' then nullif(p->'caps','null'::jsonb) else caps end,
+    view_units = case when p ? 'view_units' then perm_jarr(p->'view_units') else view_units end,
+    perf_units = case when p ? 'perf_units' then perm_jarr(p->'perf_units') else perf_units end
+  where id = p_id;
+  if p ? 'grants' then
+    delete from project_group_grants where group_id = p_id;
+    for x in select * from jsonb_array_elements(coalesce(p->'grants','[]')) loop
+      if coalesce(x->>'pcode','') <> '' then
+        insert into project_group_grants(pcode,group_id,lvl,svcs) values(x->>'pcode', p_id, case when x->>'lvl' = 'edit' then 'edit' else 'view' end, perm_jarr(x->'svcs'))
+        on conflict (pcode,group_id) do update set lvl = excluded.lvl, svcs = excluded.svcs;
+      end if;
+    end loop;
+  end if;
+  if p ? 'secret' then
+    update project_cfg set hidden_groups = array_remove(hidden_groups, p_id) where p_id = any(coalesce(hidden_groups,'{}'))
+      and not (pcode = any(coalesce(perm_jarr(p->'secret'),'{}')));
+    update project_cfg set hidden_groups = array_append(coalesce(hidden_groups,'{}'), p_id)
+      where pcode = any(coalesce(perm_jarr(p->'secret'),'{}')) and not (p_id = any(coalesce(hidden_groups,'{}')));
+  end if;
+end $fn$;
+revoke all on function public._perm_group_scope_apply(bigint,jsonb) from public, anon, authenticated;
+
+-- منح المشاريع والاستثناء من السرية لمستخدم
+create or replace function public.perm_user_access(p_uid uuid, p jsonb, p_note text default null) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb;
+begin
+  if not (has_cap('adm.users') or has_cap('adm.roles')) then raise exception 'admin only'; end if;
+  perform perm_guard(p_uid, null, null);
+  if p ? 'secret' and not has_cap('sec.view') then raise exception 'secret projects permission required'; end if;
+  b := perm_snap_access(p_uid);
+  perform _perm_user_access_apply(p_uid, p);
+  a := perm_snap_access(p_uid);
+  if a is distinct from b then perform perm_log('access', p_uid::text, (select full_name from profiles where id = p_uid), coalesce(nullif(trim(p_note),''),'access'), b, a); end if;
+end $fn$;
+grant execute on function public.perm_user_access(uuid,jsonb,text) to authenticated;
+
+-- نطاق المجموعة: صلاحياتها، وحداتها، وحدات الأداء، منح المشاريع، الاستثناء من السرية
+create or replace function public.perm_group_scope(p_id bigint, p jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb;
+begin
+  if not has_cap('adm.roles') then raise exception 'admin only'; end if;
+  if not exists(select 1 from user_groups where id = p_id) then raise exception 'not found'; end if;
+  if p ? 'secret' and not has_cap('sec.view') then raise exception 'secret projects permission required'; end if;
+  if not is_full_admin() and p ? 'caps' and exists(select 1 from jsonb_object_keys(coalesce(nullif(p->'caps','null'::jsonb),'{}')) k where k like 'adm.%' or k = 'sec.view') then
+    raise exception 'only a full admin can grant admin permissions to groups'; end if;
+  b := perm_snap_group(p_id);
+  perform _perm_group_scope_apply(p_id, p);
+  a := perm_snap_group(p_id);
+  if a is distinct from b then perform perm_log('group', p_id::text, (select name_ar from user_groups where id = p_id), 'edit', b, a); end if;
+end $fn$;
+grant execute on function public.perm_group_scope(bigint,jsonb) to authenticated;
+
+-- نطاق المستخدم: + وحدات الأداء
+create or replace function public.perm_user_scope(p_uid uuid, p jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b jsonb; a jsonb; pu text[];
+begin
+  if not (has_cap('adm.users') or has_cap('adm.roles')) then raise exception 'admin only'; end if;
+  perform perm_guard(p_uid, null, null);
+  b := perm_snap_scope(p_uid);
+  if b is null then raise exception 'bad user'; end if;
+  pu := perm_jarr(p->'perf_units');
+  update profiles set
+    org_sector   = case when p ? 'org_sector'   then nullif(p->>'org_sector','')::int else org_sector end,
+    org_dept     = case when p ? 'org_dept'     then nullif(p->>'org_dept','')::int else org_dept end,
+    org_section  = case when p ? 'org_section'  then nullif(p->>'org_section','') else org_section end,
+    view_units   = case when p ? 'view_units'   then perm_jarr(p->'view_units') else view_units end,
+    head_units   = case when p ? 'head_units'   then perm_jarr(p->'head_units') else head_units end,
+    view_scope   = case when p ? 'view_scope'   then nullif(p->>'view_scope','') else view_scope end,
+    scope_perf   = case when p ? 'scope_perf'   then coalesce((p->>'scope_perf')::boolean,false) else scope_perf end,
+    scope_complete = case when p ? 'scope_complete' then coalesce((p->>'scope_complete')::boolean,false) else scope_complete end,
+    perf_scope   = case when p ? 'perf_units' then (case when cardinality(coalesce(pu,'{}')) > 0 then 'units' end)
+                        when p ? 'perf_scope' then nullif(p->>'perf_scope','') else perf_scope end,
+    perf_sectors = case when p ? 'perf_units' then nullif(array(select x::int from unnest(coalesce(pu,'{}')) x where x ~ '^[0-9]+$'),'{}') else perf_sectors end,
+    perf_depts   = case when p ? 'perf_units' then nullif(array(select x from unnest(coalesce(pu,'{}')) x where x ~ ':'),'{}') else perf_depts end
+  where id = p_uid;
+  a := perm_snap_scope(p_uid);
+  if a is distinct from b then perform perm_log('scope', p_uid::text, (select full_name from profiles where id = p_uid), 'scope', b, a); end if;
+end $fn$;
+grant execute on function public.perm_user_scope(uuid,jsonb) to authenticated;
+
+-- مفاتيح بنقطتين (off.review.plan …) مقبولة في التخصيص الفردي
+do $k$
+declare d text;
+begin
+  select pg_get_functiondef(p.oid) into d from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'public' and p.proname = 'perm_user_set' limit 1;
+  if d is not null and position('^[a-z]+\.[a-z_]+$' in d) > 0 then
+    execute replace(d, '^[a-z]+\.[a-z_]+$', '^[a-z]+(\.[a-z_]+)+$');
+  end if;
+end $k$;
+
+-- التراجع: يشمل منح المشاريع والسرية ونطاق المجموعة
+create or replace function public.perm_revert(p_id bigint) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare e perm_audit; u uuid; cur jsonb;
+begin
+  if not perm_is_admin() then raise exception 'admin only'; end if;
+  select * into e from perm_audit where id = p_id;
+  if e.id is null then raise exception 'not found'; end if;
+  if e.reverted_at is not null then raise exception 'already reverted'; end if;
+  if not is_full_admin() and e.kind in ('user','scope','access') then perform perm_guard(e.target::uuid, e.before->>'role_key', null); end if;
+  if not is_full_admin() and e.kind in ('role','role_del') and (e.before->>'base' = 'admin' or e.after->>'base' = 'admin') then raise exception 'only a full admin can edit admin roles'; end if;
+  if e.kind in ('role','role_del') then
+    select to_jsonb(r) - 'perms' into cur from app_roles r where key = e.target;
+    if e.before is null then
+      if exists(select 1 from profiles where coalesce(role_key,role) = e.target) then raise exception 'role in use'; end if;
+      delete from user_roles where role_key = e.target; delete from app_roles where key = e.target;
+    elsif cur is null then
+      insert into app_roles(key,name_ar,name_en,base,perms,caps,descr,color,notif_off,sort,system)
+        values(e.target, e.before->>'name_ar', e.before->>'name_en', e.before->>'base', coalesce(e.before->'perms','{}'), nullif(e.before->'caps','null'::jsonb),
+               e.before->>'descr', e.before->>'color', coalesce(perm_jarr(e.before->'notif_off'),'{}'),
+               coalesce((e.before->>'sort')::int,100), coalesce((e.before->>'system')::boolean,false));
+    else
+      update app_roles set name_ar = e.before->>'name_ar', name_en = e.before->>'name_en', base = e.before->>'base', caps = nullif(e.before->'caps','null'::jsonb),
+        descr = e.before->>'descr', color = e.before->>'color', notif_off = coalesce(perm_jarr(e.before->'notif_off'),'{}') where key = e.target;
+      update profiles set role = (select base from app_roles where key = e.target) where role_key = e.target;
+    end if;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, (select to_jsonb(r) - 'perms' from app_roles r where key = e.target));
+  elsif e.kind = 'user' then
+    u := e.target::uuid; cur := perm_snap_user(u);
+    if u = auth.uid() and (select base from app_roles where key = e.before->>'role_key') <> 'admin' then raise exception 'cannot remove your own admin role'; end if;
+    update profiles set role_key = e.before->>'role_key', role = (select base from app_roles where key = e.before->>'role_key') where id = u;
+    delete from user_roles where user_id = u;
+    insert into user_roles(user_id,role_key,expires_at,note)
+      select u, z->>'role', nullif(z->>'exp','')::timestamptz, z->>'note' from jsonb_array_elements(coalesce(e.before->'extra','[]')) z where exists(select 1 from app_roles where key = z->>'role');
+    delete from user_caps where user_id = u;
+    insert into user_caps(user_id,cap,mode,val,expires_at,note)
+      select u, z->>'cap', z->>'mode', z->>'val', nullif(z->>'exp','')::timestamptz, z->>'note' from jsonb_array_elements(coalesce(e.before->'caps','[]')) z;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_user(u));
+  elsif e.kind = 'scope' then
+    u := e.target::uuid; cur := perm_snap_scope(u);
+    update profiles set org_sector = (e.before->>'org_sector')::int, org_dept = (e.before->>'org_dept')::int, org_section = e.before->>'org_section',
+      view_scope = e.before->>'view_scope', view_sectors = perm_jarr(e.before->'view_sectors')::int[],
+      view_units = perm_jarr(e.before->'view_units'), head_units = perm_jarr(e.before->'head_units'),
+      scope_perf = coalesce((e.before->>'scope_perf')::boolean,false), scope_complete = coalesce((e.before->>'scope_complete')::boolean,false),
+      perf_scope = e.before->>'perf_scope', perf_sectors = perm_jarr(e.before->'perf_sectors')::int[], perf_depts = perm_jarr(e.before->'perf_depts')
+     where id = u;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_scope(u));
+  elsif e.kind = 'access' then
+    u := e.target::uuid; cur := perm_snap_access(u);
+    if jsonb_array_length(coalesce(e.before->'secret','[]')) + jsonb_array_length(coalesce(e.after->'secret','[]')) > 0 and not has_cap('sec.view') then raise exception 'secret projects permission required'; end if;
+    perform _perm_user_access_apply(u, e.before);
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_access(u));
+  elsif e.kind = 'group' then
+    cur := perm_snap_group(e.target::bigint);
+    perform _perm_group_scope_apply(e.target::bigint, e.before);
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, cur, perm_snap_group(e.target::bigint));
+  elsif e.kind = 'setting' then
+    insert into app_settings(key,value) values(e.target, e.before->>'value') on conflict (key) do update set value = excluded.value;
+    perform perm_log('revert', e.target, e.target_name, '#'||e.id, e.after, e.before);
+  else
+    raise exception 'cannot revert this entry';
+  end if;
+  update perm_audit set reverted_at = now(), reverted_by = auth.uid() where id = p_id;
+end $fn$;
+grant execute on function public.perm_revert(bigint) to authenticated;
+
+create or replace function public.perm_setting(k text, v text) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare b text;
+begin
+  if not is_full_admin() then raise exception 'only a full admin can change this'; end if;
+  if k not in ('unit_view_level','approve_guard') then raise exception 'bad key'; end if;
+  select value into b from app_settings where key = k;
+  insert into app_settings(key,value) values(k,v) on conflict (key) do update set value = excluded.value;
+  if b is distinct from v then perform perm_log('setting', k, k, v, jsonb_build_object('value',b), jsonb_build_object('value',v)); end if;
+end $fn$;
+
+-- ===== (ط) ملف الوصول للمعاينة: المستويات، المجموعات، والسرية =====
+create or replace function admin_user_access(p_uid uuid) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb := '[]'::jsonb; c record; a jsonb; e jsonb; hu text[]; tk jsonb; vl text; vc text; sv boolean; el text; ec text; gs bigint[]; ex boolean;
+begin
+  if not perm_view_ok() then raise exception 'admin only'; end if;
+  select head_units into hu from profiles where id = p_uid;
+  select array_agg(group_id) into gs from user_group_members where user_id = p_uid;
+  vl := (select v from unnest(array[cap_val(p_uid,'view.charter'), cap_val(p_uid,'view.plan')]) v order by cap_rank(v) desc limit 1);
+  el := (select v from unnest(array[cap_val(p_uid,'edit.charter'), cap_val(p_uid,'edit.plan')]) v order by cap_rank(v) desc limit 1);
+  vc := case when vl in ('section','unit','dept','sector') then unit_code_lvl(p_uid, vl) end;
+  ec := case when el in ('section','unit','dept','sector') then unit_code_lvl(p_uid, el) end;
+  sv := cap_val(p_uid, 'sec.view') = 'true' or exists(select 1 from profiles where id = p_uid and role = 'admin');
+  for c in select distinct on (code) code, data->>'pname' pn, status, data->>'sector' sec, data->>'dept' dpt
+           from charters where not archived and coalesce(code,'') <> '' order by code, (status = 'Approved') desc, id desc loop
+    ex := exists(select 1 from project_cfg g where g.pcode = c.code and g.hidden);
+    -- من لا يرى السري لا يرى أسماء المشاريع السرية حتى في المعاينة
+    if ex and not has_cap('sec.view') then continue; end if;
+    a := project_access(c.code);
+    select x into e from jsonb_array_elements(a) x where x->>'user_id' = p_uid::text limit 1;
+    e := coalesce(e, jsonb_build_object('user_id', p_uid, 'reasons', '[]'::jsonb));
+    if coalesce(cardinality(hu),0) > 0 and units_cover(hu, c.sec, c.dpt, c.code) and not ex then e := jsonb_set(e, '{reasons}', (e->'reasons') || '["unit_head"]'::jsonb); end if;
+    if not ex or sv or exists(select 1 from project_cfg g where g.pcode = c.code and (p_uid = any(coalesce(g.hidden_users,'{}')) or g.hidden_groups && coalesce(gs,'{}'))) then
+      if vl = 'all' then e := jsonb_set(e, '{reasons}', (e->'reasons') || '["level_all"]'::jsonb);
+      elsif vc is not null and units_cover(array[vc], c.sec, c.dpt, c.code) then e := jsonb_set(e, '{reasons}', (e->'reasons') || jsonb_build_array('lvl_'||vl)); end if;
+      if el = 'all' or (ec is not null and units_cover(array[ec], c.sec, c.dpt, c.code)) then e := e || '{"edit_level":true}'::jsonb; end if;
+      if exists(select 1 from user_groups g where g.id = any(coalesce(gs,'{}')) and units_cover(g.view_units, c.sec, c.dpt, c.code)) then e := jsonb_set(e, '{reasons}', (e->'reasons') || '["group_unit"]'::jsonb); end if;
+    end if;
+    if exists(select 1 from project_group_grants g where g.pcode = c.code and g.group_id = any(coalesce(gs,'{}'))) then e := jsonb_set(e, '{reasons}', (e->'reasons') || '["group_grant"]'::jsonb); end if;
+    if ex and exists(select 1 from project_cfg g where g.pcode = c.code and (p_uid = any(coalesce(g.hidden_users,'{}')) or g.hidden_groups && coalesce(gs,'{}'))) then e := jsonb_set(e, '{reasons}', (e->'reasons') || '["secret_exc"]'::jsonb); end if;
+    if exists(select 1 from project_blocks b where b.pcode = c.code and b.user_id = p_uid) then e := e || '{"blocked":true}'::jsonb; end if;
+    if jsonb_array_length(e->'reasons') = 0 and not (e ? 'blocked') then continue; end if;
+    select jsonb_build_object(
+        'open', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100),
+        'late', count(*) filter (where coalesce((t->>'pc')::numeric,0) < 100 and nullif(t->>'e','') is not null and (t->>'e')::date < current_date),
+        'done', count(*) filter (where coalesce((t->>'pc')::numeric,0) >= 100))
+      into tk
+      from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t
+      where p.data->>'pcode' = c.code and not p.archived and (p.status = 'Approved' or p.data->>'_active' = 'true') and t->>'w' = p_uid::text;
+    r := r || jsonb_build_array(e || jsonb_build_object('pcode', c.code, 'pname', c.pn, 'status', c.status, 'tasks', tk, 'secret', ex,
+           'grant', (select jsonb_build_object('id', g.id, 'lvl', g.lvl, 'svcs', g.svcs) from project_grants g where g.pcode = c.code and g.user_id = p_uid)));
+  end loop;
+  return jsonb_build_object('projects', r, 'unit', unit_code_lvl(p_uid, 'section'), 'level', vl, 'edit_level', el);
+end $fn$;
+revoke all on function admin_user_access(uuid) from public, anon;
+grant execute on function admin_user_access(uuid) to authenticated;
+
+-- قائمة المشاريع للصفحة (الاسم والسرية) — لمن يدير المستخدمين أو الصلاحيات
+create or replace function public.perm_projects() returns table(pcode text, name text, sector text, dept text, secret boolean, own_only boolean, hidden_users uuid[], hidden_groups bigint[])
+language sql stable security definer set search_path=public as $$
+  select c.code, c.data->>'pname', c.data->>'sector', c.data->>'dept', coalesce(g.hidden,false), coalesce(g.own_only,false),
+         coalesce(g.hidden_users,'{}'), coalesce(g.hidden_groups,'{}')
+  from (select distinct on (code) * from charters where not archived and coalesce(code,'') <> '' order by code, (status = 'Approved') desc, id desc) c
+  left join project_cfg g on g.pcode = c.code
+  where perm_view_ok() and (not coalesce(g.hidden,false) or has_cap('sec.view'))
+  order by c.code
+$$;
+grant execute on function public.perm_projects() to authenticated;
+
+create or replace function public.perm_group_grants() returns setof project_group_grants
+language sql stable security definer set search_path=public as $$ select * from project_group_grants where perm_view_ok() $$;
+grant execute on function public.perm_group_grants() to authenticated;
+create or replace function public.perm_all_grants() returns table(pcode text, user_id uuid, lvl text, svcs text[])
+language sql stable security definer set search_path=public as $$ select pcode, user_id, lvl, svcs from project_grants where perm_view_ok() $$;
+grant execute on function public.perm_all_grants() to authenticated;
+
+notify pgrst, 'reload schema';
+
+select kind as "النوع", name as "الاسم", cap as "الصلاحية", status as "الحالة" from perm_phase2_report where at > now() - interval '5 minutes' order by kind, status desc, name;

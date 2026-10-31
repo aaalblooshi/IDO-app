@@ -150,7 +150,7 @@ const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 async function boot(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['off.review', 'off.delete']);if(!p)return gate('needLogin');
+ let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['off.review.cr','off.review.charter','off.review.plan','off.review.closure','off.delete']);if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
  try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
