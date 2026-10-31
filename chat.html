@@ -191,7 +191,7 @@ function drawRail(){const el=$('rl');if(!el)return;const o=items();
  const sec=(h,L,n)=>L.length?`<div class="sh">${h}</div>${n?nest(L):L.map(x=>row(x)).join('')}`:'';
  const chip=(k,l)=>`<button class="${CHF==k?'on':''}" onclick="CHF='${k}';drawRail()">${l}</button>`;
  const un=Object.keys(UNR).filter(k=>UNR[k]>0).length;
- el.innerHTML=`<div class="rf2">${chip('all',T2('الكل','All'))}${chip('unread',T2('غير المقروءة','Unread')+(un?' '+un:''))}${chip('proj',T2('المشاريع','Projects'))}${chip('dm',T2('الأشخاص','People'))}</div>`+sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع والمجموعات','Projects & groups'),o.proj,true)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
+ el.innerHTML=`<div class="rf2"><button class="snt" title="${SND?T2('إسكات صوت الرسائل','Mute sound'):T2('تشغيل الصوت','Sound on')}" onclick="sndTog()">${SND?'🔈':'🔇'}</button>${chip('all',T2('الكل','All'))}${chip('unread',T2('غير المقروءة','Unread')+(un?' '+un:''))}${chip('proj',T2('المشاريع','Projects'))}${chip('dm',T2('الأشخاص','People'))}</div>`+sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع والمجموعات','Projects & groups'),o.proj,true)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
   (!Q&&!SHOWALL&&CHF!='dm'?`<div class="more"><button onclick="SHOWALL=true;drawRail()">＋ ${T2('محادثة جديدة مع زميل','New chat with a colleague')}</button></div>`:'')+
   (!o.pin.length&&!o.proj.length&&!o.ppl.length?`<div class="mut" style="padding:14px">${T2('لا نتائج','No results')}</div>`:'')}
 async function openItem(tp,id){
@@ -210,7 +210,7 @@ async function setCur(c){const k0=keyOf(CUR);if(k0){const ta=$('mt');if(ta)DR[k0
 async function loadMsgs(scroll){if(!CUR)return;let q=sb.from('chat_messages').select('*').order('created_at',{ascending:false}).limit(150);
  q=CUR.t=='ch'?q.eq('channel_id',CUR.id):q.or(`and(from_user.eq.${ME.id},to_user.eq.${CUR.id}),and(from_user.eq.${CUR.id},to_user.eq.${ME.id})`);
  const {data,error}=await q;if(error)return;const L=(data||[]).reverse(),sig=L.map(m=>m.id+(m.pinned?'p':'')+(m.deleted?'d':'')+(m.read_at?'r':'')).join(',');
- if(sig===SIG)return;SIG=sig;MSGS=L;drawMsgs(scroll);drawPinbar()}
+ if(sig===SIG)return;const _old=new Set(MSGS.map(m=>m.id)),_new=SIG&&L.some(m=>!_old.has(m.id)&&m.from_user!=ME.id&&!m.deleted);SIG=sig;MSGS=L;if(_new&&!PINS.has('m:'+keyOf(CUR)))ding();drawMsgs(scroll);drawPinbar()}
 let CANM=false,EXC=[];
 async function loadMem(){if(!CUR||CUR.t!='ch'||!CUR.pcode)return;try{const r=await sb.rpc('chat_members_list',{p_cid:CUR.id});if(!r.error){MEM=r.data||[];drawHead();try{drawMsgs()}catch(_){}}}catch(_){}
  try{const m=await sb.rpc('chat_can_manage',{p_cid:CUR.id});CANM=!!(m&&!m.error&&m.data);if(CANM&&!CUR.grp){const e=await sb.rpc('chat_excluded_list',{p_cid:CUR.id});EXC=(e&&!e.error&&e.data)?e.data.map(x=>x.user_id):[]}else EXC=[]}catch(_){CANM=false;EXC=[]}}
@@ -221,7 +221,13 @@ function drawHead(){const el=$('chead');if(!el)return;
  el.style.display='';$('cmp').style.display='';
  const pin=PINS.has(keyOf(CUR))||(CUR.pcode&&PINS.has('pc:'+CUR.pcode)),pn=MSGS.filter(m=>m.pinned&&!m.deleted).length,mu=PINS.has('m:'+keyOf(CUR));
  el.innerHTML=`<button class="bk" onclick="backRail()">${lang=='ar'?'→':'←'}</button><div class="av" style="${avC(CUR.name)}">${CUR.t=='dm'?esc(ini(CUR.name)):(CUR.pcode?esc(ini(CUR.name)):'🌐')}${CUR.t=='dm'&&ONL.has(CUR.id)?'<i class="on"></i>':''}${CUR.grp?'<i class="gb2">👥</i>':''}</div><div class="tx" ${CUR.pcode?`onclick="panel('mem')" style="cursor:pointer"`:''}><b>${esc(CUR.name||'')}</b><span id="hst" class="${hstTyp()?'typ':''}">${hstTxt()||(CUR.t=='dm'?esc(CUR.sub||''):CUR.pcode?(CUR.grp?T2('مجموعة في: ','Group in: ')+esc(CUR.sub||''):esc(CUR.pcode))+' · '+(MEM.length?MEM.length+' '+T2('عضو','members'):''):T2('كل المستخدمين','Everyone'))}</span></div>
- <div class="ha"><button title="${T2('المزيد','More')}" onclick="hmT(event)">⋮</button>${EMB?`<button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}<div class="hmn" id="hmn" hidden>${CUR.pcode?`<button onclick="hmT();panel('mem')">👥 ${T2('الأعضاء والمجموعات','Members & groups')}</button>`:''}<button onclick="hmT();panel('pin')">📌 ${T2('الرسائل المثبّتة','Pinned messages')}${pn?' ('+pn+')':''}</button><button onclick="hmT();muteConv()">${mu?'🔔 '+T2('إلغاء الكتم','Unmute'):'🔕 '+T2('كتم الإشعارات','Mute notifications')}</button><button onclick="hmT();pinConv()">${pin?'★ '+T2('إلغاء تثبيت المحادثة','Unpin conversation'):'☆ '+T2('تثبيت المحادثة في الأعلى','Pin conversation to top')}</button>${EMB?`<button onclick="hmT();fullPage()">↗ ${T2('فتح في صفحة كاملة','Open full page')}</button>`:''}</div></div>`}
+ <div class="ha"><button title="${T2('المزيد','More')}" onclick="hmT(event)">⋮</button>${EMB?`<button onclick="parent.postMessage({chatClose:1},'*')">✕</button>`:''}<div class="hmn" id="hmn" hidden><button onclick="hmT();sndTog()">${SND?'🔈 '+T2('إسكات صوت الرسائل','Mute message sound'):'🔊 '+T2('تشغيل صوت الرسائل','Turn on message sound')}</button>${CUR.pcode?`<button onclick="hmT();panel('mem')">👥 ${T2('الأعضاء والمجموعات','Members & groups')}</button>`:''}<button onclick="hmT();panel('pin')">📌 ${T2('الرسائل المثبّتة','Pinned messages')}${pn?' ('+pn+')':''}</button><button onclick="hmT();muteConv()">${mu?'🔔 '+T2('إلغاء الكتم','Unmute'):'🔕 '+T2('كتم الإشعارات','Mute notifications')}</button><button onclick="hmT();pinConv()">${pin?'★ '+T2('إلغاء تثبيت المحادثة','Unpin conversation'):'☆ '+T2('تثبيت المحادثة في الأعلى','Pin conversation to top')}</button>${EMB?`<button onclick="hmT();fullPage()">↗ ${T2('فتح في صفحة كاملة','Open full page')}</button>`:''}</div></div>`}
+/* صوت خفيف عند وصول رسالة (قابل للإسكات) */
+let SND=true;try{SND=localStorage.getItem('chatSnd')!=='0'}catch(_){}
+let ACX=null;function acx(){try{if(!ACX)ACX=new (window.AudioContext||window.webkitAudioContext)();if(ACX.state=='suspended')ACX.resume();return ACX}catch(_){return null}}
+['touchstart','mousedown','keydown'].forEach(ev=>document.addEventListener(ev,()=>acx(),{once:true,passive:true}));
+let _sndT=0;function ding(){if(!SND||Date.now()-_sndT<1200)return;_sndT=Date.now();const c=acx();if(!c)return;try{const t=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(880,t);o.frequency.exponentialRampToValueAtTime(1320,t+.09);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.07,t+.02);g.gain.exponentialRampToValueAtTime(0.0001,t+.22);o.connect(g).connect(c.destination);o.start(t);o.stop(t+.24)}catch(_){}}
+function sndTog(){SND=!SND;try{localStorage.setItem('chatSnd',SND?'1':'0')}catch(_){}if(SND){acx();_sndT=0;ding()}toast(SND?T2('صوت الرسائل مفعّل','Message sound on'):T2('صوت الرسائل مكتوم','Message sound muted'));drawHead();drawRail()}
 function hmT(e){if(e)e.stopPropagation();const m=$('hmn');if(m)m.hidden=!m.hidden}
 document.addEventListener('click',e=>{const m=$('hmn');if(m&&!m.hidden&&!e.target.closest('#hmn'))m.hidden=true});
 function hstTyp(){return CUR&&typingIn(keyOf(CUR)).length>0}
@@ -327,7 +333,7 @@ function myKeyFor(){if(!CUR)return null;return CUR.t=='dm'?{to:CUR.id}:{cid:CUR.
 function rtStart(){try{if(!sb||!sb.channel||RTG)return;RTG=sb.channel('ido-chat',{config:{broadcast:{self:false},presence:{key:ME.id}}});
  RTG.on('broadcast',{event:'typing'},({payload:p})=>{if(!p||p.u==ME.id)return;let k=null;if(p.to){if(p.to!=ME.id)return;k='dm:'+p.u}else if(p.cid)k='ch:'+p.cid;if(!k)return;(TYP[k]=TYP[k]||{})[p.u]=Date.now();liveTick()})
   .on('broadcast',{event:'msg'},({payload:p})=>{if(!p||p.u==ME.id)return;if(p.to&&p.to!=ME.id)return;const k=p.to?'dm:'+p.u:'ch:'+p.cid;if(TYP[k])delete TYP[k][p.u];
-   if(CUR&&keyOf(CUR)==k){loadMsgs(false);markRead2()}clearTimeout(rtStart.t);rtStart.t=setTimeout(()=>refreshLists(),400)})
+   if(CUR&&keyOf(CUR)==k){loadMsgs(false);markRead2()}else if(!PINS.has('m:'+k))ding();clearTimeout(rtStart.t);rtStart.t=setTimeout(()=>refreshLists(),400)})
   .on('presence',{event:'sync'},()=>{try{ONL=new Set(Object.keys(RTG.presenceState()));liveTick()}catch(_){}})
   .subscribe(st=>{if(st==='SUBSCRIBED')try{RTG.track({u:ME.id,at:Date.now()})}catch(_){}})}catch(_){}
  setInterval(liveTick,1500)}
@@ -337,13 +343,14 @@ let _lsig='';function liveTick(){const sig=JSON.stringify(Object.keys(TYP).map(k
 /* لوحة المفاتيح على الهاتف: نعتمد الارتفاع الظاهر فعليًا */
 (function(){function vv(){const h=window.visualViewport?visualViewport.height:innerHeight;document.documentElement.style.setProperty('--vvh',h+'px')}vv();if(window.visualViewport){visualViewport.addEventListener('resize',()=>{vv();const b=$('msgs');if(b&&CUR)b.scrollTop=b.scrollHeight});visualViewport.addEventListener('scroll',()=>{if(document.querySelector('.chat.has'))window.scrollTo(0,0)})}addEventListener('resize',vv)})();
 /* ---- التحميل والتحديث الدوري ---- */
+let _uSum=null;const uSum=()=>Object.keys(UNR).filter(k=>!PINS.has('m:'+k)&&(!CUR||k!=keyOf(CUR))).reduce((a,k)=>a+(+UNR[k]||0),0);
 async function refreshLists(){
  const [u,p,d,um]=await Promise.all([sb.rpc('chat_unread'),sb.rpc('chat_my_projects'),sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300),sb.rpc('chat_unread_muted')]);
  UNR={};(um&&um.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});(u.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});
  if(!p.error)PROJ=p.data||[];try{const g=await sb.rpc('chat_my_groups');GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}
  try{const ids=PROJ.map(x=>x.channel_id).filter(Boolean).concat(GRPS.map(g=>g.id)).concat(GEN?[GEN.id]:[]);if(ids.length){const r=await sb.from('chat_messages').select('id,channel_id,from_user,body,deleted,created_at').in('channel_id',ids).order('created_at',{ascending:false}).limit(500);(r.data||[]).forEach(m=>{const k='ch:'+m.channel_id;if(!LAST[k]||new Date(LAST[k].created_at)<new Date(m.created_at))LAST[k]=m})}}catch(_){}
  DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o])DMS[o]=m});
- if(CUR){delete UNR[keyOf(CUR)]}drawRail()}
+ if(CUR){delete UNR[keyOf(CUR)]}{const u=uSum();if(_uSum!=null&&u>_uSum)ding();_uSum=u}drawRail()}
 async function load(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('lb').textContent=lang=='ar'?'EN':'ع';
  if(!sb)return gate('needLogin');
