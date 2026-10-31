@@ -71,6 +71,7 @@ main button.kp{display:block;text-align:start;font:inherit;font-weight:400;curso
 .ptb{display:inline-flex;flex:none;border:1.5px solid #3EA3DC;border-radius:99px;overflow:hidden;background:#fff}.ptb button{border:0;border-radius:0;padding:6px 10px;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}.ptb .px{padding:6px 9px;color:#d1101d}.ptb.on{background:#e7f3fb}.ptb.on button:first-child{color:#1d5f8a}.tsep{flex:none;width:1px;background:#cfd6dd;margin:4px 2px}
 .pvh{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:0 0 8px}.pvh .ab button{padding:5px 11px;font-size:12.5px}
 body.pgon main{padding-bottom:0!important}#pvs{display:none;max-width:980px;margin:0 auto;padding:0 14px 90px}.pvf{width:100%;height:calc(100dvh - 250px);min-height:460px;border:1px solid var(--line);border-radius:16px;background:#fff;display:none}
+.ci{padding:6px 0;border-bottom:1px dashed var(--line)}.ci:last-child{border:0}.ci .ab{margin-top:4px}.ign{margin-top:8px;font-size:13px}.ign summary{cursor:pointer;color:var(--mut)}
 @media print{.top,.tabs,#gnav,#pgban,.ab,.row button,.hm,#hd2{display:none!important}body{background:#fff}}
 </style>
 </head><body>
@@ -218,7 +219,7 @@ function gen(){ITEMS=[];
 }
 
 /* ====== فحوصات السلامة ====== */
-function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>CHECKS.push({k,ar,en,sev,bad,hint});
+function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>{bad.forEach(b=>{b.id=b.id||b.href+'|'+b.t});const ign=bad.filter(b=>chkIgn(k,b.id));CHECKS.push({k,ar,en,sev,bad:bad.filter(b=>!chkIgn(k,b.id)),ign,hint})};
  const codes=new Set(CH.filter(c=>!c.archived).map(c=>c.code));
  add('nochar','خطط بلا ميثاق','Plans without a charter',3,PLN.filter(x=>!x.archived&&x.pc&&!codes.has(x.pc)).map(x=>({t:(x.pn||x.pc)+' ('+x.pc+')',href:'plan.html#o='+x.id})),P('كل خطة يجب أن تتبع ميثاقًا.','Every plan must belong to a charter.'));
  add('chdates','مواثيق معتمدة بلا تاريخ بدء/انتهاء','Approved charters without dates',2,Object.values(PJ).filter(p=>p.chOk&&(dn(p.sd)==null||dn(p.ed)==null)).map(p=>({t:p.name,href:'charter.html#o='+p.ch.id})),P('بدونها لا يُحسب المخطط من الميثاق.','Without them, planned progress cannot come from the charter.'));
@@ -227,7 +228,7 @@ function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>CHECKS.push({k,
  add('norole','مستخدمون بلا دور','Users without a role',2,PRF.filter(u=>!u.role&&!u.role_key).map(u=>({t:u.full_name||u.email||u.id,href:'access.html'})),'');
  const ws=Object.values(WM).reduce((a,b)=>a+(+b||0),0);
  add('wsum','مجموع الأوزان لا يساوي ١٠٠٪','Weights do not total 100%',3,Object.keys(WM).length&&Math.abs(ws-100)>0.5?[{t:P('المجموع الحالي ','Current total ')+ws.toFixed(2)+'%',href:'portfolio.html'}]:[],P('راجع تبويب «الأوزان» في المحفظة.','Review the Weights tab in the portfolio.'));
- const crUp=[];Object.values(PJ).forEach(p=>{if(!p.plan)return;p.crs.filter(c=>c.status=='Approved'&&ageD(c.stage_at)<=90).forEach(c=>{if(p.plan.stage_at&&new Date(p.plan.stage_at)<new Date(c.stage_at)-864e5)crUp.push({t:p.name+' — '+(c.code||''),href:'cr.html#o='+c.id})})});
+ const crUp=[];Object.values(PJ).forEach(p=>{if(!p.plan)return;p.crs.filter(c=>c.status=='Approved'&&ageD(c.stage_at)<=90).forEach(c=>{if(p.plan.stage_at&&new Date(p.plan.stage_at)<new Date(c.stage_at)-864e5)crUp.push({t:p.name+' — '+(c.code||''),href:'cr.html#o='+c.id,id:'cr'+c.id,cr:c,plan:p.plan,pc:p.code,pname:p.name})})});
  add('crplan','طلب تغيير معتمد ولم تتحدّث الخطة بعده','Approved change request, plan not updated after it',2,crUp,P('تقديري: يقارن تاريخ آخر مرحلة للخطة بتاريخ اعتماد الطلب.','Estimate: compares the plan’s last stage date with the request approval date.'));
  add('nodate','مهام بلا تواريخ في خطط فعّالة','Tasks without dates in active plans',3,Object.values(PJ).filter(p=>p.A&&p.A.nodate).map(p=>({t:p.name+' — '+p.A.nodate,href:'portfolio.html'})),P('تُحرم من القياس الزمني والتأخر.','Excluded from time and lateness measures.'));
  const mx=SNP.reduce((m,z)=>z.snap_date>m?z.snap_date:m,'');
@@ -242,6 +243,36 @@ function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>CHECKS.push({k,
 let CHK_H={};
 async function chkSync(){try{const rows=CHECKS.map(c=>({day:TODAY,k:c.k,n:c.bad.length}));const w=await sb.from('ctl_check_history').upsert(rows,{onConflict:'day,k'});if(w.error)throw w.error;
   const r=await sb.from('ctl_check_history').select('day,k,n').gte('day',dsF(TD-30));if(r.error)throw r.error;const h={};(r.data||[]).forEach(x=>{(h[x.day]=h[x.day]||{})[x.k]=x.n});CHK_H=h;CHKSRC='db'}catch(e){CHKSRC='local'}}
+
+const chkKey=(k,id)=>'chkx:'+k+':'+id;
+const chkIgn=(k,id)=>{const o=OA[chkKey(k,id)];return !!(o&&o.status=='done')};
+let CHKIGN={};
+function chkItem(c,b){const k=esc(chkKey(c.k,b.id));let ex2='';
+ if(c.k=='crplan'&&b.plan){const draft=b.plan.status!='Approved';
+  ex2=`<button type="button" onclick="crView('${b.cr.id}','${b.plan.id}')">🗂 ${P('عرض الطلب والخطة','View request & plan')}</button>${draft?`<span class="mut">${P('الخطة قيد التعديل حاليًا','Plan is already being revised')}</span>`:`<button type="button" class="p" onclick="crDraft('${esc(b.id)}')">✏️ ${P('مسودة خطة مرتبطة بالطلب','Linked plan draft')}</button>`}`}
+ return `<div class="ci">• <a href="${esc(b.href)}">${esc(b.t)}</a><div class="ab">${ex2}<button type="button" data-k="${k}" onclick="chkOk(this,'${esc(c.k)}')">✓ ${P('لا يحتاج إجراء','No action needed')}</button></div></div>`}
+function chkOk(btn,ck){const key=btn.getAttribute('data-k');modal(`<h3>${P('إغلاق التنبيه: لا يحتاج إجراء','Close alert: no action needed')}</h3><label>${P('السبب (يُسجَّل باسمك)','Reason (logged under your name)')}</label><textarea id="m_n" rows="2" placeholder="${P('مثال: طلب التغيير لا يمسّ الخطة','e.g. the change request does not affect the plan')}"></textarea><div class="row"><button class="p" onclick="chkOkSave('${esc(key)}')">${P('حفظ','Save')}</button><button onclick="mclose()">${P('إلغاء','Cancel')}</button></div>`)}
+async function chkOkSave(key){try{await oaSave(key,{status:'done',note:($('m_n')||{}).value||''});mclose();runChecks();rebuild();toast(P('أُغلق التنبيه','Alert closed'));draw()}catch(e){toast(String(e.message||e))}}
+async function chkUndo(key){try{await oaSave(key,{status:'open'});runChecks();rebuild();draw()}catch(e){toast(String(e.message||e))}}
+function crView(cid,pid){openPg('cr.html#o='+cid,P('طلب التغيير','Change request'));setTimeout(()=>openPg('plan.html#o='+pid,P('الخطة','Plan')),60)}
+function crB(id){const c=CHECKS.find(x=>x.k=='crplan');return c&&c.bad.find(b=>b.id==id)}
+function crDraft(id){const b=crB(id);if(!b)return;const pmU=PRF.find(u=>u.full_name&&u.full_name==b.plan.pm);const us=PRF.slice().sort((a,c)=>String(a.full_name).localeCompare(String(c.full_name),'ar'));
+ modal(`<h3>✏️ ${P('مسودة خطة مرتبطة بطلب التغيير','Plan draft linked to the change request')}</h3><div class="mut">${esc(b.pname)} · ${esc(b.cr.code||'')}</div>
+ <div class="nt">${P('سيحدث: ① فتح إصدار جديد من الخطة (تبقى المعتمدة سارية حتى اعتماده) ② ربطه بطلب التغيير ③ منح المكلّف صلاحية تعديل الخطة إن لم يكن مدير المشروع ④ إشعاره داخل النظام وبالبريد.','This will: ① open a new plan version (the approved one stays in force until it is approved) ② link it to the change request ③ give the assignee edit access to the plan if they are not the PM ④ notify them in-app and by email.')}</div>
+ <label>${P('يُرسل للتعديل إلى','Send for editing to')}</label><select id="m_u">${pmU?`<option value="${esc(pmU.id)}">${P('مدير المشروع: ','PM: ')}${esc(pmU.full_name)}</option>`:''}${us.filter(u=>!pmU||u.id!=pmU.id).map(u=>`<option value="${esc(u.id)}">${esc(u.full_name||'')}</option>`).join('')}</select>
+ <label>${P('الرسالة','Message')}</label><textarea id="m_n" rows="3">${esc(P('أُنشئت مسودة جديدة لخطة «'+b.pname+'» مرتبطة بطلب التغيير '+(b.cr.code||'')+'. نرجو تحديث الخطة بما يعكس التغيير المعتمد وإرسالها للمراجعة والاعتماد.','A new draft of the “'+b.pname+'” plan linked to change request '+(b.cr.code||'')+' has been created. Please update the plan to reflect the approved change and submit it for review and approval.'))}</textarea>
+ <div class="row"><button class="p" onclick="crDraftGo('${esc(id)}')">${P('إنشاء المسودة وإرسالها','Create draft and send')}</button><button onclick="mclose()">${P('إلغاء','Cancel')}</button></div>`)}
+async function crDraftGo(id){const b=crB(id);if(!b)return;const uid=($('m_u')||{}).value,msg=($('m_n')||{}).value||'';if(!uid)return toast(P('اختر المكلّف','Pick the assignee'));const pid=b.plan.id,u=PRF.find(x=>x.id==uid)||{};
+ try{let r=await sb.rpc('pl_revise',{pid});if(r.error)throw r.error;
+  r=await sb.rpc('pl_set_crlink',{pid,lnk:b.cr.code});if(r.error)throw r.error;
+  if(!(b.plan.pm&&u.full_name==b.plan.pm)){const g=await sb.from('project_grants').select('id,lvl,svcs').eq('pcode',b.pc).eq('user_id',uid);const cur=(g.data||[])[0];
+   if(!cur)await sb.from('project_grants').insert({pcode:b.pc,user_id:uid,lvl:'edit',svcs:['plan','tasks'],note:P('مسودة مرتبطة بطلب التغيير ','Draft linked to CR ')+(b.cr.code||'')});
+   else if(cur.lvl!='edit'||(cur.svcs&&!cur.svcs.includes('plan')))await sb.from('project_grants').update({lvl:'edit',svcs:cur.svcs?[...new Set(cur.svcs.concat(['plan','tasks']))]:null}).eq('id',cur.id)}
+  try{await sb.from('plan_audit').insert({cr_id:pid,user_name:ME.full_name,action:'adminedit|'+P('مسودة مرتبطة بطلب التغيير ','Draft linked to change request ')+(b.cr.code||'')+P(' — أُرسلت إلى ',' — sent to ')+(u.full_name||'')})}catch(_){}
+  try{await sb.rpc('perf_nudge',{p_user:uid,p_msg:msg})}catch(_){}
+  await oaSave(chkKey('crplan',id),{status:'done',note:P('أُنشئت مسودة مرتبطة وأُرسلت إلى ','Linked draft created and sent to ')+(u.full_name||'')});
+  const x=PLN.find(z=>z.id==pid);try{const rr=await sb.from('plans').select('id,status,version,stage_at,act:data->>_active,cr_link').eq('id',pid).single();if(x&&rr.data)Object.assign(x,{status:rr.data.status,version:rr.data.version,stage_at:rr.data.stage_at,act:rr.data.act,crl:rr.data.cr_link})}catch(_){}mclose();buildProjects();runChecks();rebuild();toast(P('أُنشئت المسودة وأُرسلت','Draft created and sent'));draw();openPg('plan.html#o='+pid,P('الخطة','Plan'))}
+ catch(e){toast(String(e.message||e))}}
 
 /* ====== إجراءات ====== */
 async function ctlRemind(tb,id){try{const r=await sb.rpc('remind_any',{tbl:tb,cid:id});if(r.error)throw r.error;toast(P('أُرسل التذكير','Reminder sent'))}catch(e){toast((e&&e.message)||String(e))}}
@@ -365,7 +396,7 @@ let WKRES=null;
 function vChk(){const bad=CHECKS.filter(c=>c.bad.length).length;
  const tr=k=>{const ds=Object.keys(CHK_H).sort().slice(-7);if(ds.length<2)return '';const v=ds.map(d=>(CHK_H[d]||{})[k]);const a=v[0],b=v[v.length-1];if(a==null||b==null)return '';return `<span class="mut" title="${ds.length}d">${b>a?'↗':b<a?'↘':'→'} ${a}→${b}</span>`};
  return `<div class="card"><h2>${P('فحوصات سلامة النظام','System integrity checks')}<small>${CHKSRC=='db'?P('تُشغَّل عند كل فتح للصفحة. الاتجاه مشترك لكل المكتب.','Run each time the page opens. The trend is shared across the office.'):P('تُشغَّل عند كل فتح للصفحة. الاتجاه محفوظ على هذا الجهاز (شغّل ملف SQL ليصبح مشتركًا).','Run each time the page opens. The trend is kept on this device (run the SQL file to share it).')}</small></h2><div class="kg" style="margin:8px 0 0"><button type="button" class="kp ${CF=='ok'?'kon':''}" style="border-top:4px solid #2e8b57" onclick="CF=CF=='ok'?'':'ok';draw()"><span>${P('ناجحة','Passed')}</span><b>${CHECKS.length-bad}</b></button><button type="button" class="kp ${CF=='bad'?'kon':''}" style="border-top:4px solid #d1101d" onclick="CF=CF=='bad'?'':'bad';draw()"><span>${P('تحتاج معالجة','Need attention')}</span><b>${bad}</b></button><button type="button" class="kp ${CF==''?'kon':''}" style="border-top:4px solid #2a6a90" onclick="CF='';draw()"><span>${P('الكل','All')}</span><b>${CHECKS.length}</b></button></div></div>
- ${CHECKS.filter(c=>!CF||(CF=='bad'?c.bad.length:!c.bad.length)).slice().sort((a,b)=>(b.bad.length>0)-(a.bad.length>0)||b.sev-a.sev).map(c=>`<div class="card" style="border-inline-start:5px solid ${c.bad.length?SEVN[c.sev][2]:'#2e8b57'}"><div class="ih2"><b>${P(c.ar,c.en)}</b><span class="cn ${c.bad.length?'':'ok'}">${c.bad.length||'✓'}</span> ${tr(c.k)}</div>${c.hint?`<div class="mut">${esc(c.hint)}</div>`:''}${c.bad.length?`<div class="ls">${ex(c.bad,b=>`• <a href="${esc(b.href)}">${esc(b.t)}</a>`,6)}</div>`:''}</div>`).join('')}`}
+ ${CHECKS.filter(c=>!CF||(CF=='bad'?c.bad.length:!c.bad.length)).slice().sort((a,b)=>(b.bad.length>0)-(a.bad.length>0)||b.sev-a.sev).map(c=>`<div class="card" style="border-inline-start:5px solid ${c.bad.length?SEVN[c.sev][2]:'#2e8b57'}"><div class="ih2"><b>${P(c.ar,c.en)}</b><span class="cn ${c.bad.length?'':'ok'}">${c.bad.length||'✓'}</span> ${tr(c.k)}</div>${c.hint?`<div class="mut">${esc(c.hint)}</div>`:''}${c.bad.length?`<div class="ls">${ex(c.bad,b=>chkItem(c,b),6)}</div>`:''}${c.ign.length?`<details class="ign"><summary>${P('مغلقة كـ«لا يحتاج إجراء»','Closed as “no action needed”')} (${c.ign.length})</summary>${c.ign.map(b=>{const o=OA[chkKey(c.k,b.id)]||{};return `<div class="ci">• ${esc(b.t)} <span class="mut">— ${esc(o.updated_by_name||'')}${o.note?': '+esc(o.note):''}</span> <a href="#" class="dqt" onclick="chkUndo('${esc(chkKey(c.k,b.id))}');return false">${P('إعادة فتح','Reopen')}</a></div>`}).join('')}</details>`:''}</div>`).join('')}`}
 
 /* ---- التدقيق ---- */
 function vAud(){const rows=AUD.filter(r=>r.src=='sys'||true),dubH=r=>(new Date(r.at).getUTCHours()+4)%24,day=r=>new Date(new Date(r.at).getTime()+4*36e5).toISOString().slice(0,10);
@@ -560,7 +591,7 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
  const [prf,ch,pln,crs,clr,sg1,sg2,sg3,sg4,esc_,cfg,snp]=await Promise.all([
   Q('profiles','id,full_name,job_title,email,role,role_key'),
   Q('charters','id,code,status,archived,created_at,stage_at,pn:data->>pname,sd:data->>sdate,ed:data->>edate'),
-  Q('plans','id,code,status,archived,created_at,stage_at,act:data->>_active,pc:data->>pcode,pn:data->>pname,tasks:data->tasks',r=>r.eq('archived',false)),
+  Q('plans','id,code,status,archived,created_at,stage_at,version,act:data->>_active,pc:data->>pcode,pn:data->>pname,pm:data->>pmname,crl:cr_link,tasks:data->tasks',r=>r.eq('archived',false)),
   Q('change_requests','id,code,status,archived,created_at,stage_at,pc:data->>pcode,ti:data->>title'),
   Q('closure_reports','id,code,status,archived,created_at,stage_at,pc:data->>pcode'),
   Q('charter_signatories','user_id,cr_id,stage',r=>r.eq('status','pending')),Q('plan_signatories','user_id,cr_id,stage',r=>r.eq('status','pending')),
