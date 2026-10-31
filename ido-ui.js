@@ -278,14 +278,17 @@
     var boxes = document.querySelectorAll('.hmp'); if (!boxes.length) return;
     var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
     var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
+    var caps = []; try { caps = JSON.parse(ls('hdrCaps') || '[]') || []; } catch (e) {}
+    var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
+    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁' };
     boxes.forEach(function (box) {
-      [['unit.html', adm || head, 'وحدتي', 'My unit'], ['control.html', adm, 'التحكم', 'Control'], ['perms.html', adm, 'الصلاحيات', 'Permissions']].forEach(function (x) {
+      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view'), 'سجل التدقيق', 'Audit log']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
         var ar = (document.documentElement.lang || 'ar') === 'ar', sp = a.querySelector('span'), lab = ar ? x[2] : x[3];
         if (sp) sp.textContent = lab; else a.textContent = lab;
-        var ic = a.querySelector('i'); if (ic) { ic.textContent = x[0] === 'unit.html' ? '👥' : x[0] === 'perms.html' ? '🔐' : '🧭'; ic.removeAttribute('data-ui'); }
+        var ic = a.querySelector('i'); if (ic) { ic.textContent = ICO[x[0]] || '🧭'; ic.removeAttribute('data-ui'); }
         if (cur === x[0]) a.classList.add('on');
         ref.parentNode.insertBefore(a, ref.nextSibling);
       });
