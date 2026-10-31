@@ -1,0 +1,194 @@
+-- صفحة التحكم: التصعيد التلقائي المتدرّج، إجازات المعتمِدين (بديل)، سجل فحوصات مشترك، آخر دخول، ملخص المكتب
+-- شغّله مرة واحدة في Supabase (بعد update-oct53-sql.txt). آمن لإعادة التشغيل.
+
+-- ===== 1) قواعد التصعيد: مُهل لكل نوع طلب =====
+create table if not exists escalation_rules(
+  svc text primary key check (svc in ('charter','plan','cr','closure')),
+  remind_days int not null default 3,     -- تذكير المعتمِد (والبديل إن كان في إجازة)
+  manager_days int not null default 7,    -- إشعار مدير المشروع ومنشئ الوثيقة
+  office_days int not null default 10,    -- إشعار مكتب التطوير
+  enabled boolean not null default true,
+  updated_at timestamptz not null default now(),
+  updated_by uuid);
+insert into escalation_rules(svc, remind_days, manager_days, office_days) values
+  ('charter',3,7,10),('plan',3,7,10),('cr',2,5,7),('closure',3,7,10)
+on conflict (svc) do nothing;
+
+create table if not exists escalation_log(
+  id bigserial primary key,
+  svc text not null, rec_id bigint not null, stage text, stage_at timestamptz,
+  level int not null, sent int not null default 0, note text, at timestamptz not null default now());
+create index if not exists escalation_log_k on escalation_log(svc, rec_id, level);
+
+-- ===== 2) إجازات المعتمِدين والبديل =====
+create table if not exists approver_leave(
+  id bigserial primary key,
+  user_id uuid not null,
+  from_date date not null, to_date date not null check (to_date >= from_date),
+  substitute_id uuid,
+  note text,
+  created_by uuid, created_at timestamptz not null default now());
+
+-- ===== 3) سجل مشترك لفحوصات السلامة =====
+create table if not exists ctl_check_history(
+  day date not null, k text not null, n int not null,
+  primary key (day, k));
+
+-- ===== صلاحيات: للأدمن فقط =====
+do $$ declare t text; begin
+  foreach t in array array['escalation_rules','escalation_log','approver_leave','ctl_check_history'] loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists "adm all" on %I', t);
+    execute format('create policy "adm all" on %I for all to authenticated using (_is_admin()) with check (_is_admin())', t);
+    execute format('grant select, insert, update, delete on %I to authenticated', t);
+  end loop;
+end $$;
+grant usage, select on sequence escalation_log_id_seq, approver_leave_id_seq to authenticated;
+
+-- ===== 4) آخر دخول لكل مستخدم (للأدمن) =====
+create or replace function admin_last_seen() returns table(user_id uuid, last_sign_in_at timestamptz)
+language plpgsql stable security definer set search_path=public as $fn$
+begin
+  if not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then raise exception 'admin only'; end if;
+  return query select u.id, u.last_sign_in_at from auth.users u;
+end $fn$;
+revoke all on function admin_last_seen() from public, anon;
+grant execute on function admin_last_seen() to authenticated;
+
+-- ===== 5) التصعيد المتدرّج =====
+-- المستوى ١: تذكير المعتمِد (والبديل إن كان في إجازة)  — المستوى ٢: مدير المشروع ومنشئ الوثيقة — المستوى ٣: مكتب التطوير
+-- يُرسل كل مستوى مرة واحدة لكل مرحلة. p_dry=true: معاينة بلا إرسال ولا تسجيل.
+create or replace function run_escalation(p_dry boolean default false) returns jsonb
+language plpgsql security definer set search_path=public as $fn$
+declare
+  url text; sec text; site text; r record; rr record; rl record;
+  age numeric; lvl int; stg text; ev text; rcp jsonb; sub jsonb; pm jsonb; adm jsonb; allr jsonb; n int;
+  c1 int := 0; c2 int := 0; c3 int := 0; lst jsonb := '[]'::jsonb; ttl text; lines jsonb; v_proj text;
+begin
+  if auth.uid() is not null and not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then
+    raise exception 'admin only';
+  end if;
+  select value into url  from app_config where key = 'mail_url';
+  select value into sec  from app_config where key = 'mail_secret';
+  select value into site from app_config where key = 'site_url';
+  if url is null and not p_dry then return jsonb_build_object('err', 'mail_url missing'); end if;
+  select coalesce(jsonb_agg(distinct jsonb_build_object('email', lower(trim(email)), 'name', full_name)), '[]'::jsonb)
+    into adm from profiles where role = 'admin' and coalesce(trim(email), '') <> '';
+  for r in select * from (values
+      ('charter','charters','charter_signatories','charter.html'),
+      ('plan','plans','plan_signatories','plan.html'),
+      ('cr','change_requests','signatories','cr.html'),
+      ('closure','closure_reports','closure_signatories','closure.html')) v(svc, tb, sg, page) loop
+    select * into rl from escalation_rules where svc = r.svc and enabled;
+    if not found then continue; end if;
+    for rr in execute format('select id, code, status, stage_at, created_by, data->>''pname'' pn, data->>''pmname'' pmn from %I where not archived and status in (''PMO Review'',''Awaiting Approval'')', r.tb) loop
+      age := extract(epoch from (now() - coalesce(rr.stage_at, now()))) / 86400.0;
+      lvl := case when age >= rl.office_days then 3 when age >= rl.manager_days then 2 when age >= rl.remind_days then 1 else 0 end;
+      if lvl = 0 then continue; end if;
+      stg := case rr.status when 'PMO Review' then 'reviewed' else 'approved' end;
+      ev  := case rr.status when 'PMO Review' then 'reminderReview' else 'reminderApprove' end;
+      if exists(select 1 from escalation_log l where l.svc = r.svc and l.rec_id = rr.id and l.stage = stg
+                and l.stage_at is not distinct from rr.stage_at and l.level >= lvl) then continue; end if;
+      v_proj := coalesce(nullif(rr.pn, ''), rr.code);
+      n := 0;
+      if lvl = 1 then
+        execute format('select coalesce(jsonb_agg(distinct jsonb_build_object(''email'',lower(trim(p.email)),''name'',p.full_name)),''[]''::jsonb) from %I s join profiles p on p.id = s.user_id where s.cr_id = $1 and s.stage = $2 and s.status = ''pending'' and coalesce(trim(p.email),'''') <> ''''', r.sg)
+          into rcp using rr.id, stg;
+        execute format('select coalesce(jsonb_agg(distinct jsonb_build_object(''email'',lower(trim(sp.email)),''name'',sp.full_name)),''[]''::jsonb) from %I s join approver_leave l on l.user_id = s.user_id and current_date between l.from_date and l.to_date join profiles sp on sp.id = l.substitute_id where s.cr_id = $1 and s.stage = $2 and s.status = ''pending'' and coalesce(trim(sp.email),'''') <> ''''', r.sg)
+          into sub using rr.id, stg;
+        allr := coalesce(rcp, '[]'::jsonb) || coalesce(sub, '[]'::jsonb);
+        n := jsonb_array_length(allr);
+        if n > 0 and not p_dry then
+          perform net.http_post(url := url,
+            body := jsonb_build_object('secret', sec, 'event', ev, 'service', r.svc, 'code', rr.code, 'project', nullif(rr.pn, ''),
+                    'by', 'التصعيد التلقائي', 'site', site, 'page', r.page, 'recipients', allr),
+            headers := '{"Content-Type":"application/json"}'::jsonb);
+        end if;
+        c1 := c1 + 1;
+      else
+        select coalesce(jsonb_agg(distinct jsonb_build_object('email', lower(trim(p.email)), 'name', p.full_name)), '[]'::jsonb)
+          into pm from profiles p where coalesce(trim(p.email), '') <> '' and (p.id = rr.created_by or (rr.pmn is not null and p.full_name = rr.pmn));
+        if lvl = 2 then
+          allr := pm; ttl := 'تأخر اعتماد وثيقتك';
+          lines := jsonb_build_array(jsonb_build_array(v_proj, rr.code || ' بانتظار الاعتماد منذ ' || floor(age)::int || ' يومًا. تمت متابعة المعتمِد، وقد تحتاج للتواصل معه.'));
+          c2 := c2 + 1;
+        else
+          allr := adm; ttl := 'وثيقة متأخرة الاعتماد تحتاج تدخل المكتب';
+          lines := jsonb_build_array(jsonb_build_array(v_proj, rr.code || ' بانتظار الاعتماد منذ ' || floor(age)::int || ' يومًا (تجاوزت مُهلة التصعيد).'));
+          c3 := c3 + 1;
+        end if;
+        n := jsonb_array_length(allr);
+        if n > 0 and not p_dry then
+          perform net.http_post(url := url,
+            body := jsonb_build_object('secret', sec, 'event', 'taskReminder', 'service', 'plan', 'code', ttl, 'project', nullif(rr.pn, ''),
+                    'details', lines, 'by', 'التصعيد التلقائي', 'site', site, 'page', r.page, 'recipients', allr),
+            headers := '{"Content-Type":"application/json"}'::jsonb);
+        end if;
+      end if;
+      if not p_dry then
+        insert into escalation_log(svc, rec_id, stage, stage_at, level, sent, note) values (r.svc, rr.id, stg, rr.stage_at, lvl, n, rr.code || ' · ' || floor(age)::int || 'd');
+      end if;
+      if jsonb_array_length(lst) < 60 then
+        lst := lst || jsonb_build_array(jsonb_build_object('svc', r.svc, 'id', rr.id, 'code', rr.code, 'project', v_proj, 'level', lvl, 'days', floor(age)::int, 'to', n));
+      end if;
+    end loop;
+  end loop;
+  return jsonb_build_object('dry', p_dry, 'l1', c1, 'l2', c2, 'l3', c3, 'items', lst);
+end $fn$;
+revoke all on function run_escalation(boolean) from public, anon;
+grant execute on function run_escalation(boolean) to authenticated;
+
+-- ===== 6) ملخص أسبوعي للمكتب (بريد) =====
+create or replace function office_digest_send(p_dry boolean default false) returns jsonb
+language plpgsql security definer set search_path=public as $fn$
+declare
+  url text; sec text; site text; adm jsonb; a int; e int; npl int; ov int; late int; lines jsonb;
+begin
+  if auth.uid() is not null and not exists(select 1 from profiles where id = auth.uid() and role = 'admin') then
+    raise exception 'admin only';
+  end if;
+  select value into url  from app_config where key = 'mail_url';
+  select value into sec  from app_config where key = 'mail_secret';
+  select value into site from app_config where key = 'site_url';
+  select (select count(*) from charters where not archived and status in ('PMO Review','Awaiting Approval') and stage_at < now() - interval '3 days')
+       + (select count(*) from plans where not archived and status in ('PMO Review','Awaiting Approval') and stage_at < now() - interval '3 days')
+       + (select count(*) from change_requests where not archived and status in ('PMO Review','Awaiting Approval') and stage_at < now() - interval '3 days')
+       + (select count(*) from closure_reports where not archived and status in ('PMO Review','Awaiting Approval') and stage_at < now() - interval '3 days') into a;
+  begin select count(*) into e from escalations where status = 'pending'; exception when others then e := 0; end;
+  select count(*) into npl from charters c where c.status = 'Approved' and not c.archived
+    and not exists(select 1 from plans p where not p.archived and p.data->>'pcode' = c.code and (p.status = 'Approved' or p.data->>'_active' = 'true'));
+  select count(*) into ov from plans where not archived and status <> 'Approved' and data->>'_active' = 'true';
+  select count(*) into late
+    from plans p, jsonb_array_elements(coalesce(p.data->'tasks', '[]'::jsonb)) x
+    where (p.status = 'Approved' or p.data->>'_active' = 'true') and not p.archived
+      and not exists (select 1 from jsonb_array_elements(p.data->'tasks') y where y->>'p' = x->>'id')
+      and coalesce((x->>'pc')::numeric, 0) < 100 and nullif(x->>'e', '') is not null and (x->>'e')::date < current_date;
+  lines := jsonb_build_array(
+    jsonb_build_array('اعتمادات متأخرة أكثر من ٣ أيام', a::text),
+    jsonb_build_array('طلبات تصعيد بانتظار قرار المكتب', e::text),
+    jsonb_build_array('مواثيق معتمدة بلا خطة فعّالة', npl::text),
+    jsonb_build_array('خطط مفعّلة بالتجاوز ولم تُعتمد', ov::text),
+    jsonb_build_array('مهام متأخرة في الخطط الفعّالة', late::text),
+    jsonb_build_array('للتفاصيل والإجراءات', 'افتح صفحة التحكم'));
+  select coalesce(jsonb_agg(distinct jsonb_build_object('email', lower(trim(email)), 'name', full_name)), '[]'::jsonb)
+    into adm from profiles where role = 'admin' and coalesce(trim(email), '') <> '';
+  if not p_dry and url is not null and jsonb_array_length(adm) > 0 then
+    perform net.http_post(url := url,
+      body := jsonb_build_object('secret', sec, 'event', 'taskReminder', 'service', 'plan', 'code', 'ملخص المكتب الأسبوعي', 'project', null,
+              'details', lines, 'by', 'المنصة', 'site', site, 'page', 'control.html', 'recipients', adm),
+      headers := '{"Content-Type":"application/json"}'::jsonb);
+  end if;
+  return jsonb_build_object('dry', p_dry, 'to', jsonb_array_length(adm), 'mail', url is not null,
+    'appr', a, 'esc', e, 'nopln', npl, 'ovr', ov, 'late', late);
+end $fn$;
+revoke all on function office_digest_send(boolean) from public, anon;
+grant execute on function office_digest_send(boolean) to authenticated;
+
+-- ===== 7) الجدولة التلقائية (إن كانت pg_cron متاحة) =====
+-- التصعيد يوميًا ٧:٠٠ صباحًا بتوقيت الإمارات، وملخص المكتب كل أحد ٩:٠٠ صباحًا
+do $$ begin
+  create extension if not exists pg_cron;
+  perform cron.unschedule(jobid) from cron.job where jobname in ('ido_escalation','ido_office_digest');
+  perform cron.schedule('ido_escalation', '0 3 * * *', 'select public.run_escalation(false)');
+  perform cron.schedule('ido_office_digest', '0 5 * * 0', 'select public.office_digest_send(false)');
+exception when others then raise notice 'pg_cron غير متاحة (%): شغّل التصعيد والملخص يدويًا من صفحة التحكم', sqlerrm; end $$;

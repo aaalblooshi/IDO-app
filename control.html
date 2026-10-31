@@ -97,7 +97,7 @@ const DAYS=(n)=>A()?(n==1?'يوم':n==2?'يومان':n>=3&&n<=10?n+' أيام':n
 /* ====== حالة ====== */
 let TAB='room',KF='all',SHOWQ=false,ONLYNEW=false,LOADED=false,LOADERR=[];
 let US={},PRF=[],CH=[],PLN=[],CRS=[],CLR=[],SGP=[],ESC=[],PERF=[],SNP=[],CFG={},WM={},AUD=[],OA={},OAMODE='db';
-let PJ={},ITEMS=[],CHECKS=[],PREV=null;
+let PJ={},ITEMS=[],CHECKS=[],PREV=null,RULES=[],ELOG=[],LEAVE=[],SIGNED=[],SEEN={},CHKSRC='local',LADRES=null;
 const Q=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){LOADERR.push(tb);return []}};
 
 /* ====== تحليل المهام ====== */
@@ -137,6 +137,7 @@ const oaState=k=>{const o=OA[k];if(!o)return {s:'open'};const sn=o.snooze_until&
  if(o.status=='assigned')return {s:'assigned',o};return {s:'open',o}};
 
 /* ====== توليد البنود ====== */
+const onLeave=uid=>{const l=LEAVE.find(x=>x.user_id==uid&&x.from_date<=TODAY&&x.to_date>=TODAY);return l?{name:US[uid]||'',sub:l.substitute_id?(US[l.substitute_id]||''):'',to:l.to_date}:null};
 const SEVN={5:['حرج','Critical','#d1101d'],4:['عالٍ','High','#e0561c'],3:['متوسط','Medium','#a8761a'],2:['منخفض','Low','#6b7a8a']};
 const KINDS={appr:['اعتمادات','Approvals'],esc:['تصعيدات','Escalations'],proj:['مشاريع','Projects'],task:['مهام','Tasks'],ovr:['تجاوزات','Overrides'],ppl:['أشخاص','People'],dq:['سلامة البيانات','Data health']};
 const pname=pc=>(PJ[pc]&&PJ[pc].name)||pc||'';
@@ -147,12 +148,12 @@ function gen(){ITEMS=[];
  const recs=[['charter','charters',CH],['plan','plans',PLN],['cr','change_requests',CRS],['closure','closure_reports',CLR]];
  recs.forEach(([svc,tb,arr])=>arr.filter(r=>!r.archived&&(FLOW[r.status]||r.status=='Returned to PM')).forEach(r=>{
   const age=ageD(r.stage_at||r.created_at),pc=svc=='charter'?r.code:r.pc;if(age<3)return;
-  const stg=FLOW[r.status];const who=SGP.filter(s=>s.svc==svc&&s.cr_id==r.id&&(!stg||s.stage==stg)).map(s=>US[s.user_id]||'—');
+  const stg=FLOW[r.status];const sgs=SGP.filter(s=>s.svc==svc&&s.cr_id==r.id&&(!stg||s.stage==stg));const who=sgs.map(s=>US[s.user_id]||'—');const lv=sgs.map(s=>onLeave(s.user_id)).filter(Boolean);
   const ret=r.status=='Returned to PM';
   const nm=svc=='cr'?(r.ti||pname(pc)):(r.pn||pname(pc));
-  addItem({key:'appr:'+svc+':'+r.id,kind:'appr',sev:ret?(age>=14?3:2):(age>=7?4:3)+(age>=14?1:0),age,pc,
+  addItem({key:'appr:'+svc+':'+r.id,kind:'appr',sev:Math.min(5,(ret?(age>=14?3:2):(age>=7?4:3)+(age>=14?1:0))+(lv.some(l=>!l.sub)?1:0)),age,pc,
    title:P(SVN[svc][0],SVN[svc][1])+' '+(r.code||'')+' — '+nm,
-   sub:ret?P('معادة لمدير المشروع','Returned to the project manager'):P('بانتظار ','Waiting for ')+(who.length?who.join('، '):P('المعتمِد','the approver'))+' · '+(stg=='reviewed'?P('مرحلة المراجعة','Review stage'):P('مرحلة الاعتماد','Approval stage')),
+   sub:ret?P('معادة لمدير المشروع','Returned to the project manager'):P('بانتظار ','Waiting for ')+(who.length?who.join('، '):P('المعتمِد','the approver'))+' · '+(stg=='reviewed'?P('مرحلة المراجعة','Review stage'):P('مرحلة الاعتماد','Approval stage'))+lv.map(l=>' · 🌴 '+l.name+P(' في إجازة',' is on leave')+(l.sub?P(' (البديل: ',' (substitute: ')+l.sub+')':P(' — بلا بديل',' — no substitute'))).join(''),
    who:who.join('، '),links:[[P('فتح','Open'),PGF[svc]+'#o='+r.id]],acts:ret?[]:[[P('تذكير المعتمِد','Remind approver'),`ctlRemind('${tb}',${r.id})`]]})}));
  /* 2) تصعيدات */
  ESC.forEach(e=>{const age=ageD(e.created_at);addItem({key:'esc:'+e.id,kind:'esc',sev:5,age,pc:'',title:P('طلب تصعيد بانتظار قرار المكتب','Escalation awaiting the office decision')+' — '+P(SVN[e.svc]?SVN[e.svc][0]:e.svc,SVN[e.svc]?SVN[e.svc][1]:e.svc),
@@ -180,12 +181,17 @@ function gen(){ITEMS=[];
    if(!p.cloFlow&&((a.n&&a.act>=100)||(endD!=null&&TD-endD>7))){const done=a.n&&a.act>=100;
     addItem({key:'clo:'+p.code,kind:'proj',sev:done?3:(TD-endD>30?4:3),age:endD!=null?Math.max(0,TD-endD):0,pc:p.code,title:p.name+' — '+(done?P('أُنجز ١٠٠٪ بلا تقرير ختامي','100% done, no closure report'):P('انتهت مدته ولم يُغلق','past its end date and not closed')),
      sub:P('يلزم تقرير ختامي معتمد ليخرج من المؤشرات','An approved closure report is needed to leave the indicators'),links:[[P('التقارير الختامية','Closure reports'),'closure.html']],acts:[]})}
+   /* تغييرات متكررة */
+   const rc=p.crs.filter(c=>ageD(c.stage_at||c.created_at)<=90);
+   if(rc.length>=3)addItem({key:'crfreq:'+p.code,kind:'proj',sev:rc.length>=5?4:3,age:ageD(Math.max.apply(0,rc.map(c=>+new Date(c.stage_at||c.created_at)))?new Date(Math.max.apply(0,rc.map(c=>+new Date(c.stage_at||c.created_at)))).toISOString():null),pc:p.code,title:p.name+' — '+rc.length+P(' طلبات تغيير خلال ٩٠ يومًا',' change requests in 90 days'),sub:P('تكرار التغيير مؤشر على عدم استقرار النطاق أو الخطة','Frequent change suggests unstable scope or plan'),links:[[P('طلبات التغيير','Change requests'),'cr.html']],acts:[]});
    /* انحراف الأساس: الخطة مقابل الميثاق */
    if(durOk&&a.start!=null&&a.end!=null){const d1=Math.abs(a.start-sd),d2=Math.abs(a.end-ed);if(Math.max(d1,d2)>=30)p.drift={d1:a.start-sd,d2:a.end-ed}}
   }});
  /* 4) تجاوزات: خطط مفعّلة قبل الاعتماد */
- PLN.filter(x=>!x.archived&&x.act=='true'&&x.status!='Approved').forEach(x=>{const age=ageD(x.stage_at||x.created_at);addItem({key:'ovr:plan:'+x.id,kind:'ovr',sev:age>14?4:age>7?3:2,age,pc:x.pc,title:P('خطة مفعّلة بالتجاوز ولم تُعتمد','Plan activated by override, not approved')+' — '+(x.pn||pname(x.pc)),
-  sub:P('الحالة: ','Status: ')+x.status+' · '+P('تعمل المهام والحساب، ويبقى مسار الاعتماد مفتوحًا','Tasks and calculations run; the approval path stays open'),links:[[P('فتح الخطة','Open plan'),'plan.html#o='+x.id]],acts:x.status=='PMO Review'||x.status=='Awaiting Approval'?[[P('تذكير المعتمِد','Remind approver'),`ctlRemind('plans',${x.id})`]]:[]})});
+ PLN.filter(x=>!x.archived&&x.act=='true'&&x.status!='Approved').forEach(x=>{const age=ageD(x.stage_at||x.created_at);const m=OA['ovrm:plan:'+x.id]||{},exp=m.due||'',expired=exp&&exp<TODAY;
+  addItem({key:'ovr:plan:'+x.id,kind:'ovr',sev:expired?5:age>14?4:age>7?3:2,age,pc:x.pc,title:(expired?P('انتهت مهلة التجاوز — ','Override expired — '):'')+P('خطة مفعّلة بالتجاوز ولم تُعتمد','Plan activated by override, not approved')+' — '+(x.pn||pname(x.pc)),
+  sub:P('الحالة: ','Status: ')+x.status+' · '+(m.note?P('السبب: ','Reason: ')+m.note:P('بلا سبب مسجَّل','no reason recorded'))+(exp?' · '+P('مهلة التجاوز حتى ','override until ')+fdt(exp):''),links:[[P('فتح الخطة','Open plan'),'plan.html#o='+x.id]],
+  acts:[[P('السبب والمهلة','Reason & expiry'),`ctlR('${x.id}')`]].concat(x.status=='PMO Review'||x.status=='Awaiting Approval'?[[P('تذكير المعتمِد','Remind approver'),`ctlRemind('plans',${x.id})`]]:[])})});
  /* 5) الأشخاص */
  PERF.forEach(u=>{const nm=u.full_name||US[u.user_id]||'';
   if(+u.pend_old>0)addItem({key:'ppl:pend:'+u.user_id,kind:'ppl',sev:+u.pend_old>=3?4:3,age:7,pc:'',title:nm+' — '+u.pend_old+P(' من البنود المعلّقة متأخرة عنده',' overdue approvals held'),sub:P('إجمالي ما ينتظر إجراءه: ','Total waiting on them: ')+u.pend,links:[[P('أداء المستخدم','User performance'),'perf.html']],acts:[]});
@@ -194,6 +200,7 @@ function gen(){ITEMS=[];
  const sb2={};SNP.filter(z=>!z.est).forEach(z=>(sb2[z.code]=sb2[z.code]||[]).push(z));
  Object.keys(sb2).forEach(k=>{const p=PJ[k];if(!p||p.hidden||p.closed)return;const z=sb2[k].sort((a,b)=>a.snap_date<b.snap_date?-1:1),last=z[z.length-1],ld=dn(last.snap_date);if(TD-ld>3)return;
   const base=z.filter(q=>dn(q.snap_date)<=ld-14).pop();if(!base)return;const g0=+base.planned-+base.actual,g1=+last.planned-+last.actual;
+  if(+last.late-(+base.late||0)>=2&&!(g1-g0>=10&&g1>=10))addItem({key:'lrise:'+k,kind:'proj',sev:3,age:14,pc:k,title:p.name+' — '+P('المهام المتأخرة تزداد','late tasks are increasing'),sub:P('من ','from ')+(+base.late||0)+P(' إلى ',' to ')+(+last.late)+P(' خلال ',' over ')+(ld-dn(base.snap_date))+P(' يومًا',' days'),links:[[P('مسار الإنجاز','Trend'),'portfolio.html']],acts:[]});
   if(g1-g0>=10&&g1>=10)addItem({key:'trend:'+k,kind:'proj',sev:g1>=25?4:3,age:14,pc:k,title:p.name+' — '+P('الفجوة تتسع','gap is widening'),sub:P('من ','from ')+Math.round(g0)+P(' إلى ',' to ')+Math.round(g1)+P(' نقطة خلال ',' pts over ')+(ld-dn(base.snap_date))+P(' يومًا',' days'),links:[[P('مسار الإنجاز','Trend'),'portfolio.html']],acts:[]})});
  /* 7) فحوصات سلامة فاشلة بخطورة متوسطة فأعلى */
  CHECKS.filter(c=>c.bad.length&&c.sev>=3).forEach(c=>addItem({key:'dq:'+c.k,kind:'dq',sev:c.sev,age:0,pc:'',title:P(c.ar,c.en)+' ('+c.bad.length+')',sub:c.bad.slice(0,3).map(b=>b.t).join('، ')+(c.bad.length>3?'…':''),links:[[P('تفاصيل','Details'),'#chk']],acts:[],tab:'chk'}));
@@ -224,6 +231,8 @@ function runChecks(){CHECKS=[];const add=(k,ar,en,sev,bad,hint)=>CHECKS.push({k,
  /* اتجاه الفحوصات على هذا الجهاز */
  try{const k='ctl_chk',h=JSON.parse(localStorage.getItem(k)||'{}');h[TODAY]=Object.fromEntries(CHECKS.map(c=>[c.k,c.bad.length]));Object.keys(h).sort().slice(0,-30).forEach(d=>delete h[d]);localStorage.setItem(k,JSON.stringify(h));CHK_H=h}catch(_){CHK_H={}}}
 let CHK_H={};
+async function chkSync(){try{const rows=CHECKS.map(c=>({day:TODAY,k:c.k,n:c.bad.length}));const w=await sb.from('ctl_check_history').upsert(rows,{onConflict:'day,k'});if(w.error)throw w.error;
+  const r=await sb.from('ctl_check_history').select('day,k,n').gte('day',dsF(TD-30));if(r.error)throw r.error;const h={};(r.data||[]).forEach(x=>{(h[x.day]=h[x.day]||{})[x.k]=x.n});CHK_H=h;CHKSRC='db'}catch(e){CHKSRC='local'}}
 
 /* ====== إجراءات ====== */
 async function ctlRemind(tb,id){try{const r=await sb.rpc('remind_any',{tbl:tb,cid:id});if(r.error)throw r.error;toast(P('أُرسل التذكير','Reminder sent'))}catch(e){toast((e&&e.message)||String(e))}}
@@ -247,7 +256,7 @@ async function ctlSave(key,mode){const v=id=>($(id)||{}).value||'';let patch={};
  await oaSave(key,patch);mclose();toast(P('تم الحفظ','Saved'));rebuild();draw()}catch(e){toast(String((e&&e.message)||e))}}
 
 /* ====== العرض ====== */
-const TABS=[['room','المطلوب الآن','Needs action'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
+const TABS=[['room','المطلوب الآن','Needs action'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['lad','التصعيد التلقائي','Auto-escalation'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
 const bar=(n,mx,c)=>`<i class="bb"><u style="width:${mx?Math.max(3,Math.round(100*n/mx)):0}%;background:${c||'#2a6a90'}"></u></i>`;
 const ex=(arr,fx,n)=>{n=n||6;if(!arr.length)return '';return arr.slice(0,n).map(fx).join('<br>')+(arr.length>n?`<span class="dqm" hidden><br>${arr.slice(n).map(fx).join('<br>')}</span><div style="margin-top:4px"><a href="#" class="dqt" data-n="${arr.length}" data-a="${P('عرض الكل','Show all')}" data-b="${P('عرض أقل','Show less')}" onclick="return dqT(this)">${P('عرض الكل','Show all')} (${arr.length}) ▾</a></div>`:'')};
 function dqT(a){const m=a.parentNode.previousElementSibling;if(!m)return false;const o=m.hidden;m.hidden=!o;a.textContent=o?a.dataset.b+' ▴':a.dataset.a+' ('+a.dataset.n+') ▾';return false}
@@ -299,12 +308,53 @@ function vAppr(){const m={};const FLOW={'PMO Review':'reviewed','Awaiting Approv
  return `<div class="card"><h2>${P('التزام المعتمِدين بالمُهل','Approver turnaround')}<small>${P('ما ينتظر كل معتمِد الآن ومدة الانتظار. المُهلة المعتمدة للتنبيه: ٣ أيام.','What each approver holds now and for how long. Alert threshold: 3 days.')}</small></h2>
  ${rows.length?`<div style="overflow-x:auto"><table class="xt"><tr><th>${P('المعتمِد','Approver')}</th><th>${P('معلّق','Pending')}</th><th>${P('متوسط الانتظار','Avg wait')}</th><th>${P('أطول انتظار','Longest')}</th></tr>${rows.map(o=>`<tr><td><b>${esc(US[o.u]||'—')}</b></td><td class="nm">${o.n}</td><td class="nm">${DAYS(Math.round(o.sm/o.n))}</td><td class="nm ${o.mx>=7?'rd':''}">${DAYS(o.mx)}</td></tr>`).join('')}</table></div>`:`<div class="mut">✓ ${P('لا بنود معلّقة','No pending items')}</div>`}</div>
  <div class="card"><h2>${P('ما أنشأوه وما أنجزوه','Created and signed')}<small>${P('من مؤشرات الأداء.','From performance indicators.')}</small></h2>${PERF.length?`<div style="overflow-x:auto"><table class="xt"><tr><th>${P('المستخدم','User')}</th><th>${P('ينتظر إجراءه','Waiting on them')}</th><th>${P('متأخر','Overdue')}</th><th>${P('وقّع','Signed')}</th></tr>${PERF.filter(u=>+u.pend||+u.signed).sort((a,b)=>b.pend_old-a.pend_old||b.pend-a.pend).slice(0,40).map(u=>`<tr><td>${esc(u.full_name||'')}</td><td class="nm">${u.pend}</td><td class="nm ${+u.pend_old?'rd':''}">${u.pend_old}</td><td class="nm">${u.signed}</td></tr>`).join('')}</table></div>`:`<div class="mut">${P('غير متاح','Not available')}</div>`}
- <div class="mut" style="margin-top:8px">${P('ملاحظة: التحويل التلقائي لمعتمِد بديل عند الغياب غير مفعّل لعدم وجود سجل إجازات في النظام.','Note: automatic fallback to a substitute approver is not enabled because the system has no leave records.')}</div></div>`}
+ </div>${respH()}${leaveH()}`}
 
-/* ---- فحوصات السلامة ---- */
+/* سرعة الاستجابة التاريخية: الفرق بين توقيع المرحلة وتوقيع المرحلة السابقة لنفس الوثيقة */
+function respStats(){const ORD={created:0,reviewed:1,approved:2},by={};SIGNED.forEach(x=>{const k=x.svc+':'+x.cr_id;(by[k]=by[k]||[]).push(x)});const per={};
+ Object.values(by).forEach(a=>a.forEach(x=>{const i=ORD[x.stage];if(!(i>0))return;const prev=a.filter(y=>ORD[y.stage]<i&&ORD[y.stage]!=null).map(y=>+new Date(y.signed_at));if(!prev.length)return;const d=(+new Date(x.signed_at)-Math.max.apply(0,prev))/864e5;if(!(d>=0)||d>120)return;(per[x.user_id]=per[x.user_id]||[]).push(d)}));
+ return Object.keys(per).map(u=>{const v=per[u].sort((a,b)=>a-b);return {u,n:v.length,avg:v.reduce((a,b)=>a+b,0)/v.length,med:v[Math.floor(v.length/2)],mx:v[v.length-1]}}).sort((a,b)=>b.avg-a.avg)}
+const dFmt=n=>n<1?P('أقل من يوم','< 1 day'):(Math.round(n*10)/10)+P(' يوم',' d');
+function respH(){const r=respStats();return `<div class="card"><h2>${P('سرعة الاستجابة التاريخية (آخر ٦ أشهر)','Historical response time (last 6 months)')}<small>${P('الزمن بين توقيع المرحلة السابقة وتوقيع هذا المعتمِد لنفس الوثيقة.','Time between the previous stage’s signature and this approver’s signature on the same document.')}</small></h2>${r.length?`<div style="overflow-x:auto"><table class="xt"><tr><th>${P('المعتمِد','Approver')}</th><th>${P('عدد التوقيعات','Signatures')}</th><th>${P('المتوسط','Average')}</th><th>${P('الوسيط','Median')}</th><th>${P('الأطول','Longest')}</th></tr>${r.map(o=>`<tr><td><b>${esc(US[o.u]||'—')}</b></td><td class="nm">${o.n}</td><td class="nm ${o.avg>3?'rd':''}">${dFmt(o.avg)}</td><td class="nm">${dFmt(o.med)}</td><td class="nm">${dFmt(o.mx)}</td></tr>`).join('')}</table></div>`:`<div class="mut">${P('لا بيانات كافية بعد.','Not enough data yet.')}</div>`}</div>`}
+/* إجازات المعتمِدين والبديل */
+function leaveH(){const act=LEAVE.filter(l=>l.to_date>=TODAY),usr=PRF.slice().sort((a,b)=>String(a.full_name).localeCompare(String(b.full_name),'ar')),op=usr.map(u=>`<option value="${esc(u.id)}">${esc(u.full_name||u.email||'')}</option>`).join('');
+ return `<div class="card"><h2>${P('إجازات المعتمِدين والبديل','Approver leave and substitutes')}<small>${P('أثناء الإجازة يصل تذكير الاعتماد للبديل أيضًا، ويرتفع تنبيه البند إن لم يكن له بديل.','During leave the approval reminder also reaches the substitute, and the item is raised if there is none.')}</small></h2>
+ ${LEAVEOK?'':`<div class="warn card">${P('شغّل ملف SQL (update-oct54) لتفعيل الإجازات.','Run the SQL file (update-oct54) to enable leave.')}</div>`}
+ ${act.length?act.map(l=>`<div class="rw">🌴 <b>${esc(US[l.user_id]||'')}</b> <span dir="ltr">${fdt(l.from_date)} → ${fdt(l.to_date)}</span> ${l.substitute_id?P('البديل: ','Substitute: ')+esc(US[l.substitute_id]||''):`<span class="rd">${P('بلا بديل','no substitute')}</span>`}${l.note?' · '+esc(l.note):''} <a href="#" class="dqt" onclick="return leaveDel(${l.id})">${P('حذف','Remove')}</a></div>`).join(''):`<div class="mut">${P('لا إجازات مسجّلة.','No leave recorded.')}</div>`}
+ <div class="g2" style="margin-top:8px"><div><label>${P('المعتمِد','Approver')}</label><select id="lv_u">${op}</select></div><div><label>${P('البديل','Substitute')}</label><select id="lv_s"><option value="">—</option>${op}</select></div><div><label>${P('من','From')}</label><input type="date" id="lv_f" value="${TODAY}"></div><div><label>${P('إلى','To')}</label><input type="date" id="lv_t" value="${dsF(TD+7)}"></div></div><label>${P('ملاحظة','Note')}</label><input id="lv_n"><div class="row"><button class="p" onclick="leaveAdd()">${P('تسجيل الإجازة','Add leave')}</button></div></div>`}
+async function leaveAdd(){const v=id=>($(id)||{}).value||'';if(!v('lv_u')||!v('lv_f')||!v('lv_t'))return toast(P('أكمل الحقول','Fill the fields'));if(v('lv_t')<v('lv_f'))return toast(P('تاريخ النهاية قبل البداية','End is before start'));
+ try{const r=await sb.from('approver_leave').insert({user_id:v('lv_u'),from_date:v('lv_f'),to_date:v('lv_t'),substitute_id:v('lv_s')||null,note:v('lv_n')||null,created_by:ME.id}).select();if(r.error)throw r.error;LEAVE.unshift(r.data[0]);LEAVEOK=true;rebuild();toast(P('تم التسجيل','Saved'));draw()}catch(e){toast(/approver_leave|relation|schema/i.test(String(e.message))?P('شغّل ملف SQL (update-oct54) أولًا','Run the SQL file (update-oct54) first'):String(e.message||e))}}
+async function leaveDel(id){try{const r=await sb.from('approver_leave').delete().eq('id',id);if(r.error)throw r.error;LEAVE=LEAVE.filter(l=>l.id!=id);rebuild();draw()}catch(e){toast(String(e.message||e))}return false}
+
+/* ---- التصعيد التلقائي ---- */
+const SVL={charter:['الميثاق','Charter'],plan:['الخطة','Plan'],cr:['طلب التغيير','Change request'],closure:['التقرير الختامي','Closure report']};
+function vLad(){const rm={};RULES.forEach(r=>rm[r.svc]=r);const lastRun=ELOG.length?ELOG[0].at:null;
+ return `<div class="card"><h2>${P('التصعيد التلقائي المتدرّج','Tiered auto-escalation')}<small>${P('كل مستوى يُرسل مرة واحدة لكل مرحلة: ① تذكير المعتمِد (والبديل إن كان في إجازة) ② إشعار مدير المشروع ومنشئ الوثيقة ③ إشعار مكتب التطوير. المُهل بالأيام لكل نوع.','Each level is sent once per stage: ① remind the approver (and substitute on leave) ② notify the project manager and creator ③ notify the office. Thresholds in days per type.')}</small></h2>
+ ${RULESOK?'':`<div class="warn card">${P('شغّل ملف SQL (update-oct54) لتفعيل التصعيد التلقائي.','Run the SQL file (update-oct54) to enable auto-escalation.')}</div>`}
+ <div style="overflow-x:auto"><table class="xt"><tr><th>${P('النوع','Type')}</th><th>① ${P('تذكير','Remind')}</th><th>② ${P('المدير','Manager')}</th><th>③ ${P('المكتب','Office')}</th><th>${P('مفعّل','On')}</th></tr>
+ ${['charter','plan','cr','closure'].map(k=>{const r=rm[k]||{remind_days:3,manager_days:7,office_days:10,enabled:true};return `<tr><td><b>${P(SVL[k][0],SVL[k][1])}</b></td><td><input type="number" min="1" id="r_${k}_1" value="${r.remind_days}" style="width:64px"></td><td><input type="number" min="1" id="r_${k}_2" value="${r.manager_days}" style="width:64px"></td><td><input type="number" min="1" id="r_${k}_3" value="${r.office_days}" style="width:64px"></td><td><input type="checkbox" id="r_${k}_e" ${r.enabled!==false?'checked':''}></td></tr>`}).join('')}</table></div>
+ <div class="row"><button class="p" onclick="ladSave()">${P('حفظ المُهل','Save thresholds')}</button><button onclick="ladRun(true)">${P('معاينة بلا إرسال','Preview (no send)')}</button><button onclick="ladRun(false)">${P('تشغيل الآن','Run now')}</button></div>
+ <div class="mut" style="margin-top:8px">${lastRun?P('آخر إرسال مسجّل: ','Last logged send: ')+'<span dir="ltr">'+fdt(String(lastRun).slice(0,10))+'</span>':P('لم يُسجَّل أي إرسال بعد.','Nothing sent yet.')} · ${P('يعمل يوميًا ٧ صباحًا تلقائيًا إن كانت pg_cron مفعّلة في Supabase، وإلا شغّله من هنا.','Runs daily at 7 am automatically if pg_cron is enabled in Supabase; otherwise run it here.')}</div></div>
+ ${LADRES?ladResH():''}
+ <div class="card"><h2>${P('سجل الإرسال','Send log')}</h2>${ELOG.length?`<div style="overflow-x:auto"><table class="xt"><tr><th>${P('التاريخ','Date')}</th><th>${P('الوثيقة','Document')}</th><th>${P('المستوى','Level')}</th><th>${P('المستلمون','Recipients')}</th></tr>${ELOG.slice(0,40).map(l=>`<tr><td dir="ltr">${fdt(String(l.at).slice(0,10))}</td><td>${P(SVL[l.svc]?SVL[l.svc][0]:l.svc,SVL[l.svc]?SVL[l.svc][1]:l.svc)} ${esc(l.note||'#'+l.rec_id)}</td><td class="nm">${l.level}</td><td class="nm">${l.sent}</td></tr>`).join('')}</table></div>`:`<div class="mut">${P('فارغ','Empty')}</div>`}</div>`}
+function ladResH(){const r=LADRES;if(r.err)return `<div class="card warn">${esc(r.err)}</div>`;return `<div class="card"><h2>${r.dry?P('نتيجة المعاينة','Preview result'):P('نتيجة التشغيل','Run result')}</h2><div class="mt"><span>① <b>${r.l1}</b></span><span>② <b>${r.l2}</b></span><span>③ <b>${r.l3}</b></span></div>${(r.items||[]).length?ex(r.items,i=>`• ${P(SVL[i.svc][0],SVL[i.svc][1])} <b>${esc(i.code)}</b> — ${esc(i.project)} · ${DAYS(i.days)} · ${P('المستوى ','level ')}${i.level} · ${P('إلى ','to ')}${i.to}`,8):`<div class="mut">✓ ${P('لا شيء يحتاج إرسالًا','Nothing to send')}</div>`}</div>`}
+const rpcMsg=e=>/function|run_escalation|office_digest|schema/i.test(String((e&&e.message)||''))?P('شغّل ملف SQL (update-oct54) أولًا','Run the SQL file (update-oct54) first'):String((e&&e.message)||e);
+async function ladSave(){try{const n=id=>+($(id)||{}).value;const rows=['charter','plan','cr','closure'].map(k=>({svc:k,remind_days:n('r_'+k+'_1'),manager_days:n('r_'+k+'_2'),office_days:n('r_'+k+'_3'),enabled:!!$('r_'+k+'_e').checked,updated_by:ME.id,updated_at:new Date().toISOString()}));
+ for(const r of rows){if(!(r.remind_days>0&&r.manager_days>=r.remind_days&&r.office_days>=r.manager_days))return toast(P('رتّب المُهل: التذكير ≤ المدير ≤ المكتب','Order the thresholds: remind ≤ manager ≤ office'))}
+ const w=await sb.from('escalation_rules').upsert(rows,{onConflict:'svc'});if(w.error)throw w.error;RULES=rows;RULESOK=true;toast(P('تم الحفظ','Saved'));draw()}catch(e){toast(rpcMsg(e))}}
+async function ladRun(dry){if(!dry&&!confirm(P('سيُرسل البريد فعلًا للمعنيين. متابعة؟','This will actually email the people concerned. Continue?')))return;
+ try{const r=await sb.rpc('run_escalation',{p_dry:dry});if(r.error)throw r.error;LADRES=r.data;if(!dry){const l=await sb.from('escalation_log').select('*').order('id',{ascending:false}).limit(60);ELOG=l.data||ELOG}draw()}catch(e){toast(rpcMsg(e))}}
+
+/* سبب التجاوز ومهلته */
+function ctlR(id){const k='ovrm:plan:'+id,o=OA[k]||{};modal(`<h3>${P('سبب التجاوز ومهلته','Override reason and expiry')}</h3><label>${P('السبب','Reason')}</label><textarea id="m_n" rows="2">${esc(o.note||'')}</textarea><label>${P('ينتهي التجاوز في','Override ends on')}</label><input type="date" id="m_d" value="${esc(o.due||dsF(TD+14))}" min="${TODAY}"><div class="mut">${P('عند انتهاء المهلة يرتفع البند إلى «حرج».','When the date passes the item rises to “Critical”.')}</div><div class="row"><button class="p" onclick="ctlRSave('${esc(k)}')">${P('حفظ','Save')}</button><button onclick="mclose()">${P('إلغاء','Cancel')}</button></div>`)}
+async function ctlRSave(k){try{await oaSave(k,{status:'open',note:($('m_n')||{}).value||'',due:($('m_d')||{}).value||null});mclose();toast(P('تم الحفظ','Saved'));rebuild();draw()}catch(e){toast(String(e.message||e))}}
+/* إرسال ملخص المكتب */
+async function wkSend(dry){if(!dry&&!confirm(P('إرسال الملخص بالبريد لكل أدمن؟','Email the summary to every admin?')))return;try{const r=await sb.rpc('office_digest_send',{p_dry:dry});if(r.error)throw r.error;const d=r.data||{};WKRES=d;draw();toast(dry?P('معاينة فقط','Preview only'):P('أُرسل إلى ','Sent to ')+d.to)}catch(e){toast(rpcMsg(e))}}
+let WKRES=null;
+
 function vChk(){const bad=CHECKS.filter(c=>c.bad.length).length;
  const tr=k=>{const ds=Object.keys(CHK_H).sort().slice(-7);if(ds.length<2)return '';const v=ds.map(d=>(CHK_H[d]||{})[k]);const a=v[0],b=v[v.length-1];if(a==null||b==null)return '';return `<span class="mut" title="${ds.length}d">${b>a?'↗':b<a?'↘':'→'} ${a}→${b}</span>`};
- return `<div class="card"><h2>${P('فحوصات سلامة النظام','System integrity checks')}<small>${P('تُشغَّل عند كل فتح للصفحة. الاتجاه محفوظ على هذا الجهاز.','Run each time the page opens. The trend is kept on this device.')}</small></h2><div class="kg" style="margin:8px 0 0"><div class="kp" style="border-top:4px solid #2e8b57"><span>${P('ناجحة','Passed')}</span><b>${CHECKS.length-bad}</b></div><div class="kp" style="border-top:4px solid #d1101d"><span>${P('تحتاج معالجة','Need attention')}</span><b>${bad}</b></div></div></div>
+ return `<div class="card"><h2>${P('فحوصات سلامة النظام','System integrity checks')}<small>${CHKSRC=='db'?P('تُشغَّل عند كل فتح للصفحة. الاتجاه مشترك لكل المكتب.','Run each time the page opens. The trend is shared across the office.'):P('تُشغَّل عند كل فتح للصفحة. الاتجاه محفوظ على هذا الجهاز (شغّل ملف SQL ليصبح مشتركًا).','Run each time the page opens. The trend is kept on this device (run the SQL file to share it).')}</small></h2><div class="kg" style="margin:8px 0 0"><div class="kp" style="border-top:4px solid #2e8b57"><span>${P('ناجحة','Passed')}</span><b>${CHECKS.length-bad}</b></div><div class="kp" style="border-top:4px solid #d1101d"><span>${P('تحتاج معالجة','Need attention')}</span><b>${bad}</b></div></div></div>
  ${CHECKS.slice().sort((a,b)=>(b.bad.length>0)-(a.bad.length>0)||b.sev-a.sev).map(c=>`<div class="card" style="border-inline-start:5px solid ${c.bad.length?SEVN[c.sev][2]:'#2e8b57'}"><div class="ih2"><b>${P(c.ar,c.en)}</b><span class="cn ${c.bad.length?'':'ok'}">${c.bad.length||'✓'}</span> ${tr(c.k)}</div>${c.hint?`<div class="mut">${esc(c.hint)}</div>`:''}${c.bad.length?`<div class="ls">${ex(c.bad,b=>`• <a href="${esc(b.href)}">${esc(b.t)}</a>`,6)}</div>`:''}</div>`).join('')}`}
 
 /* ---- التدقيق ---- */
@@ -324,11 +374,11 @@ let AUDTOT=0;
 
 /* ---- الصلاحيات ---- */
 function vAcc(){const pf={};PERF.forEach(u=>pf[u.user_id]=u);const rv=u=>OA['acc:'+u.id],old=u=>{const o=rv(u);return !o||o.status!='done'||ageD(o.updated_at)>90};
- const rows=PRF.map(u=>{const p=pf[u.id]||{};const act=(+p.t_open||0)+(+p.pend||0)+(+p.created||0)+(+p.signed||0);const lu=p.last_upd?dn(String(p.last_upd).slice(0,10)):null;return {u,p,act,dormant:act==0&&(lu==null||TD-lu>90)}}).sort((a,b)=>(b.dormant-a.dormant)||(old(b.u)-old(a.u))||String(a.u.full_name).localeCompare(String(b.u.full_name),'ar'));
+ const rows=PRF.map(u=>{const p=pf[u.id]||{};const act=(+p.t_open||0)+(+p.pend||0)+(+p.created||0)+(+p.signed||0);const lu=p.last_upd?dn(String(p.last_upd).slice(0,10)):null;return {u,p,act,dormant:act==0&&(lu==null||TD-lu>90)&&(!Object.keys(SEEN).length||!SEEN[u.id]||TD-dn(String(SEEN[u.id]).slice(0,10))>60)}}).sort((a,b)=>(b.dormant-a.dormant)||(old(b.u)-old(a.u))||String(a.u.full_name).localeCompare(String(b.u.full_name),'ar'));
  const roles={};PRF.forEach(u=>roles[u.role||'—']=(roles[u.role||'—']||0)+1);
  return `<div class="card"><h2>${P('مراجعة الصلاحيات الدورية','Periodic access review')}<small>${P('تحتاج المراجعة إن لم تُؤكَّد خلال ٩٠ يومًا. التأكيد يُسجَّل باسمك ولا يغيّر الصلاحية؛ للتعديل افتح «الصلاحيات».','Needs review if not confirmed within 90 days. Confirming is logged under your name and does not change the permission; open “Access” to edit.')}</small></h2>
  <div class="mt">${Object.keys(roles).map(r=>`<span>${esc(r)}: <b>${roles[r]}</b></span>`).join('')}<span>${P('خامل محتمل','Possibly dormant')}: <b>${rows.filter(r=>r.dormant).length}</b></span></div><div class="row"><a href="access.html"><button type="button">${P('فتح الصلاحيات','Open access')}</button></a></div></div>
- <div class="card" style="overflow-x:auto"><table class="xt"><tr><th>${P('المستخدم','User')}</th><th>${P('الدور','Role')}</th><th>${P('النشاط','Activity')}</th><th>${P('آخر مراجعة','Last review')}</th><th></th></tr>${rows.map(r=>{const o=rv(r.u),k=esc('acc:'+r.u.id);return `<tr><td><b>${esc(r.u.full_name||r.u.email||'')}</b><div class="mut">${esc(r.u.job_title||'')}</div></td><td>${esc(r.u.role||'—')}</td><td>${r.dormant?`<span class="rd">${P('خامل محتمل','dormant?')}</span>`:`<span class="mut">${r.p.t_open||0} ${P('مهام','tasks')} · ${r.p.pend||0} ${P('معلّق','pending')}</span>`}</td><td>${o&&o.status=='done'?`<span dir="ltr">${fdt(String(o.updated_at).slice(0,10))}</span><div class="mut">${esc(o.updated_by_name||'')}</div>`:`<span class="rd">${P('لم تُراجع','never')}</span>`}</td><td><button type="button" data-k="${k}" onclick="accOk(this)">${old(r.u)?P('تأكيد الاستمرار','Confirm'):'✓'}</button></td></tr>`}).join('')}</table></div>`}
+ <div class="card" style="overflow-x:auto"><table class="xt"><tr><th>${P('المستخدم','User')}</th><th>${P('الدور','Role')}</th><th>${P('النشاط','Activity')}</th><th>${P('آخر دخول','Last sign-in')}</th><th>${P('آخر مراجعة','Last review')}</th><th></th></tr>${rows.map(r=>{const o=rv(r.u),k=esc('acc:'+r.u.id);return `<tr><td><b>${esc(r.u.full_name||r.u.email||'')}</b><div class="mut">${esc(r.u.job_title||'')}</div></td><td>${esc(r.u.role||'—')}</td><td>${r.dormant?`<span class="rd">${P('خامل محتمل','dormant?')}</span>`:`<span class="mut">${r.p.t_open||0} ${P('مهام','tasks')} · ${r.p.pend||0} ${P('معلّق','pending')}</span>`}</td><td>${SEEN[r.u.id]?`<span dir="ltr">${fdt(String(SEEN[r.u.id]).slice(0,10))}</span>`:`<span class="mut">${Object.keys(SEEN).length?P('لم يدخل','never'):'—'}</span>`}</td><td>${o&&o.status=='done'?`<span dir="ltr">${fdt(String(o.updated_at).slice(0,10))}</span><div class="mut">${esc(o.updated_by_name||'')}</div>`:`<span class="rd">${P('لم تُراجع','never')}</span>`}</td><td><button type="button" data-k="${k}" onclick="accOk(this)">${old(r.u)?P('تأكيد الاستمرار','Confirm'):'✓'}</button></td></tr>`}).join('')}</table></div>`}
 async function accOk(b){const k=b.getAttribute('data-k');try{await oaSave(k,{status:'done',note:P('مراجعة صلاحيات','Access review')});toast(P('تم التأكيد','Confirmed'));draw()}catch(e){toast(String((e&&e.message)||e))}}
 
 /* ---- الملخص الأسبوعي ---- */
@@ -341,14 +391,14 @@ function weeklyText(){const op=ITEMS.filter(vis),by=s=>op.filter(i=>i.sev==s).le
  const ov=ITEMS.filter(i=>i.kind=='ovr');L.push(P('خطط مفعّلة بالتجاوز: ','Plans activated by override: ')+ov.length+(ov.length?P(' (أقدمها ',' (oldest ')+DAYS(Math.max(...ov.map(i=>i.age)))+')':''));
  const bad=CHECKS.filter(c=>c.bad.length);L.push(P('فحوصات السلامة التي تحتاج معالجة: ','Health checks needing attention: ')+bad.length);bad.forEach(c=>L.push('• '+P(c.ar,c.en)+' ('+c.bad.length+')'));
  return L.join('\n')}
-function vWk(){const tx=weeklyText();return `<div class="card"><h2>${P('الملخص الأسبوعي','Weekly summary')}<small>${P('يُبنى من الحالة الحالية. انسخه للبريد أو اطبعه.','Built from the current state. Copy it into an email or print it.')}</small></h2><pre id="wkt" class="wk">${esc(tx)}</pre><div class="row"><button class="p" onclick="wkCopy()">${P('نسخ النص','Copy text')}</button><button onclick="window.print()">${P('طباعة','Print')}</button></div><div class="mut" style="margin-top:8px">${P('لا يُرسل تلقائيًا. الإرسال الأسبوعي الآلي للمستخدمين له إعداده الخاص في «الإعدادات».','It is not sent automatically. The automatic weekly email to users has its own setting in “Settings”.')}</div></div>`}
+function vWk(){const tx=weeklyText();return `<div class="card"><h2>${P('الملخص الأسبوعي','Weekly summary')}<small>${P('يُبنى من الحالة الحالية. انسخه للبريد أو اطبعه.','Built from the current state. Copy it into an email or print it.')}</small></h2><pre id="wkt" class="wk">${esc(tx)}</pre><div class="row"><button class="p" onclick="wkCopy()">${P('نسخ النص','Copy text')}</button><button onclick="window.print()">${P('طباعة','Print')}</button><button onclick="wkSend(true)">${P('معاينة البريد','Preview email')}</button><button onclick="wkSend(false)">${P('إرسال للمكتب بالبريد الآن','Email the office now')}</button></div>${WKRES?`<div class="nt">${P('ملخص البريد (يُحسب في الخادم): اعتمادات متأخرة ','Email digest (computed on the server): late approvals ')}${WKRES.appr} · ${P('تصعيدات ','escalations ')}${WKRES.esc} · ${P('مواثيق بلا خطة ','charters without plan ')}${WKRES.nopln} · ${P('تجاوزات ','overrides ')}${WKRES.ovr} · ${P('مهام متأخرة ','late tasks ')}${WKRES.late} · ${P('المستلمون ','recipients ')}${WKRES.to}</div>`:''}<div class="mut" style="margin-top:8px">${P('يُرسل تلقائيًا كل أحد ٩ صباحًا إن كانت pg_cron مفعّلة في Supabase، ويمكن إرساله الآن من هنا. الإرسال الأسبوعي للمستخدمين له إعداده الخاص في «الإعدادات».','Sent automatically every Sunday at 9 am if pg_cron is enabled in Supabase, or send it now from here. The weekly email to users has its own setting in “Settings”.')}</div></div>`}
 function wkCopy(){const tx=($('wkt')||{}).textContent||'';try{navigator.clipboard.writeText(tx).then(()=>toast(P('تم النسخ','Copied')),()=>fb())}catch(e){fb()}function fb(){const a=document.createElement('textarea');a.value=tx;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast(P('تم النسخ','Copied'))}catch(_){}a.remove()}}
 
 /* ====== التحميل والتشغيل ====== */
-let ME=null;
+let ME=null,LEAVEOK=true,RULESOK=true,CHK_DB=[];
 function rebuild(){gen();ITEMS.forEach(i=>i.isNew=!!PREV&&!PREV.has(i.key))}
 function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));const lb=$('lb');if(lb)lb.textContent=A()?'EN':'ع';
- const V={room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
+ const V={room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
  const op=ITEMS.filter(vis).length,bad=CHECKS.filter(c=>c.bad.length).length;
  let body='';try{body=V()}catch(e){body='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>';console.error(e)}
  a.innerHTML=`<div class="tabs">${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}</button>`).join('')}</div>${body}`}
@@ -366,13 +416,20 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
   Q('signatories','user_id,cr_id,stage',r=>r.eq('status','pending')),Q('closure_signatories','user_id,cr_id,stage',r=>r.eq('status','pending')),
   Q('escalations','*',r=>r.eq('status','pending')),Q('project_cfg','*'),
   Q('portfolio_snapshots','snap_date,code,actual,planned,late,est',r=>r.gte('snap_date',dsF(TD-35)))]);
+ const sgd=new Date(Date.now()-180*864e5).toISOString();
+ const [rules,elog,leave,chkh,sd1,sd2,sd3,sd4]=await Promise.all([Q('escalation_rules','*'),Q('escalation_log','*',r=>r.order('id',{ascending:false}).limit(60)),Q('approver_leave','*',r=>r.order('from_date',{ascending:false})),Q('ctl_check_history','day,k,n',r=>r.gte('day',dsF(TD-30))),
+  ...['charter_signatories','plan_signatories','signatories','closure_signatories'].map(tb=>Q(tb,'user_id,cr_id,stage,signed_at',r=>r.not('signed_at','is',null).gte('signed_at',sgd)))]);
+ RULES=rules;ELOG=elog;LEAVE=leave;LEAVEOK=!LOADERR.includes('approver_leave');RULESOK=!LOADERR.includes('escalation_rules');
+ SIGNED=[].concat(sd1.map(x=>Object.assign(x,{svc:'charter'})),sd2.map(x=>Object.assign(x,{svc:'plan'})),sd3.map(x=>Object.assign(x,{svc:'cr'})),sd4.map(x=>Object.assign(x,{svc:'closure'})));
+ CHK_DB=chkh;
  PRF=prf;PRF.forEach(u=>US[u.id]=u.full_name);CH=ch;PLN=pln;CRS=crs;CLR=clr;ESC=esc_;SNP=snp;CFG={};cfg.forEach(x=>CFG[x.pcode]=x);
  SGP=[].concat(sg1.map(x=>Object.assign(x,{svc:'charter'})),sg2.map(x=>Object.assign(x,{svc:'plan'})),sg3.map(x=>Object.assign(x,{svc:'cr'})),sg4.map(x=>Object.assign(x,{svc:'closure'})));
  const R=async(fn,args)=>{try{const r=await sb.rpc(fn,args);if(r.error)throw r.error;return r.data||[]}catch(e){LOADERR.push(fn);return null}};
- const [perf,wm,aud]=await Promise.all([R('perf_users'),R('project_weights'),R('admin_audit',{p_from:from,p_lim:1000,p_off:0,p_hide_dup:false})]);
+ const [perf,wm,aud,seen]=await Promise.all([R('perf_users'),R('project_weights'),R('admin_audit',{p_from:from,p_lim:1000,p_off:0,p_hide_dup:false}),R('admin_last_seen')]);
+ SEEN={};(seen||[]).forEach(x=>SEEN[x.user_id]=x.last_sign_in_at);
  PERF=perf||[];WM={};(wm||[]).forEach(x=>WM[x.pcode]=+x.weight);AUD=aud||[];AUDTOT=AUD.length?+AUD[0].total:0;
  await oaLoad();
- buildProjects();runChecks();
+ buildProjects();runChecks();await chkSync();
  try{const cur=JSON.parse(localStorage.getItem('ctl_cur')||'null');if(cur&&Date.now()-cur.at>4*36e5)localStorage.setItem('ctl_prev',JSON.stringify(cur));
   const pv=JSON.parse(localStorage.getItem('ctl_prev')||'null');PREV=pv&&pv.keys?new Set(pv.keys):null;rebuild();
   if(!cur||Date.now()-cur.at>4*36e5)localStorage.setItem('ctl_cur',JSON.stringify({at:Date.now(),keys:ITEMS.map(i=>i.key)}))}catch(e){PREV=null;rebuild()}
