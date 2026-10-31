@@ -1,0 +1,30 @@
+-- =====================================================================
+-- update-oct57: الأدمن يرى كل المجموعات الفرعية في المحادثات — يُشغَّل بعد oct56
+-- =====================================================================
+create or replace function public.chat_can_access(p_cid bigint) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare k text; pc text;
+begin
+  select kind,pcode into k,pc from chat_channels where id=p_cid;
+  if k is null or auth.uid() is null then return false; end if;
+  if k='general' then return true; end if;
+  if exists(select 1 from profiles where id=auth.uid() and role='admin') then return true; end if;
+  if k='group' then return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid()); end if;
+  return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid())
+      or auth.uid() in (select public.chat_project_members(pc));
+end $fn$;
+grant execute on function public.chat_can_access(bigint) to authenticated;
+
+create or replace function public.chat_my_groups() returns table(id bigint, pcode text, name text, project text, last_at timestamptz, n bigint)
+language sql stable security definer set search_path=public as $$
+  select c.id, c.pcode, c.name,
+    coalesce((select data->>'pname' from charters where code=c.pcode order by id desc limit 1), c.pcode),
+    (select max(m.created_at) from chat_messages m where m.channel_id=c.id and not m.deleted),
+    coalesce((select count(*) from chat_messages m where m.channel_id=c.id and not m.deleted and m.from_user<>auth.uid()
+       and m.created_at>coalesce((select r.last_read from chat_reads r where r.user_id=auth.uid() and r.channel_id=c.id),'-infinity'::timestamptz)),0)
+  from chat_channels c
+  where c.kind='group' and (exists(select 1 from chat_members m where m.channel_id=c.id and m.user_id=auth.uid())
+                            or exists(select 1 from profiles where id=auth.uid() and role='admin'))
+$$;
+grant execute on function public.chat_my_groups() to authenticated;
+notify pgrst, 'reload schema';
