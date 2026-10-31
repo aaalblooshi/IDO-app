@@ -700,6 +700,7 @@ boot();
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
 
 /* ---- جودة البيانات (للأدمن): ما يُضعف دقة المحفظة وأين يجب التدخل ---- */
+function dqT(a){const m=a.parentNode.previousElementSibling;if(!m)return false;const o=m.hidden;m.hidden=!o;a.textContent=o?a.dataset.b+' ▴':a.dataset.a+' ('+a.dataset.n+') ▾';return false}
 function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=gsc(),ds_=x=>x.name;
  const WLm={};(Array.isArray(WL)?WL:[]).forEach(w=>WLm[w.pcode]=w);const wReady=Array.isArray(WL);
  const unW=wReady?P.filter(p=>!p.closed&&(WLm[p.k]||{}).score==null):[],
@@ -715,7 +716,7 @@ function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a
   stale=P.filter(p=>!p.closed).map(p=>({p,n:leaf(p).filter(x=>{const a=(p.an.t||{})[x.id];return a&&a.late>14}).length})).filter(z=>z.n),
   done=P.filter(p=>!p.closed&&p.a>=100),
   lateM=P.filter(p=>!p.closed&&p.an&&p.an.lateN>0).sort((a,b)=>b.an.lateN-a.an.lateN);
- const box=(ti,arr,fx,hint,sev)=>`<div class="card" style="border-inline-start:5px solid ${arr.length?sev:'#2e8b57'}"><div class="row" style="margin:0"><b>${ti}</b><span class="chp ${arr.length?(sev=='#d1101d'?'r':'o'):'g'}">${arr.length?arr.length:'✓'}</span></div><div class="mut" style="font-size:12.5px;margin:4px 0">${hint}</div>${arr.length?`<div style="font-size:13px;line-height:1.9">${arr.slice(0,8).map(fx).join('<br>')}${arr.length>8?`<details style="margin-top:4px"><summary style="cursor:pointer;color:#2a6a90;font-weight:700">${T('عرض الكل','Show all')} (${arr.length})</summary>${arr.slice(8).map(fx).join('<br>')}</details>`:''}</div>`:''}</div>`;
+ const box=(ti,arr,fx,hint,sev)=>`<div class="card" style="border-inline-start:5px solid ${arr.length?sev:'#2e8b57'}"><div class="row" style="margin:0"><b>${ti}</b><span class="chp ${arr.length?(sev=='#d1101d'?'r':'o'):'g'}">${arr.length?arr.length:'✓'}</span></div><div class="mut" style="font-size:12.5px;margin:4px 0">${hint}</div>${arr.length?`<div style="font-size:13px;line-height:1.9">${arr.slice(0,8).map(fx).join('<br>')}${arr.length>8?`<span class="dqm" hidden><br>${arr.slice(8).map(fx).join('<br>')}</span><div style="margin-top:6px"><a href="#" class="dqt" data-n="${arr.length}" data-a="${T('عرض الكل','Show all')}" data-b="${T('عرض أقل','Show less')}" onclick="return dqT(this)" style="color:#2a6a90;font-weight:700;text-decoration:none">${T('عرض الكل','Show all')} (${arr.length}) ▾</a></div>`:''}</div>`:''}</div>`;
  const sn=SNP||[],days=new Set(sn.map(z=>z.snap_date)).size;
  B.innerHTML=`<div class="card"><b>🩺 ${T('جودة بيانات المحفظة','Portfolio data quality')}</b><div class="mut" style="font-size:12.5px;margin-top:4px">${T('ما يؤثر على دقة الأرقام. المشاريع المغلقة (تقرير ختامي معتمد) تُستبعد من المؤشرات افتراضيًا.','What affects accuracy. Closed projects (approved closure report) are excluded from indicators by default.')}</div>
  <div class="row" style="margin-top:8px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" ${SHC?'checked':''} onchange="SHC=this.checked;vDq()"> ${T('احتساب المشاريع المغلقة في المؤشرات','Count closed projects in indicators')}</label><span class="chp b">${T('مغلقة','Closed')}: <b class="num">${closed.length}</b></span><span class="chp g">${T('لقطات يومية','Daily snapshots')}: <b class="num">${days}</b></span></div></div>
