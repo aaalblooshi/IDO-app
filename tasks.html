@@ -192,7 +192,7 @@ let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',PEXP=new Set(),Q='',FP
 const TEAM=()=>ADM||!!(ME&&ME.view_scope);
 const dayP=n=>plr(n,'day');const SCOL={done:'#1c7a45',late:'#d1101d',prog:'#3D96C7',fut:'#949594'};document.body.classList.add('tkp');
 let ISO=null;
-async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
+async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';await reload()}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
 let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
 function mkProject(p){
