@@ -471,11 +471,12 @@ async function load(){
   const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
-  const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode,pmn:data->>pmname,own:data->>owner').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id)]);
+  const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b,cs]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode,pmn:data->>pmname,own:data->>owner').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id),adm?sb.from(s.sg).select('cr_id').eq('stage','created').eq('status','signed'):Promise.resolve({data:[]})]);
+   const csg=new Set(((cs&&cs.data)||[]).map(x=>x.cr_id));
    const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
    return (a.data||[]).filter(r=>!r.archived).map(r=>{const my=sg[r.id]||[],fn=(me.full_name||'').trim(),pmMe=!!r.pmn&&r.pmn==fn,owMe=!!r.own&&r.own==fn,mine=r.created_by==me.id||pmMe,st=r.status;
-    const roles=new Set();if(mine)roles.add('pm');if(owMe)roles.add('ow');if(my.some(x=>x.stage=='reviewed'))roles.add('rv');if(my.some(x=>x.stage=='approved'))roles.add('ap');if(adm)roles.add('of');
-    const act=(mine&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(x=>x.stage=='reviewed'&&x.status=='pending'))||(st=='Awaiting Approval'&&my.some(x=>x.stage=='approved'&&x.status=='pending'))||(adm&&['Submitted','Reviewed','Office Decision'].includes(st));
+    const prep=my.some(x=>x.stage=='created');const roles=new Set();if(mine||prep)roles.add('pm');if(owMe)roles.add('ow');if(my.some(x=>x.stage=='reviewed'))roles.add('rv');if(my.some(x=>x.stage=='approved'))roles.add('ap');if(adm)roles.add('of');
+    const act=((mine||my.some(x=>x.stage=='created'&&x.status=='pending'))&&(st=='Draft'||st=='Returned to PM'))||(st=='PMO Review'&&my.some(x=>x.stage=='reviewed'&&x.status=='pending'))||(st=='Awaiting Approval'&&my.some(x=>x.stage=='approved'&&x.status=='pending'))||(adm&&['Submitted','Reviewed','Office Decision'].includes(st))||(adm&&st=='Draft'&&csg.has(r.id));
     return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',pmn:r.pmn||'',st,stage:stOf(k,st),act,roles,pmMe,owMe,crMe:r.created_by==me.id,own:mine||owMe||my.length>0||(adm&&act),at:r.stage_at||r.created_at}})}));
   E.items=res.flat();
   try{const c=await sb.rpc('my_consults');if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.act=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
@@ -940,8 +941,8 @@ function data(){var X=window.JNX,E=X.E,all=X.vis('all');
   var ex=window.ESCP&&window.ESCP[x.k+'|'+x.id],isA=E.me&&E.me.role=='admin';if(ex&&isA)act=true;
   return{x:x,esc:!!ex,ex:ex||null,k:null,act:!!act,late:!!late,s:s,ret:x.st=='Returned to PM'&&x.roles.has('pm'),fl:x.roles.has('fl')&&!x.roles.has('pm'),run:x.k!='tasks'&&x.stage<5}});
  meta.forEach(function(m){m.k=kindOf(m)});return{X:X,E:E,meta:meta}}
-var KIND={ap:['اعتماد','Approve','#2e8b57'],rv:['مراجعة','Review','#3EA3DC'],pmd:['إكمال وتقديم','Complete & submit','#7a6740'],pmr:['تعديل وإعادة إرسال','Edit & resubmit','#d9534f'],of:['إجراء المكتب','Office action','#1d5f8a'],mon:['متابعة','Monitor','#7a8a99'],es:['قرار التصعيد','Escalation decision','#d1101d'],pt:['مشاركة بالتخطيط','Group planning','#8e6bbf'],tk:['تنفيذ المهمة','Work on task','#BF9849'],ot:['إجراء مطلوب','Action needed','#6b7280']};
-var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review'],pmd:['للإكمال والتقديم','to complete & submit'],pmr:['للتعديل وإعادة الإرسال','to edit & resubmit'],of:['لإجراء المكتب','for office action'],mon:['للمتابعة','to monitor'],es:['لقرار التصعيد','for escalation decision'],pt:['للمشاركة بالتخطيط','for group planning'],ot:['لإجراء آخر','other action']};
+var KIND={ap:['اعتماد','Approve','#2e8b57'],rv:['مراجعة','Review','#3EA3DC'],pmd:['إكمال وتقديم','Complete & submit','#7a6740'],pmr:['تعديل وإعادة إرسال','Edit & resubmit','#d9534f'],of:['إجراء المكتب','Office action','#1d5f8a'],ofs:['تقديم نيابة عن المعدّ','Submit on behalf','#1d5f8a'],mon:['متابعة','Monitor','#7a8a99'],es:['قرار التصعيد','Escalation decision','#d1101d'],pt:['مشاركة بالتخطيط','Group planning','#8e6bbf'],tk:['تنفيذ المهمة','Work on task','#BF9849'],ot:['إجراء مطلوب','Action needed','#6b7280']};
+var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review'],pmd:['للإكمال والتقديم','to complete & submit'],pmr:['للتعديل وإعادة الإرسال','to edit & resubmit'],of:['لإجراء المكتب','for office action'],ofs:['للتقديم نيابة عن المعدّ','to submit on behalf'],mon:['للمتابعة','to monitor'],es:['لقرار التصعيد','for escalation decision'],pt:['للمشاركة بالتخطيط','for group planning'],ot:['لإجراء آخر','other action']};
 function sumTxt(k,n,l){var t;
  if(k=='tk'){var pl=function(c){return c==1?'مهمة واحدة':c==2?'مهمتان':AR(c)+(c<=10?' مهام':' مهمة')},d=n-l;
   if(lang=='en')return l==n?n+' late task'+(n>1?'s':''):(l?l+' late and ':'')+d+' task'+(d>1?'s':'')+' within the execution period';
@@ -950,7 +951,7 @@ function sumTxt(k,n,l){var t;
  return t+(l?(lang=='en'?' ('+(l==n?(n==1?'late':n==2?'both late':'all late'):l+' late')+')':' ('+(l==n?(n==1?'متأخرة':n==2?'كلاهما متأخر':'كلها متأخرة'):AR(l)+' متأخرة')+')'):'')}
 function kindOf(m){var x=m.x;if(m.esc&&m.act&&window.JNX.E.me&&window.JNX.E.me.role=='admin')return'es';if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'mon';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
  if(x.st=='Awaiting Approval'&&x.roles.has('ap'))return'ap';if(x.st=='PMO Review'&&x.roles.has('rv'))return'rv';
- if(x.st=='Returned to PM'&&x.roles.has('pm'))return'pmr';if(x.st=='Draft'&&x.roles.has('pm'))return'pmd';
+ if(x.st=='Returned to PM'&&x.roles.has('pm'))return'pmr';if(x.st=='Draft'&&x.roles.has('pm'))return'pmd';if(x.st=='Draft'&&x.roles.has('of'))return'ofs';
  if(x.roles.has('of'))return'of';return x.roles.has('ap')?'ap':x.roles.has('rv')?'rv':'ot'}
 function E_ok(x){return window.JNX.E.role!='fl'}
 function roleNames(x){var X=window.JNX;return X.ROLES.filter(function(r){return x.roles.has(r[0])&&(r[0]!='of'||(X.E.me&&X.E.me.role=='admin'))}).map(function(r){return P(r[1])}).join('، ')}
@@ -1021,7 +1022,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmp').textContent=cnt.act?P([AR(cnt.act)+' بانتظار إجرائك'+(cnt.late?' ('+AR(cnt.late)+' منها متأخرة)':'')+': '+bt,cnt.act+' awaiting your action'+(cnt.late?' ('+cnt.late+' late)':'')+' — '+bt]):P(['لا شيء بانتظار إجرائك الآن','Nothing awaits your action right now']);
  var roles=[['all',['كل أدواري','All my roles']]].concat(window.JNX.ROLES.filter(function(z){return z[0]!='of'||(E.me&&E.me.role=='admin')}).filter(function(z){return E.items.some(function(x){return x.roles.has(z[0])})}));
  var hasO=E.items.some(function(i){return !i.own});if(!hasO&&E.scope!='mine')E.scope='mine';if(E.role!='all'){E.role='all'}
- var SCP=[['mine',['ما يخصّني','Mine']],['team',['فريقي ووحدتي','Team & unit']],['all',['الكل','All']]];
+ var SCP=[['mine',['أنا','Me']],['team',['فريقي ووحدتي','Team & unit']],['all',['الكل','All']]];
  document.getElementById('cmrole').innerHTML=hasO?'<div class="cm-seg">'+SCP.map(function(z){return'<button data-sc="'+z[0]+'" class="'+(E.scope==z[0]?'on':'')+'">'+esc(P(z[1]))+'</button>'}).join('')+'</div>':'';
  var fsL=[];if(E.scope!='mine')fsL.push(E.scope=='team'?P(['فريقي ووحدتي','Team & unit']):P(['الكل','All']));if(S.f){var cc=CH.find(function(c){return c[0]==S.f});if(cc)fsL.push(P(cc[1]))}if(E.tf=='all')fsL.push(P(['كل المهام','All tasks']));
  document.getElementById('cmfs').innerHTML=fsL.length?esc(P(['تعرض: ','Showing: '])+fsL.join(' · '))+' <button data-clr>'+esc(P(['مسح الفلاتر','Clear filters']))+'</button>':'';
