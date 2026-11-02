@@ -49,7 +49,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield'
+    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
@@ -280,9 +280,9 @@
     var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
     var caps = []; try { caps = JSON.parse(ls('hdrCaps') || '[]') || []; } catch (e) {}
     var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
-    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁' };
+    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
-      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view'), 'سجل التدقيق', 'Audit log']].forEach(function (x) {
+      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') || hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');

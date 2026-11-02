@@ -1,0 +1,428 @@
+-- =====================================================================
+-- update-oct65 (يُشغَّل بعد oct64):
+--   ١) نسبة إنجاز للمشروع بلا خطة: يرفعها مدير المشروع أو صاحب المنحة، ويعتمدها المكتب، مع ملاحظات ومرفقات
+--   ٢) الميثاق: «مشروع سري» (يُخفى تلقائيًا) + «القسم» اختياري (يُحتسب في وحدات المشاريع)
+--   ٣) سجل الخطوات والتراجع عنها للمكتب (خطواته وخطوات غيره)
+--   ٤) لوحة البريد: القوالب، التشغيل والإيقاف، المستلمون، الجدولة، السجل، والاختبار
+--   ٥) «يستلم بريد المكتب» صلاحية قابلة للمنح (لا يشترط الأدمن)
+--   ٦) إيقاف القناة العامة في التواصل
+--   صلاحيات جديدة: off.progress · off.undo · off.mail · adm.mail · exp.msp
+-- =====================================================================
+
+-- ===== (٠) الصلاحيات الجديدة للأدمن =====
+update app_roles set caps = caps || '{"off.progress":true,"off.undo":true,"off.mail":true,"adm.mail":true,"exp.msp":true}'::jsonb
+ where base = 'admin' and caps is not null;
+
+-- مستلمو بريد وإشعارات المكتب: الأدمن + من مُنح off.mail
+create or replace function public.office_recipients() returns uuid[]
+language sql stable security definer set search_path=public as $$
+  select coalesce(array_agg(p.id), '{}') from profiles p where p.role = 'admin' or cap_val(p.id, 'off.mail') = 'true'
+$$;
+grant execute on function public.office_recipients() to authenticated;
+
+-- ===== (١) نسبة الإنجاز للمشاريع بلا خطة =====
+create table if not exists public.progress_reqs(
+  id bigint generated always as identity primary key,
+  pcode text not null,
+  pct numeric not null check (pct >= 0 and pct <= 100),
+  note text, files jsonb not null default '[]',
+  requested_by uuid default auth.uid(), requested_at timestamptz not null default now(),
+  status text not null default 'pending' check (status in ('pending','approved','rejected','superseded')),
+  decided_by uuid, decided_at timestamptz, decision_note text, decision_files jsonb not null default '[]');
+create index if not exists progress_reqs_pc on public.progress_reqs(pcode, id desc);
+alter table public.progress_reqs enable row level security;
+
+create or replace function public.prog_pm(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select exists(select 1 from charters c, profiles me where c.code = pc and me.id = auth.uid() and not c.archived
+                and (c.created_by = me.id or c.data->>'pmname' = me.full_name or c.data->>'owner' = me.full_name))
+$$;
+create or replace function public.prog_can_submit(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce(pc,'') <> '' and (has_cap('off.progress') or prog_pm(pc) or has_grant(pc,'charter','edit') or has_grant(pc,'plan','edit'))
+$$;
+create or replace function public.prog_can_see(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select has_cap('off.progress') or exists(select 1 from charters c where c.code = pc and ch_can_see(c.id))
+$$;
+grant execute on function public.prog_pm(text), public.prog_can_submit(text), public.prog_can_see(text) to authenticated;
+drop policy if exists pr_sel on public.progress_reqs;
+create policy pr_sel on public.progress_reqs for select to authenticated using (prog_can_see(pcode));
+grant select on public.progress_reqs to authenticated;
+
+create or replace function public.prog_submit(p_pcode text, p_pct numeric, p_note text, p_files jsonb) returns bigint
+language plpgsql security definer set search_path=public as $fn$
+declare i bigint; me text; pn text;
+begin
+  if not prog_can_submit(p_pcode) then raise exception 'not allowed'; end if;
+  if p_pct is null or p_pct < 0 or p_pct > 100 then raise exception 'bad value'; end if;
+  update progress_reqs set status = 'superseded' where pcode = p_pcode and status = 'pending';
+  insert into progress_reqs(pcode,pct,note,files) values(p_pcode, round(p_pct,1), nullif(trim(p_note),''), coalesce(p_files,'[]')) returning id into i;
+  select full_name into me from profiles where id = auth.uid();
+  pn := coalesce((select data->>'pname' from charters where code = p_pcode order by id desc limit 1), p_pcode);
+  insert into user_nudges(to_user,from_user,from_name,msg)
+    select p.id, auth.uid(), me, 'طلب اعتماد نسبة إنجاز '||round(p_pct)||'% للمشروع: '||pn||coalesce(' — '||nullif(trim(p_note),''),'')
+    from profiles p where p.id <> auth.uid() and (p.role = 'admin' or cap_val(p.id,'off.progress') = 'true');
+  return i;
+end $fn$;
+grant execute on function public.prog_submit(text,numeric,text,jsonb) to authenticated;
+
+create or replace function public.prog_decide(p_id bigint, p_ok boolean, p_note text, p_files jsonb) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare r progress_reqs; me text; pn text;
+begin
+  if not has_cap('off.progress') then raise exception 'not allowed'; end if;
+  select * into r from progress_reqs where id = p_id;
+  if r.id is null or r.status <> 'pending' then raise exception 'not pending'; end if;
+  update progress_reqs set status = case when p_ok then 'approved' else 'rejected' end, decided_by = auth.uid(), decided_at = now(),
+         decision_note = nullif(trim(p_note),''), decision_files = coalesce(p_files,'[]') where id = p_id;
+  select full_name into me from profiles where id = auth.uid();
+  pn := coalesce((select data->>'pname' from charters where code = r.pcode order by id desc limit 1), r.pcode);
+  insert into user_nudges(to_user,from_user,from_name,msg)
+    select r.requested_by, auth.uid(), me, (case when p_ok then 'اعتُمدت' else 'رُفضت' end)||' نسبة الإنجاز '||round(r.pct)||'% للمشروع: '||pn||coalesce(' — '||nullif(trim(p_note),''),'')
+    where r.requested_by is not null and r.requested_by <> auth.uid();
+end $fn$;
+grant execute on function public.prog_decide(bigint,boolean,text,jsonb) to authenticated;
+
+-- آخر نسبة معتمدة لكل مشروع يراه المستخدم (للمحفظة ومشاريعي)
+create or replace function public.prog_values() returns table(pcode text, pct numeric, at timestamptz, pending boolean)
+language sql stable security definer set search_path=public as $$
+  select c.pcode,
+         (select r.pct from progress_reqs r where r.pcode = c.pcode and r.status = 'approved' order by r.decided_at desc, r.id desc limit 1),
+         (select r.decided_at from progress_reqs r where r.pcode = c.pcode and r.status = 'approved' order by r.decided_at desc, r.id desc limit 1),
+         exists(select 1 from progress_reqs r where r.pcode = c.pcode and r.status = 'pending')
+  from (select distinct pcode from progress_reqs) c
+  where prog_can_see(c.pcode)
+$$;
+grant execute on function public.prog_values() to authenticated;
+
+create or replace function public.prog_pending() returns table(id bigint, pcode text, pname text, pct numeric, prev numeric, note text, files jsonb, requested_by uuid, requested_at timestamptz)
+language sql stable security definer set search_path=public as $$
+  select r.id, r.pcode, coalesce((select data->>'pname' from charters where code = r.pcode order by id desc limit 1), r.pcode), r.pct,
+         (select x.pct from progress_reqs x where x.pcode = r.pcode and x.status = 'approved' order by x.decided_at desc limit 1),
+         r.note, r.files, r.requested_by, r.requested_at
+  from progress_reqs r where r.status = 'pending' and has_cap('off.progress') order by r.requested_at
+$$;
+grant execute on function public.prog_pending() to authenticated;
+
+-- مرفقات نسب الإنجاز: مجلد لكل مشروع
+insert into storage.buckets(id,name,public,file_size_limit) values('pg-attachments','pg-attachments',false,10485760) on conflict (id) do nothing;
+drop policy if exists "pg obj read" on storage.objects;
+create policy "pg obj read" on storage.objects for select to authenticated using (bucket_id = 'pg-attachments' and prog_can_see((storage.foldername(name))[1]));
+drop policy if exists "pg obj write" on storage.objects;
+create policy "pg obj write" on storage.objects for insert to authenticated with check (bucket_id = 'pg-attachments' and (prog_can_submit((storage.foldername(name))[1]) or has_cap('off.progress')));
+
+-- ===== (٢) الميثاق: سري + قسم =====
+alter table public.project_cfg add column if not exists hidden_by text;
+
+create or replace function public.charter_secret_sync() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+declare s text := coalesce(new.data->>'secret','');
+begin
+  if coalesce(new.code,'') = '' then return new; end if;
+  if s = 'yes' then
+    if exists(select 1 from project_cfg where pcode = new.code) then
+      update project_cfg set hidden = true, hidden_by = coalesce(hidden_by, case when hidden then hidden_by else 'charter' end) where pcode = new.code and not hidden;
+    else
+      insert into project_cfg(pcode, hidden, hidden_by) values(new.code, true, 'charter');
+    end if;
+  elsif s = 'no' then
+    update project_cfg set hidden = false, hidden_by = null where pcode = new.code and hidden and hidden_by = 'charter';
+  end if;
+  return new;
+end $fn$;
+drop trigger if exists charter_secret_sync on public.charters;
+create trigger charter_secret_sync after insert or update of data on public.charters for each row execute function public.charter_secret_sync();
+
+-- السري لا يُخفى عن مديره ومالكه
+create or replace function proj_hidden_me(pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  select coalesce((select g.hidden and not has_cap('sec.view')
+                          and not (auth.uid() = any(coalesce(g.hidden_users,'{}')))
+                          and not exists(select 1 from user_group_members m where m.user_id = auth.uid() and m.group_id = any(coalesce(g.hidden_groups,'{}')))
+                          and not exists(select 1 from charters c, profiles me where c.code = pc and me.id = auth.uid()
+                                         and (c.created_by = me.id or c.data->>'pmname' = me.full_name or c.data->>'owner' = me.full_name))
+                   from project_cfg g where g.pcode = pc), false)
+$$;
+
+-- القسم: من إعدادات المشروع، وإلا من الميثاق
+create or replace function units_cover(u text[], sec text, dept text, pc text) returns boolean
+language sql stable security definer set search_path=public as $$
+  with p as (select coalesce(nullif(g.dept_ov,''), nullif(dept,'')) d,
+                    coalesce(nullif(g.section,''), (select nullif(c.data->>'section','') from charters c where c.code = pc order by c.id desc limit 1)) sc
+             from (select 1) x left join project_cfg g on g.pcode = pc)
+  select coalesce(sec,'') ~ '^[0-9]+$' and exists(
+    select 1 from p, unnest(coalesce(u,'{}')) e
+    where e = sec
+       or (p.d ~ '^[0-9]+$' and e = sec||':'||p.d)
+       or (p.d ~ '^[0-9]+$' and p.sc is not null and e = sec||':'||p.d||':'||p.sc))
+$$;
+grant execute on function units_cover(text[],text,text,text) to authenticated;
+
+-- ===== (٣) سجل الخطوات والتراجع =====
+create table if not exists public.row_history(
+  id bigint generated always as identity primary key,
+  at timestamptz not null default now(),
+  actor uuid, actor_name text,
+  tbl text not null, rid text not null, op text not null,
+  pcode text, old jsonb, keys text[], delta jsonb,
+  undone_at timestamptz, undone_by uuid);
+create index if not exists row_history_at on public.row_history(at desc);
+create index if not exists row_history_row on public.row_history(tbl, rid, id desc);
+alter table public.row_history enable row level security;
+revoke all on public.row_history from anon, authenticated;
+
+create or replace function public.row_history_t() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+declare o jsonb; n jsonb; ks text[] := '{}'; d jsonb := '{}'; k text; v jsonb; v_rid text; pc text; skip text[] := array['updated_at','stage_at','last_seen'];
+begin
+  if TG_OP in ('UPDATE','DELETE') then o := to_jsonb(OLD); end if;
+  if TG_OP in ('UPDATE','INSERT') then n := to_jsonb(NEW); end if;
+  v_rid := coalesce((coalesce(n,o))->>'id', (coalesce(n,o))->>'pcode');
+  pc := coalesce((coalesce(n,o))->>'code', (coalesce(n,o))->>'pcode', (coalesce(n,o))->'data'->>'pcode');
+  if TG_OP = 'UPDATE' then
+    for k, v in select * from jsonb_each(n) loop
+      if k = any(skip) or v is not distinct from (o->k) then continue; end if;
+      ks := ks || k;
+      if jsonb_typeof(v) not in ('object','array') and length(coalesce(v #>> '{}','')) <= 200 then d := d || jsonb_build_object(k, jsonb_build_array(o->k, v)); end if;
+    end loop;
+    if cardinality(ks) = 0 then return NEW; end if;
+    -- الحفظ التلقائي لمحتوى الخطة: لقطة واحدة لكل ١٠ دقائق لنفس المستخدم
+    if ks = array['data'] and exists(select 1 from row_history h where h.tbl = TG_TABLE_NAME and h.rid = v_rid and h.actor is not distinct from auth.uid()
+                                     and h.keys = array['data'] and h.at > now() - interval '10 minutes' and h.undone_at is null) then
+      return NEW;
+    end if;
+  end if;
+  insert into row_history(actor, actor_name, tbl, rid, op, pcode, old, keys, delta)
+    values(auth.uid(), (select full_name from profiles where id = auth.uid()), TG_TABLE_NAME, v_rid, TG_OP, pc,
+           case when TG_OP = 'INSERT' then null else o end, ks, d);
+  if TG_OP = 'DELETE' then return OLD; end if;
+  return NEW;
+end $fn$;
+
+do $h$
+declare t text;
+begin
+  foreach t in array array['charters','plans','change_requests','closure_reports','signatories','plan_signatories','charter_signatories','closure_signatories',
+                           'del_requests','escalations','project_cfg','project_grants','project_blocks','progress_reqs','followers','request_sla'] loop
+    if to_regclass('public.'||t) is not null then
+      execute format('drop trigger if exists row_history_trg on %I', t);
+      execute format('create trigger row_history_trg after insert or update or delete on %I for each row execute function row_history_t()', t);
+    end if;
+  end loop;
+end $h$;
+
+create or replace function public.hist_list(p_from timestamptz default null, p_q text default null, p_tbl text default null, p_actor uuid default null, p_lim int default 150)
+returns table(id bigint, at timestamptz, actor uuid, actor_name text, tbl text, rid text, op text, pcode text, pname text, keys text[], delta jsonb, undone_at timestamptz, later int)
+language sql stable security definer set search_path=public as $$
+  select h.id, h.at, h.actor, h.actor_name, h.tbl, h.rid, h.op, h.pcode,
+         coalesce((select data->>'pname' from charters where code = h.pcode order by id desc limit 1), h.old->'data'->>'pname'),
+         h.keys, h.delta, h.undone_at,
+         (select count(*)::int from row_history x where x.tbl = h.tbl and x.rid = h.rid and x.id > h.id and x.undone_at is null)
+  from row_history h
+  where has_cap('off.undo')
+    and (p_from is null or h.at >= p_from)
+    and (p_tbl is null or h.tbl = p_tbl)
+    and (p_actor is null or h.actor = p_actor)
+    and (coalesce(p_q,'') = '' or h.pcode ilike '%'||p_q||'%' or h.actor_name ilike '%'||p_q||'%' or h.rid = p_q
+         or exists(select 1 from charters c where c.code = h.pcode and c.data->>'pname' ilike '%'||p_q||'%'))
+  order by h.id desc limit least(coalesce(p_lim,150), 500)
+$$;
+grant execute on function public.hist_list(timestamptz,text,text,uuid,int) to authenticated;
+
+-- التراجع: يعيد السجل كما كان قبل هذه الخطوة (أو يحذف ما أُضيف، أو يعيد ما حُذف)
+create or replace function public.hist_undo(p_id bigint) returns text
+language plpgsql security definer set search_path=public as $fn$
+declare h row_history; cols text; idc text; ex boolean;
+begin
+  if not has_cap('off.undo') then raise exception 'not allowed'; end if;
+  select * into h from row_history where id = p_id;
+  if h.id is null then raise exception 'not found'; end if;
+  if h.undone_at is not null then raise exception 'already undone'; end if;
+  idc := case when exists(select 1 from information_schema.columns where table_schema='public' and table_name=h.tbl and column_name='id') then 'id' else 'pcode' end;
+  select string_agg(format('%I = r.%I', column_name, column_name), ', ') into cols
+    from information_schema.columns where table_schema = 'public' and table_name = h.tbl and column_name <> idc and is_generated = 'NEVER' and is_identity = 'NO';
+  execute format('select exists(select 1 from %I where %I::text = $1)', h.tbl, idc) into ex using h.rid;
+  if h.op = 'INSERT' then
+    execute format('delete from %I where %I::text = $1', h.tbl, idc) using h.rid;
+  elsif h.op = 'UPDATE' then
+    if not ex then raise exception 'row no longer exists'; end if;
+    execute format('update %I t set %s from jsonb_populate_record(null::%I, $1) r where t.%I::text = $2', h.tbl, cols, h.tbl, idc) using h.old, h.rid;
+  elsif h.op = 'DELETE' then
+    if ex then raise exception 'row already exists'; end if;
+    execute format('insert into %I overriding system value select * from jsonb_populate_record(null::%I, $1)', h.tbl, h.tbl) using h.old;
+  end if;
+  update row_history set undone_at = now(), undone_by = auth.uid() where id = p_id;
+  insert into sys_audit(actor, actor_name, tbl, op, rid, pcode, summary, changes)
+    values(auth.uid(), (select full_name from profiles where id = auth.uid()), h.tbl, 'UNDO', h.rid, h.pcode, 'تراجع عن الخطوة #'||h.id, jsonb_build_object('step', h.id, 'op', h.op));
+  return h.op;
+end $fn$;
+grant execute on function public.hist_undo(bigint) to authenticated;
+
+-- تنظيف تلقائي لما هو أقدم من سنة
+do $c$ begin
+  perform cron.schedule('ido_history_trim', '17 3 * * 0', $$delete from public.row_history where at < now() - interval '365 days'$$);
+exception when others then raise notice 'pg_cron not available: %', sqlerrm; end $c$;
+
+-- ===== (٤) البريد =====
+-- القوالب (يقرؤها سكربت البريد عبر المفتاح العام؛ لا تحتوي أسرارًا)
+create or replace function public.mail_templates() returns jsonb
+language sql stable security definer set search_path=public as $$
+  select coalesce((select value::jsonb from app_settings where key = 'mail_tpl'), '{}'::jsonb)
+$$;
+grant execute on function public.mail_templates() to anon, authenticated;
+
+create or replace function public.mail_admin() returns boolean
+language sql stable security definer set search_path=public as $$ select has_cap('adm.mail') or has_cap('adm.settings') $$;
+grant execute on function public.mail_admin() to authenticated;
+
+create or replace function public.mail_set(k text, v text) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  if not (k = 'mail_tpl' or k like 'mail\_ev\_%' or k in ('wd_cfg')) then raise exception 'bad key'; end if;
+  insert into app_settings(key,value) values(k,v) on conflict (key) do update set value = excluded.value;
+end $fn$;
+grant execute on function public.mail_set(text,text) to authenticated;
+
+create or replace function public.mail_status() returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare u text; s text;
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  select value into u from app_config where key = 'mail_url';
+  select value into s from app_config where key = 'site_url';
+  return jsonb_build_object('url_set', u is not null and u <> '', 'site', s,
+     'office', (select coalesce(jsonb_agg(jsonb_build_object('id',p.id,'name',p.full_name,'email',p.email,'admin',p.role='admin') order by p.full_name),'[]') from profiles p where p.id = any(office_recipients())),
+     'mail_off', (select coalesce(jsonb_agg(jsonb_build_object('id',p.id,'name',p.full_name,'off',p.mail_off)),'[]') from profiles p where cardinality(coalesce(p.mail_off,'{}')) > 0),
+     'no_email', (select count(*) from profiles where coalesce(trim(email),'') = ''));
+end $fn$;
+grant execute on function public.mail_status() to authenticated;
+
+create or replace function public.mail_user_off(p_uid uuid, p_off text[]) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  update profiles set mail_off = nullif(p_off,'{}') where id = p_uid;
+end $fn$;
+grant execute on function public.mail_user_off(uuid,text[]) to authenticated;
+
+create or replace function public.mail_role_off(p_key text, p_off text[]) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  update app_roles set notif_off = coalesce(p_off,'{}') where key = p_key;
+end $fn$;
+grant execute on function public.mail_role_off(text,text[]) to authenticated;
+
+-- الجدولة (pg_cron)
+create or replace function public.mail_cron_list() returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb;
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  begin
+    execute $q$select coalesce(jsonb_agg(jsonb_build_object('id',j.jobid,'name',j.jobname,'schedule',j.schedule,'active',j.active,'command',left(j.command,200),
+              'last',(select jsonb_build_object('at',d.start_time,'status',d.status,'msg',left(d.return_message,200)) from cron.job_run_details d where d.jobid = j.jobid order by d.start_time desc limit 1))
+              order by j.jobname),'[]') from cron.job j where j.jobname like 'ido\_%'$q$ into r;
+  exception when others then r := jsonb_build_object('error', sqlerrm); end;
+  return r;
+end $fn$;
+grant execute on function public.mail_cron_list() to authenticated;
+
+create or replace function public.mail_cron_set(p_name text, p_schedule text, p_active boolean) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare j bigint;
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  execute 'select jobid from cron.job where jobname = $1' into j using p_name;
+  if j is null then raise exception 'job not found'; end if;
+  perform cron.alter_job(job_id := j, schedule := nullif(trim(p_schedule),''), active := p_active);
+end $fn$;
+grant execute on function public.mail_cron_set(text,text,boolean) to authenticated;
+
+-- سجل الإرسال (ردود سكربت البريد)
+create or replace function public.mail_log(p_lim int default 50) returns jsonb
+language plpgsql stable security definer set search_path=public as $fn$
+declare r jsonb;
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  begin
+    execute format($q$select coalesce(jsonb_agg(jsonb_build_object('id',id,'at',created,'code',status_code,'body',left(coalesce(content,error_msg,''),120)) order by id desc),'[]')
+                    from (select * from net._http_response order by id desc limit %s) z$q$, least(coalesce(p_lim,50),200)) into r;
+  exception when others then r := jsonb_build_object('error', sqlerrm); end;
+  return r;
+end $fn$;
+grant execute on function public.mail_log(int) to authenticated;
+
+-- بريد تجريبي إليّ
+create or replace function public.mail_test(p_event text) returns text
+language plpgsql security definer set search_path=public as $fn$
+declare url text; sec text; site text; em text; nm text;
+begin
+  if not mail_admin() then raise exception 'not allowed'; end if;
+  select value into url from app_config where key = 'mail_url';
+  select value into sec from app_config where key = 'mail_secret';
+  select value into site from app_config where key = 'site_url';
+  select email, full_name into em, nm from profiles where id = auth.uid();
+  if url is null then raise exception 'mail_url missing'; end if;
+  if coalesce(trim(em),'') = '' then raise exception 'no email on your profile'; end if;
+  perform net.http_post(url := url,
+    body := jsonb_build_object('secret',sec,'event',coalesce(p_event,'submitted'),'service','charter','code','PRJ-TEST-000','doc_no','CH-TEST',
+              'project','مشروع تجريبي (اختبار البريد)','by',nm,'note','هذه رسالة تجريبية من لوحة البريد.','site',site,'page','mail.html','test',true,
+              'details', case when p_event in ('taskReminder','digest','officeDigest','nudge') then jsonb_build_array(jsonb_build_array('مثال','سطر تجريبي')) else null end,
+              'kind', case when p_event in ('digest','officeDigest','nudge') then p_event end,
+              'recipients', jsonb_build_array(jsonb_build_object('email',lower(trim(em)),'name',nm))),
+    headers := '{"Content-Type":"application/json"}'::jsonb);
+  return em;
+end $fn$;
+grant execute on function public.mail_test(text) to authenticated;
+
+-- ===== (٥) مستلمو المكتب في البريد والإشعارات (بدل «الأدمن فقط») =====
+create or replace function public.p65_patch(f text, a text, b text) returns text
+language plpgsql security definer set search_path=public as $fn$
+declare d text; n text; o oid; res text := '';
+begin
+  select p.oid into o from pg_proc p join pg_namespace s on s.oid = p.pronamespace where s.nspname = 'public' and p.proname = f limit 1;
+  if o is null then return f||': missing'; end if;
+  d := pg_get_functiondef(o);
+  if position(b in d) > 0 then res := f||': already'; else
+    n := replace(d, a, b);
+    if n = d then res := f||': anchor not found'; else execute n; res := f||': patched'; end if;
+  end if;
+  update perm_fn_backup set def = replace(def, a, b) where split_part(sig,'(',1) in (f, 'public.'||f) and position(b in def) = 0;
+  return res;
+end $fn$;
+select p65_patch('mail_event', 'array(select id from profiles where role=''admin'')', 'office_recipients()') as patch
+union all select p65_patch('office_digest_send', 'from profiles where role = ''admin'' and coalesce(trim(email), '''') <> ''''', 'from profiles where id = any(office_recipients()) and coalesce(trim(email), '''') <> ''''')
+union all select p65_patch('run_escalation', 'from profiles where role = ''admin'' and coalesce(trim(email), '''') <> ''''', 'from profiles where id = any(office_recipients()) and coalesce(trim(email), '''') <> ''''')
+union all select p65_patch('_chat_notify_mgrs', '(p.role=''admin''', '(p.id = any(office_recipients())');
+drop function public.p65_patch(text,text,text);
+
+-- ===== (٦) القناة العامة =====
+create or replace function public.chat_general_on() returns boolean
+language sql stable security definer set search_path=public as $$ select coalesce((select value from app_settings where key = 'chat_general'),'on') <> 'off' $$;
+grant execute on function public.chat_general_on() to authenticated;
+create or replace function public.chat_set_general(p_on boolean) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  if not (is_full_admin() or has_cap('chat.all')) then raise exception 'not allowed'; end if;
+  insert into app_settings(key,value) values('chat_general', case when p_on then 'on' else 'off' end) on conflict (key) do update set value = excluded.value;
+end $fn$;
+grant execute on function public.chat_set_general(boolean) to authenticated;
+
+create or replace function public.chat_can_access(p_cid bigint) returns boolean
+language plpgsql stable security definer set search_path=public as $fn$
+declare k text; pc text;
+begin
+  select kind,pcode into k,pc from chat_channels where id=p_cid;
+  if k is null or auth.uid() is null then return false; end if;
+  if k='general' then return chat_general_on() or is_full_admin(); end if;
+  if has_cap('chat.all') and (coalesce(pc,'') = '' or not proj_hidden_me(pc)) then return true; end if;
+  if k='group' then return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid()); end if;
+  return exists(select 1 from chat_members m where m.channel_id=p_cid and m.user_id=auth.uid())
+      or auth.uid() in (select public.chat_project_members(pc));
+end $fn$;
+grant execute on function public.chat_can_access(bigint) to authenticated;
+
+notify pgrst, 'reload schema';

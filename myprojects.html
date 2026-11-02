@@ -140,7 +140,7 @@ h3.h{margin:0 0 8px;font-size:16px}
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-let me=null;
+let me=null,PROGV={},PRG=null,PCAN=false,POFF=false;
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -322,6 +322,7 @@ async function loadHub(){
   else{const row=pick&&await sb.from('plans').select('id,code,status,version,archived,charter_id,created_by,data').eq('id',pid).single().then(x=>x.data,()=>null);
    if(row)PLR=Object.assign({},row,{restricted:false});else{const m=mp.find(x=>x.id==pid);if(m)PLR={id:m.id,code:m.code,status:'Approved',created_by:m.created_by,restricted:true,data:{pcode:m.pcode,pname:m.pname,sector:m.sector,pmname:m.pm,tasks:m.tasks}}}}}
  M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id);
+ await prgLoad();
  if(!CH&&!PLR){$('app').innerHTML='<div class="card lock"><p>'+P(['المشروع غير موجود أو لا تملك صلاحية عرضه.','Project not found or you have no access.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
 
  if(!tabsOn().some(t=>t[0]==TAB))TAB='ov';
@@ -371,8 +372,35 @@ function overview(){const td=today();
  ev.sort((a,b)=>a.d<b.d?1:-1);
  const phases=M?M.tasks.filter(x=>!x._par).slice(0,8):[];
  const RS=(PLR&&PLR.restricted),BL=x=>RS&&((PLR.blur||['people','kpi','team','events']).includes(x)),bl=(x,o)=>BL(o)?'<div class="mk">'+x+'</div>':x;
- return '<div class="g2"><div class="card"><h3 class="h">'+P(['ما الذي يحتاج انتباهك الآن','What needs your attention now'])+'</h3>'+attHtml()+bl(k,'kpi')+(phases.length&&M.start!=null?'<h3 class="h" style="margin-top:6px">'+P(['لقطة من الخطة (المراحل)','Plan snapshot (phases)'])+'</h3>'+bl(gantt(phases,true),'kpi')+'<div class="row noprint" style="margin-top:10px"><button class="p" onclick="goTab(\'plan\')">'+P(['فتح الخطة كاملة ↗','Open full plan ↗'])+'</button></div>':'<div class="none">'+P(['لا توجد خطة بمهام بعد.','No plan with tasks yet.'])+(CH&&CH.status=='Approved'&&myRoles().includes('pm')?'<div style="margin-top:8px"><a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a></div>':'')+'</div>')+'</div>'+
+ return prgCard()+'<div class="g2"><div class="card"><h3 class="h">'+P(['ما الذي يحتاج انتباهك الآن','What needs your attention now'])+'</h3>'+attHtml()+bl(k,'kpi')+(phases.length&&M.start!=null?'<h3 class="h" style="margin-top:6px">'+P(['لقطة من الخطة (المراحل)','Plan snapshot (phases)'])+'</h3>'+bl(gantt(phases,true),'kpi')+'<div class="row noprint" style="margin-top:10px"><button class="p" onclick="goTab(\'plan\')">'+P(['فتح الخطة كاملة ↗','Open full plan ↗'])+'</button></div>':'<div class="none">'+P(['لا توجد خطة بمهام بعد.','No plan with tasks yet.'])+(CH&&CH.status=='Approved'&&myRoles().includes('pm')?'<div style="margin-top:8px"><a class="btn p" href="plan.html">'+P(['إعداد الخطة','Prepare the plan'])+'</a></div>':'')+'</div>')+'</div>'+
  '<div><div class="card"><h3 class="h">'+P(['الفريق والأدوار','Team & roles'])+'</h3>'+bl(team,'team')+'</div><div class="card" style="margin-top:14px"><h3 class="h">'+P(['آخر الأحداث','Latest events'])+'</h3>'+bl(ev.length?ev.slice(0,6).map(e=>'<div class="mut" style="padding:3px 0">● '+fdl(e.d)+' · '+esc(e.t)+'</div>').join(''):'<div class="none">—</div>','events')+'</div></div></div>'}
+
+/* ---------- نسبة الإنجاز للمشروع بلا خطة ---------- */
+const noPlan=()=>CH&&CH.status=='Approved'&&!PLS.some(x=>!x.archived&&(x.status=='Approved'||x.act=='true'));
+async function prgLoad(){PRG=null;if(!noPlan())return;try{const r=await sb.from('progress_reqs').select('*').eq('pcode',PC).order('id',{ascending:false}).limit(20);PRG=r.error?[]:(r.data||[])}catch(_){PRG=[]}
+ try{const r=await sb.rpc('prog_can_submit',{pc:PC});PCAN=!r.error&&!!r.data}catch(_){PCAN=false}
+ try{if(me.role=='admin')POFF=true;else{const r=await sb.rpc('my_cap',{k:'off.progress'});POFF=r.data==='true'}}catch(_){POFF=false}}
+const PST={pending:['بانتظار اعتماد المكتب','Awaiting office approval','#a8561a'],approved:['معتمدة','Approved','#0a6b3d'],rejected:['مرفوضة','Rejected','#c0101d'],superseded:['استُبدلت بطلب أحدث','Superseded','#8a8f98']};
+const nmU=id=>{const u=(window.USR||{})[id];return u||''};
+function fLinks(fs){return (fs||[]).map(f=>'<a href="javascript:void 0" class="mut" style="text-decoration:underline;margin-inline-end:8px" onclick="pgOpen(\''+esc(f.path).replace(/'/g,"\\'")+'\')">📎 '+esc(f.name||'ملف')+'</a>').join('')}
+async function pgOpen(path){const w=window.open('','_blank');const r=await sb.storage.from('pg-attachments').createSignedUrl(path,300);if(r.error){if(w)w.close();return toast(r.error.message)}if(w)w.location.href=r.data.signedUrl;else location.href=r.data.signedUrl}
+async function pgUp(inp){const out=[];for(const f of [...(inp&&inp.files||[])]){if(f.size>10485760){toast(P(['الملف أكبر من ١٠ ميجابايت: ','File over 10MB: '])+f.name);continue}const path=PC+'/'+Date.now()+'_'+f.name.replace(/[^\w.\-]+/g,'_');const r=await sb.storage.from('pg-attachments').upload(path,f);if(r.error){toast(r.error.message);continue}out.push({path,name:f.name})}return out}
+function prgCard(){if(!noPlan()||PRG==null)return'';const ap=PRG.find(x=>x.status=='approved'),pd=PRG.find(x=>x.status=='pending');
+ const v=ap?+ap.pct:0;
+ let h='<div class="card" style="margin-bottom:14px"><h3 class="h">'+P(['نسبة الإنجاز (المشروع بلا خطة معتمدة)','Progress (no approved plan)'])+'</h3><div class="mut">'+P(['يرفعها مدير المشروع أو من له صلاحية، ويعتمدها مكتب التطوير، وتُحتسب في المحفظة ومشاريعي حتى تُعتمد خطة.','Raised by the PM or a permitted user and approved by the office; counts in the portfolio until a plan is approved.'])+'</div>'
+  +'<div style="display:flex;align-items:center;gap:12px;margin:10px 0"><b style="font-size:30px">'+Math.round(v)+'%</b><div class="bar" style="flex:1"><i style="width:'+v+'%"></i></div></div>'
+  +'<div class="mut">'+(ap?P(['آخر اعتماد: ','Last approved: '])+String(ap.decided_at||'').slice(0,10):P(['لم تُعتمد نسبة بعد.','No approved value yet.']))+'</div>';
+ if(pd)h+='<div style="border:1px dashed #eadfc4;background:#fffaf0;border-radius:12px;padding:10px 12px;margin-top:10px"><b>⏳ '+P(['طلب معلّق: ','Pending: '])+Math.round(pd.pct)+'%</b> <span class="mut">'+String(pd.requested_at||'').slice(0,10)+'</span>'+(pd.note?'<div>'+esc(pd.note)+'</div>':'')+'<div>'+fLinks(pd.files)+'</div>'
+  +(POFF?'<textarea id="pg_dn" rows="2" placeholder="'+P(['ملاحظة المكتب (اختيارية)','Office note (optional)'])+'" style="width:100%;margin-top:8px;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #e4dfd4;border-radius:10px"></textarea><input type="file" id="pg_df" multiple style="margin-top:6px"><div class="row" style="margin-top:8px"><button class="p" onclick="pgDecide('+pd.id+',true)">'+P(['اعتماد النسبة','Approve'])+'</button><button onclick="pgDecide('+pd.id+',false)">'+P(['رفض','Reject'])+'</button></div>':'<div class="mut" style="margin-top:4px">'+P(['بانتظار قرار مكتب التطوير.','Awaiting the office decision.'])+'</div>')+'</div>';
+ if(PCAN)h+='<details style="margin-top:10px"'+(pd?'':' open')+'><summary style="cursor:pointer;font-weight:700">'+P([pd?'استبدال الطلب المعلّق بنسبة جديدة':'رفع نسبة إنجاز جديدة',pd?'Replace the pending request':'Submit a new value'])+'</summary>'
+  +'<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><input id="pg_v" type="number" min="0" max="100" step="1" value="'+Math.round(pd?pd.pct:v)+'" style="width:90px"><b>%</b></div>'
+  +'<textarea id="pg_n" rows="2" placeholder="'+P(['ملاحظة (اختيارية): ما الذي أُنجز؟','Note (optional): what was done?'])+'" style="width:100%;margin-top:8px;box-sizing:border-box;font:inherit;padding:8px;border:1px solid #e4dfd4;border-radius:10px"></textarea><input type="file" id="pg_f" multiple style="margin-top:6px">'
+  +'<div class="row" style="margin-top:8px"><button class="p" onclick="pgSend()">'+P(['إرسال للاعتماد','Send for approval'])+'</button></div></details>';
+ const hist=PRG.filter(x=>x!==pd);if(hist.length)h+='<details style="margin-top:10px"><summary style="cursor:pointer" class="mut">'+P(['السجل','History'])+' ('+hist.length+')</summary>'+hist.map(x=>{const st=PST[x.status]||[x.status,x.status,'#888'];return '<div style="border-top:1px solid #eee8dc;padding:6px 0"><b>'+Math.round(x.pct)+'%</b> <span style="color:'+st[2]+';font-weight:700">'+P([st[0],st[1]])+'</span> <span class="mut">'+String(x.requested_at||'').slice(0,10)+'</span>'+(x.note?'<div>'+esc(x.note)+'</div>':'')+'<div>'+fLinks(x.files)+'</div>'+(x.decision_note||(x.decision_files||[]).length?'<div class="mut">'+P(['المكتب: ','Office: '])+esc(x.decision_note||'')+' '+fLinks(x.decision_files)+'</div>':'')+'</div>'}).join('')+'</details>';
+ return h+'</div>'}
+async function pgSend(){const v=+$('pg_v').value;if(isNaN(v)||v<0||v>100)return toast(P(['أدخل نسبة بين ٠ و١٠٠','Enter 0–100']));const files=await pgUp($('pg_f'));
+ const r=await sb.rpc('prog_submit',{p_pcode:PC,p_pct:v,p_note:$('pg_n').value||null,p_files:files});if(r.error)return toast(r.error.message);toast(P(['أُرسلت لاعتماد المكتب','Sent for office approval']));await prgLoad();draw()}
+async function pgDecide(id,ok){const files=await pgUp($('pg_df'));const r=await sb.rpc('prog_decide',{p_id:id,p_ok:ok,p_note:($('pg_dn')||{}).value||null,p_files:files});if(r.error)return toast(r.error.message);toast(ok?P(['اعتُمدت النسبة','Approved']):P(['رُفض الطلب','Rejected']));await prgLoad();draw()}
 /* ---------- المرشّحات ---------- */
 function passes(x){if(F.ph&&x._top!=F.ph)return false;if(F.who){if(F.who=='__me'){if(!x._me)return false}else if(x.w!=F.who)return false}
  if(F.st){const s=x._st;if(F.st=='prog'?!(s=='prog'||s=='due'):s!=F.st)return false}
@@ -481,7 +509,7 @@ async function load(){
   q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
   sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
- LK=lk;
+ LK=lk;try{const r=await sb.rpc('prog_values');(r.data||[]).forEach(x=>{if(x.pct!=null)PROGV[x.pcode]=+x.pct})}catch(_){}
  await Promise.all(Object.keys(SVC).map(async k=>{const s=SVC[k];SG[k]=await sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id).eq('status','pending').then(x=>x.data||[],()=>[])}));
  const by={},idc={};
  ch.filter(c=>!c.archived).forEach(c=>{by[c.code]={code:c.code,ch:c,pls:[],crs:[],cls:[]};idc[c.id]=c.code});
@@ -490,7 +518,7 @@ async function load(){
  cr.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].crs.push(x)});cl.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].cls.push(x)});
  PJ=Object.values(by).map(enrich);draw()}
 function enrich(p){const live=p.pls,act=live.filter(x=>x.status=='Approved').sort((a,b)=>b.id-a.id)[0]||live.filter(x=>x.act=='true').sort((a,b)=>b.id-a.id)[0]||live.sort((a,b)=>b.id-a.id)[0]||null;
- const c0=p.ch;p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;{let tk=act&&act.tasks||[];/* ميثاق معتمد بلا خطة: المخطط من تاريخي الميثاق */if(!tk.length&&c0&&c0.status=='Approved'&&dn(c0.sd)!=null&&dn(c0.ed)!=null)tk=[{id:'__ch',n:P(['مدة المشروع حسب الميثاق','Project duration per charter']),s:c0.sd,e:c0.ed,pc:0,_ch:1}];p.M=planModel(tk,me.id)}
+ const c0=p.ch;p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;{let tk=act&&act.tasks||[];/* ميثاق معتمد بلا خطة: المخطط من تاريخي الميثاق */if(!tk.length&&c0&&c0.status=='Approved'&&dn(c0.sd)!=null&&dn(c0.ed)!=null)tk=[{id:'__ch',n:P(['مدة المشروع حسب الميثاق','Project duration per charter']),s:c0.sd,e:c0.ed,pc:PROGV[p.code]||0,_ch:1}];p.M=planModel(tk,me.id)}
  const r=[];const c=p.ch;if((c&&(c.created_by==me.id||c.pm==me.full_name))||(act&&act.created_by==me.id))r.push('pm');if(c&&c.sp&&c.sp==me.full_name)r.push('ow');if(p.M.mine)r.push('tk');
  if(LK.some(l=>l.kind=='follower'&&((l.svc=='charter'&&c&&l.id==c.id)||(l.svc=='plan'&&p.pls.some(x=>x.id==l.id)))))r.push('fl');
  if(LK.some(l=>l.kind=='participant'&&p.pls.some(x=>x.id==l.id)))r.push('pt');
@@ -714,4 +742,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=15"></script></body></html>
+<script src="ido-ui.js?v=16"></script></body></html>

@@ -537,6 +537,8 @@ const W=[
 ["f_owner", "Project owner", "مالك المشروع"],
 ["f_sector", "Sector", "القطاع"],
 ["f_dept", "Department", "الإدارة"],
+["f_section", "Section (optional)", "القسم (اختياري)"],
+["f_secret", "Secret project", "مشروع سري"],
 ["f_pmname", "Project manager", "مدير المشروع"],
 ["f_budget", "Estimated budget (AED)", "الموازنة التقديرية (بالدرهم)"],
 ["f_nrisk", "Expected risks if the project is not approved", "المخاطر المتوقعة في حال عدم اعتماد المشروع"],
@@ -746,10 +748,12 @@ const defLists=()=>({
 function applyLists(){let u={};try{u=JSON.parse(SET.opt_lists||'{}')||{}}catch(_){}
  if(!u.goals&&SET.opt_goals){try{const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length)u.goals=g}catch(_){}}
  const d=defLists();LST={};for(const k in d)LST[k]=Array.isArray(u[k])&&u[k].length?u[k]:d[k];
- while(LST.depts.length<LST.sectors.length)LST.depts.push([]);LST.depts.length=LST.sectors.length}
+ while(LST.depts.length<LST.sectors.length)LST.depts.push([]);LST.depts.length=LST.sectors.length;LST.sects=Array.isArray(u.sects)?u.sects:[]}
 applyLists();
 const pk=a=>lang=='ar'?a[0]:a[1];
 const secL=s=>s&&LST.sectors[s-1]?pk(LST.sectors[s-1]):'';
+const secOpts=(s,p)=>(s&&p&&p!='na'&&LST.sects&&LST.sects[s-1]&&LST.sects[s-1][p-1])?LST.sects[s-1][p-1]:[];
+const scL=(s,p,n)=>{const x=secOpts(s,p).find(y=>y[0]==n);return x?(lang=='ar'?x[0]:(x[1]||x[0])):(n||'')};
 const depL=(s,p)=>p=='na'?(lang=='ar'?'لا ينطبق':'Not applicable'):(p&&LST.depts[s-1]&&LST.depts[s-1][p-1]?pk(LST.depts[s-1][p-1]):'');
 const goalL=g=>{const x=LST.goals[+g-1];return x?pk(x):''};
 const LMAP={pt:'ptype',ps:'pstat',p:'prio'};
@@ -1046,6 +1050,7 @@ function updProg(){if(!editing||!cr)return;let m=0;
  for(const k in REQ){const n=REQ[k].filter(x=>!String(cr.data[x]==null?'':cr.data[x]).trim()).length;m+=n;const b=document.querySelector('.tb[data-t='+k+'] .bd');if(b){b.textContent=n||'';b.style.display=n?'inline-block':'none'}}
  const od=OPTF.filter(k=>filled(cr.data[k])).length;const p=$('fpb');if(p)p.style.width=((TOT-m+od)/(TOT+OPTF.length)*100)+'%';const l=$('fpt');if(l)l.textContent=pgText(TOT-m,TOT,od,OPTF.length)}
 function durTxt(){const m=monthsBetween(cr.data.sdate,cr.data.edate);return m==null?'—':ad(m)+' '+t('monthsU')}
+function fillSec(){const s=document.querySelector('select[data-k=section]');if(!s)return;const L=secOpts(cr.data.sector,cr.data.dept);s.innerHTML='<option value="">'+(lang=='ar'?'— بلا قسم —':'— none —')+'</option>'+L.map(x=>`<option value="${esc(x[0])}">${esc(lang=='ar'?x[0]:(x[1]||x[0]))}</option>`).join('');s.value=cr.data.section||'';s.disabled=!L.length}
 function fillDept(){const s=document.querySelector('select[data-k=dept]');if(!s)return;const sc=cr.data.sector;
  s.innerHTML='<option value=""></option>'+(sc?'<option value="na">'+(lang=='ar'?'لا ينطبق':'Not applicable')+'</option>'+(LST.depts[sc-1]||[]).map((_,i)=>`<option value="${i+1}">${esc(depL(sc,i+1))}</option>`).join(''):'');s.value=cr.data.dept||'';s.disabled=!sc}
 async function openCR(id){document.body.classList.add('ld');try{return await openCR0(id)}catch(e){const ar=(document.documentElement.lang||'ar')=='ar';const d=document.createElement('div');d.textContent=ar?'تعذّر فتح الطلب، تحقق من الاتصال وحاول مرة أخرى.':'Could not open the request. Check your connection and try again.';d.style.cssText='position:fixed;inset-inline:14px;top:14px;z-index:400;background:#d1101d;color:#fff;padding:11px 14px;border-radius:12px;text-align:center;font-weight:700';document.body.appendChild(d);setTimeout(()=>d.remove(),4500)}finally{document.body.classList.remove('ld')}}
@@ -1149,6 +1154,8 @@ async function openCR0(id){
   ${fld('pmname',uinp('pmname'))}
   ${fld('sector',sel('sector',LST.sectors.map((_,i)=>[i+1,secL(i+1)])))}
   ${fld('dept',`<select data-k="dept" ${dis||(d.sector?'':'disabled')}><option value=""></option>${deptOpts.map(([v,l])=>`<option value="${v}" ${String(d.dept)==String(v)?'selected':''}>${esc(l)}</option>`).join('')}</select>`)}
+  ${fld('section',`<select data-k="section" ${dis||(secOpts(d.sector,d.dept).length?'':'disabled')}><option value="">${lang=='ar'?'— بلا قسم —':'— none —'}</option>${secOpts(d.sector,d.dept).map(x=>`<option value="${esc(x[0])}" ${d.section==x[0]?'selected':''}>${esc(lang=='ar'?x[0]:(x[1]||x[0]))}</option>`).join('')}</select>`,'',lang=='ar'?'يُعكس المشروع على القسم في متابعة الوحدات والمحفظة.':'Links the project to a section for unit views.')}
+  ${fld('secret',sel('secret',[['no',lang=='ar'?'لا':'No'],['yes',lang=='ar'?'نعم — مشروع سري':'Yes — secret']]),'',lang=='ar'?'المشروع السري لا يظهر في قوائم الوحدات والمحفظة؛ يراه من له دور فيه (المعدّ، المدير، المالك، الموقّعون، المكلّفون) ومن يملك صلاحية «يرى المشاريع السرية» أو المستثنون.':'Hidden from unit lists and the portfolio; visible to people involved and to holders of “Sees secret projects”.')}
   ${fld('budget',inp('budget','number'),'full')}
  </div>${pnav('','ctx')}</div>
  <div class="card pn ${ftab=='ctx'?'on':''}" data-t="ctx"><div class="sec">${t('tab_ctx')}</div>${ed?`<div class="mut">${t('tapHint')}</div>`:''}${['nrisk','alt','impact','outputs'].map(tf).join('')}${pnav('gen','stk')}</div>
@@ -1169,7 +1176,8 @@ document.addEventListener('input',e=>{const x=e.target;if(!cr)return;
  if(x.classList&&x.classList.contains('ta'))grow(x)});
 document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;
  if(x.dataset.u&&x.value&&!Object.values(users).some(u=>u.full_name===x.value)){const old=(cr.data[x.dataset.k]||'');msg(lang=='ar'?'اختر اسمًا من قائمة المستخدمين.':'Pick a name from the users list.');x.value=Object.values(users).some(u=>u.full_name===old)?old:'';cr.data[x.dataset.k]=x.value;return}
- if(x.dataset.k=='sector'){cr.data.sector=x.value;cr.data.dept='';fillDept()}
+ if(x.dataset.k=='sector'){cr.data.sector=x.value;cr.data.dept='';cr.data.section='';fillDept();fillSec()}
+ if(x.dataset.k=='dept'){cr.data.section='';fillSec()}
  if(x.dataset.k=='gov'){const g=$('govw');if(g){g.style.display=x.value=='yes'?'':'none';fit()}}
  if(x.dataset.a&&x.dataset.c=='i'||x.dataset.c=='x'){const b=$('rk_'+x.dataset.r);if(b&&cr.data.risks[+x.dataset.r])b.outerHTML=riskHTML(cr.data.risks[+x.dataset.r],+x.dataset.r)}
  if(x.dataset.k)updProg()});
@@ -1506,7 +1514,7 @@ function exportWord(){if(me.role!='admin'||!cr)return;busy('xw',async()=>{
  rw(t('f_purpose'),d.purpose);
  const mo=monthsBetween(d.sdate,d.edate);
  rw(t('dur'),[P(t('f_sdate')+': '+fdate(d.sdate),{sa:20}),P(t('f_edate')+': '+fdate(d.edate),{sa:20}),P(t('f_months')+': '+(mo==null?'—':ad(mo)),{sa:0,b:1})]);
- rw(t('f_owner'),d.owner);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));rw(t('f_pmname'),d.pmname);
+ rw(t('f_owner'),d.owner);rw(t('f_sector'),secL(d.sector));rw(t('f_dept'),depL(d.sector,d.dept));if(d.section)rw(t('f_section'),scL(d.sector,d.dept,d.section));if(d.secret=='yes')rw(t('f_secret'),lang=='ar'?'نعم':'Yes');rw(t('f_pmname'),d.pmname);
  rw(t('f_budget'),d.budget===''||d.budget==null?'':String(d.budget)+' '+t('aed'));
  rw(t('f_nrisk'),d.nrisk);rw(t('f_alt'),d.alt);rw(t('f_impact'),d.impact);rw(t('f_outputs'),d.outputs);
  kids.push(T(rows,lw));
@@ -2006,4 +2014,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=15"></script></body></html>
+<script src="ido-ui.js?v=16"></script></body></html>
