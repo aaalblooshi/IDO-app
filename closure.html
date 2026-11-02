@@ -647,13 +647,16 @@ async function adminEditDone(ok){const id=cr.id;
  else if(AEDIT0){cr.data=JSON.parse(AEDIT0);await save(false)}
  AEDIT=null;AEDIT0='';openCR(id)}
 function officeDecide(kind){const ap=kind=='approve';askNote(t(ap?'offApprove':'offReject'),t(ap?'offApprovePh':'rejPrompt'),t(ap?'offApprove':'offReject'),async c=>{await setStatus(ap?'Approved':'Rejected',c?{comment:c}:{});await lg(cr.id,(ap?'officeapproved|':'officerejected|')+(c||''));openCR(cr.id)},!ap)}
+const BHW={admin:['بصفة الأدمن','as administrator'],office:['بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'],unit:['بصفة مسؤول الوحدة','as unit head'],edit:['بصلاحية التعديل على المشروع','with edit rights on the project']};const bhw=w=>{const x=BHW[w];return x?(lang=='ar'?x[0]:x[1]):(w||'')};
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير '+({r:'عند توجيه التصعيد',i:'عند تجاهل التصعيد',w:'عند سحب التصعيد'}[p[1]]||'')+': ':'Office note '+({r:'on redirecting the escalation',i:'on ignoring the escalation',w:'on withdrawing the escalation'}[p[1]]||'')+': ')+p.slice(2).join('|');
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
  if(k=='deleted')return t('delMoved');
  if(k=='approvenote')return t('apprNoteT')+': '+p.slice(1).join('|');
- if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):p[2]=='admin'?' — '+t('l_adm'):'');
+ if(k=='signed')return t('l_signed')+' ('+t('stg_'+p[1])+')'+(p[2]=='proxy'?' — '+t('l_proxy'):p[2]=='admin'?' — '+t('l_adm'):p[2]=='behalf'?' — '+(lang=='ar'?'نيابةً عن المعدّ ':'on behalf of the preparer ')+bhw(p[3]):'');
+ if(k=='behalf')return (lang=='ar'?'تولّي التقديم نيابةً عن المعدّ':'Took over submission on behalf of the preparer')+(p[1]?' «'+p[1]+'»':'')+' — '+bhw(p[2]);
+ if(k=='submittedby')return (lang=='ar'?'قدّم الطلب: ':'Submitted by: ')+(p[1]||'')+(p[3]=='self'?(lang=='ar'?' (المعدّ نفسه)':' (the preparer)'):(lang=='ar'?' — نيابةً عن المعدّ «':' — on behalf of the preparer «')+(p[2]||'')+'»');
  if(k=='taskprog')return t('l_taskprog')+': '+(p[1]||'')+' → '+(p[2]||0)+'%';
  if(k=='status')return t('l_status')+t('st_'+p[1]);
  if(k=='assigned')return t('l_assigned')+' '+p[1]+' — '+t('stg_'+p[2]);
@@ -1206,7 +1209,7 @@ async function admSign(stage){const row=await admRow(stage);if(!row)return;openS
 async function proceedSubmit(){
  const mine=sigs.find(s=>s.user_id==me.id&&s.stage=='created');
  if(mine&&mine.status!='signed'){openSign(mine.id,'created',true);return}
- if(!mine&&me.role=='admin'&&cr.created_by!=me.id){const row=await admRow('created');if(!row)return;openSign(row.id,'created',true);pend.adm=true;return}
+ if(!mine&&cr.created_by!=me.id&&(me.role=='admin'||gEd(cr))){/*behalf*/const r0=await sb.rpc('behalf_take',{p_svc:SVC,p_id:cr.id});if(r0.error){if(me.role=='admin'&&/could not find|does not exist|schema cache/i.test(r0.error.message||'')){const row=await admRow('created');if(!row)return;openSign(row.id,'created',true);pend.adm=true;return}return msg(r0.error.message)}await openCR(cr.id);const row=sigs.find(s=>s.user_id==me.id&&s.stage=='created');if(!row)return;openSign(row.id,'created',true);pend.adm=true;pend.bh=r0.data||'admin';return}
  if(sigs.filter(s=>s.stage=='created').some(s=>s.status!='signed'))return msg(t('creatorsSign'));
  await setStatus('Submitted');openCR(cr.id)}
 async function sendApproval(){
@@ -1254,7 +1257,7 @@ async function confirmSign(){
  if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
  await sb.from('closure_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);
- await lg(cr.id,'signed|'+pend.stage+(pend.adm?'|admin':pend.by?'|proxy':''));
+ await lg(cr.id,'signed|'+pend.stage+(pend.bh?'|behalf|'+pend.bh:pend.adm?'|admin':pend.by?'|proxy':''));
  {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('closure_reports').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('closure_reports').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('closure_signatories').select('*').eq('cr_id',cr.id);
  const all=s=>{const a=data.filter(x=>x.stage==s);return a.length&&a.every(x=>x.status=='signed')};

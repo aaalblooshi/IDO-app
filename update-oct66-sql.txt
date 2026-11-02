@@ -1,0 +1,73 @@
+-- =====================================================================
+-- update-oct66: التقديم نيابةً عن المعدّ لكل من يملك الصلاحية + تعقّب من أعدّ ومن قدّم
+--   (١) behalf_take: يتيح التقديم نيابةً عن المعدّ للأدمن، ولمن لديه مهام المكتب
+--       (مراجعة النوع نفسه)، ولمسؤول الوحدة، ولمن لديه مستوى/منحة تعديل على المشروع.
+--       لا يحذف توقيع المعدّ المعلّق، ويسجّل في سجل الطلب من تولّى التقديم وبأي صفة.
+--   (٢) تتبّع مضمون من الخادم: عند انتقال أي طلب إلى «مقدَّم» يُسجَّل تلقائيًا من قدّمه،
+--       ومن هو المعدّ، وهل قدّمه المعدّ نفسه أم غيره — لا يعتمد على التطبيق.
+-- يُشغَّل مرة واحدة، وآمن لإعادة التشغيل.
+-- =====================================================================
+
+create or replace function public.behalf_take(p_svc text, p_id bigint) returns text
+language plpgsql security definer set search_path=public as $fn$
+declare tb text; sg text; au text; r record; pc text; why text; me uuid := auth.uid(); nm text; cn text;
+begin
+  if me is null then raise exception 'sign in first'; end if;
+  case p_svc
+    when 'charter' then tb := 'charters';        sg := 'charter_signatories'; au := 'charter_audit';
+    when 'plan'    then tb := 'plans';           sg := 'plan_signatories';    au := 'plan_audit';
+    when 'cr'      then tb := 'change_requests'; sg := 'signatories';         au := 'audit_log';
+    when 'closure' then tb := 'closure_reports'; sg := 'closure_signatories'; au := 'closure_audit';
+    else raise exception 'bad service';
+  end case;
+  execute format('select id, status, archived, created_by, code, data->>''pcode'' as pc from %I where id = $1', tb) into r using p_id;
+  if r.id is null then raise exception 'not found'; end if;
+  if r.archived or r.status not in ('Draft','Returned to PM') then raise exception 'not allowed: the request is not a draft'; end if;
+  if r.created_by = me then raise exception 'you are the preparer — submit it normally'; end if;
+  pc := case when p_svc = 'charter' then r.code else coalesce(nullif(r.pc,''), r.code) end;
+  why := case
+           when is_full_admin() then 'admin'
+           when has_cap('off.review.' || p_svc) then 'office'
+           when coalesce(pc,'') <> '' and unit_head_of(pc) then 'unit'
+           when coalesce(pc,'') <> '' and has_grant(pc, p_svc, 'edit') then 'edit'
+         end;
+  if why is null then raise exception 'not allowed: you have no right to submit on behalf of the preparer'; end if;
+  execute format('insert into %I(cr_id, stage, user_id) select $1, ''created'', $2
+                   where not exists(select 1 from %I where cr_id = $1 and stage = ''created'' and user_id = $2)', sg, sg) using p_id, me;
+  select full_name into nm from profiles where id = me;
+  select full_name into cn from profiles where id = r.created_by;
+  execute format('insert into %I(cr_id, user_name, action) values ($1, $2, $3)', au)
+    using p_id, nm, 'behalf|' || coalesce(cn,'') || '|' || why;
+  return why;
+end $fn$;
+revoke all on function public.behalf_take(text, bigint) from public, anon;
+grant execute on function public.behalf_take(text, bigint) to authenticated;
+
+-- (٢) تسجيل المقدِّم من الخادم
+create or replace function public.submit_track() returns trigger
+language plpgsql security definer set search_path=public as $fn$
+declare nm text; cn text;
+begin
+  if new.status = 'Submitted' and old.status is distinct from new.status and old.status in ('Draft','Returned to PM') then
+    select full_name into nm from profiles where id = auth.uid();
+    select full_name into cn from profiles where id = new.created_by;
+    execute format('insert into %I(cr_id, user_name, action) values ($1, $2, $3)', tg_argv[0])
+      using new.id, coalesce(nm, 'النظام'), 'submittedby|' || coalesce(nm,'') || '|' || coalesce(cn,'') || '|' ||
+            case when auth.uid() = new.created_by then 'self' else 'behalf' end;
+  end if;
+  return new;
+end $fn$;
+
+drop trigger if exists submit_track_t on charters;
+create trigger submit_track_t after update of status on charters        for each row execute function submit_track('charter_audit');
+drop trigger if exists submit_track_t on plans;
+create trigger submit_track_t after update of status on plans           for each row execute function submit_track('plan_audit');
+drop trigger if exists submit_track_t on change_requests;
+create trigger submit_track_t after update of status on change_requests for each row execute function submit_track('audit_log');
+drop trigger if exists submit_track_t on closure_reports;
+create trigger submit_track_t after update of status on closure_reports for each row execute function submit_track('closure_audit');
+
+-- تحقق
+select 'behalf_take' as "العنصر", case when exists(select 1 from pg_proc where proname = 'behalf_take') then 'موجود' else 'ناقص' end as "الحالة"
+union all
+select 'triggers', (select count(*)::text from pg_trigger where tgname = 'submit_track_t') || ' / 4';
