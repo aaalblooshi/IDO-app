@@ -47,47 +47,44 @@ var TX={
 /* نموذج كل خدمة: عقد (صفوف وممرات) وأسهم بأنواعها */
 function doc(k){var S=X().SV[k],s=S.s,N=[],E=[];
  function n(id,lane,row,t,o){var z=Object.assign({id:id,lane:lane,row:row,t:t,kind:'step'},o||{});N.push(z);return z}
+ function e(a,b,r,kd,lab,o){E.push(Object.assign({a:a,b:b,r:r,k:kd||'main',lab:lab},o||{}))}
  n('d','pm',0,s[0],{st:0});
  n('cx','of',0,['إلغاء الطلب ← «ملغى»','Cancel → "Cancelled"'],{kind:'term',info:TX.cancel,roles:['pm','of']});
- if(k=='plan')n('gp','fl',0,['التخطيط الجماعي: ملاحظات وتعديلات الفريق','Group planning: team input on the draft'],{kind:'note',info:TX.grp,roles:['pt','pm']});
+ if(k=='plan')n('gp','fl',0,['التخطيط الجماعي على المسودة','Group planning on the draft'],{kind:'note',info:TX.grp,roles:['pt','pm']});
  n('sg','pm',1,s[1],{st:1});
- n('bh','rv',1,['تقديم نيابةً عن المعدّ أو بالإنابة','Submit on behalf / by proxy'],{kind:'note',info:TX.beh,roles:['of','uh']});
+ n('bh','of',1,['تقديم نيابةً عن المعدّ أو بالإنابة','Submit on behalf / by proxy'],{kind:'note',info:TX.beh,roles:['of','uh']});
  n('ar','of',2,['تحديد المراجع والمدة','Assign reviewer & duration'],{kind:'off',st:1,info:TX.asgR});
- if(k=='plan')n('ac','ap',2,['تفعيل مؤقت قبل الاعتماد','Activate before approval'],{kind:'note',info:TX.act,roles:['of']});
+ if(k=='plan')n('ac','ap',2,['تفعيل مؤقت قبل الاعتماد','Activate before approval'],{kind:'note',info:TX.act,roles:['of'],col:'of'});
  n('rv','rv',3,s[2],{st:2});
- n('es','of',3,['التصعيد والتذكير عند التأخر','Escalation & reminders when late'],{kind:'dec',info:TX.esc,roles:['of','pm']});
- n('ob','fl',3,['اطلاع للقراءة وإشعارات','Read-only view & notices'],{kind:'note',info:TX.obs,roles:['fl','ow','uh']});
- n('rt','pm',4,k=='charter'?['↩ أُعيد للمعدّ: تعديل أو استكمال أو دراسة جدوى','↩ Returned: edit, complete, or feasibility study']:['↩ أُعيد للمعدّ: تعديل أو استكمال بيانات ومرفقات','↩ Returned: edit or complete data & files'],{kind:'hub',info:k=='charter'?TX.ret.concat(TX.fz):TX.ret,roles:['pm','rv','ap','of']});
+ n('es','ap',3,['التصعيد والتذكير عند التأخر','Escalation & reminders'],{kind:'dec',info:TX.esc,roles:['of','pm'],col:'of'});
+ n('ob','fl',4,['المطّلعون: قراءة وإشعارات','Viewers: read & notices'],{kind:'note',info:TX.obs,roles:['fl','ow','uh']});
  n('aa','of',4,['تحديد المعتمِد','Assign approver'],{kind:'off',st:2,info:TX.asgA});
  n('ap','ap',5,s[3],{st:3});
  n('od','of',6,['قرار المكتب بعد الرفض','Office decision after a reject'],{kind:'dec',info:TX.rej,roles:['of']});
- n('da','rv',6,['اعتماد مباشر من المكتب','Direct Office approval'],{kind:'note',info:TX.dir,roles:['of']});
  n('fr','rv',7,['رفض نهائي ← «مرفوض»','Final reject → "Rejected"'],{kind:'term',bad:true,info:TX.fin,roles:['of']});
- var endL=k=='plan'?'pm':'of';n('en',endL,8,s[4],{st:4,end:true});
- if(k=='plan')n('rx','tk',8,['تعديل الخطة المعتمدة بإصدار جديد','Revise approved plan (new version)'],{kind:'note',info:TX.rev,roles:['pm']});
- if(k=='cr')n('cl','tk',8,['تعديل الخطة وربطها بطلب التغيير','Revise and link the plan'],{kind:'note',info:TX.crl,roles:['pm']});
- if(k=='charter')n('pg','tk',8,['بلا خطة: اعتماد نسبة الإنجاز','No plan: progress approval'],{kind:'note',info:TX.prog,roles:['pm','of']});
- if(k=='closure')n('ah','tk',8,['إغلاق المشروع وأرشفته','Close & archive the project'],{kind:'note',info:TX.arch,roles:['of']});
- function e(a,b,kd,lab){E.push({a:a,b:b,k:kd,lab:lab})}
- e('d','sg','main');e('sg','ar','main');e('ar','rv','main');e('rv','aa','main');e('aa','ap','main');e('ap','en','main');
- e('d','cx','opt');e('sg','bh','opt');
- if(k=='plan'){e('d','gp','opt');e('ar','ac','opt')}
- e('rv','rt','ret');e('ap','rt','ret');e('od','rt','ret');
- e('rt','d','back',['يعدّل ويعيد التقديم','Edit & resubmit']);
- e('rv','od','rej');e('ap','od','rej');
- e('od','ap','opt',['متابعة الاعتماد','Continue to approval']);e('od','fr','rej');e('od','da','opt');
- e('da','en','opt');
- e('rv','es','esc');e('rv','ob','obs');
- if(k=='plan')e('en','rx','opt');if(k=='cr')e('en','cl','opt');if(k=='charter')e('en','pg','opt');if(k=='closure')e('en','ah','opt');
+ n('en',k=='plan'?'pm':'of',8,s[4],{st:4,end:true});
+ var nt={plan:['rx',['تعديل الخطة المعتمدة بإصدار جديد','Revise approved plan (new version)'],TX.rev],cr:['cl',['تعديل الخطة وربطها بطلب التغيير','Revise and link the plan'],TX.crl],charter:['pg',['بلا خطة: اعتماد نسبة الإنجاز','No plan: progress approval'],TX.prog],closure:['ah',['إغلاق المشروع وأرشفته','Close & archive the project'],TX.arch]}[k];
+ if(nt)n(nt[0],'tk',8,nt[1],{kind:'note',info:nt[2],roles:['pm','of']});
+ e('d','sg','v');e('sg','ar','v');e('ar','rv','v');e('rv','aa','v');e('aa','ap','v');
+ e('ap','en','vt','main',null,{tx:.32});
+ e('d','cx','h','opt',null,{desc:TX.cancel});e('sg','bh','h','opt',null,{desc:TX.beh});
+ if(k=='plan')e('ar','ac','h','opt',null,{desc:TX.act});
+ e('rv','es','h','esc',null,{desc:TX.esc});
+ e('od','fr','vt','rej',['رفض نهائي','Final reject'],{desc:TX.fin});
+ e('od','en','vt','opt',['اعتماد مباشر','Direct approval'],{tx:.7,desc:TX.dir});
+ if(nt)e('en',nt[0],'h','opt',null,{desc:nt[2]});
+ /* حافلتان: الإعادة للمعدّ، والرفض إلى قرار المكتب */
+ E.push({bus:'ret',src:['rv','ap','od'],b:'d',k:'ret',lab:['↩ إعادة للمعدّ للتعديل','↩ Return to preparer'],desc:k=='charter'?TX.ret.concat(TX.fz):TX.ret});
+ E.push({bus:'rej',src:['rv','ap'],b:'od',k:'rej',lab:['✕ رفض','✕ Reject'],desc:TX.rej});
  return {N:N,E:E,rows:9}}
 function tasks(){var s=X().SV.tasks.s,N=[],E=[];
  function n(id,lane,row,t,o){var z=Object.assign({id:id,lane:lane,row:row,t:t,kind:'step'},o||{});N.push(z);return z}
  s.forEach(function(x,i){n('t'+i,'tk',i,x,{st:i})});
  n('fo','of',3,['متابعة المتأخرات والتذكير','Follow up late tasks & remind'],{kind:'off',st:3,info:TX.tkof});
  n('pu','pm',2,['مدير المشروع يحدّث ويذكّر','PM updates & reminds'],{kind:'note',info:TX.tkof,roles:['pm','uh']});
- var E2=[];for(var i=0;i<s.length-1;i++)E2.push({a:'t'+i,b:'t'+(i+1),k:'main'});
- E2.push({a:'t3',b:'fo',k:'esc',lab:['تأخر','Late']});E2.push({a:'t2',b:'pu',k:'opt'});
- return {N:N,E:E2,rows:5}}
+ for(var i=0;i<s.length-1;i++)E.push({a:'t'+i,b:'t'+(i+1),r:'v',k:'main'});
+ E.push({a:'t3',b:'fo',r:'h',k:'esc',lab:['تأخر','Late'],desc:TX.tkof});E.push({a:'t2',b:'pu',r:'h',k:'opt',desc:TX.tkof});
+ return {N:N,E:E,rows:5}}
 
 var G={W:0,H:0,s:1,tx:0,ty:0,role:'all',nodes:[],edges:[]};
 var LW=200,NW=176,NH=70,RH=104,BH=64,BG=80,TOP=70,SIDE=54;
@@ -99,7 +96,7 @@ function build(){var ORDER=X().ORDER,y=TOP;G.nodes=[];G.edges=[];G.blocks=[];
  G.W=SIDE*2+LANES.length*LW;
  ORDER.forEach(function(k){var M=k=='tasks'?tasks():doc(k),b={k:k,y:y,ids:{}};var ry=y+BH;
   M.N.forEach(function(n){n.k=k;n.x=laneX(LI[n.lane])+(LW-NW)/2;n.h=n.kind=='step'?NH:(n.kind=='hub'?NH+12:NH-6);n.y=ry+n.row*RH+(NH-n.h)/2;n.gid=G.nodes.length;G.nodes.push(n);b.ids[n.id]=n});
-  M.E.forEach(function(e){var a=b.ids[e.a],z=b.ids[e.b];if(a&&z)G.edges.push({a:a,b:z,k:e.k,lab:e.lab})});
+  M.E.forEach(function(e){var z=b.ids[e.b];if(!z)return;if(e.bus){var ss=e.src.map(function(q){return b.ids[q]}).filter(Boolean);G.edges.push(Object.assign({},e,{src:ss,b:z,blk:b}));return}var a2=b.ids[e.a];if(a2)G.edges.push(Object.assign({},e,{a:a2,b:z}))});
   b.h=BH+M.rows*RH+10;b.first=b.ids[k=='tasks'?'t0':'d'];b.last=b.ids[k=='tasks'?'t4':'en'];G.blocks.push(b);y+=b.h+BG});
  G.H=y+20}
 
@@ -126,7 +123,24 @@ function arrowPath(g,d,st){/* الخط متقطع أو متصل، ورأس ال�
  el('path',{d:d,fill:'none',stroke:st.c,'stroke-width':st.w,'stroke-dasharray':st.d||'none','stroke-linejoin':'round'},g);
  if(!st.m)return;var P=pts(d);if(P.length<2)return;var b=P[P.length-1],a=P[P.length-2],L=Math.hypot(b[0]-a[0],b[1]-a[1])||1,k=Math.min(14,L)/L;
  el('path',{d:'M'+(b[0]-(b[0]-a[0])*k)+' '+(b[1]-(b[1]-a[1])*k)+' L'+b[0]+' '+b[1],fill:'none',stroke:st.c,'stroke-width':st.w,'marker-end':'url(#'+st.m+')'},g)}
-function draw(svg){svg.innerHTML='';var defs=el('defs',{},svg);
+function sideX(n,toward){return toward>0?n.x+NW:n.x}
+function route(e){var a=e.a,b=e.b,rtl=document.documentElement.dir!='ltr';
+ if(e.bus){var pmX=laneX(LI.pm),sg=(pmX>laneX(LI.rv))?1:-1;
+  if(e.bus=='ret'){var cx=sg>0?pmX+LW+14:pmX-14,ys=[],D=[],dots=[];
+   e.src.forEach(function(q){var y=q.y+q.h*.32;ys.push(y);D.push('M'+sideX(q,sg)+' '+y+' H'+cx);dots.push([cx,y])});
+   var top=b.y+b.h/2,bot=Math.max.apply(null,ys);D.push('M'+cx+' '+bot+' V'+top+' H'+sideX(b,sg));
+   return{d:D,arrow:D.length-1,dots:dots,lx:cx-58*sg,ly:b.y+1.5*RH+(NH-b.h)/2+b.h/2}}
+  var bx=sg>0?laneX(LI.rv)+LW:laneX(LI.rv),ys2=[],D2=[],dots2=[];
+  e.src.forEach(function(q){var y=q.y+q.h*.72;ys2.push(y);D2.push('M'+sideX(q,sg)+' '+y+' H'+bx);dots2.push([bx,y])});
+  var ty=b.y+b.h*.4,mn=Math.min.apply(null,ys2);D2.push('M'+bx+' '+mn+' V'+ty+' H'+sideX(b,-sg));
+  return{d:D2,arrow:D2.length-1,dots:dots2,lx:bx,ly:(Math.max.apply(null,ys2)+ty)/2}}
+ var ca=a.x+NW/2,cb=b.x+NW/2;
+ if(e.r=='h'){var y=a.y+a.h/2,L=cb<ca,x1=L?a.x:a.x+NW,x2=L?b.x+NW:b.x;return{d:['M'+x1+' '+y+' H'+x2],lx:(x1+x2)/2,ly:y}}
+ if(e.r=='vt'){var sx=e.sx!=null?e.sx:(cb<ca-2?.3:cb>ca+2?.7:.5),x1=a.x+NW*sx,y1=a.y+a.h,x2=b.x+NW*(e.tx!=null?e.tx:.5),yg=b.y-(RH-NH)/2+6;
+  if(Math.abs(x1-x2)<2)return{d:['M'+x1+' '+y1+' V'+b.y],lx:x1,ly:(y1+b.y)/2};
+  return{d:['M'+x1+' '+y1+' V'+yg+' H'+x2+' V'+b.y],lx:(x1+x2)/2,ly:yg}}
+ var v=vpath(a,b);return{d:[v.d],lx:v.lx,ly:v.ly}}
+function draw(svg){svg.innerHTML='';G.hlN=new Set();var defs=el('defs',{},svg);
  [['ah','#5a6675'],['ahr','#d1101d'],['ahb','#1d5f8a'],['aho','#a8761a']].forEach(function(m){var mk=el('marker',{id:m[0],viewBox:'0 0 10 10',refX:10,refY:5,markerWidth:11,markerHeight:11,markerUnits:'userSpaceOnUse',orient:'auto'},defs);el('path',{d:'M0 0L10 5L0 10z',fill:m[1]},mk)});
  var vp=el('g',{id:'jmvp'},svg);
  el('rect',{x:0,y:0,width:G.W,height:G.H,fill:'#f7f9fc'},vp);
@@ -136,14 +150,17 @@ function draw(svg){svg.innerHTML='';var defs=el('defs',{},svg);
   el('rect',{x:SIDE-30,y:b.y,width:G.W-2*SIDE+60,height:b.h,rx:18,fill:'none',stroke:'#9fb3c8','stroke-width':1.5,'stroke-dasharray':b.k=='cr'?'8 6':'none'},g);
   el('rect',{x:SIDE-30,y:b.y,width:G.W-2*SIDE+60,height:44,rx:18,fill:'#fff',stroke:'#9fb3c8','stroke-width':1.5},g);
   txt(g,G.W/2,b.y+29,[(bi+1)+'. '+P(SV[b.k].t)+(b.k=='cr'?P([' (اختياري)',' (optional)']):'')],{fs:20,fw:800,fill:'#1d5f8a'})});
- /* الأسهم داخل الكتل */
- var cnt={};
- G.edges.forEach(function(e){var st=EK[e.k]||EK.main,dim=G.role!='all'&&!(on(e.a)||on(e.b));
-  var key=e.b.gid+(e.k=='main'?'m':'s');cnt[key]=(cnt[key]||0)+1;var off=e.k=='main'?0:((cnt[key]-1)%4-1.5)*6;
-  var far=e.k=='main'&&Math.abs(e.a.row-e.b.row)>1;var pth=e.k=='main'&&!far?vpath(e.a,e.b):spath(e.a,e.b,far?0:off);
-  var g=el('g',{opacity:dim?.15:1},vp);
-  arrowPath(g,pth.d,st);
-  if(e.lab)pill(g,pth.lx,pth.ly,P(e.lab),st.c)});
+ /* الأسهم داخل الكتل: مسارات محسوبة لكل نوع، والمحدد منها يتوهج */
+ var selE=G.sel&&G.sel.e!=null?G.sel.e:null,selN=G.sel&&G.sel.n!=null?G.nodes[G.sel.n]:null;
+ var touches=function(e,n){return e.a===n||e.b===n||(e.src&&e.src.indexOf(n)>=0)};
+ G.hl=new Set();G.edges.forEach(function(e,ix){if((selE===ix)||(selN&&touches(e,selN))){G.hl.add(ix);if(e.a)G.hlN.add(e.a);G.hlN.add(e.b);(e.src||[]).forEach(function(q){G.hlN.add(q)})}});
+ G.edges.forEach(function(e,ix){var st=EK[e.k]||EK.main,R=route(e),act=G.sel?G.hl.has(ix):(G.role=='all'||(e.a&&on(e.a))||on(e.b)||(e.src||[]).some(on));
+  var g=el('g',{'data-e':ix,style:'cursor:pointer',opacity:act?1:.13},vp);
+  R.d.forEach(function(d){el('path',{d:d,fill:'none',stroke:'transparent','stroke-width':18},g)});
+  if(G.hl.has(ix))R.d.forEach(function(d){el('path',{d:d,fill:'none',stroke:st.c,'stroke-width':st.w+9,'stroke-linecap':'round','stroke-linejoin':'round',class:'jglow'},g)});
+  R.d.forEach(function(d,k){arrowPath(g,d,Object.assign({},st,{m:(R.arrow==null||R.arrow==k)?st.m:'',w:G.hl.has(ix)?st.w+1.2:st.w}))});
+  (R.dots||[]).forEach(function(p){el('circle',{cx:p[0],cy:p[1],r:3.2,fill:st.c},g)});
+  if(e.lab&&R.lx!=null)pill(g,R.lx,R.ly,P(e.lab),st.c)});
  /* أسهم بين الخدمات */
  var B={};G.blocks.forEach(function(b){B[b.k]=b});
  function link(a,b,lab,dash){var A=a.last,Z=b.first;var x1=A.x+NW/2,y1=A.y+A.h,x2=Z.x+NW/2,y2=Z.y,my=b.y-BG/2;
@@ -157,12 +174,12 @@ function draw(svg){svg.innerHTML='';var defs=el('defs',{},svg);
   arrowPath(vp,'M'+(A.x)+' '+(A.y+A.h/2)+' H'+xo+' V'+(pt.y+pt.h/2)+' H'+pt.x,{c:'#1d5f8a',w:1.6,d:'6 5',m:'ahb'});
   var g2=el('g',{transform:'translate('+(xo-8)+' '+((pt.y+A.y)/2)+') rotate(-90)'},vp);txt(g2,0,0,[P(['طلب التغيير المعتمد ← إصدار جديد من الخطة','Approved CR → new plan version'])],{fs:12,fw:800,fill:'#1d5f8a'})}
  /* العقد */
- G.nodes.forEach(function(n){var l=LANES[LI[n.lane]],o=on(n);
+ G.nodes.forEach(function(n){var l=LANES[LI[n.col||n.lane]],o=G.sel?(G.hlN.has(n)||G.sel.n===n.gid):on(n);
   var g=el('g',{'data-n':n.gid,style:'cursor:pointer',opacity:o?1:.2},vp);
   var fill=n.kind=='step'?l.bg:n.kind=='hub'?'#fdecee':n.kind=='term'?(n.bad?'#fdecee':'#f1f1f1'):n.kind=='dec'?'#fff7e6':'#fff';
   var stroke=n.kind=='hub'||n.bad?'#d1101d':n.kind=='dec'?'#a8761a':n.kind=='term'?'#777':l.c;
   var rx=n.kind=='step'?12:n.kind=='term'?30:n.kind=='dec'?6:16;
-  el('rect',{x:n.x,y:n.y,width:NW,height:n.h,rx:rx,fill:fill,stroke:stroke,'stroke-width':o&&G.role!='all'?3:1.7,'stroke-dasharray':n.kind=='note'?'5 4':'none'},g);
+  el('rect',{x:n.x,y:n.y,width:NW,height:n.h,rx:rx,fill:fill,stroke:stroke,'stroke-width':o&&(G.role!='all'||(G.sel&&G.sel.n===n.gid))?3:1.7,'stroke-dasharray':n.kind=='note'?'5 4':'none'},g);
   if(n.kind=='step')el('rect',{x:n.x,y:n.y,width:6,height:n.h,rx:3,fill:l.c},g);
   if(n.kind=='dec')el('path',{d:'M'+(n.x+NW-14)+' '+(n.y+6)+' l7 7 l-7 7 l-7 -7 z',fill:'#a8761a'},g);
   var small=n.kind!='step',wl=wrap(P(n.t),small?19:15);
@@ -182,13 +199,20 @@ function info(n){var SV=X().SV,k=n.k,x=X(),rows=[];
  var st=n.kind=='step'?(k=='tasks'?x.TSTATE[n.st]:(n.st==4?x.STATE5[k]:x.STATE[n.st])):null;
  var outs=G.edges.filter(function(e){return e.a===n&&e.k!='main'&&e.lab}).map(function(e){return '<li>'+esc(P(e.lab))+' ← '+esc(P(e.b.t))+'</li>'}).join('');
  var ins=G.edges.filter(function(e){return e.b===n&&e.k!='main'&&e.lab}).map(function(e){return '<li>'+esc(P(e.a.t))+' — '+esc(P(e.lab))+'</li>'}).join('');
- var o=document.getElementById('jmi');o.innerHTML='<div class="jmh"><div><small>'+esc(P(SV[k].t))+(n.st!=null&&n.kind=='step'?' · '+P(['الخطوة ','Step '])+(n.st+1):'')+'</small><b>'+esc(P(n.t))+'</b>'+(st?'<em>'+esc(P(st))+'</em>':'')+'</div><button onclick="document.getElementById(\'jmi\').classList.remove(\'on\')">✕</button></div>'+
+ var o=document.getElementById('jmi');o.innerHTML='<div class="jmh"><div><small>'+esc(P(SV[k].t))+(n.st!=null&&n.kind=='step'?' · '+P(['الخطوة ','Step '])+(n.st+1):'')+'</small><b>'+esc(P(n.t))+'</b>'+(st?'<em>'+esc(P(st))+'</em>':'')+'</div><button onclick="jnMapClr()">✕</button></div>'+
   paras+(rows.length?'<div class="jml">'+rows.join('')+'</div>':'')+
   (outs?'<div class="jmq"><b>'+P(['المسارات من هنا','Paths from here'])+'</b><ul>'+outs+'</ul></div>':'')+(ins?'<div class="jmq"><b>'+P(['يصل إلى هنا من','Arrives from'])+'</b><ul>'+ins+'</ul></div>':'')+
   (n.kind=='step'&&n.st==0&&x.PRE[k]?'<p class="jmp"><b>'+P(['شرط البدء: ','Prerequisite: '])+'</b>'+esc(P(x.PRE[k]))+'</p>':'')+(n.end&&x.NXT[k]?'<p class="jmp"><b>'+P(['بعدها: ','Next: '])+'</b>'+esc(P(x.NXT[k]))+'</p>':'')+
   '<a class="jmgo" href="'+SV[k].p+'">'+P(['فتح ','Open '])+esc(P(SV[k].t))+' ›</a>';
  o.classList.add('on')}
 
+window.jnMapClr=function(){var ii=document.getElementById('jmi');if(ii)ii.classList.remove('on');G.sel=null;redraw()};
+var KN={main:['المسار الرئيسي','Main path'],ret:['إعادة للمعدّ','Return to preparer'],rej:['رفض','Reject'],opt:['مسار اختياري أو بديل','Optional / alternative path'],esc:['تأخر وتصعيد','Late & escalation']};
+function einfo(e){var SV=X().SV,k=(e.b||e.a).k,from=e.src?e.src.map(function(q){return P(q.t)}).join('، '):P(e.a.t);
+ var o=document.getElementById('jmi');o.innerHTML='<div class="jmh"><div><small>'+esc(P(SV[k].t))+' · '+esc(P(KN[e.k]||KN.main))+'</small><b>'+esc(e.lab?P(e.lab):(P(e.a.t)+' ← '+P(e.b.t)))+'</b></div><button onclick="jnMapClr()">✕</button></div>'+
+  '<div class="jmq"><b>'+P(['من','From'])+':</b> '+esc(from)+'<br><b>'+P(['إلى','To'])+':</b> '+esc(P(e.b.t))+'</div>'+
+  (e.desc||[]).map(function(p){return '<p class="jmp">'+esc(P(p))+'</p>'}).join('')+(e.k=='main'&&!e.desc?'<p class="jmp">'+P(['ينتقل الطلب إلى الخطوة التالية عند اكتمال الخطوة الحالية.','The request moves on when the current step is complete.'])+'</p>':'');
+ o.classList.add('on')}
 /* التكبير والسحب + شريط الأدوار الثابت */
 function lanesBar(){var b=document.getElementById('jmlb');if(!b)return;var h='';LANES.forEach(function(l,i){var x=G.tx+(laneX(i)+6)*G.s,w=(LW-12)*G.s;var t=w<96?P(l.s):P(l.t);h+='<div style="left:'+x+'px;width:'+w+'px;background:'+l.c+'" title="'+esc(P(l.t))+'">'+esc(t)+'</div>'});b.innerHTML=h}
 function apply(){var g=document.getElementById('jmvp');if(g)g.setAttribute('transform','translate('+G.tx+' '+G.ty+') scale('+G.s+')');var z=document.getElementById('jmz');if(z)z.textContent=Math.round(G.s*100)+'%';lanesBar()}
@@ -196,14 +220,14 @@ function clampS(s){return Math.max(.12,Math.min(3,s))}
 function zoomAt(f,cx,cy){var s2=clampS(G.s*f);G.tx=cx-(cx-G.tx)*(s2/G.s);G.ty=cy-(cy-G.ty)*(s2/G.s);G.s=s2;apply()}
 function fit(mode){var c=document.getElementById('jmc'),w=c.clientWidth,h=c.clientHeight;G.s=mode=='all'?Math.min(w/G.W,h/G.H)*.96:Math.min(1,w/G.W*.98);G.tx=(w-G.W*G.s)/2;G.ty=mode=='all'?(h-G.H*G.s)/2:8;apply()}
 
-function wireCanvas(c){var pts={},last=null,pinch=null,moved=0,downN=null;
+function wireCanvas(c){var pts={},last=null,pinch=null,moved=0,downN=null,downE=null;
  c.addEventListener('wheel',function(e){e.preventDefault();var r=c.getBoundingClientRect(),mouse=e.deltaMode!=0||(Math.abs(e.deltaX)<1&&Math.abs(e.deltaY)>=40);if(e.ctrlKey||mouse)zoomAt(Math.exp(-e.deltaY*(e.ctrlKey?.01:.0015)),e.clientX-r.left,e.clientY-r.top);else{G.tx-=e.deltaX;G.ty-=e.deltaY;apply()}},{passive:false});
- c.addEventListener('pointerdown',function(e){c.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};moved=0;var t=e.target.closest&&e.target.closest('[data-n]');downN=t?+t.getAttribute('data-n'):null;
+ c.addEventListener('pointerdown',function(e){c.setPointerCapture(e.pointerId);pts[e.pointerId]={x:e.clientX,y:e.clientY};moved=0;var t=e.target.closest&&e.target.closest('[data-n]');downN=t?+t.getAttribute('data-n'):null;var te=!t&&e.target.closest&&e.target.closest('[data-e]');downE=te?+te.getAttribute('data-e'):null;
   var ids=Object.keys(pts);if(ids.length==2){var a=pts[ids[0]],b=pts[ids[1]];pinch={d:Math.hypot(a.x-b.x,a.y-b.y),s:G.s}}else last={x:e.clientX,y:e.clientY}});
  c.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]={x:e.clientX,y:e.clientY};var ids=Object.keys(pts),r=c.getBoundingClientRect();
   if(ids.length==2&&pinch){var a=pts[ids[0]],b=pts[ids[1]],d=Math.hypot(a.x-b.x,a.y-b.y);var f=clampS(pinch.s*d/pinch.d)/G.s;zoomAt(f,(a.x+b.x)/2-r.left,(a.y+b.y)/2-r.top);moved+=10;return}
   if(last){var dx=e.clientX-last.x,dy=e.clientY-last.y;moved+=Math.abs(dx)+Math.abs(dy);G.tx+=dx;G.ty+=dy;last={x:e.clientX,y:e.clientY};apply()}});
- function up(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)pinch=null;if(!Object.keys(pts).length){if(moved<8&&downN!=null)info(G.nodes[downN]);last=null}else{var k=Object.keys(pts)[0];last={x:pts[k].x,y:pts[k].y}}}
+ function up(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)pinch=null;if(!Object.keys(pts).length){if(moved<8){if(downN!=null){G.sel={n:downN};redraw();info(G.nodes[downN])}else if(downE!=null){G.sel={e:downE};redraw();einfo(G.edges[downE])}else if(G.sel){G.sel=null;redraw();var ii=document.getElementById('jmi');if(ii)ii.classList.remove('on')}}last=null}else{var k=Object.keys(pts)[0];last={x:pts[k].x,y:pts[k].y}}}
  c.addEventListener('pointerup',up);c.addEventListener('pointercancel',up);
  c.addEventListener('dblclick',function(e){var r=c.getBoundingClientRect();zoomAt(1.6,e.clientX-r.left,e.clientY-r.top)})}
 
@@ -229,7 +253,7 @@ window.jnMap=function(){if(!X())return;var o=document.getElementById('jmap');if(
  '#jmi .jmh button{border:1px solid #d5e1ec;background:#fff;border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer}'+
  '#jmi .jml{display:flex;flex-direction:column;gap:8px;margin-top:10px}#jmi .jmr{border-inline-start:4px solid var(--c);background:#f7f9fc;border-radius:10px;padding:8px 10px}#jmi .jmr b{display:block;font-size:12.5px;color:var(--c)}#jmi .jmr span{font-size:13.5px;line-height:1.7}'+
  '#jmi .jmq{margin-top:10px;background:#f7f9fc;border-radius:10px;padding:8px 10px;font-size:13px}#jmi .jmq ul{margin:4px 0 0;padding-inline-start:18px;line-height:1.8}'+
- '#jmi .jmp{font-size:13.5px;color:#2d3748;line-height:1.8;margin:10px 0 0}#jmi .jmgo{display:inline-block;margin-top:12px;background:#1d5f8a;color:#fff;border-radius:12px;padding:8px 16px;font-weight:800;text-decoration:none}';
+ '@keyframes jglow{from{opacity:.12}to{opacity:.5}}#jms .jglow{animation:jglow .9s ease-in-out infinite alternate}'+'#jmi .jmp{font-size:13.5px;color:#2d3748;line-height:1.8;margin:10px 0 0}#jmi .jmgo{display:inline-block;margin-top:12px;background:#1d5f8a;color:#fff;border-radius:12px;padding:8px 16px;font-weight:800;text-decoration:none}';
  document.head.appendChild(st)}
  o=document.createElement('div');o.id='jmap';o.dir=document.documentElement.dir||'rtl';
  o.innerHTML='<div class="jmt"><button id="jmx" aria-label="close">✕</button><b>🗺 '+P(['المخطط','Map'])+'</b><button data-z="-">−</button><span id="jmz"></span><button data-z="+">＋</button><button data-z="w" title="'+P(['ملاءمة العرض','Fit width'])+'">↔</button><button data-z="a" title="'+P(['عرض الكل','Show all'])+'">⛶</button></div>'+
