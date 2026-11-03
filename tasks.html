@@ -115,7 +115,7 @@ function analyze(tasks,wmode,now){
  now=now==null?TODAY:now;tasks=tasks||[];
  const by={},kids={};tasks.forEach(x=>{by[x.id]=x;(kids[x.p||'']=kids[x.p||'']||[]).push(x)});
  const out={};
- const rec=x=>{const k=kids[x.id]||[];let a=0,ex=0,s=dn(x.s),e=dn(x.e),late=0,n=0,done=0;
+ const SEEN=new Set();const rec=x=>{if(SEEN.has(x))return{a:0,ex:0,s:null,e:null,late:0,n:0,done:0,leaf:1,lateN:0};SEEN.add(x);const k=(kids[x.id]||[]).filter(c=>c!==x&&!SEEN.has(c));let a=0,ex=0,s=dn(x.s),e=dn(x.e),late=0,n=0,done=0;
   if(!k.length){
    const du=s!=null&&e!=null?Math.max(1,e-s+1):1;
    ex=x.ms?(e!=null&&now>=e?100:0):(s==null?0:clamp((now-s+1)/du*100,0,100));

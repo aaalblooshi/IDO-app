@@ -1,0 +1,35 @@
+-- =====================================================================
+-- تشخيص (قراءة فقط — لا يغيّر شيئًا): فحص سلامة مهام الخطط
+--   يبحث عن: رقم مهمة مكرر، مهمة أبوها هي نفسها، أب غير موجود، حلقة في التسلسل،
+--   وتواريخ غير صالحة، ونسبة إنجاز غير رقمية. ثم يلخّص مهامك (عبدالله) حسب الحالة.
+-- =====================================================================
+with pl as (
+  select p.id, p.code, p.status, p.data->>'pcode' pc, p.data->>'pname' pn, coalesce(p.data->'tasks','[]'::jsonb) t
+    from plans p where not p.archived and (p.status = 'Approved' or p.data->>'_active' = 'true')),
+tk as (
+  select pl.id, pl.code, pl.pc, pl.pn, x->>'id' tid, nullif(x->>'p','') par, x->>'n' nm, x->>'s' s, x->>'e' e, x->>'pc' pct, x->>'w' w
+    from pl, jsonb_array_elements(pl.t) x),
+issues as (
+  select id, pc, pn, 'رقم مهمة مكرر' issue, tid, min(nm) nm from tk group by id, pc, pn, tid having count(*) > 1
+  union all select id, pc, pn, 'المهمة أبوها نفسها', tid, nm from tk where par = tid
+  union all select id, pc, pn, 'الأب غير موجود', tid, nm from tk a where par is not null and not exists(select 1 from tk b where b.id = a.id and b.tid = a.par)
+  union all select id, pc, pn, 'تاريخ بداية غير صالح: '||s, tid, nm from tk where coalesce(s,'') <> '' and s !~ '^\d{4}-\d{2}-\d{2}'
+  union all select id, pc, pn, 'تاريخ نهاية غير صالح: '||e, tid, nm from tk where coalesce(e,'') <> '' and e !~ '^\d{4}-\d{2}-\d{2}'
+  union all select id, pc, pn, 'نسبة إنجاز غير رقمية: '||pct, tid, nm from tk where coalesce(pct,'') <> '' and pct !~ '^-?\d+(\.\d+)?$'
+  union all
+  select id, pc, pn, 'حلقة في تسلسل المهام', tid, nm from (
+    with recursive up(id, pc, pn, tid, nm, cur, depth, path) as (
+      select id, pc, pn, tid, nm, par, 1, array[tid] from tk where par is not null
+      union all
+      select u.id, u.pc, u.pn, u.tid, u.nm, b.par, u.depth + 1, u.path || b.tid
+        from up u join tk b on b.id = u.id and b.tid = u.cur
+       where u.depth < 30 and not (b.tid = any(u.path)))
+    select distinct id, pc, pn, tid, nm from up u where exists(select 1 from tk b where b.id = u.id and b.tid = u.cur and b.par = any(u.path || b.tid))) z
+)
+select pc as "المشروع", pn as "الاسم", issue as "المشكلة", tid as "رقم المهمة", nm as "المهمة" from issues
+union all
+select '—', 'ملخص مهامك', 'المجموع ' || count(*) || ' · منجزة ' || count(*) filter (where coalesce(nullif(pct,'')::numeric,0) >= 100)
+       || ' · متأخرة ' || count(*) filter (where coalesce(nullif(pct,'')::numeric,0) < 100 and e ~ '^\d{4}-\d{2}-\d{2}' and left(e,10)::date < (now() at time zone 'Asia/Dubai')::date)
+       || ' · قادمة ' || count(*) filter (where coalesce(nullif(pct,'')::numeric,0) < 100 and s ~ '^\d{4}-\d{2}-\d{2}' and left(s,10)::date > (now() at time zone 'Asia/Dubai')::date), '', ''
+  from tk where w = (select id::text from profiles where full_name ilike 'Abdulla Ali Alblooshi%' limit 1)
+    and coalesce(pct,'') !~ '[^0-9.\-]';
