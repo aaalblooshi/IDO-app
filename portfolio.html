@@ -202,7 +202,7 @@ xe_ok:['المحفظة منتظمة','The portfolio is on track'],xe_wa:['الم
  rDet:['تفاصيل الخطط','Plan details'],rAllS:['كل المشاريع ضمن الصلاحية','All projects in scope'],rBySec:['قطاع: ','Sector: '],rByP:['مشروع: ','Project: '],rGrp:['مجموعة','Group'],
  st:['الحالة','Status'],cnt:['مشروع','projects'],ms:['مرحلة','Milestone'],lateD:['يوم تأخير','d late']});
 let FM=0;try{FM=+localStorage.getItem('pfFM')||0}catch(_){}
-if(FM==2)setTimeout(async()=>{try{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[]);if(typeof draw=='function'&&PL&&PL.length)draw()}catch(_){TEAM=[]}},1500);
+let TPC=null;if(FM==2)setTimeout(async()=>{try{const r0=await sb.rpc('my_team_pcodes');if(!r0.error){TPC=new Set(r0.data||[]);TEAM=[]}else{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}}catch(_){TEAM=[]};if(typeof draw=='function'&&PL&&PL.length)draw()},1500);
 let PROGV={},MSP=false,SECV=false,CLS={},GL={},OG=null,SHC=false,PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
 const LC=['#B39A6B','#949594','#3D96C7','#7a6740','#2a6a90'];
 async function start(){
@@ -235,7 +235,7 @@ function agg(list){const secs=[...new Set(list.map(p=>p.sc))].sort((a,b)=>a-b);
  return {rows,a:rows.reduce((q,r)=>q+r.a*r.sw,0)/W,ex:rows.reduce((q,r)=>q+r.ex*r.sw,0)/W,late:rows.reduce((q,r)=>q+r.late,0),n:list.length}}
 let TEAM=null;
 const isMine=p=>!!ME&&(p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||(p.tasks||[]).some(x=>x.w==ME.id));
-const isTeam=p=>{if(!TEAM)return false;const nm=new Set(TEAM.map(i=>UN[i]).filter(Boolean));return TEAM.includes(p.cb)||(p.pm&&nm.has(p.pm))||(p.tasks||[]).some(x=>TEAM.includes(x.w))};
+const isTeam=p=>{if(TPC)return TPC.has(p.pc||p.code);if(!TEAM)return false;const nm=new Set(TEAM.map(i=>UN[i]).filter(Boolean));return TEAM.includes(p.cb)||(p.pm&&nm.has(p.pm))||(p.tasks||[]).some(x=>TEAM.includes(x.w))};
 const scoped=()=>PL.filter(p=>(!FS||p.sc==FS)&&(!FP||p.k==FP)&&(!FM||(FM==1?isMine(p):isTeam(p))));
 let HP={};try{HP=JSON.parse(localStorage.getItem('pfHP')||'{}')}catch(_){}
 const gsc=()=>scoped().filter(p=>!HP[p.k]&&(SHC||!p.closed));
@@ -262,10 +262,10 @@ function draw(){
  $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${TK.map(tab).join('')}</div>
  <div class="vbar"><select class="vsel" id="vsel" aria-label="view">${TK.map(k=>`<option value="${k}" ${TAB==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select><button class="fbt ${fAct?'on':''}" id="fbt" type="button">⚙ ${lang=='ar'?'تصفية':'Filter'}${fAct?' ('+fAct+')':''}</button></div>
  <div class="flt ${window.FOPEN?'open':''}" id="flt"><div class="row" style="margin-top:0"><select id="fs" style="flex:1"><option value="">${t('allSec')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select>
- <button id="fmb" class="${FM?'p':''}" title="${lang=='ar'?'اضغط للتبديل: الكل ← معني بها (أديرها أو لي فيها مهام) ← فريقي (مشاريع زملاء مجموعاتي)':'Tap to cycle: All → Mine → My team (projects of my group colleagues)'}">${FM==2?(lang=='ar'?'فريقي':'My team'):FM==1?(lang=='ar'?'معني بها':'Mine'):(lang=='ar'?'الكل':'All')}</button>
+ <button id="fmb" class="${FM?'p':''}" title="${lang=='ar'?'اضغط للتبديل: الكل ← أنا (أديرها أو لي فيها مهام) ← فريقي ووحدتي (مشاريع زملاء مجموعاتي ووحداتي ومستوى اطلاعي)':'Tap to cycle: All → Me → Team & unit'}">${FM==2?(lang=='ar'?'فريقي ووحدتي':'Team & unit'):FM==1?(lang=='ar'?'أنا':'Me'):(lang=='ar'?'الكل':'All')}</button>
  <select id="fp" style="flex:2"><option value="">${t('allP')}</option>${PL.filter(p=>!FS||p.sc==FS).map(p=>`<option value="${esc(p.k)}" ${FP==p.k?'selected':''}>${esc(p.name)}</option>`).join('')}</select></div><div class="lgx"><span><i style="background:#BF9849"></i>${lang=='ar'?'المخطط: ما كان يجب إنجازه حتى اليوم حسب الخطة':'Planned: what should be done by today'}</span><span><i style="background:#3EA3DC"></i>${lang=='ar'?'الفعلي: ما أُنجز فعلًا':'Actual: what is really done'}</span></div></div></div>${(()=>{const n=scoped().filter(q=>HP[q.k]).length;return n?`<div class="hpb">👁 ${lang=='ar'?'تُعرض '+(scoped().length-n)+' من '+scoped().length+' مشروعًا فقط — '+n+' مخفية (اختيار سابق)':'Showing '+(scoped().length-n)+' of '+scoped().length+' projects — '+n+' hidden (earlier choice)'}<button onclick="hpAll(1);document.getElementById('hpm')&&document.getElementById('hpm').remove();hpRe()">${lang=='ar'?'إظهار الكل':'Show all'}</button><button onclick="hpPick()">${lang=='ar'?'اختيار':'Choose'}</button></div>`:''})()}<div id="body"></div>`;
  $('vsel').onchange=e=>{TAB=e.target.value;try{localStorage.setItem('pfTab',TAB)}catch(_){}draw()};$('fbt').onclick=()=>{window.FOPEN=!window.FOPEN;$('flt').classList.toggle('open',window.FOPEN)};
- $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fmb').onclick=async()=>{FM=(FM+1)%3;if(FM==2&&TEAM==null){try{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}catch(_){TEAM=[]}}try{localStorage.setItem('pfFM',FM)}catch(_){}FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
+ $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fmb').onclick=async()=>{FM=(FM+1)%3;if(FM==2&&TEAM==null){try{const r0=await sb.rpc('my_team_pcodes');if(!r0.error){TPC=new Set(r0.data||[]);TEAM=[]}else{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}}catch(_){TEAM=[]}}try{localStorage.setItem('pfFM',FM)}catch(_){}FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
  if(TAB=='wts'&&ADM)return vWts();
  if(!PL.length){$('body').innerHTML=`<div class="card mut">${t('none')}</div>`;return}
  ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec,fil:vFil,trd:vTrd,rmap:vRmap,dq:vDq,att:vAtt,deg:vDeg,lag:vLag,otd:vOtd,kan:vKan,pln:vPln,goal:vGoal})[TAB]()}

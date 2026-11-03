@@ -1,0 +1,59 @@
+-- =====================================================================
+-- update-oct68: تعريف واحد لـ«فريقي ووحدتي» تستخدمه الرئيسية وصفحة المهام والمحفظة
+--   مشاريع «فريقي ووحدتي» = المشاريع غير السرية عليّ التي:
+--     • أديرها أو أنشأتها (فيظهر عمل فريق مشروعي)، أو
+--     • أنشأها أو يديرها أو كُلِّف فيها زميل في إحدى مجموعاتي، أو
+--     • تقع ضمن وحداتي: مسؤول وحدة، أو وحدات اطلاع مضافة لي أو لمجموعاتي، أو قطاعات اطلاعي، أو
+--     • يغطيها مستوى اطلاعي (القسم/الوحدة/الإدارة/القطاع)، أو
+--     • لي أو لمجموعتي منحة عليها.
+--   (مستوى «الكل» ليس «فريقي ووحدتي»؛ يظهر في خيار «الكل».)
+-- يُشغَّل مرة واحدة، وآمن لإعادة التشغيل.
+-- =====================================================================
+
+create or replace function public.my_team_pcodes() returns text[]
+language plpgsql stable security definer set search_path=public as $fn$
+declare me uuid := auth.uid(); tm uuid[]; tmn text[]; vl text; r text[]; myn text;
+begin
+  if me is null then return '{}'; end if;
+  select coalesce(array_agg(distinct m2.user_id),'{}') into tm
+    from user_group_members m1 join user_group_members m2 on m2.group_id = m1.group_id
+   where m1.user_id = me and m2.user_id <> me;
+  select full_name into myn from profiles where id = me;
+  select coalesce(array_agg(full_name),'{}') into tmn from profiles where id = any(tm) and coalesce(full_name,'') <> '';
+  vl := (select v from unnest(array[cap_val(me,'view.charter'), cap_val(me,'view.plan')]) v order by cap_rank(v) desc limit 1);
+  select coalesce(array_agg(distinct c.code),'{}') into r from (
+      select distinct on (code) code, data->>'sector' sec, data->>'dept' dpt, created_by, data->>'pmname' pmn
+        from charters where not archived and coalesce(code,'') <> ''
+       order by code, (status = 'Approved') desc, id desc) c
+   where not coalesce(proj_hidden_me(c.code), false)
+     and ( c.created_by = me or (coalesce(myn,'') <> '' and c.pmn = myn)
+        or exists(select 1 from plans p where p.data->>'pcode' = c.code and not p.archived and (p.created_by = me or (coalesce(myn,'') <> '' and p.data->>'pmname' = myn)))
+        or c.created_by = any(tm) or c.pmn = any(tmn)
+        or exists(select 1 from plans p, jsonb_array_elements(coalesce(p.data->'tasks','[]'::jsonb)) t
+                   where p.data->>'pcode' = c.code and not p.archived and (t->>'w') = any(tm::text[]))
+        or scope_view_p(c.sec, c.dpt, c.code)
+        or (vl in ('section','unit','dept','sector') and lvl_covers(me, vl, c.sec, c.dpt, c.code))
+        or has_grant(c.code, 'plan', 'view') or has_grant(c.code, 'charter', 'view'));
+  return r;
+end $fn$;
+grant execute on function public.my_team_pcodes() to authenticated;
+
+-- خطط «فريقي ووحدتي» مع مهامها (تحترم إعداد «يرى المكلَّف مهامه فقط»، وصلاحيات الاطلاع على الخطط)
+create or replace function public.team_plans() returns table(id bigint, code text, pcode text, pname text, sector text, ptype text, wmode text, pm text, created_by uuid, tasks jsonb)
+language sql stable security invoker set search_path=public as $$
+  select p.id, p.code, p.data->>'pcode', p.data->>'pname', p.data->>'sector', p.data->>'ptype', p.data->>'wmode', p.data->>'pmname', p.created_by,
+         case when proj_own_only(p.data->>'pcode') and not (pl_is_admin() or p.created_by = auth.uid() or pl_scope_edit(p.id)
+                    or has_grant(p.data->>'pcode','plan','view') or has_grant(p.data->>'pcode','tasks','view'))
+              then pl_filter_own(p.data->'tasks', auth.uid()::text) else p.data->'tasks' end
+    from plans p
+   where (p.status = 'Approved' or p.data->>'_active' = 'true') and not p.archived
+     and p.data->>'pcode' = any(public.my_team_pcodes())
+   order by p.id desc
+$$;
+grant execute on function public.team_plans() to authenticated;
+
+notify pgrst, 'reload schema';
+
+-- تحقق
+select 'my_team_pcodes / team_plans' as "العنصر",
+       (select count(*)::text from pg_proc where proname in ('my_team_pcodes','team_plans')) || ' / 2' as "الحالة";

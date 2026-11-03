@@ -472,6 +472,7 @@ async function load(){
   const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
+  E.tpc=null;try{const tr=await sb.rpc('my_team_pcodes');if(!tr.error)E.tpc=new Set(tr.data||[])}catch(_){}
   const AX=window.IDOACT,CX=await AX.ctx(sb,me),offK=k=>AX.office(me,k),edK=(k,pc)=>AX.edit(CX,k,pc),anyBh=k=>offK(k)||Object.keys(CX.gr).length>0,ME_IDS=[me.id].concat(CX.px||[]);
   const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b,cs]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode,pmn:data->>pmname,own:data->>owner').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').in('user_id',ME_IDS),anyBh(k)?sb.from(s.sg).select('cr_id').eq('stage','created').eq('status','signed'):Promise.resolve({data:[]})]);
    const csg=new Set(((cs&&cs.data)||[]).map(x=>x.cr_id));
@@ -494,14 +495,15 @@ async function load(){
   /* مهام الآخرين: الأدمن (كل المشاريع)، مدير المشروع (مشاريعه)، مسؤول الوحدة (مشاريع وحداته) — المفتوحة الجارية أو المتأخرة أو المستحقة خلال ١٤ يومًا */
   try{const adm=me.role=='admin',hu=me.head_units||[],hc=new Set();
    for(const u of hu){try{const r=await sb.rpc('unit_projects',{p_unit:u});(r.data||[]).forEach(z=>hc.add(z.pcode))}catch(_){}}
-   const r=await sb.from('plans').select('id,code,status,created_by,act:data->>_active,pcode:data->>pcode,pname:data->>pname,pmname:data->>pmname,tasks:data->tasks').eq('archived',false);
+   let r=null;if(!adm&&E.tpc){const tp=await sb.rpc('team_plans');if(!tp.error)r={data:(tp.data||[]).map(z=>({id:z.id,code:z.code,status:'Approved',created_by:z.created_by,pcode:z.pcode,pname:z.pname,pmname:z.pm,tasks:z.tasks}))}}
+   if(!r)r=await sb.from('plans').select('id,code,status,created_by,act:data->>_active,pcode:data->>pcode,pname:data->>pname,pmname:data->>pmname,tasks:data->tasks').eq('archived',false);
    const td=today(),have=new Set(E.items.filter(i=>i.k=='tasks').map(i=>i.id+'|'+i.tid));
-   ddp((r.data||[]).filter(p=>p.status=='Approved'||p.act=='true')).forEach(p=>{const pm=p.created_by==me.id||(!!p.pmname&&p.pmname==(me.full_name||'').trim()),hd=hc.has(p.pcode);if(!(adm||pm||hd))return;
+   ddp((r.data||[]).filter(p=>p.status=='Approved'||p.act=='true')).forEach(p=>{const pm=p.created_by==me.id||(!!p.pmname&&p.pmname==(me.full_name||'').trim()),hd=hc.has(p.pcode),tmP=!!(E.tpc&&E.tpc.has(p.pcode));if(!(adm||pm||hd||tmP))return;
     const T=p.tasks||[],m={};T.forEach(z=>m[z.id]=z);const par=new Set(T.map(z=>z.p).filter(Boolean));
     T.forEach(z=>{if(par.has(z.id)||have.has(p.id+'|'+z.id))return;const pc=+z.pc||0;if(pc>=100)return;const s0=dn(z.s),e0=dn(z.e);
      let stg;if(e0!=null&&e0<td)stg=4;else if(s0!=null&&s0>td)stg=1;else if(pc>0)stg=3;else stg=2;if(stg==1&&!(e0!=null&&e0-td<=14)&&!E.tu)return;
      const path=[];{let c=z,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}}let pre='';const nums=path.map((q,i)=>{const sib=T.filter(y=>(y.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(y=>y.id==q.id)+1);return pre});
-     E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:z.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:z.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(z.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:false,roles:new Set([pm?'pm':hd?'uh':'of']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})})})}catch(_){}
+     E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:z.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:z.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(z.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:false,roles:new Set([pm?'pm':hd||tmP?'uh':'of']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})})})}catch(_){}
   {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
   if(!E.scope)E.scope=E.items.some(i=>i.oth)?'all':'mine';
   /* مدد مخصصة لكل طلب */
@@ -514,7 +516,7 @@ const slaOf=it=>{const stage=it.st=='PMO Review'?'reviewed':it.st=='Awaiting App
 const escMe=x=>!!(E.me&&window.IDOACT&&window.IDOACT.escOk(E.me)&&window.ESCP&&window.ESCP[x.k+'|'+x.id]);
 window.jnActCount=k=>E.ok?E.items.filter(x=>x.k==k&&(x.act||escMe(x))).length:null;
 const tkOk=x=>{if(x.k!='tasks')return true;if(x.stage>=2&&x.stage<=4)return true;return x.stage==1?!!E.tu:x.stage==5?!!E.td:true};
-const vis=k=>E.items.filter(x=>(k=='all'||x.k==k)&&(E.role=='of'||E.role=='all'?x.roles.size>0:x.roles.has(E.role))&&(E.scope=='all'||(E.scope=='team'?!x.own:(x.own||escMe(x))))&&tkOk(x));
+const vis=k=>E.items.filter(x=>(k=='all'||x.k==k)&&(E.role=='of'||E.role=='all'?x.roles.size>0:x.roles.has(E.role))&&(E.scope=='all'||(E.scope=='team'?(!x.own&&(!E.tpc||E.tpc.has(x.pc))):(x.own||escMe(x))))&&tkOk(x));
 /* ======== العرض ======== */
 function render(){const el=document.getElementById('jny');if(!el)return;
  if(!E.sess&&!E.ok){el.innerHTML=`<div class="jn-c">${P(['سجّل الدخول لعرض رحلتك وطلباتك.','Sign in to see your journey and requests.'])} <a class="jn-btn" href="cr.html">${P(['تسجيل الدخول','Sign in'])}</a></div>`;return}
@@ -523,7 +525,7 @@ function render(){const el=document.getElementById('jny');if(!el)return;
  const bar=`<button class="jn-map" onclick="jnMap()">🗺 ${P(['المخطط التفاعلي لكل الخدمات والأدوار','Interactive map of all services and roles'])} <small>${P(['تكبير وتصغير','zoomable'])}</small></button><div class="jn-bar"><b>${P(['دورك:','Your role:'])}</b>${roles.map(([k,t])=>`<button class="jn-ch ${E.role==k?'on':''} ${hasR(k)?'':'dim'}" onclick="jnR('${k}')">${P(t)}</button>`).join('')}</div>
  ${E.role=='fl'?`<p class="jn-hint">${P(['المتابع: يطّلع على الطلب للقراءة فقط ويتلقى إشعارات الأحداث التي اختارها، ولا يُطلب منه إجراء. يضيفه مكتب التطوير المؤسسي أو منشئ الطلب.','Follower: views the request read-only and receives notifications for the events selected. No action is required. Added by the Office or the request creator.'])}</p>`:E.role=='pt'?`<p class="jn-hint">${P(['المشارك في التخطيط الجماعي: يُدعى إلى مسودة خطة لمدة محددة ليضيف ملاحظاته ويعدّل المهام، ثم يبقى مطّلعًا على الخطة للقراءة فقط. تخص الخطط فقط.','Group-planning participant: invited to a draft plan for a set period to comment and edit tasks, then keeps view-only access. Applies to plans only.'])}</p>`:''}
  <div class="jn-bar"><b>${P(['الخدمة:','Service:'])}</b><button class="jn-ch ${E.view=='all'?'on':''}" onclick="jnV2('all')">${P(['نظرة عامة','Overview'])}</button>${ORDER.map(k=>`<button class="jn-ch ${E.view==k?'on':''}" onclick="jnV2('${k}')">${P(SV[k].t)}</button>`).join('')}</div>
- ${E.me&&(adm||E.me.view_scope||E.items.some(i=>!i.own))?`<div class="jn-bar"><b>${P(['العرض:','View:'])}</b><button class="jn-ch ${E.scope=='mine'?'on':''}" onclick="jnC('mine')">${P(['المرتبط بي','Related to me'])}</button><button class="jn-ch ${E.scope=='team'?'on':''}" onclick="jnC('team')">${P(['الفريق والوحدة فقط','Team & unit only'])}</button><button class="jn-ch ${E.scope=='all'?'on':''}" onclick="jnC('all')">${P(['الكل (حسب صلاحياتي)','All (per my permissions)'])}</button></div>`:''}
+ ${E.me&&(adm||E.me.view_scope||E.items.some(i=>!i.own))?`<div class="jn-bar"><b>${P(['العرض:','View:'])}</b><button class="jn-ch ${E.scope=='mine'?'on':''}" onclick="jnC('mine')">${P(['أنا','Me'])}</button><button class="jn-ch ${E.scope=='team'?'on':''}" onclick="jnC('team')">${P(['فريقي ووحدتي','Team & unit'])}</button><button class="jn-ch ${E.scope=='all'?'on':''}" onclick="jnC('all')">${P(['الكل','All'])}</button></div>`:''}
 `;
  el.innerHTML=bar+(E.view=='all'?overview():service(E.view))+(E.rt?rateH()+sumH():'')}
 function overview(){
@@ -1038,7 +1040,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmmain').classList.toggle('sc',!S.side);var tg=document.getElementById('cmtg');tg.hidden=S.side;tg.textContent=P(['إظهار المواعيد ◂','Show deadlines ◂']);
  var kt=document.getElementById('cmkt'),hasO=E.items.some(function(i){return !i.own});kt.innerHTML=esc(P(['رحلتي','My journey']));
 
-(function(){var sc=function(x){return E.scope=='all'||(E.scope=='team'?!x.own:x.own)};var nU=E.items.filter(function(x){return x.k=='tasks'&&x.stage==1&&sc(x)}).length,nD=E.items.filter(function(x){return x.k=='tasks'&&x.stage==5&&sc(x)}).length;
+(function(){var sc=function(x){return E.scope=='all'||(E.scope=='team'?(!x.own&&(!E.tpc||E.tpc.has(x.pc))):x.own)};var nU=E.items.filter(function(x){return x.k=='tasks'&&x.stage==1&&sc(x)}).length,nD=E.items.filter(function(x){return x.k=='tasks'&&x.stage==5&&sc(x)}).length;
   document.getElementById('cmtt').innerHTML='<button class="cm-tfx '+(E.tu?'on':'')+'" data-tfu>'+(E.tu?'✓ ':'＋ ')+esc(P(['المهام القادمة','Upcoming tasks']))+(nU?' ('+AR(nU)+')':'')+'</button><button class="cm-tfx '+(E.td?'on':'')+'" data-tfd>'+(E.td?'✓ ':'＋ ')+esc(P(['المهام المنجزة','Done tasks']))+(nD?' ('+AR(nD)+')':'')+'</button>'})();
  document.getElementById('cmall').textContent=P(['كل الخدمات ↓','All services ↓']);
  var base=M.filter(function(m){return S.f?m[S.f]:(m.x.stage<5||(m.x.k=='tasks'&&E.td))});

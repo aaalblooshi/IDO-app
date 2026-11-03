@@ -158,7 +158,7 @@ async function boot(){
  await start()}
 Object.assign(D,{
  title:['مهامي','My tasks'],search:['ابحث في المهام…','Search tasks…'],allP:['كل المشاريع','All projects'],allS:['كل القطاعات','All sectors'],allU:['كل المكلّفين','All assignees'],
- mMe:['مهامي','My tasks'],mTeam:['مهام الفريق','Team tasks'],
+ mMe:['مهامي','My tasks'],mTeam:['فريقي ووحدتي','Team & unit'],mAll:['الكل','All'],
  vList:['قائمة','List'],vProj:['حسب المشروع','By project'],vGantt:['مخطط زمني','Timeline'],
  tOpen:['المتبقية','Remaining'],tProg:['قيد التنفيذ','In progress'],tFut:['لم تبدأ بعد','Not started yet'],tLate:['متأخرة','Late'],tToday:['موعد إنجازها اليوم','Due today'],tWeek:['هذا الأسبوع','This week'],tMonth:['هذا الشهر','This month'],tDone:['منجزة','Done'],tStale:['بلا تحديث +١٤ يومًا','Not updated 14d+'],tAll:['الكل','All'],
  none:['لا توجد مهام هنا.','No tasks here.'],noany:['لا توجد مهام مسندة إليك في خطط معتمدة.','No tasks are assigned to you in approved plans.'],
@@ -190,10 +190,10 @@ const CFD={sum:1,pts:1,prio:1,deps:1,wkd:1,wbs:0,cmp:0};
 let CFG={...CFD};try{CFG={...CFD,...JSON.parse(localStorage.getItem('tk_cfg')||'{}')}}catch(_){}
 const saveCfg=()=>{try{localStorage.setItem('tk_cfg',JSON.stringify(CFG))}catch(_){}};
 let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',PEXP=new Set(),Q='',FP='',FS='',FU='',FST='',GRP='project',LAST=null,SHOWN=40,CUST=false,PXD=0,COL=new Set(),GOPEN=new Set(),GCL=new Set();
-const TEAM=()=>ADM||!!(ME&&ME.view_scope);
+const TEAM=()=>!!ME;const ALLOK=()=>ADM||!!(ME&&ME.view_scope);let ALLM=false;
 const dayP=n=>plr(n,'day');const SCOL={done:'#1c7a45',late:'#d1101d',prog:'#3D96C7',fut:'#949594'};document.body.classList.add('tkp');
 let ISO=null;
-async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM())MODE='team';stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';await reload()}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
+async function start(){if(!TEAM())MODE='me';const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM()){MODE='team';ALLM=ALLOK()}stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';ALLM=ALLOK();await reload();if(!findR(k)&&!ALLM){ALLM=true;await reload()}}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
 let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
 function mkProject(p){
@@ -220,7 +220,7 @@ async function reload(){
  if(MODE=='me'){const {data,error}=await sb.rpc('my_plans');if(error){$('app').innerHTML='<div class="card mut">'+esc(error.message)+'</div>';return}
   rows=ddp(data).map(p=>({id:p.id,code:p.code,pcode:p.pcode,pname:p.pname,sc:p.sector,pt:p.ptype,wm:p.wmode,pm:p.pm,cb:p.created_by,tasks:p.tasks}))}
  else{const [pl,cf]=await Promise.all([
-   sb.from('plans').select('id,code,status,act:data->>_active,created_by,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks').eq('archived',false).then(r=>(r.data||[]).filter(p=>p.status=='Approved'||p.act=='true'),()=>[]),
+   (ALLM?Promise.reject():sb.rpc('team_plans').then(r=>{if(r.error)throw r.error;return (r.data||[]).map(p=>({id:p.id,code:p.code,status:'Approved',created_by:p.created_by,pn:p.pname,sc:p.sector,pt:p.ptype,pm:p.pm,pc:p.pcode,wm:p.wmode,tasks:p.tasks}))})).catch(()=>sb.from('plans').select('id,code,status,act:data->>_active,created_by,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,tasks:data->tasks').eq('archived',false).then(r=>(r.data||[]).filter(p=>p.status=='Approved'||p.act=='true'),()=>[])),
    sb.from('project_cfg').select('*').then(r=>r.data||[],()=>[])]);
   const hid={};CFGW={};cf.forEach(c=>{if(c.hidden&&!(c.hidden_users||[]).includes(ME.id))hid[c.pcode]=1;if(c.weight!=null)CFGW[c.pcode]=+c.weight});
   if(ADM){try{const ss=await sb.from('app_settings').select('key,value').in('key',['w_ratio','w_sector']);WRx=2;WSx={};(ss.data||[]).forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WRx=+s.value;if(s.key=='w_sector'){try{WSx=JSON.parse(s.value)||{}}catch(_){}}})}catch(_){}}
@@ -291,7 +291,7 @@ function draw(){
  const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
  const tabs=MODE=='me'&&VIEW=='list'?TABS.map(([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
  $('app').innerHTML=`${isoH()}<div id="calbar"></div><div class="sb noprint">
-  ${TEAM()?`<div class="tabs">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team',"setMode('team')",t('mTeam'))}</div>`:''}
+  ${TEAM()?`<div class="tabs">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}</div>`:''}
   <input id="q" placeholder="${t('search')}" value="${esc(Q)}">
   <div class="tabs" style="margin-top:8px">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
   ${tabs?`<div class="tabs">${tabs}</div>`:''}
@@ -325,7 +325,7 @@ function isoDone(m){const r=findR(ISO);if(!r)return;const x=r.x,tdy=ds(TODAY),as
  const old={pc:r.pcr,as:x.as||'',ae:x.ae||''};
  run(async()=>{await rpcProg(r,100,as,ae);await reload();draw();utoast(t('saved2'),()=>run(async()=>{await rpcProg(r,old.pc,old.as,old.ae);await reload();draw()},t('upd')))},false)}
 function info(tk,bk){closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};o.innerHTML=`<div class="sbx"><h3>${t(tk)}</h3><p>${t(bk)}</p><div class="row"><button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;document.body.appendChild(o)}
-function setMode(m){MODE=m;FP=FS=FU=FST='';SHOWN=40;reload()}
+function setMode(m){ALLM=m=='all';if(m=='all')m='team';MODE=m;FP=FS=FU=FST='';SHOWN=40;reload()}
 function paint(){const el=$('body');if(!el)return;
  const rs=scope(),lv=leaves(rs);
  el.innerHTML=(CFG.sum?summary(lv):'')+(VIEW=='list'?vList(rs):VIEW=='proj'?vProj(rs):VIEW=='dig'?vDig(rs):vGantt(rs))}
