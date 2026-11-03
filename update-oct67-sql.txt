@@ -1,0 +1,88 @@
+-- =====================================================================
+-- update-oct67: الموافقة على الإضافة إلى المجموعات الفرعية في التواصل
+--   - من يدير المجموعة (منشئها، أو مدير المشروع ومالكه، أو من لديه صلاحية كل المحادثات) يضيف مباشرة.
+--   - أي عضو آخر يضيف شخصًا ← يصبح «طلب إضافة» يصل لمنشئ المجموعة ليقبله أو يرفضه.
+-- يُشغَّل مرة واحدة، وآمن لإعادة التشغيل.
+-- =====================================================================
+
+create table if not exists public.chat_group_requests(
+  id bigserial primary key,
+  channel_id bigint not null references chat_channels(id) on delete cascade,
+  user_id uuid not null,
+  requested_by uuid,
+  status text not null default 'pending',
+  created_at timestamptz default now(),
+  decided_by uuid,
+  decided_at timestamptz);
+create index if not exists chat_group_requests_ch on public.chat_group_requests(channel_id, status);
+alter table public.chat_group_requests enable row level security;
+-- لا قراءة مباشرة: كل شيء عبر الدوال أدناه
+drop policy if exists cgr_none on public.chat_group_requests;
+
+-- إضافة فعلية (داخلية)
+create or replace function public._chat_group_put(p_cid bigint, p_user uuid) returns void
+language plpgsql security definer set search_path=public as $fn$
+begin
+  insert into chat_members(channel_id,user_id) values(p_cid,p_user) on conflict do nothing;
+  update chat_group_requests set status='approved', decided_by=auth.uid(), decided_at=now()
+   where channel_id=p_cid and user_id=p_user and status='pending';
+  insert into user_nudges(to_user,from_user,from_name,msg)
+    select p_user,auth.uid(),(select full_name from profiles where id=auth.uid()),'أُضفت إلى مجموعة: '||coalesce((select name from chat_channels where id=p_cid),'')
+     where p_user<>auth.uid();
+end $fn$;
+revoke all on function public._chat_group_put(bigint,uuid) from public, anon, authenticated;
+
+-- الإضافة: المدير مباشرة، وغيره طلب
+drop function if exists public.chat_group_add(bigint,uuid);
+create or replace function public.chat_group_add(p_cid bigint, p_user uuid) returns text
+language plpgsql security definer set search_path=public as $fn$
+declare cr uuid; gname text; un text; me text;
+begin
+  select created_by, name into cr, gname from chat_channels where id=p_cid and kind='group';
+  if gname is null and cr is null then raise exception 'not allowed'; end if;
+  if not exists(select 1 from profiles where id=p_user) then raise exception 'bad user'; end if;
+  if exists(select 1 from chat_members where channel_id=p_cid and user_id=p_user) then return 'already'; end if;
+  if chat_can_manage(p_cid) then perform _chat_group_put(p_cid,p_user); return 'added'; end if;
+  if not chat_can_access(p_cid) then raise exception 'not allowed'; end if;
+  if exists(select 1 from chat_group_requests where channel_id=p_cid and user_id=p_user and status='pending') then return 'pending'; end if;
+  insert into chat_group_requests(channel_id,user_id,requested_by) values(p_cid,p_user,auth.uid());
+  select full_name into un from profiles where id=p_user;
+  select full_name into me from profiles where id=auth.uid();
+  if cr is not null and cr <> auth.uid() then
+    insert into user_nudges(to_user,from_user,from_name,msg)
+      values(cr,auth.uid(),me,'طلب إضافة «'||coalesce(un,'')||'» إلى مجموعتك «'||coalesce(gname,'')||'». راجع طلبات الانضمام في التواصل.');
+  end if;
+  return 'requested';
+end $fn$;
+grant execute on function public.chat_group_add(bigint,uuid) to authenticated;
+
+-- الطلبات التي أستطيع البتّ فيها
+create or replace function public.chat_group_pending() returns table(id bigint, channel_id bigint, gname text, pcode text, pname text, user_id uuid, requested_by uuid, created_at timestamptz)
+language sql stable security definer set search_path=public as $$
+  select q.id, q.channel_id, c.name, c.pcode,
+         coalesce((select data->>'pname' from charters where code=c.pcode order by id desc limit 1), c.pcode),
+         q.user_id, q.requested_by, q.created_at
+    from chat_group_requests q join chat_channels c on c.id=q.channel_id
+   where q.status='pending' and chat_can_manage(q.channel_id)
+   order by q.created_at desc
+$$;
+grant execute on function public.chat_group_pending() to authenticated;
+
+-- القبول أو الرفض
+create or replace function public.chat_group_decide(p_id bigint, p_ok boolean) returns void
+language plpgsql security definer set search_path=public as $fn$
+declare q chat_group_requests%rowtype;
+begin
+  select * into q from chat_group_requests where id=p_id;
+  if q.id is null or q.status<>'pending' then raise exception 'not found'; end if;
+  if not chat_can_manage(q.channel_id) then raise exception 'not allowed'; end if;
+  if p_ok then perform _chat_group_put(q.channel_id, q.user_id);
+  else update chat_group_requests set status='rejected', decided_by=auth.uid(), decided_at=now() where id=p_id; end if;
+end $fn$;
+grant execute on function public.chat_group_decide(bigint,boolean) to authenticated;
+
+notify pgrst, 'reload schema';
+
+-- تحقق
+select 'chat_group_add / pending / decide' as "العنصر",
+       (select count(*)::text from pg_proc where proname in ('chat_group_add','chat_group_pending','chat_group_decide')) || ' / 3' as "الحالة";
