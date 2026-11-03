@@ -60,24 +60,24 @@ function doc(k){var S=X().SV[k],s=S.s,N=[],E=[];
  n('rt','pm',4,k=='charter'?['↩ أُعيد للمعدّ: تعديل أو استكمال أو دراسة جدوى','↩ Returned: edit, complete, or feasibility study']:['↩ أُعيد للمعدّ: تعديل أو استكمال بيانات ومرفقات','↩ Returned: edit or complete data & files'],{kind:'hub',info:k=='charter'?TX.ret.concat(TX.fz):TX.ret,roles:['pm','rv','ap','of']});
  n('aa','of',4,['تحديد المعتمِد','Assign approver'],{kind:'off',st:2,info:TX.asgA});
  n('ap','ap',5,s[3],{st:3});
- n('od','of',7,['قرار المكتب بعد الرفض','Office decision after a reject'],{kind:'dec',info:TX.rej,roles:['of']});
- n('da','rv',7,['اعتماد مباشر من المكتب','Direct Office approval'],{kind:'note',info:TX.dir,roles:['of']});
- n('fr','of',8,['رفض نهائي ← «مرفوض»','Final reject → "Rejected"'],{kind:'term',bad:true,info:TX.fin,roles:['of']});
- var endL=k=='plan'?'pm':'of';n('en',endL,6,s[4],{st:4,end:true});
- if(k=='plan')n('rx','tk',6,['تعديل الخطة المعتمدة بإصدار جديد','Revise approved plan (new version)'],{kind:'note',info:TX.rev,roles:['pm']});
- if(k=='cr')n('cl','tk',6,['تعديل الخطة وربطها بطلب التغيير','Revise and link the plan'],{kind:'note',info:TX.crl,roles:['pm']});
- if(k=='charter')n('pg','tk',6,['بلا خطة: اعتماد نسبة الإنجاز','No plan: progress approval'],{kind:'note',info:TX.prog,roles:['pm','of']});
- if(k=='closure')n('ah','tk',6,['إغلاق المشروع وأرشفته','Close & archive the project'],{kind:'note',info:TX.arch,roles:['of']});
+ n('od','of',6,['قرار المكتب بعد الرفض','Office decision after a reject'],{kind:'dec',info:TX.rej,roles:['of']});
+ n('da','rv',6,['اعتماد مباشر من المكتب','Direct Office approval'],{kind:'note',info:TX.dir,roles:['of']});
+ n('fr','rv',7,['رفض نهائي ← «مرفوض»','Final reject → "Rejected"'],{kind:'term',bad:true,info:TX.fin,roles:['of']});
+ var endL=k=='plan'?'pm':'of';n('en',endL,8,s[4],{st:4,end:true});
+ if(k=='plan')n('rx','tk',8,['تعديل الخطة المعتمدة بإصدار جديد','Revise approved plan (new version)'],{kind:'note',info:TX.rev,roles:['pm']});
+ if(k=='cr')n('cl','tk',8,['تعديل الخطة وربطها بطلب التغيير','Revise and link the plan'],{kind:'note',info:TX.crl,roles:['pm']});
+ if(k=='charter')n('pg','tk',8,['بلا خطة: اعتماد نسبة الإنجاز','No plan: progress approval'],{kind:'note',info:TX.prog,roles:['pm','of']});
+ if(k=='closure')n('ah','tk',8,['إغلاق المشروع وأرشفته','Close & archive the project'],{kind:'note',info:TX.arch,roles:['of']});
  function e(a,b,kd,lab){E.push({a:a,b:b,k:kd,lab:lab})}
  e('d','sg','main');e('sg','ar','main');e('ar','rv','main');e('rv','aa','main');e('aa','ap','main');e('ap','en','main');
  e('d','cx','opt');e('sg','bh','opt');
  if(k=='plan'){e('d','gp','opt');e('ar','ac','opt')}
- e('rv','rt','ret');e('ap','rt','ret');e('ar','rt','ret');e('od','rt','ret');
+ e('rv','rt','ret');e('ap','rt','ret');e('od','rt','ret');
  e('rt','d','back',['يعدّل ويعيد التقديم','Edit & resubmit']);
  e('rv','od','rej');e('ap','od','rej');
  e('od','ap','opt',['متابعة الاعتماد','Continue to approval']);e('od','fr','rej');e('od','da','opt');
  e('da','en','opt');
- e('rv','es','esc');e('ap','es','esc');e('rv','ob','obs');
+ e('rv','es','esc');e('rv','ob','obs');
  if(k=='plan')e('en','rx','opt');if(k=='cr')e('en','cl','opt');if(k=='charter')e('en','pg','opt');if(k=='closure')e('en','ah','opt');
  return {N:N,E:E,rows:9}}
 function tasks(){var s=X().SV.tasks.s,N=[],E=[];
@@ -111,18 +111,23 @@ function txt(p,x,y,lines,o){/* سطر مستقل لكل نص: يتجنب خلل 
 function pill(p,x,y,lab,c){var w=Math.min(190,lab.length*7.2+22);el('rect',{x:x-w/2,y:y-12,width:w,height:22,rx:11,fill:'#fff',stroke:c,'stroke-width':1.2},p);txt(p,x,y+4,[lab],{fs:11.5,fw:800,fill:c})}
 
 var EK={main:{c:'#5a6675',w:2,d:'none',m:'ah'},ret:{c:'#d1101d',w:1.8,d:'6 4',m:'ahr'},back:{c:'#d1101d',w:2.2,d:'none',m:'ahr'},rej:{c:'#b3261e',w:1.8,d:'none',m:'ahr'},opt:{c:'#1d5f8a',w:1.5,d:'5 4',m:'ahb'},esc:{c:'#a8761a',w:1.6,d:'3 3',m:'aho'},obs:{c:'#8b7bb5',w:1.3,d:'3 4',m:''}};
-function vpath(a,b){var x1=a.x+NW/2,y1=a.y+a.h,x2=b.x+NW/2,y2=b.y;if(Math.abs(x1-x2)<2)return{d:'M'+x1+' '+y1+' V'+(y2-2),lx:x1,ly:(y1+y2)/2};var my=y1+(y2-y1)/2;return{d:'M'+x1+' '+y1+' V'+my+' H'+x2+' V'+(y2-2),lx:(x1+x2)/2,ly:my}}
+function vpath(a,b){var x1=a.x+NW/2,y1=a.y+a.h,x2=b.x+NW/2,y2=b.y;if(Math.abs(x1-x2)<2)return{d:'M'+x1+' '+y1+' V'+y2,lx:x1,ly:(y1+y2)/2};var my=y1+(y2-y1)/2;return{d:'M'+x1+' '+y1+' V'+my+' H'+x2+' V'+y2,lx:(x1+x2)/2,ly:my}}
 function spath(a,b,off){/* توجيه عبر الممرات الفارغة: فجوات بين الأعمدة وبين الصفوف، فلا يمر السهم فوق المربعات */
- off=off||0;var G2=(LW-NW)/2,ya=a.y+a.h/2,yb=b.y+b.h/2,lft=b.x<a.x-2,same=Math.abs(a.x-b.x)<2;
+ off=off||0;var G2=(LW-NW)/2,ya=a.y+a.h/2,yb=b.y+b.h/2+off*1.6,lft=b.x<a.x-2,same=Math.abs(a.x-b.x)<2;
  var xs=same?a.x+NW:(lft?a.x:a.x+NW),gx1=same?a.x+NW+G2+off:(lft?a.x-G2+off:a.x+NW+G2+off);
  var xt=same?b.x+NW:(lft?b.x+NW:b.x),gx2=same?gx1:(lft?b.x+NW+G2+off:b.x-G2+off);
  var rowTop=b.y-(RH-b.h)/2,rowBot=b.y+b.h+(RH-b.h)/2;
  var yc=(b.y<a.y?rowBot-(RH-NH)/4:rowTop+(RH-NH)/4)+off;
- if(!same&&Math.abs(ya-yb)<2&&Math.abs(Math.abs(a.x-b.x)-LW)<2)return{d:'M'+xs+' '+ya+' H'+(lft?xt+2:xt-2),lx:(xs+xt)/2,ly:ya};
- return{d:'M'+xs+' '+ya+' H'+gx1+' V'+yc+' H'+gx2+' V'+yb+' H'+(lft||same?xt+2:xt-2),lx:same?gx1:(gx1+gx2)/2,ly:same?(ya+yb)/2:yc}}
+ if(!same&&Math.abs(ya-yb)<2&&Math.abs(Math.abs(a.x-b.x)-LW)<2)return{d:'M'+xs+' '+ya+' H'+xt,lx:(xs+xt)/2,ly:ya};
+ return{d:'M'+xs+' '+ya+' H'+gx1+' V'+yc+' H'+gx2+' V'+yb+' H'+xt,lx:same?gx1:(gx1+gx2)/2,ly:same?(ya+yb)/2:yc}}
 
+function pts(d){var t=d.trim().split(/\s+/),P=[],x=0,y=0,i=0;while(i<t.length){var c=t[i];if(c[0]=='M'){x=+(c.length>1?c.slice(1):t[++i]);y=+t[++i];P.push([x,y])}else if(c[0]=='H'){x=+(c.length>1?c.slice(1):t[++i]);P.push([x,y])}else if(c[0]=='V'){y=+(c.length>1?c.slice(1):t[++i]);P.push([x,y])}i++}return P}
+function arrowPath(g,d,st){/* الخط متقطع أو متصل، ورأس السهم دائمًا على قطعة متصلة ملتصقة بنهاية الخط */
+ el('path',{d:d,fill:'none',stroke:st.c,'stroke-width':st.w,'stroke-dasharray':st.d||'none','stroke-linejoin':'round'},g);
+ if(!st.m)return;var P=pts(d);if(P.length<2)return;var b=P[P.length-1],a=P[P.length-2],L=Math.hypot(b[0]-a[0],b[1]-a[1])||1,k=Math.min(14,L)/L;
+ el('path',{d:'M'+(b[0]-(b[0]-a[0])*k)+' '+(b[1]-(b[1]-a[1])*k)+' L'+b[0]+' '+b[1],fill:'none',stroke:st.c,'stroke-width':st.w,'marker-end':'url(#'+st.m+')'},g)}
 function draw(svg){svg.innerHTML='';var defs=el('defs',{},svg);
- [['ah','#5a6675'],['ahr','#d1101d'],['ahb','#1d5f8a'],['aho','#a8761a']].forEach(function(m){var mk=el('marker',{id:m[0],viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'},defs);el('path',{d:'M0 0L10 5L0 10z',fill:m[1]},mk)});
+ [['ah','#5a6675'],['ahr','#d1101d'],['ahb','#1d5f8a'],['aho','#a8761a']].forEach(function(m){var mk=el('marker',{id:m[0],viewBox:'0 0 10 10',refX:10,refY:5,markerWidth:11,markerHeight:11,markerUnits:'userSpaceOnUse',orient:'auto'},defs);el('path',{d:'M0 0L10 5L0 10z',fill:m[1]},mk)});
  var vp=el('g',{id:'jmvp'},svg);
  el('rect',{x:0,y:0,width:G.W,height:G.H,fill:'#f7f9fc'},vp);
  LANES.forEach(function(l,i){var x=laneX(i);el('rect',{x:x+4,y:TOP-50,width:LW-8,height:G.H-TOP+40,rx:14,fill:l.bg,opacity:.45},vp)});
@@ -134,22 +139,22 @@ function draw(svg){svg.innerHTML='';var defs=el('defs',{},svg);
  /* الأسهم داخل الكتل */
  var cnt={};
  G.edges.forEach(function(e){var st=EK[e.k]||EK.main,dim=G.role!='all'&&!(on(e.a)||on(e.b));
-  var key=e.b.gid+(e.k=='main'?'m':'s');cnt[key]=(cnt[key]||0)+1;var off=e.k=='main'?0:((cnt[key]-1)%3-1)*7;
-  var pth=e.k=='main'?vpath(e.a,e.b):spath(e.a,e.b,off);
+  var key=e.b.gid+(e.k=='main'?'m':'s');cnt[key]=(cnt[key]||0)+1;var off=e.k=='main'?0:((cnt[key]-1)%4-1.5)*6;
+  var far=e.k=='main'&&Math.abs(e.a.row-e.b.row)>1;var pth=e.k=='main'&&!far?vpath(e.a,e.b):spath(e.a,e.b,far?0:off);
   var g=el('g',{opacity:dim?.15:1},vp);
-  el('path',{d:pth.d,fill:'none',stroke:st.c,'stroke-width':st.w,'stroke-dasharray':st.d,'marker-end':st.m?'url(#'+st.m+')':''},g);
+  arrowPath(g,pth.d,st);
   if(e.lab)pill(g,pth.lx,pth.ly,P(e.lab),st.c)});
  /* أسهم بين الخدمات */
  var B={};G.blocks.forEach(function(b){B[b.k]=b});
  function link(a,b,lab,dash){var A=a.last,Z=b.first;var x1=A.x+NW/2,y1=A.y+A.h,x2=Z.x+NW/2,y2=Z.y,my=b.y-BG/2;
-  el('path',{d:'M'+x1+' '+y1+' V'+my+' H'+x2+' V'+(y2-2),fill:'none',stroke:'#1d5f8a','stroke-width':2.4,'stroke-dasharray':dash?'8 6':'none','marker-end':'url(#ahb)'},vp);
+  arrowPath(vp,'M'+x1+' '+y1+' V'+my+' H'+x2+' V'+y2,{c:'#1d5f8a',w:2.4,d:dash?'8 6':'none',m:'ahb'});
   pill(vp,G.W/2,my,lab,'#1d5f8a')}
  if(B.charter&&B.plan)link(B.charter,B.plan,P(['بعد اعتماد الميثاق تبدأ الخطة','After the charter: the plan']));
  if(B.plan&&B.tasks)link(B.plan,B.tasks,P(['بعد اعتماد الخطة تصل المهام','Approved plan sends out tasks']));
  if(B.tasks&&B.cr)link(B.tasks,B.cr,P(['عند الحاجة لتغيير جوهري','When a major change is needed']),true);
  if(B.cr&&B.closure)link(B.cr,B.closure,P(['بعد اكتمال التنفيذ','When execution is complete']));
  if(B.cr&&B.plan){var A=B.cr.ids.cl||B.cr.last,xo=SIDE-40,pt=B.plan.ids.rx||B.plan.first;
-  el('path',{d:'M'+(A.x)+' '+(A.y+A.h/2)+' H'+xo+' V'+(pt.y+pt.h/2)+' H'+(pt.x-2),fill:'none',stroke:'#1d5f8a','stroke-width':1.6,'stroke-dasharray':'6 5','marker-end':'url(#ahb)',opacity:.85},vp);
+  arrowPath(vp,'M'+(A.x)+' '+(A.y+A.h/2)+' H'+xo+' V'+(pt.y+pt.h/2)+' H'+pt.x,{c:'#1d5f8a',w:1.6,d:'6 5',m:'ahb'});
   var g2=el('g',{transform:'translate('+(xo-8)+' '+((pt.y+A.y)/2)+') rotate(-90)'},vp);txt(g2,0,0,[P(['طلب التغيير المعتمد ← إصدار جديد من الخطة','Approved CR → new plan version'])],{fs:12,fw:800,fill:'#1d5f8a'})}
  /* العقد */
  G.nodes.forEach(function(n){var l=LANES[LI[n.lane]],o=on(n);
