@@ -1406,8 +1406,10 @@ async function pickView(){curView=pickView;editing=false;const adm=me.role=='adm
  <input id="pk_q" placeholder="${t('pl_pickSearch')}" style="margin-top:8px" oninput="pickDraw()">${error?`<div class="ce">⛔ ${esc(error.message)}</div>`:''}<div id="pk_l"></div></div>`;pickDraw()}
 function pickDraw(){const q=(($('pk_q')||{}).value||'').trim().toLowerCase(),el=$('pk_l');if(!el)return;
  const rows=PICK.filter(c=>!q||((c.pname||'')+' '+(c.code||'')+' '+(c.doc_no||'')).toLowerCase().includes(q));
- el.innerHTML=rows.map(c=>`<div class="item"><div class="top"><b>${esc(c.pname||'—')}</b></div><div class="mut"><span dir="ltr">${esc(c.code||'')} · ${esc(c.doc_no||'')}</span></div><div class="mut">📅 <span dir="ltr">${esc(c.sdate||'')} → ${esc(c.edate||'')}</span> · ${t('f_pmname')}: ${esc(c.pmname||'NA')}</div><div class="row" style="margin-top:6px"><button class="p sm" onclick="startPlan(${c.id})">${t('pl_pickGo')}</button></div></div>`).join('')||`<div class="mut" style="margin-top:10px">${t('pl_pickNone')}</div>`}
-async function startPlan(chId){const c=PICK.find(x=>x.id==chId);if(!c)return;const sel=$('pk_u'),uid=sel&&sel.value?sel.value:me.id,u=users[uid]||me;
+ el.innerHTML=rows.map(c=>`<div class="item"><div class="top"><b>${esc(c.pname||'—')}</b></div><div class="mut"><span dir="ltr">${esc(c.code||'')} · ${esc(c.doc_no||'')}</span></div><div class="mut">📅 <span dir="ltr">${esc(c.sdate||'')} → ${esc(c.edate||'')}</span> · ${t('f_pmname')}: ${esc(c.pmname||'NA')}</div>${(c.drafts||[]).length?`<div class="mut" style="background:#fff8e6;border:1px solid #f1dfb3;border-radius:8px;padding:5px 8px;margin-top:6px;font-size:12.5px">📝 ${lang=='ar'?'توجد مسودة قائمة':'Existing draft'}: ${(c.drafts||[]).map(x=>`<a href="#" onclick="openCR(${x.id});return false">${esc(x.code||'')}</a> (${esc(x.by||'')})`).join('، ')}</div>`:''}<div class="row" style="margin-top:6px"><button class="p sm" onclick="startPlan(${c.id})">${t('pl_pickGo')}</button></div></div>`).join('')||`<div class="mut" style="margin-top:10px">${t('pl_pickNone')}</div>`}
+async function startPlan(chId){const c=PICK.find(x=>x.id==chId);if(!c)return;
+ const dr=c.drafts||[];if(dr.length){const ar=lang=='ar',L2=dr.map(x=>'• '+(x.code||'')+' — '+(x.by||'')+(x.at?' ('+String(x.at).slice(0,10).split('-').reverse().join('/')+')':'')).join('\n');
+  if(!confirm(ar?'⚠️ توجد مسودة أخرى لهذا المشروع:\n'+L2+'\n\nستبقى المسودة الموجودة كما هي ولن تُلغى.\nهل تود بدء مسودة جديدة؟\n(اختر «إلغاء» إن أردت فتح المسودة الموجودة من الرابط في البطاقة)':'⚠️ There is another draft for this project:\n'+L2+'\n\nThe existing draft will be kept.\nStart a new draft?'))return}const sel=$('pk_u'),uid=sel&&sel.value?sel.value:me.id,u=users[uid]||me;
  const acts=Array.isArray(c.acts)?c.acts.map(r=>r&&r.a).filter(Boolean):[];
  const data={pcode:c.code||'',pname:c.pname||'',pmname:c.pmname||u.full_name||'',sdate:c.sdate||'',edate:c.edate||'',ptype:c.ptype||'',sector:c.sector||'',budget:c.budget||'',cacts:acts,levels:null,tasks:[]};
  const tid=($('pk_t')||{}).value;
@@ -1417,11 +1419,27 @@ async function startPlan(chId){const c=PICK.find(x=>x.id==chId);if(!c)return;con
    data.tasks=old.map(x=>({id:x.id,p:x.p||'',n:x.n||'',s:sh(x.s,k),e:sh(x.e,k),w:'',wn:'',as:'',ae:'',pc:0,dep:(x.dep||[]).map(d=>({...d})),nt:'',ms:x.ms||0}));
    if(sd.levels)data.levels=sd.levels}}catch(e){}}
  const {data:row,error}=await sb.from('plans').insert({charter_id:c.id,created_by:uid,data}).select().single();
- if(error)return msg(/duplicate|unique/i.test(error.message)?t('pl_pickDup'):error.message);
+ if(error)return msg(/duplicate|unique/i.test(error.message)?(lang=='ar'?'لا يمكن بدء خطة جديدة: توجد خطة لهذا المشروع مرسلة أو قيد الاعتماد أو معتمدة. شغّل ملف التحديث update-oct69 إن لم يُشغَّل بعد.':'A plan for this project is already in workflow or approved.'):error.message);
  await sb.from('plan_signatories').insert({cr_id:row.id,stage:'created',user_id:uid});
  await lg(row.id,uid==me.id?'created':'assigned|'+(u.full_name||'')+'|created');
  ftab='plan';PL.view='list';PL.start=false;SNAPS.u=[];SNAPS.r=[];openCR(row.id)}
 async function newCR(){pickView()}
+function draftAssign(){if(!cr)return;const ar=lang=='ar',U=Object.values(users).filter(u=>u.id!=cr.created_by).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||''));let mode='transfer',uid='';
+ const o=document.createElement('div');o.id='dasw';o.style.cssText='position:fixed;inset:0;z-index:9300;background:rgba(15,30,45,.4);display:flex;align-items:flex-end;justify-content:center';
+ const draw=q=>{const f=U.filter(u=>!q||(u.full_name||'').toLowerCase().includes(q.toLowerCase())).slice(0,80);o.innerHTML=`<div style="background:#fff;width:min(520px,100%);max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));box-sizing:border-box">
+  <div style="display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">👥 ${ar?'إسناد المسودة':'Assign draft'} — ${esc(cr.code||'')}</b><button data-x="1" style="width:32px;height:32px;border-radius:50%;border:1px solid #e3eaf0;background:#f7f9fc">✕</button></div>
+  <div class="mut" style="font-size:12.5px;margin:6px 0">${ar?'المُعِدّ الحالي':'Current preparer'}: <b>${esc((users[cr.created_by]||{}).full_name||'')}</b></div>
+  <div style="display:flex;flex-direction:column;gap:6px;margin:8px 0">${[['transfer',ar?'🔁 تحويل المسودة بالكامل':'🔁 Transfer the draft',ar?'يصبح المستخدم الجديد هو المُعِدّ ويرسلها للاعتماد ويوقّع عليها.':'The new user becomes the preparer, submits and signs.'],['edit',ar?'✏️ إضافته مشاركًا لإكمالها':'✏️ Add as co-editor',ar?'يبقى المُعِدّ كما هو، ويحصل المستخدم على صلاحية تعديل خطط هذا المشروع.':'The preparer stays; the user gets edit rights on this project’s plans.']].map(m=>`<button data-m="${m[0]}" style="text-align:start;border:1.5px solid ${mode==m[0]?'#1d5f8a':'#e3eaf0'};background:${mode==m[0]?'#eef6fc':'#fff'};border-radius:12px;padding:9px 11px;font-family:inherit;cursor:pointer"><b style="display:block">${m[1]}</b><small class="mut">${m[2]}</small></button>`).join('')}</div>
+  <input id="das_q" value="${esc(q||'')}" placeholder="${ar?'ابحث عن المستخدم…':'Search user…'}" style="width:100%;box-sizing:border-box;border:1px solid #d5dfe8;border-radius:10px;padding:9px;font-family:inherit;font-size:14px">
+  <div style="display:flex;flex-direction:column;gap:5px;max-height:34vh;overflow:auto;margin-top:6px">${f.map(u=>`<button data-u="${u.id}" style="text-align:start;border:1px solid ${uid==u.id?'#1d5f8a':'#e3eaf0'};background:${uid==u.id?'#1d5f8a':'#f7f9fc'};color:${uid==u.id?'#fff':'inherit'};border-radius:10px;padding:9px;font-family:inherit;cursor:pointer">${esc(u.full_name||'')}</button>`).join('')}</div>
+  <button data-ok="1" ${uid?'':'disabled'} style="width:100%;margin-top:10px;border:0;background:#0a6b3d;color:#fff;border-radius:12px;padding:11px;font-weight:800;font-size:14px;font-family:inherit;opacity:${uid?1:.45}">${ar?'تأكيد الإسناد':'Confirm'}</button></div>`;
+  const qi=o.querySelector('#das_q');qi.oninput=()=>{const v=qi.value,pos=qi.selectionStart;draw(v);const n=o.querySelector('#das_q');n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}};
+ document.body.appendChild(o);draw('');
+ o.addEventListener('click',async e=>{const b=e.target.closest('button');if(e.target===o||(b&&b.dataset.x))return o.remove();if(!b)return;const q=(o.querySelector('#das_q')||{}).value||'';
+  if(b.dataset.m){mode=b.dataset.m;return draw(q)}if(b.dataset.u){uid=b.dataset.u;return draw(q)}
+  if(b.dataset.ok&&uid){const nm=(users[uid]||{}).full_name||'';if(!confirm(ar?(mode=='transfer'?'تحويل المسودة إلى «'+nm+'»؟':'إضافة «'+nm+'» لإكمال المسودة؟'):'Confirm?'))return;
+   const r=await sb.rpc('plan_draft_assign',{p_id:cr.id,p_user:uid,p_mode:mode});if(r.error)return msg((/could not find|schema cache/i.test(r.error.message)?(ar?'شغّل ملف التحديث update-oct69 أولًا. ':'Run update-oct69 first. '):'')+r.error.message);
+   await lg(cr.id,(mode=='transfer'?'draftassign|transfer|':'draftassign|edit|')+nm);o.remove();msg(ar?(mode=='transfer'?'تم تحويل المسودة إلى '+nm+'، ووصله تنبيه.':'تمت إضافة '+nm+' لإكمال المسودة، ووصله تنبيه.'):'Done.');openCR(cr.id)}})}
 async function submitCR(){
  let fe=null;try{await flushAtt()}catch(err){fe=err}
  if(fe)return msg(fe.message||String(fe));
@@ -1566,6 +1584,7 @@ async function openCR0(id){
  if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
  if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${isRevDraft()?(lang=='ar'?'إلغاء المسودة والعودة للخطة المعتمدة':'Cancel draft and return to approved plan'):t('cancelReq')}</button>`;
  if(adm&&SVC=='plan'&&cr.version>1&&st!='Approved')more+=`<button class="g" onclick="restoreApproved()">↩ ${lang=='ar'?'استعادة آخر نسخة معتمدة من الخطة':'Restore the last approved version'}</button>`;
+ if(adm&&!arch&&(st=='Draft'||st=='Returned to PM'))more+=`<button onclick="draftAssign()">👥 ${lang=='ar'?'إسناد المسودة لمستخدم آخر':'Assign draft to another user'}</button>`;
  if(adm&&st=='Cancelled'&&!arch)more+=`<button class="g" onclick="restoreCR()">↩ ${lang=='ar'?'استعادة الطلب الملغى':'Restore cancelled request'}</button>`;
  if(adm&&((cr.data&&cr.data.pcode)||cr.code))more+=`<a href="portfolio.html#eval=${encodeURIComponent((cr.data&&cr.data.pcode)||cr.code)}"><button type="button">📋 ${lang=='ar'?'تقييم المشروع':'Project evaluation'}</button></a>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
@@ -2520,7 +2539,7 @@ async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.v
  if(cr.created_by==me.id&&editing)await save(false);
  await sb.from('plan_signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
 async function rmSig(id){await sb.from('plan_signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
-async function setStatus(s,extra={}){const _r=await sb.from('plans').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s);try{if(!(_r&&_r.error)&&window.IDOACT&&IDOACT.afterRate)IDOACT.afterRate(sb,me,'plan',s)}catch(_){}}
+async function setStatus(s,extra={}){const _r=await sb.from('plans').update({status:s,...extra}).eq('id',cr.id);if(_r&&_r.error){msg(/duplicate|unique/i.test(_r.error.message)?(lang=='ar'?'لا يمكن إرسال هذه المسودة: توجد خطة أخرى لنفس المشروع مرسلة أو قيد الاعتماد أو معتمدة.':'Another plan for this project is already in workflow or approved.'):_r.error.message);throw _r.error}await lg(cr.id,'status|'+s);try{if(!(_r&&_r.error)&&window.IDOACT&&IDOACT.afterRate)IDOACT.afterRate(sb,me,'plan',s)}catch(_){}}
 let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;clearTimeout(AUTOT);AUTOT=setTimeout(()=>{if(editing&&cr)save(false)},2500)});
 async function softDel(id,data,prev,reason){const nd={...(data||{}),_deleted:{by:me.full_name,at:new Date().toISOString(),prev:prev,reason:reason||''}};return sb.from('plans').update({status:'Cancelled',archived:true,data:nd}).eq('id',id)}
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await softDel(cr.id,cr.data,cr.status,'');if(error)return msg(error.message);await lg(cr.id,'deleted');msg(t('delMoved'));homeView()}

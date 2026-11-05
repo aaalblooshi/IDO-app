@@ -105,6 +105,8 @@ function act(r){
   case 'created':return P('إنشاء ','Created ')+S;
   case 'assigned':return P('تعيين ','Assigned ')+(p[1]||'')+' — '+stg(p[2]);
   case 'removed':return P('إزالة موقّع','Signer removed');
+  case 'draftassign':return (p[1]=='transfer'?P('تحويل المسودة إلى: ','Draft transferred to: '):P('إضافة مشارك لإكمال المسودة: ','Co-editor added to the draft: '))+(p[2]||'');
+  case 'autoarchive':return P('أُلغيت المسودة وأُرشفت تلقائيًا لاعتماد خطة أخرى لنفس المشروع ','Draft cancelled and archived automatically: another plan was approved ')+(p[1]?'('+p[1]+')':'');
   case 'revised':return P('بدء إصدار جديد (مسودة)','New version started (draft)');
   case 'revcancelled':return P('إلغاء الإصدار الجديد واستعادة المعتمد','New version cancelled; approved version restored');
   case 'superseded':return P('حلّ الإصدار '+p[2]+' محل الإصدار '+p[1]+' وأُرشف السابق','Version '+p[2]+' replaced version '+p[1]+'; earlier version archived');
