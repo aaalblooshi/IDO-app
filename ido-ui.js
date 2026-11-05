@@ -396,3 +396,12 @@
     }).catch(function () {});
   })();
 })();
+
+/* اتجاه الفترات الزمنية في الواجهة العربية: البداية يمينًا ثم السهم نحو النهاية دائمًا */
+(function () {
+  try {
+    var s = document.createElement('style'); s.id = 'drfix';
+    s.textContent = 'html[dir=rtl] .dr{direction:rtl!important}html[dir=rtl] .dr i{display:inline-block;transform:scaleX(-1)}';
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+})();

@@ -2235,7 +2235,7 @@ function toolbar(){const d=cr.data,n=d.tasks.length,ed=PL.canEdit,cu=d.wmode=='c
  ${ed?`<div class="seg"><button onclick="undo()" ${SNAPS.u.length?'':'disabled'} title="${t('pl_undo')} (Ctrl+Z)">↶ ${t('pl_undo')}${SNAPS.u.length?' ('+ad(SNAPS.u.length)+')':''}</button><button onclick="redo()" ${SNAPS.r.length?'':'disabled'} title="${t('pl_redo')} (Ctrl+Y)">↷</button></div>`:''}
  <div class="seg"><button onclick="collAll(true)" title="${t('pl_collapse')}">⊟</button><button onclick="collAll(false)" title="${t('pl_expand')}">⊞</button></div>
  <div class="seg"><button class="${PL.adv?'on':''}" onclick="togAdv()" title="${t('pl_advH')}">${PL.adv?t('pl_advOn'):t('pl_advOff')}</button>${ed?`<button class="${cu?'on':''}" onclick="togW()" title="${t('pl_wTip')}">⚖ ${t('pl_wmode')}: ${cu?t('pl_wCu'):t('pl_wEq')}</button>${cu?`<button onclick="evenW()">${t('pl_wEven')}</button>`:''}`:''}</div>
- ${(ed||me.role=='admin')?`<div class="seg"><button onclick="labOpen()" style="font-weight:800;color:#0a6b3d">🧪 ${lang=='ar'?'مختبر الخطط':'Plan lab'}</button></div>`:''}<div class="seg"><button onclick="xlExport()" title="Excel">📤 Excel</button><button onclick="printPlan()" title="${t('pl_print')}">🖨 PDF</button>${PL.nAtt?`<button onclick="goTab('flow')" title="${t('pl_attN')}">📎 ${ad(PL.nAtt)}</button>`:''}</div>${ed&&d.levels?`<div class="seg"><button class="on" onclick="lvlChange()" title="${t('pl_lvNote')}">🗂 ${t('pl_levels')}: ${ad(d.levels)} ▾</button></div>`:''}</div>`}
+ ${(ed||me.role=='admin')?`<div class="seg"><button onclick="labOpen()" style="font-weight:800;color:#0a6b3d">🧪 ${lang=='ar'?'مختبر الخطط':'Plan lab'}</button>${ed&&n?`<button onclick="evOpen()" style="font-weight:700;color:#8a6a1f">📌 ${lang=='ar'?'ربط بحدث':'Link to event'}</button>`:''}</div>`:''}<div class="seg"><button onclick="xlExport()" title="Excel">📤 Excel</button><button onclick="printPlan()" title="${t('pl_print')}">🖨 PDF</button>${PL.nAtt?`<button onclick="goTab('flow')" title="${t('pl_attN')}">📎 ${ad(PL.nAtt)}</button>`:''}</div>${ed&&d.levels?`<div class="seg"><button class="on" onclick="lvlChange()" title="${t('pl_lvNote')}">🗂 ${t('pl_levels')}: ${ad(d.levels)} ▾</button></div>`:''}</div>`}
 // ---- WBS view ----
 function wbsH(){const rows=T();if(!rows.length)return `<div class="mut">${t('pl_empty')}</div>`;
  return `<div class="wbs">${rows.filter(x=>{let p=M[x.id].par;while(p){if(PL.coll[p.id])return false;p=M[p.id].par}return true}).map(x=>{const m=M[x.id];
@@ -2250,7 +2250,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  else{
   if(d.pmode=='agile'&&PL._agv!==cr.id){PL._agv=cr.id;PL.view='agile'}if(PL.view=='agile'&&d.pmode!='agile')PL.view='list';
   const body=PL.view=='agile'?agH():PL.view=='gantt'?ganttH():(PL.view=='wbs'?wbsH():tableH()),ed=PL.canEdit,er=issues().some(i=>i.e);
-  h=rnoteH()+diffH()+(ed&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
+  h=rnoteH()+diffH()+((PL.canEdit||PL.trk)&&window.finBarH?finBarH():'')+(ed&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
    +(ed?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="grpOpen()">👥 ${t('pl_grp')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')
    +(ed&&!PL.aed&&T().length?`<div class="rdy ${er?'':'ok'}">${er?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')
    +legend()+sheetH()+impH()+(ed&&PL.view=='list'?qabH():'')+(ed?undoFabH():'')}
@@ -3193,11 +3193,10 @@ const css=document.createElement('style');css.textContent=`.agw{margin-top:8px}.
 @media(max-width:640px){.agk{grid-template-columns:repeat(4,72vw);scroll-snap-type:x mandatory}.agcol{scroll-snap-align:start}.agadd input:not([type=number]){flex:1 1 100%!important}}`;document.head.appendChild(css);
 })();
 </script><script>/*planlab*/
-/* ===== مختبر الخطط: نماذج جاهزة + معالج أسئلة + معاينة ثم استبدال الخطة أو دمجها أو حفظها كنموذج (للأدمن) ===== */
+/* ===== مختبر الخطط (نسخة موسعة): نماذج، معالج خطوة بخطوة، حدث محوري بتخطيط عكسي، تواريخ حية، دليل للمبتدئين ===== */
 (function(){
 const A=()=>lang=='ar',L=(a,e)=>A()?a:e;
 const N=(n,du,ch)=>ch?{n,ch}:{n,du:du||1};
-/* أنواع المشاريع للمعالج: مراحل افتراضية بمهامها (المدة بأيام عمل) */
 const TY={
  sys:{i:'💻',n:['نظام / حل تقني','IT system / solution'],ph:[
   [['التحليل','Analysis'],[[['جمع المتطلبات','Gather requirements'],5],[['تحليل الوضع الحالي','Current-state analysis'],3],[['وثيقة المتطلبات واعتمادها','Requirements document & sign-off'],3]]],
@@ -3244,120 +3243,265 @@ const EX=[
  ['trn',['تدريب المستخدمين','User training'],-2,[['التدريب','Training'],[[['إعداد مواد التدريب','Training materials'],4],[['تنفيذ التدريب','Deliver training'],3]]]],
  ['risk',['إدارة المخاطر','Risk management'],1,[['إدارة المخاطر','Risk management'],[[['تحديد المخاطر وتقييمها','Identify & assess risks'],2],[['خطة الاستجابة للمخاطر','Risk response plan'],2]]]],
  ['impact',['قياس الأثر بعد الإنجاز','Impact measurement'],-1,[['قياس الأثر','Impact measurement'],[[['قياس الأثر وإعداد التقرير','Measure impact & report'],10]]]]];
-let S={tab:'tpl',tree:null,src:'',ty:'gen',ph:null,dl:'',ex:{},det:'med',ms:true,cust:'',tpls:null};
+const POSTRE=/التقييم|الإغلاق|الدعم بعد|المتابعة|قياس الأثر|Evaluation|Closure|support|Control|Impact/i;
+let S={tab:'tpl',tree:null,src:'',ty:'gen',ph:null,dl:'',ex:{},det:'med',ms:true,cust:'',tpls:null,step:0,ev:{on:false,n:'',d:''},chain:true,buf:false,mode:'replace'};
 const lt=x=>A()?x[0]:x[1];
 function phTree(ty){return TY[ty].ph.map(p=>N(lt(p[0]),0,p[1].map(q=>N(lt(q[0]),q[1]))))}
 function tplTree(k){const conv=a=>a.map(n=>{const nm=A()?n[0]:n[1];return typeof n[2]=='number'?N(nm,n[2]):N(nm,0,conv(n[2]))});return conv(TPL[k].t)}
 function depth(tr){return tr.reduce((m,n)=>Math.max(m,n.ch?1+depth(n.ch):1),0)}
 function leaves(tr){return tr.reduce((s,n)=>s+(n.ch?leaves(n.ch):1),0)}
-function dur(n){return n.ch?n.ch.reduce((s,c)=>s+dur(c),0):(+n.du||0)}
+function dur(n){return n.ch?n.ch.filter(c=>!c.off).reduce((s,c)=>s+dur(c),0):(+n.du||0)}
 function clone(x){return JSON.parse(JSON.stringify(x))}
+const fmt=n=>{if(n==null||isNaN(n))return '—';const p=ds(n).split('-');return (+p[2])+'/'+(+p[1])+'/'+p[0].slice(2)};
+const fmtL=n=>{if(n==null||isNaN(n))return '—';const p=ds(n).split('-');return (+p[2])+'/'+(+p[1])+'/'+p[0]};
 async function loadT(){if(S.tpls)return S.tpls;try{const r=await sb.from('app_settings').select('value').eq('key','plan_tpls').maybeSingle();S.tpls=JSON.parse((r.data&&r.data.value)||'[]')||[]}catch(_){S.tpls=[]}return S.tpls}
-async function saveT(L){const r=await sb.rpc('admin_set_setting',{k:'plan_tpls',v:JSON.stringify(L)});if(r.error)throw r.error;S.tpls=L}
+async function saveT(Lst){const r=await sb.rpc('admin_set_setting',{k:'plan_tpls',v:JSON.stringify(Lst)});if(r.error)throw r.error;S.tpls=Lst}
 function fromPlan(){const ts=cr.data.tasks||[],by={};ts.forEach(x=>(by[x.p||'']=by[x.p||'']||[]).push(x));
- const mk=p=>(by[p]||[]).map(x=>{const k=by[x.id];if(k&&k.length)return N(x.n||'—',0,mk(x.id));let d=1;try{const a=dn(x.s),b=dn(x.e);if(!isNaN(a)&&!isNaN(b))d=Math.max(1,wdays(a,b))}catch(_){}return N(x.n||'—',d)});return mk('')}
+ const mk=p=>(by[p]||[]).map(x=>{const k=by[x.id];if(k&&k.length)return N(x.n||'—',0,mk(x.id));let d=1;try{const a=dn(x.s),b=dn(x.e);if(!isNaN(a)&&!isNaN(b))d=Math.max(1,wdays(a,b))}catch(_){}return x.ms?{n:x.n||'—',du:0,ms:1}:N(x.n||'—',d)});return mk('')}
+function markPost(tr){if(!S.ev.on)return tr;tr.forEach(n=>{if(n.post===undefined)n.post=POSTRE.test(n.n)});return tr}
 /* المعالج: يبني الشجرة من الإجابات */
 function wizBuild(){const ty=TY[S.ty];let ph=ty.ph.map((p,i)=>({on:S.ph?S.ph[i]!==false:true,node:N(lt(p[0]),0,p[1].map(q=>N(lt(q[0]),q[1])))})).filter(x=>x.on).map(x=>x.node);
  (S.cust||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(nm=>ph.splice(Math.max(1,ph.length-1),0,N(nm,0,[N(L('تنفيذ: ','Do: ')+nm,5)])));
  const dl=(S.dl||'').split('\n').map(x=>x.trim()).filter(Boolean);
- if(dl.length){const tgt=ph.find(p=>/التنفيذ|البناء|Execution|Build|Delivery|السبرنت 1|Sprint 1/.test(p.n))||ph[Math.min(1,ph.length-1)];
+ if(dl.length){const tgt=ph.find(p=>/التنفيذ|البناء|Execution|Build|Delivery|السبرنت 1|Sprint 1|الكتابة|Writing|التصميم|Design/.test(p.n))||ph[Math.min(1,ph.length-1)];
   const node=N(L('المخرجات','Deliverables'),0,dl.map(d=>S.det=='brief'?N(d,5):N(d,0,[N(L('إعداد: ','Prepare: ')+d,5),N(L('مراجعة واعتماد: ','Review & approve: ')+d,2)])));
   if(tgt){tgt.ch=tgt.ch||[];tgt.ch.push(node)}else ph.push(node)}
  EX.forEach(e=>{if(!S.ex[e[0]])return;const nd=N(lt(e[3][0]),0,e[3][1].map(q=>N(lt(q[0]),q[1])));if(e[2]>0)ph.splice(Math.min(e[2],ph.length),0,nd);else ph.splice(Math.max(0,ph.length+e[2]+1),0,nd)});
  if(S.det=='brief')ph=ph.map(p=>p.ch?N(p.n,Math.max(1,dur(p))):p);
  if(S.det=='full'&&S.ms)ph.forEach(p=>{if(p.ch)p.ch.push({n:'◆ '+L('اكتمال: ','Done: ')+p.n,du:0,ms:1})});
- return ph}
-/* تحويل الشجرة إلى مهام بتواريخ */
-function toTasks(tr,startN,fit){const flat=[];const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;flat.push({x,n,leaf:!n.ch});if(n.ch)walk(n.ch,x.id)});walk(tr,'');
- const lf=flat.filter(f=>f.leaf),tot=lf.reduce((a,f)=>a+(+f.n.du||0),0),d=cr.data,span=wdays(dn(d.sdate),dn(d.edate)),fac=fit&&span>0&&tot>0?Math.min(3,span/tot):1;
- let s=nextWork(startN),le=s;lf.forEach(f=>{if(f.n.ms){f.x.s=ds(le);f.x.e=f.x.s;return}const du=Math.max(1,Math.round((+f.n.du||1)*fac));f.x.s=ds(s);le=addWork(s,du-1);f.x.e=ds(le);s=addWork(s,du)});
- return flat.map(f=>f.x)}
-function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;const need=Math.min(3,depth(tr.filter(n=>!n.off)));
- const ts=cr.data.tasks||[],d=cr.data;let st=dn(d.sdate);if(isNaN(st))st=todayN();
- if(mode=='merge'&&ts.length){const ends=ts.map(x=>dn(x.e)).filter(v=>!isNaN(v));if(ends.length)st=addWork(Math.max(...ends),1)}
+ return markPost(ph)}
+/* الجدولة: أمامية من البداية، أو عكسية قبل الحدث المحوري ثم أمامية بعده */
+function evDay(){const v=dn(S.ev.d);return S.ev.on&&!isNaN(v)?v:null}
+function flat(tr){const out=[];const walk=(arr,top,post)=>arr.forEach(n=>{if(n.off)return;const pp=top?!!n.post:post;if(n.ch)walk(n.ch,false,pp);else out.push({n,post:pp})});walk(tr,true,false);return out}
+function bufNode(tr){if(!S.buf)return null;const tot=flat(tr).filter(f=>!f.post).reduce((a,f)=>a+(+f.n.du||0),0);return tot?{n:L('هامش احتياطي (10٪)','Contingency buffer (10%)'),du:Math.max(1,Math.ceil(tot*.1)),buf:1}:null}
+function schedule(tr,start){const F=flat(tr),ev=evDay(),bn=bufNode(tr);const pre=F.filter(f=>!f.post),post=F.filter(f=>f.post);if(bn)pre.push({n:bn,post:false});
+ const R=new Map();let lo=null,hi=null;const put=(n,s,e)=>{R.set(n,[s,e]);if(lo==null||s<lo)lo=s;if(hi==null||e>hi)hi=e};
+ if(ev!=null){let cur=prevWork(ev-1);for(let i=pre.length-1;i>=0;i--){const f=pre[i];if(f.n.ms)continue;const du=Math.max(1,+f.n.du||1),e=cur,s=subWork(e,du-1);put(f.n,s,e);cur=prevWork(s-1)}
+  let le=null;pre.forEach(f=>{if(f.n.ms){const d=le!=null?le:prevWork(ev-1);put(f.n,d,d)}else le=R.get(f.n)[1]});
+  let c2=nextWork(ev+1);le=null;post.forEach(f=>{if(f.n.ms){const d=le!=null?le:ev;put(f.n,d,d);return}const du=Math.max(1,+f.n.du||1),s=c2,e=addWork(s,du-1);put(f.n,s,e);le=e;c2=addWork(s,du)});
+  if(lo==null||ev<lo)lo=ev;if(hi==null||ev>hi)hi=ev}
+ else{let s=nextWork(start),le=s;pre.concat(post).forEach(f=>{if(f.n.ms){put(f.n,le,le);return}const du=Math.max(1,+f.n.du||1);put(f.n,s,addWork(s,du-1));le=addWork(s,du-1);s=addWork(s,du)})}
+ const span=n=>{if(!n.ch)return R.get(n);let a=null,b=null;n.ch.forEach(c=>{if(c.off)return;const r=span(c);if(!r)return;if(a==null||r[0]<a)a=r[0];if(b==null||r[1]>b)b=r[1]});if(a!=null)R.set(n,[a,b]);return a!=null?[a,b]:null};tr.forEach(n=>{if(!n.off)span(n)});
+ return{R,lo,hi,ev,bn,F,pre,post}}
+function startDay(){const d=cr.data,ts=d.tasks||[];let st=dn(d.sdate);if(isNaN(st))st=todayN();if(S.mode=='merge'&&ts.length){const ends=ts.map(x=>dn(x.e)).filter(v=>!isNaN(v));if(ends.length)st=addWork(Math.max(...ends),1)}return st}
+/* ملاءمة المدد مع مدة المشروع */
+function fit(){const d=cr.data,st=startDay(),en=dn(d.edate);const ev=evDay();if(!S.tree)return;
+ const F=flat(S.tree).filter(f=>!f.n.ms),tot=F.reduce((a,f)=>a+(+f.n.du||1),0)+(S.buf?Math.ceil(F.reduce((a,f)=>a+(f.post?0:(+f.n.du||1)),0)*.1):0);
+ let avail;if(ev!=null){const pre=F.filter(f=>!f.post).reduce((a,f)=>a+(+f.n.du||1),0);avail=wdays(st,prevWork(ev-1));if(!pre||avail<=0)return msg(L('موعد الحدث قبل بداية المشروع.','The event is before the project start.'));const k=avail/(pre*(S.buf?1.1:1));F.filter(f=>!f.post).forEach(f=>f.n.du=Math.max(1,Math.floor((+f.n.du||1)*k)))}
+ else{if(isNaN(en))return msg(L('لا يوجد تاريخ نهاية في الميثاق.','No end date in the charter.'));avail=wdays(st,en);const k=avail/tot;F.forEach(f=>f.n.du=Math.max(1,Math.floor((+f.n.du||1)*k)))}
+ draw()}
+/* تحويل الشجرة إلى مهام بتواريخ واعتماديات */
+function toTasks(tr,start){const sc=schedule(tr,start),out=[],idOf=new Map();
+ const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;const r=sc.R.get(n);if(r){x.s=ds(r[0]);x.e=ds(r[1])}out.push(x);idOf.set(n,x);if(n.ch)walk(n.ch,x.id)});
+ const preTop=tr.filter(n=>!n.post),postTop=tr.filter(n=>n.post);walk(preTop,'');
+ let bx=null;if(sc.bn){bx=blankTask('','','');bx.n=sc.bn.n;const r=sc.R.get(sc.bn);if(r){bx.s=ds(r[0]);bx.e=ds(r[1])}out.push(bx);idOf.set(sc.bn,bx)}
+ let evx=null;if(sc.ev!=null){evx=blankTask('',ds(sc.ev),ds(sc.ev));evx.n=S.ev.n||L('الحدث الرئيسي','Key event');evx.ms=1;evx.fx=1;out.push(evx)}
+ walk(postTop,'');
+ if(S.chain||evx){const seq=a=>a.map(f=>idOf.get(f.n)).filter(Boolean);const pre=seq(sc.pre),post=seq(sc.post);
+  const link=(L2)=>{for(let i=1;i<L2.length;i++)L2[i].dep=[{t:L2[i-1].id,y:'FS',l:0}]};
+  if(S.chain){link(pre);link(post)}
+  if(evx){if(pre.length)evx.dep=[{t:pre[pre.length-1].id,y:'FS',l:0}];if(post.length)post[0].dep=[{t:evx.id,y:'FS',l:0}]}}
+ return out}
+function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const need=Math.min(3,depth(tr.filter(n=>!n.off)));
+ const ts=cr.data.tasks||[],d=cr.data;
  if(mode=='replace'&&ts.length&&!confirm(L('سيتم استبدال الخطة الحالية بالكامل ('+ad(ts.length)+' مهمة). يمكنك التراجع بزر «تراجع». متابعة؟','The current plan ('+ts.length+' tasks) will be replaced. You can undo. Continue?')))return;
- snap();const nt=toTasks(tr,st,mode!='merge'||!ts.length);
+ snap();const nt=toTasks(tr,startDay());
  if(mode=='replace')cr.data.tasks=nt;else cr.data.tasks=ts.concat(nt);
  if(!d.levels||d.levels<need)d.levels=need;
  if(S.agile&&window.agAfterLab)agAfterLab();
- PL.start=false;norm();rollup();close();renderPlan();pSave();msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.',nt.length+' tasks added to the plan.'))}
+ PL.start=false;norm();rollup();close();renderPlan();pSave();
+ const sp=planSpan();msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.'+(sp?'\nالانتهاء المخطط: '+fmtL(sp[1]):''),nt.length+' tasks added.'+(sp?'\nPlanned finish: '+fmtL(sp[1]):'')))}
 function css(){if(document.getElementById('labcss'))return;const s=document.createElement('style');s.id='labcss';s.textContent=`
 #labw{position:fixed;inset:0;z-index:9000;background:rgba(15,30,45,.45);display:flex;align-items:flex-end;justify-content:center}
-#labw .lb{background:#f6f8fb;width:min(860px,100%);height:min(92vh,100%);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
-@media(min-width:900px){#labw{align-items:center}#labw .lb{border-radius:20px;height:86vh}}
-#labw .lh{display:flex;align-items:center;gap:10px;padding:14px 16px 10px;background:linear-gradient(135deg,#14324a,#1d5f8a);color:#fff}#labw .lh h3{margin:0;font-size:17px;flex:1}#labw .lh small{display:block;font-weight:400;opacity:.8;font-size:12px;margin-top:2px}
-#labw .lx{width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:16px;cursor:pointer}
-#labw .lt{display:flex;gap:4px;padding:8px 12px;background:#fff;border-bottom:1px solid #e3eaf0;overflow-x:auto}#labw .lt button{border:0;background:#eef3f8;border-radius:99px;padding:7px 13px;font-weight:700;font-size:13px;color:#41566b;cursor:pointer;white-space:nowrap;font-family:inherit}#labw .lt button.on{background:#1d5f8a;color:#fff}
-#labw .lc{flex:1;overflow:auto;padding:12px 14px}#labw .lf{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e3eaf0}
-#labw .lf button{border-radius:12px;padding:10px 14px;font-weight:700;font-size:13.5px;cursor:pointer;border:1px solid #d5dfe8;background:#fff;font-family:inherit}#labw .lf [data-ap]{flex:1 1 140px}#labw .lf [data-sv]{font-size:12px;padding:6px 10px;border-radius:10px;color:#8a6a1f;border-color:#ecdcb4;background:#fffaf0}#labw .lf .go{background:#0a6b3d;color:#fff;border-color:#0a6b3d}#labw .lf .mg{background:#1d5f8a;color:#fff;border-color:#1d5f8a}#labw .lf button[disabled]{opacity:.4}
-#labw .tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}#labw .tc{background:#fff;border:1.5px solid #e3eaf0;border-radius:14px;padding:10px;cursor:pointer;text-align:start;font-family:inherit;position:relative}#labw .tc.on{border-color:#BF9849;box-shadow:0 0 0 3px #f6ecd6}#labw .tc b{display:block;font-size:14px;color:#14324a}#labw .tc small{color:#6b7c8c;font-size:12px}#labw .tc .ic{font-size:22px;display:block;margin-bottom:4px}#labw .tc .del{position:absolute;top:6px;inset-inline-end:6px;border:0;background:#fdecea;color:#c0392b;border-radius:8px;font-size:11px;padding:2px 6px;cursor:pointer}
-#labw .sec{font-weight:800;color:#1d5f8a;margin:14px 0 6px;font-size:13.5px}#labw .q{background:#fff;border:1px solid #e3eaf0;border-radius:14px;padding:12px;margin-bottom:10px}#labw .q>b{display:block;margin-bottom:6px;color:#14324a}#labw .q .h{font-size:12px;color:#6b7c8c;margin:-2px 0 8px}
-#labw textarea,#labw input[type=text]{width:100%;box-sizing:border-box;border:1px solid #d5dfe8;border-radius:10px;padding:8px;font-family:inherit;font-size:14px}#labw textarea{min-height:70px}
-#labw .ck{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px}#labw .ck input{width:18px;height:18px}#labw .chs{display:flex;flex-wrap:wrap;gap:6px}#labw .chs button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}#labw .chs button.on{background:#1d5f8a;color:#fff;border-color:#1d5f8a}
-#labw .tr{background:#fff;border-radius:14px;border:1px solid #e3eaf0;padding:6px 8px}#labw .tn{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px dashed #eef2f6}#labw .tn:last-child{border:0}#labw .tn input[type=text]{border:1px solid transparent;background:transparent;padding:4px 6px;font-size:13.5px}#labw .tn input[type=text]:focus{border-color:#d5dfe8;background:#fff}#labw .tn.l0 input[type=text]{font-weight:800;color:#14324a}#labw .tn.off{opacity:.4}#labw .tn .du{width:58px!important;flex:0 0 58px;text-align:center}#labw .tn .dd{font-size:11.5px;color:#6b7c8c;white-space:nowrap}
-#labw .sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}#labw .sum span{background:#fff;border:1px solid #e3eaf0;border-radius:99px;padding:4px 10px;font-size:12.5px}
-#labw .tip{background:#fff8e6;border:1px solid #f1dfb3;border-radius:12px;padding:10px;font-size:12.5px;color:#6b5420;margin-bottom:10px}`;document.head.appendChild(s)}
+#labw .lb{background:#f6f8fb;width:min(860px,100%);height:min(94vh,100%);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+@media(min-width:900px){#labw{align-items:center}#labw .lb{border-radius:20px;height:88vh}}
+#labw .lh{display:flex;align-items:center;gap:10px;padding:12px 14px 8px;background:linear-gradient(135deg,#14324a,#1d5f8a);color:#fff}#labw .lh h3{margin:0;font-size:16px;flex:1}#labw .lh small{display:block;font-weight:400;opacity:.8;font-size:11.5px;margin-top:2px}
+#labw .lx{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;flex:0 0 34px}
+#labw .lt{display:flex;gap:4px;padding:7px 10px;background:#fff;border-bottom:1px solid #e3eaf0;overflow-x:auto}#labw .lt button{border:0;background:#eef3f8;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12.5px;color:#41566b;cursor:pointer;white-space:nowrap;font-family:inherit}#labw .lt button.on{background:#1d5f8a;color:#fff}
+#labw .lc{flex:1;overflow:auto;padding:10px 12px}#labw .lf{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e3eaf0}
+#labw .lf button{border-radius:12px;padding:9px 12px;font-weight:700;font-size:13px;cursor:pointer;border:1px solid #d5dfe8;background:#fff;font-family:inherit}#labw .lf [data-ap]{flex:1 1 140px}#labw .lf [data-sv]{font-size:11.5px;padding:5px 9px;border-radius:10px;color:#8a6a1f;border-color:#ecdcb4;background:#fffaf0}#labw .lf .go{background:#0a6b3d;color:#fff;border-color:#0a6b3d}#labw .lf .mg{background:#1d5f8a;color:#fff;border-color:#1d5f8a}#labw .lf button[disabled]{opacity:.4}
+#labw .tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:7px}#labw .tc{background:#fff;border:1.5px solid #e3eaf0;border-radius:12px;padding:9px;cursor:pointer;text-align:start;font-family:inherit;position:relative}#labw .tc.on{border-color:#BF9849;box-shadow:0 0 0 3px #f6ecd6}#labw .tc b{display:block;font-size:13px;color:#14324a}#labw .tc small{color:#6b7c8c;font-size:11.5px}#labw .tc .ic{font-size:20px;display:block;margin-bottom:2px}#labw .tc .del{position:absolute;top:6px;inset-inline-end:6px;border:0;background:#fdecea;color:#c0392b;border-radius:8px;font-size:11px;padding:2px 6px;cursor:pointer}
+#labw .sec{font-weight:800;color:#1d5f8a;margin:12px 0 6px;font-size:13.5px}#labw .q{background:#fff;border:1px solid #e3eaf0;border-radius:14px;padding:12px;margin-bottom:10px}#labw .q>b{display:block;margin-bottom:6px;color:#14324a;font-size:14.5px}#labw .q .h{font-size:12px;color:#6b7c8c;margin:-2px 0 8px}
+#labw .why{background:#eef6fc;border-radius:10px;padding:8px 10px;font-size:12.5px;color:#1d4e6e;margin-top:8px}
+#labw textarea,#labw .q input[type=text],#labw .q input[type=date]{width:100%;box-sizing:border-box;border:1px solid #d5dfe8;border-radius:10px;padding:8px;font-family:inherit;font-size:14px}#labw textarea{min-height:70px}
+#labw .ck{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px}#labw .ck input{width:18px;height:18px;flex:0 0 18px}#labw .chs{display:flex;flex-wrap:wrap;gap:6px}#labw .chs button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:6px 12px;font-size:13px;cursor:pointer;font-family:inherit}#labw .chs button.on{background:#1d5f8a;color:#fff;border-color:#1d5f8a}
+#labw .tr{background:#fff;border-radius:14px;border:1px solid #e3eaf0;padding:4px 8px}
+#labw .tn{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px dashed #eef2f6}#labw .tn:last-child{border:0}
+#labw .tn input[type=checkbox]{width:18px!important;height:18px;flex:0 0 18px!important;margin:0}
+#labw .tn .nm{flex:1 1 auto!important;width:auto!important;min-width:0!important;border:1px solid transparent;background:transparent;padding:4px 6px;font-size:13px;font-family:inherit;color:#14324a;border-radius:8px}#labw .tn .nm:focus{border-color:#d5dfe8;background:#fff}
+#labw .tn.l0 .nm{font-weight:800}#labw .tn.off{opacity:.4}#labw .tn.ev{background:#fff4e0;border-radius:10px;padding:6px}
+#labw .tn .du{width:46px!important;flex:0 0 46px!important;min-width:0!important;text-align:center;border:1px solid #d5dfe8;border-radius:8px;padding:4px 2px;font-size:13px;font-family:inherit}
+#labw .tn .dd{flex:0 0 auto;font-size:11px;color:#6b7c8c;white-space:nowrap;text-align:end;line-height:1.25}#labw .tn .dd b{display:block;color:#1d5f8a;font-weight:700}
+#labw .tn .pst{flex:0 0 auto;font-size:10.5px;border:1px solid #ecdcb4;background:#fffaf0;color:#8a6a1f;border-radius:99px;padding:1px 7px;cursor:pointer;white-space:nowrap;font-family:inherit}#labw .tn .pst.on{background:#BF9849;color:#fff;border-color:#BF9849}
+#labw .fin{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}#labw .fin div{background:#fff;border:1px solid #e3eaf0;border-radius:12px;padding:8px 10px}#labw .fin small{display:block;color:#6b7c8c;font-size:11px}#labw .fin b{font-size:15px;color:#14324a}#labw .fin .big{grid-column:1/-1;border-width:2px}#labw .fin .ok{border-color:#1c7a45;background:#f0faf4}#labw .fin .bad{border-color:#d1101d;background:#fff4f4}
+#labw .fin .big b{font-size:18px}#labw .fin .act{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;background:none;border:0;padding:0}#labw .fin .act button{border:1px solid #d5dfe8;background:#fff;border-radius:10px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-family:inherit}
+#labw .stp{display:flex;gap:4px;margin-bottom:10px}#labw .stp i{flex:1;height:5px;border-radius:9px;background:#dfe7ef}#labw .stp i.on{background:#1d5f8a}
+#labw .nav{display:flex;gap:8px;justify-content:space-between;margin:6px 0 4px}#labw .nav button{border-radius:12px;padding:10px 16px;font-weight:700;font-size:14px;cursor:pointer;border:1px solid #d5dfe8;background:#fff;font-family:inherit}#labw .nav .nx{background:#1d5f8a;color:#fff;border-color:#1d5f8a}
+#labw .gl{background:#fff;border:1px solid #e3eaf0;border-radius:12px;padding:10px;margin-bottom:8px}#labw .gl b{color:#14324a}#labw .gl div{font-size:12.5px;color:#41566b;margin-top:3px}
+#labw table.gd{width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border-radius:12px;overflow:hidden}#labw table.gd td{border-bottom:1px solid #eef2f6;padding:7px 8px}#labw table.gd td:last-child{white-space:nowrap;color:#1d5f8a;font-weight:700}
+#labw .tip{background:#fff8e6;border:1px solid #f1dfb3;border-radius:12px;padding:9px;font-size:12.5px;color:#6b5420;margin-bottom:10px}`;document.head.appendChild(s)}
 function close(){const o=document.getElementById('labw');if(o)o.remove();document.body.style.overflow=''}
+/* بطاقة الانتهاء المخطط */
+function finH(sc){const d=cr.data,en=dn(d.edate),st=startDay(),ev=sc.ev;if(sc.hi==null)return '';
+ const over=!isNaN(en)?wdays(en+1,sc.hi):0,early=ev!=null&&sc.lo!=null&&sc.lo<st?wdays(sc.lo,st-1):0,past=ev!=null&&sc.lo!=null&&sc.lo<todayN();
+ const okE=isNaN(en)||sc.hi<=en,cls=(okE&&!early)?'ok':'bad';
+ return `<div class="fin"><div class="big ${cls}"><small>🏁 ${L('الانتهاء المخطط لهذه الخطة','Planned finish of this plan')}</small><b>${fmtL(sc.hi)}</b><small>${isNaN(en)?'':okE?'✅ '+L('ضمن نهاية المشروع ('+fmtL(en)+')','Within the project end ('+fmtL(en)+')'):'⚠️ '+L('تتجاوز نهاية المشروع ('+fmtL(en)+') بـ '+ad(over)+' يوم عمل','Exceeds the project end ('+fmtL(en)+') by '+over+' work days')}</small></div>
+ <div><small>▶ ${L('البداية','Start')}</small><b>${fmtL(sc.lo)}</b>${early?`<small style="color:#d1101d">⚠️ ${L('تبدأ قبل بداية المشروع بـ '+ad(early)+' يوم عمل','Starts '+early+' work days before the project start')}</small>`:past?`<small style="color:#d1101d">⚠️ ${L('بدايتها في الماضي — الوقت ضيق','Start is in the past — time is tight')}</small>`:''}</div>
+ <div><small>⏱ ${L('المدة الكلية','Total duration')}</small><b>${ad(wdays(sc.lo,sc.hi))}</b> <small style="display:inline">${L('يوم عمل','work days')}</small></div>
+ ${ev!=null?`<div style="grid-column:1/-1;background:#fff4e0;border-color:#f1dfb3"><small>📌 ${L('الحدث المحوري','Key event')}</small><b>${esc(S.ev.n||L('الحدث','Event'))} · ${fmtL(ev)}</b><small>${ad(sc.pre.length)} ${L('مهمة قبله','tasks before it')} · ${ad(sc.post.length)} ${L('بعده','after it')}</small></div>`:''}
+ <div class="act">${!isNaN(en)||ev!=null?`<button data-fit="1">📐 ${ev!=null?L('ملاءمة المدد حتى موعد الحدث','Fit durations up to the event'):L('ملاءمة المدد مع مدة المشروع','Fit durations to the project period')}</button>`:''}${(cr.data.tasks||[]).length?`<button data-md="${S.mode=='merge'?'replace':'merge'}">${S.mode=='merge'?L('🔁 احسب كاستبدال','🔁 Compute as replace'):L('➕ احسب كدمج بعد الخطة الحالية','➕ Compute as merge after current plan')}</button>`:''}</div></div>`}
+function evH(){const e=S.ev;return `<div class="q"><b>📌 ${L('هل ترتبط المهام بحدث أو موعد ثابت؟','Are the tasks tied to a fixed event or date?')}</b><div class="h">${L('مثل: موعد فعالية، إطلاق، نشر، افتتاح، اجتماع مجلس. ستُخطَّط كل المهام عكسيًا لتنتهي قبله، وما بعده (التقييم والإغلاق) يبدأ بعده.','e.g. an event, launch, publication, opening or board meeting. All tasks are planned backwards to finish before it; what comes after (evaluation, closure) starts after it.')}</div>
+ <label class="ck"><input type="checkbox" data-evon ${e.on?'checked':''}> ${L('نعم، يوجد حدث محوري','Yes, there is a key event')}</label>
+ ${e.on?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px"><input type="text" data-evn value="${esc(e.n)}" placeholder="${L('اسم الحدث: مثل حفل الإطلاق','Event name, e.g. Launch ceremony')}"><input type="date" data-evd value="${esc(e.d)}"></div><div class="why">💡 ${L('في المعاينة اضغط «بعد الحدث» على أي مرحلة تحدث بعده.','In the preview, tap “After event” on any phase that happens after it.')}</div>`:''}</div>`}
 function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر نموذجًا أو أجب عن أسئلة المعالج لتظهر المعاينة هنا.','Pick a template or answer the wizard to see a preview here.')}</div>`;
- const rows=[];const walk=(arr,lv,path)=>arr.forEach((n,i)=>{const p=path.concat(i);rows.push(`<div class="tn l${lv} ${n.off?'off':''}" style="padding-inline-start:${lv*18}px"><input type="checkbox" ${n.off?'':'checked'} data-tog="${p.join('.')}"><input type="text" value="${esc(n.n)}" data-nm="${p.join('.')}">${n.ch?`<span class="dd">${ad(dur(n))} ${L('يوم','d')}</span>`:(n.ms?`<span class="dd">◆ ${L('معلم','milestone')}</span>`:`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p.join('.')}" title="${L('المدة بأيام العمل','Duration (work days)')}">`)}</div>`);if(n.ch)walk(n.ch,lv+1,p)});walk(tr,0,[]);
- const on=t=>t.filter(n=>!n.off);const cnt=(a)=>on(a).reduce((s,n)=>s+1+(n.ch?cnt(n.ch):0),0),D=on(tr).reduce((s,n)=>s+dur({ch:n.ch?on(n.ch):null,du:n.du}),0),dp=depth(on(tr)),lv=cr.data.levels||3;
- return `<div class="sum"><span>📦 ${ad(cnt(tr))} ${L('عنصر','items')}</span><span>⏱ ${ad(D)} ${L('يوم عمل','work days')}</span><span>🗂 ${ad(dp)} ${L('مستويات','levels')}</span>${dp>lv?`<span style="background:#fff8e6">${L('سيُرفع عدد مستويات الخطة إلى ','Plan levels will be raised to ')}${ad(Math.min(3,dp))}</span>`:''}</div>
- <div class="tip">✏️ ${L('عدّل الأسماء والمدد مباشرة، وألغِ تحديد ما لا تحتاجه. التواريخ تُوزَّع تلقائيًا على مدة المشروع عند الاستبدال، وتبدأ بعد آخر مهمة عند الدمج.','Edit names and durations, untick what you don’t need. Dates are spread over the project period on replace, and start after the last task on merge.')}</div><div class="tr">${rows.join('')}</div>`}
-function nodeAt(p){const ix=p.split('.').map(Number);let a=S.tree,n=null;ix.forEach((i,k)=>{n=a[i];a=n&&n.ch});return n}
+ const sc=schedule(tr,startDay()),rows=[];
+ const walk=(arr,lv,path)=>arr.forEach((n,i)=>{const p=path.concat(i),r=sc.R.get(n),dt=r?(r[0]==r[1]?fmt(r[0]):fmt(r[0])+' ← '+fmt(r[1])):'';
+  rows.push(`<div class="tn l${lv} ${n.off?'off':''}" style="padding-inline-start:${lv*14}px"><input type="checkbox" ${n.off?'':'checked'} data-tog="${p.join('.')}"><input type="text" class="nm" value="${esc(n.n)}" data-nm="${p.join('.')}">${lv==0&&S.ev.on?`<button class="pst ${n.post?'on':''}" data-post="${p.join('.')}">${n.post?L('بعد الحدث','After'):L('قبل الحدث','Before')}</button>`:''}${n.ch?`<span class="dd"><b>${ad(dur(n))} ${L('يوم','d')}</b>${dt}</span>`:(n.ms?`<span class="dd"><b>◆ ${L('معلم','milestone')}</b>${dt}</span>`:`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p.join('.')}" title="${L('المدة بأيام العمل','Duration (work days)')}"><span class="dd">${dt.replace(' ← ','<br>')}</span>`)}</div>`);if(n.ch)walk(n.ch,lv+1,p)});
+ const pre=tr.filter(n=>!n.post),post=tr.filter(n=>n.post);
+ walk(tr,0,[]);
+ if(sc.ev!=null){const k=pre.filter(n=>!n.off).length;let idx=0,cnt=0;for(;idx<rows.length;idx++){if(rows[idx].indexOf('tn l0')>=0){if(cnt==k)break;cnt++}}rows.splice(idx,0,`<div class="tn ev"><span style="font-size:16px">📌</span><b style="flex:1">${esc(S.ev.n||L('الحدث','Event'))}</b><span class="dd"><b>${L('حدث ثابت','Fixed event')}</b>${fmt(sc.ev)}</span></div>`)}
+ if(sc.bn){const r=sc.R.get(sc.bn);rows.push(`<div class="tn"><span>🛟</span><span style="flex:1;font-size:13px">${esc(sc.bn.n)}</span><span class="dd"><b>${ad(sc.bn.du)} ${L('يوم','d')}</b>${r?fmt(r[0])+'<br>'+fmt(r[1]):''}</span></div>`)}
+ const on=t=>t.filter(n=>!n.off),dp=depth(on(tr)),lv=cr.data.levels||3;
+ return finH(sc)+`<div class="tip">✏️ ${L('عدّل الأسماء والمدد (بأيام العمل) مباشرة وستتحدث التواريخ والانتهاء المخطط فورًا. ألغِ تحديد ما لا تحتاجه.','Edit names and durations (work days); dates and the planned finish update instantly. Untick what you don’t need.')}${dp>lv?' '+L('سيُرفع عدد مستويات الخطة إلى ','Plan levels will be raised to ')+ad(Math.min(3,dp))+'.':''}</div><div class="tr">${rows.join('')}</div>`}
+function nodeAt(p){const ix=p.split('.').map(Number);let a=S.tree,n=null;ix.forEach(i=>{n=a&&a[i];a=n&&n.ch});return n}
 function tplTab(){const adm=me&&me.role=='admin',T2=S.tpls||[];
  return `<div class="sec">🧩 ${L('النماذج الأساسية','Built-in templates')}</div><div class="tg">${Object.keys(TY).map(k=>`<button class="tc ${S.src=='ty:'+k?'on':''}" data-ty="${k}"><span class="ic">${TY[k].i}</span><b>${lt(TY[k].n)}</b><small>${ad(TY[k].ph.length)} ${L('مراحل','phases')}</small></button>`).join('')}${Object.keys(TPL).map(k=>`<button class="tc ${S.src=='tp:'+k?'on':''}" data-tp="${k}"><span class="ic">📁</span><b>${TPL[k][lang]}</b><small>${L('نموذج البداية السريعة','Quick-start template')}</small></button>`).join('')}</div>
- <div class="sec">🏛 ${L('نماذج المركز المعتمدة','Centre-approved templates')}</div>${T2.length?`<div class="tg">${T2.map((x,i)=>`<button class="tc ${S.src=='ct:'+i?'on':''}" data-ct="${i}"><span class="ic">⭐</span><b>${esc(x.name)}</b><small>${esc(x.desc||'')} · ${ad(leaves(x.tree))} ${L('مهمة','tasks')}</small>${adm?`<span class="del" data-dt="${i}">${L('حذف','Delete')}</span>`:''}</button>`).join('')}</div>`:`<div class="tip">${L('لا توجد نماذج معتمدة بعد.','No approved templates yet.')}${adm?' '+L('يمكنك حفظ أي خطة جيدة كنموذج من زر «حفظ كنموذج» بالأسفل.','Save any good plan as a template with “Save as template” below.'):''}</div>`}
- ${S.tree?`<div class="sec">👁 ${L('المعاينة','Preview')}</div>${treeH()}`:''}`}
-function wizTab(){const ty=TY[S.ty];if(!S.ph||S.ph.length!=ty.ph.length)S.ph=ty.ph.map(()=>true);const d=cr.data;
- return `<div class="tip">💡 ${L('أجب عن الأسئلة التالية وسيقترح المختبر خطة كاملة بمراحلها ومهامها ومددها، ثم تعدّلها قبل إضافتها.','Answer these questions and the lab will propose a full plan with phases, tasks and durations that you can edit before adding.')}</div>
- <div class="q"><b>1. ${L('ما نوع المشروع؟','What kind of project is it?')}</b><div class="chs">${Object.keys(TY).map(k=>`<button class="${S.ty==k?'on':''}" data-wty="${k}">${TY[k].i} ${lt(TY[k].n)}</button>`).join('')}</div></div>
- <div class="q"><b>2. ${L('ما المراحل التي تحتاجها؟','Which phases do you need?')}</b>${ty.ph.map((p,i)=>`<label class="ck"><input type="checkbox" data-wph="${i}" ${S.ph[i]?'checked':''}> ${lt(p[0])} <small class="mut">(${p[1].map(q=>lt(q[0])).join('، ')})</small></label>`).join('')}
-  <div class="h" style="margin-top:8px">${L('مراحل إضافية خاصة بمشروعك (سطر لكل مرحلة):','Extra phases for your project (one per line):')}</div><textarea data-wcu placeholder="${L('مثال: التجهيز الميداني','e.g. Field preparation')}">${esc(S.cust)}</textarea></div>
- <div class="q"><b>3. ${L('ما المخرجات الرئيسية؟','What are the main deliverables?')}</b><div class="h">${L('سطر لكل مخرج. ستُضاف لكل مخرج مهمة إعداد ومهمة مراجعة واعتماد.','One per line. Each gets a prepare task and a review & approval task.')}</div><textarea data-wdl placeholder="${L('مثال: التقرير النهائي\nدليل المستخدم','e.g. Final report\nUser guide')}">${esc(S.dl)}</textarea>${d.deliv||d.outputs?`<div class="h" style="margin-top:6px">${L('من الميثاق: ','From the charter: ')}${esc(String(d.deliv||d.outputs).slice(0,160))}</div>`:''}</div>
- <div class="q"><b>4. ${L('هل يحتاج المشروع إلى أي مما يلي؟','Does the project need any of these?')}</b>${EX.map(e=>`<label class="ck"><input type="checkbox" data-wex="${e[0]}" ${S.ex[e[0]]?'checked':''}> ${lt(e[1])}</label>`).join('')}</div>
- <div class="q"><b>5. ${L('مستوى التفصيل','Level of detail')}</b><div class="chs">${[['brief',['مختصر (مراحل فقط)','Brief (phases only)']],['med',['متوسط','Standard']],['full',['مفصّل مع معالم','Detailed with milestones']]].map(o=>`<button class="${S.det==o[0]?'on':''}" data-wdt="${o[0]}">${lt(o[1])}</button>`).join('')}</div></div>
- <div class="sec">👁 ${L('الخطة المقترحة','Proposed plan')}</div>${treeH()}`}
-function ideasTab(){const ts=cr.data.tasks||[],M2={};ts.forEach(x=>M2[x.id]=x);const kids=id=>ts.filter(x=>x.p==id),lf=ts.filter(x=>!kids(x.id).length);
- const iss=[];const noW=lf.filter(x=>!x.w).length,noD=lf.filter(x=>!x.s||!x.e).length,long=lf.filter(x=>{try{return wdays(dn(x.s),dn(x.e))>20}catch(_){return false}}).length,ms=ts.filter(x=>x.ms).length;
+ <div class="sec">🏛 ${L('نماذج المركز المعتمدة','Centre-approved templates')}</div>${T2.length?`<div class="tg">${T2.map((x,i)=>`<button class="tc ${S.src=='ct:'+i?'on':''}" data-ct="${i}"><span class="ic">⭐</span><b>${esc(x.name)}</b><small>${esc(x.desc||'')} · ${ad(leaves(x.tree))} ${L('مهمة','tasks')}</small>${adm?`<span class="del" data-dt="${i}">${L('حذف','Delete')}</span>`:''}</button>`).join('')}</div>`:`<div class="tip">${L('لا توجد نماذج معتمدة بعد.','No approved templates yet.')}${adm?' '+L('يمكنك حفظ أي خطة جيدة كنموذج من زر «حفظ كنموذج» بالأسفل.','Save any good plan as a template below.'):''}</div>`}
+ ${S.tree?`<div class="sec">👁 ${L('المعاينة والتواريخ','Preview & dates')}</div>${evH()}${treeH()}`:''}`}
+/* المعالج خطوة بخطوة */
+const STEPS=[
+ ()=>`<div class="q"><b>${L('ما نوع مشروعك؟','What kind of project is it?')}</b><div class="chs">${Object.keys(TY).map(k=>`<button class="${S.ty==k?'on':''}" data-wty="${k}">${TY[k].i} ${lt(TY[k].n)}</button>`).join('')}</div><div class="why">💡 ${L('لكل نوع مراحل معروفة مجرّبة. اختر الأقرب، وستعدّل التفاصيل لاحقًا. إذا لم تجد نوعك اختر «مشروع عام».','Each type has proven phases. Pick the closest; you will adjust later. If unsure, choose “General project”.')}</div></div>`,
+ ()=>evH()+`<div class="why">💡 ${L('التخطيط العكسي: عندما يكون الموعد ثابتًا (مثل فعالية)، نبدأ من الموعد ونرجع للخلف لنعرف متى يجب أن تبدأ كل مهمة. إن لم يوجد حدث ثابت تخطَّ هذه الخطوة.','Backward planning: when a date is fixed (e.g. an event), we start from it and work back to know when each task must start. Skip if there is no fixed date.')}</div>`,
+ ()=>{const ty=TY[S.ty];if(!S.ph||S.ph.length!=ty.ph.length)S.ph=ty.ph.map(()=>true);return `<div class="q"><b>${L('ما المراحل التي تحتاجها؟','Which phases do you need?')}</b>${ty.ph.map((p,i)=>`<label class="ck"><input type="checkbox" data-wph="${i}" ${S.ph[i]?'checked':''}> <span><b>${lt(p[0])}</b> <small class="mut">(${p[1].map(q=>lt(q[0])).join('، ')})</small></span></label>`).join('')}
+  <div class="h" style="margin-top:8px">${L('مراحل إضافية خاصة بمشروعك (سطر لكل مرحلة):','Extra phases for your project (one per line):')}</div><textarea data-wcu placeholder="${L('مثال: التجهيز الميداني','e.g. Field preparation')}">${esc(S.cust)}</textarea><div class="why">💡 ${L('المرحلة = مجموعة مهام تخدم هدفًا واحدًا، وتنتهي بنتيجة واضحة (مثل: «التصميم» تنتهي بتصميم معتمد).','A phase = a group of tasks serving one goal and ending with a clear result (e.g. “Design” ends with an approved design).')}</div></div>`},
+ ()=>{const d=cr.data,ch=d.deliv||d.outputs||'';return `<div class="q"><b>${L('ما المخرجات الرئيسية؟','What are the main deliverables?')}</b><div class="h">${L('سطر لكل مخرج. ستُضاف لكل مخرج مهمة إعداد ومهمة مراجعة واعتماد.','One per line. Each gets a prepare task and a review & approval task.')}</div><textarea data-wdl placeholder="${L('مثال: التقرير النهائي\nدليل المستخدم','e.g. Final report\nUser guide')}">${esc(S.dl)}</textarea>${ch?`<button class="chs" style="border:0;background:none;padding:0;margin-top:6px"><span class="tc" data-chdl="1" style="display:inline-block;padding:6px 10px;font-size:12.5px">📄 ${L('استخدم مخرجات الميثاق','Use the charter deliverables')}</span></button>`:''}<div class="why">💡 ${L('المخرج = شيء ملموس يُسلَّم (تقرير، نظام، فعالية). اسأل نفسك: ماذا سأسلّم في النهاية؟','A deliverable is something tangible you hand over (a report, a system, an event). Ask: what will I deliver at the end?')}</div></div>`},
+ ()=>`<div class="q"><b>${L('هل يحتاج المشروع إلى أي مما يلي؟','Does the project need any of these?')}</b>${EX.map(e=>`<label class="ck"><input type="checkbox" data-wex="${e[0]}" ${S.ex[e[0]]?'checked':''}> ${lt(e[1])}</label>`).join('')}<div class="why">💡 ${L('أكثر ما يُنسى في الخطط: وقت المشتريات والتعاقد (قد يأخذ أسابيع)، ووقت الاعتمادات، والتدريب قبل التشغيل.','Most often forgotten: procurement time (can take weeks), approval time, and training before go-live.')}</div></div>`,
+ ()=>`<div class="q"><b>${L('مستوى التفصيل','Level of detail')}</b><div class="chs">${[['brief',['مختصر (مراحل فقط)','Brief (phases only)']],['med',['متوسط','Standard']],['full',['مفصّل مع معالم','Detailed with milestones']]].map(o=>`<button class="${S.det==o[0]?'on':''}" data-wdt="${o[0]}">${lt(o[1])}</button>`).join('')}</div></div>
+  <div class="q"><b>${L('خيارات ذكية','Smart options')}</b><label class="ck"><input type="checkbox" data-chain ${S.chain?'checked':''}> ${L('ربط المهام بالتسلسل (إذا تأخرت مهمة تتحرك التي بعدها تلقائيًا)','Link tasks in sequence (if one slips, the next moves automatically)')}</label><label class="ck"><input type="checkbox" data-buf ${S.buf?'checked':''}> ${L('إضافة هامش احتياطي 10٪ للطوارئ','Add a 10% contingency buffer')}</label><div class="why">💡 ${L('الهامش الاحتياطي يحميك من التأخير غير المتوقع (إجازات، اعتمادات متأخرة).','A buffer protects you from surprises (leave, late approvals).')}</div></div>`,
+ ()=>`<div class="sec">👁 ${L('خطتك المقترحة','Your proposed plan')}</div>${treeH()}`];
+function wizTab(){const n=STEPS.length,i=Math.max(0,Math.min(n-1,S.step));
+ return `<div class="stp">${STEPS.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('')}</div><div class="mut" style="font-size:12px;margin:-4px 0 8px">${L('الخطوة','Step')} ${ad(i+1)} / ${ad(n)}</div>${STEPS[i]()}
+ <div class="nav">${i>0?`<button data-stp="-1">${L('→ السابق','← Back')}</button>`:'<span></span>'}${i<n-1?`<button class="nx" data-stp="1">${L('التالي ←','Next →')}</button>`:''}</div>`}
+function ideasTab(){const ts=cr.data.tasks||[];const kids=id=>ts.filter(x=>x.p==id),lf=ts.filter(x=>!kids(x.id).length);
+ const iss=[];const noW=lf.filter(x=>!x.w&&!x.wn).length,noD=lf.filter(x=>!x.s||!x.e).length,long=lf.filter(x=>{try{return wdays(dn(x.s),dn(x.e))>20}catch(_){return false}}).length,ms=ts.filter(x=>x.ms).length,dep=lf.filter(x=>(x.dep||[]).length).length;
+ const sp=planSpan(),en=dn(cr.data.edate);
  if(!ts.length)iss.push(['📭',L('الخطة فارغة. ابدأ من نموذج أو من المعالج.','The plan is empty. Start from a template or the wizard.')]);
+ if(sp&&!isNaN(en)&&sp[1]>en)iss.push(['🏁',L('الانتهاء المخطط ('+fmtL(sp[1])+') بعد نهاية المشروع في الميثاق ('+fmtL(en)+'). قلّص المدد أو اطلب تعديل الميثاق.','Planned finish is after the charter end date.')]);
  if(noW)iss.push(['👤',L(ad(noW)+' مهمة بلا مكلّف. كلّف كل مهمة بشخص واحد مسؤول.',noW+' tasks have no assignee.')]);
  if(noD)iss.push(['📅',L(ad(noD)+' مهمة بلا تواريخ.',noD+' tasks have no dates.')]);
  if(long)iss.push(['✂️',L(ad(long)+' مهمة أطول من 20 يوم عمل؛ قسّمها إلى مهام أصغر لتسهيل المتابعة.',long+' tasks are longer than 20 work days; split them.')]);
- if(ts.length&&!ms)iss.push(['◆',L('لا توجد معالم (Milestones). أضف معلمًا عند نهاية كل مرحلة رئيسية.','No milestones. Add one at the end of each major phase.')]);
- if(lf.length>0&&lf.length<5)iss.push(['🔍',L('عدد المهام قليل جدًا؛ التفصيل يساعد على قياس الإنجاز بدقة.','Very few tasks; more detail helps measure progress.')]);
- const tips=[L('اجعل اسم المهمة فعلًا ونتيجة: «إعداد وثيقة المتطلبات» بدل «المتطلبات».','Name tasks as verb + result.'),L('مدة المهمة المثالية بين 3 و10 أيام عمل.','Ideal task length is 3–10 work days.'),L('ضع مهمة «مراجعة واعتماد» بعد كل مخرج رئيسي.','Add a review & approval task after each main deliverable.'),L('اربط المهام المتتابعة بالاعتمادية حتى يظهر المسار الحرج بدقة.','Link sequential tasks with dependencies so the critical path is accurate.'),L('اترك هامشًا 10٪ قبل موعد نهاية المشروع.','Leave a 10% buffer before the project end date.')];
- return `<div class="sec">🩺 ${L('فحص الخطة الحالية','Current plan check')}</div>${iss.length?iss.map(x=>`<div class="q" style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:20px">${x[0]}</span><span>${x[1]}</span></div>`).join(''):`<div class="q">✅ ${L('الخطة تبدو جيدة.','The plan looks good.')}</div>`}<div class="sec">💡 ${L('أفكار لتسهيل وضع الخطة','Tips for easier planning')}</div>${tips.map(x=>`<div class="q">• ${x}</div>`).join('')}`}
+ if(ts.length&&!ms)iss.push(['◆',L('لا توجد معالم. أضف معلمًا عند نهاية كل مرحلة رئيسية.','No milestones. Add one at the end of each major phase.')]);
+ if(lf.length>3&&dep<lf.length/3)iss.push(['🔗',L('معظم المهام غير مرتبطة ببعضها؛ اربطها (أو اربطها بحدث محوري) حتى تتحرك التواريخ معًا.','Most tasks are not linked; link them so dates move together.')]);
+ const G=[[L('المرحلة','Phase'),L('مجموعة مهام تخدم هدفًا واحدًا وتنتهي بنتيجة، مثل «التصميم».','A group of tasks serving one goal, e.g. “Design”.')],[L('المهمة','Task'),L('عمل محدد له شخص مسؤول وبداية ونهاية، مثل «إعداد كراسة الشروط».','Specific work with an owner, start and end.')],[L('المعلم ◆','Milestone ◆'),L('لحظة مهمة بلا مدة، مثل «اعتماد التصميم» أو «يوم الافتتاح».','An important moment with no duration.')],[L('الحدث المحوري 📌','Key event 📌'),L('موعد ثابت لا يتحرك؛ تُخطَّط المهام قبله عكسيًا.','A fixed date; tasks are planned backwards from it.')],[L('الاعتمادية 🔗','Dependency 🔗'),L('مهمة لا تبدأ إلا بعد انتهاء أخرى. تجعل التواريخ تتحرك معًا.','A task starts only after another ends.')],[L('المسار الحرج','Critical path'),L('سلسلة المهام التي إن تأخرت إحداها تأخر المشروع كله.','The chain where any delay delays the whole project.')],[L('الوزن','Weight'),L('أهمية المهمة في حساب نسبة الإنجاز.','How much a task counts in progress.')],[L('أيام العمل','Work days'),L('لا تُحسب الجمعة والسبت والعطل.','Weekends and holidays are excluded.')]];
+ const DU=[[L('اعتماد إداري / توقيع','Management approval'),L('3–5 أيام','3–5 d')],[L('مشتريات وتعاقد','Procurement & contract'),L('20–45 يومًا','20–45 d')],[L('تصميم هوية أو مطبوعات','Design of print/identity'),L('5–10 أيام','5–10 d')],[L('مراجعة وتدقيق لغوي','Review & proofreading'),L('3–5 أيام','3–5 d')],[L('طباعة','Printing'),L('5–7 أيام','5–7 d')],[L('حجز قاعة / مكان','Venue booking'),L('5–10 أيام','5–10 d')],[L('دعوات وتسجيل حضور','Invitations & registration'),L('10–15 يومًا','10–15 d')],[L('تطوير نظام صغير','Small system build'),L('20–40 يومًا','20–40 d')],[L('اختبار قبول المستخدم','UAT'),L('5–10 أيام','5–10 d')]];
+ const Q=[L('ما الذي يجب أن يكون صحيحًا يوم انتهاء المشروع؟','What must be true on the day the project ends?'),L('من يجب أن يوافق، ومتى؟','Who must approve, and when?'),L('ما الذي يعتمد على جهة خارجية (موردين، إدارات أخرى)؟','What depends on outsiders (suppliers, other departments)?'),L('ما أصعب مهمة؟ قسّمها.','What is the hardest task? Split it.'),L('هل هناك مواعيد لا تتحرك (فعالية، نهاية سنة مالية)؟','Any dates that cannot move (event, fiscal year end)?'),L('ما الإجازات والمناسبات خلال فترة المشروع؟','Which holidays fall in the project period?')];
+ return `<div class="sec">🩺 ${L('فحص خطتك الحالية','Check your current plan')}</div>${sp?`<div class="tip">🏁 ${L('الانتهاء المخطط حاليًا: ','Current planned finish: ')}<b>${fmtL(sp[1])}</b>${!isNaN(en)?' · '+L('نهاية الميثاق: ','Charter end: ')+fmtL(en):''}</div>`:''}${iss.length?iss.map(x=>`<div class="q" style="display:flex;gap:10px;align-items:flex-start"><span style="font-size:20px">${x[0]}</span><span>${x[1]}</span></div>`).join(''):`<div class="q">✅ ${L('الخطة تبدو جيدة.','The plan looks good.')}</div>`}
+ <div class="sec">🤔 ${L('أسئلة تساعدك قبل أن تخطط','Questions to ask before planning')}</div><div class="q">${Q.map(x=>`<div style="padding:4px 0">• ${x}</div>`).join('')}</div>
+ <div class="sec">📘 ${L('مصطلحات التخطيط بلغة بسيطة','Planning terms in plain words')}</div>${G.map(g=>`<div class="gl"><b>${g[0]}</b><div>${g[1]}</div></div>`).join('')}
+ <div class="sec">⏱ ${L('مدد استرشادية شائعة (أيام عمل)','Typical durations (work days)')}</div><table class="gd">${DU.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('')}</table>
+ <div class="sec">💡 ${L('نصائح','Tips')}</div>${[L('اجعل اسم المهمة فعلًا ونتيجة: «إعداد وثيقة المتطلبات» بدل «المتطلبات».','Name tasks as verb + result.'),L('مدة المهمة المثالية بين 3 و10 أيام عمل.','Ideal task length is 3–10 work days.'),L('ضع «مراجعة واعتماد» بعد كل مخرج رئيسي.','Add review & approval after each main deliverable.'),L('إذا كان لديك موعد ثابت استخدم «📌 ربط بحدث» ليُخطَّط كل شيء حوله.','If you have a fixed date, use “📌 Link to event”.'),L('اترك هامشًا 10٪ قبل موعد نهاية المشروع.','Leave a 10% buffer before the end date.')].map(x=>`<div class="q">• ${x}</div>`).join('')}`}
 function draw(){const o=document.getElementById('labw');if(!o)return;const adm=me&&me.role=='admin',ed=PL.canEdit,has=(cr.data.tasks||[]).length,sc=o.querySelector('.lc');const y=sc?sc.scrollTop:0;
- o.innerHTML=`<div class="lb"><div class="lh"><h3>🧪 ${L('مختبر الخطط','Plan lab')}<small>${L('نماذج جاهزة، ومعالج أسئلة، وأفكار لخطة أفضل','Ready templates, a question wizard and ideas for a better plan')}</small></h3><button class="lx" aria-label="close">✕</button></div>
- <div class="lt">${[['tpl',L('🧩 النماذج','🧩 Templates')],['wiz',L('🪄 المعالج','🪄 Wizard')],['ide',L('💡 أفكار وفحص','💡 Ideas & check')]].map(x=>`<button data-tab="${x[0]}" class="${S.tab==x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
+ const ae=document.activeElement,af=ae&&ae.closest&&ae.closest('#labw')?{k:Object.keys(ae.dataset||{})[0],v:ae.dataset?ae.dataset[Object.keys(ae.dataset)[0]]:null,s:ae.selectionStart}:null;
+ o.innerHTML=`<div class="lb"><div class="lh"><h3>🧪 ${L('مختبر الخطط','Plan lab')}<small>${L('نماذج جاهزة، ومعالج خطوة بخطوة، وتخطيط حول حدث، ودليل للمبتدئين','Templates, a step-by-step wizard, event-based planning and a beginner guide')}</small></h3><button class="lx" aria-label="close">✕</button></div>
+ <div class="lt">${[['tpl',L('🧩 النماذج','🧩 Templates')],['wiz',L('🪄 المعالج','🪄 Wizard')],['ide',L('📘 دليل وفحص','📘 Guide & check')]].map(x=>`<button data-tab="${x[0]}" class="${S.tab==x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
  <div class="lc">${S.tab=='tpl'?tplTab():S.tab=='wiz'?wizTab():ideasTab()}</div>
- <div class="lf">${S.tab!='ide'?(ed?`<button class="go" data-ap="replace" ${S.tree?'':'disabled'}>${has?L('↻ استبدال الخطة الحالية','↻ Replace current plan'):L('✔ إضافة إلى الخطة','✔ Add to plan')}</button>${has?`<button class="mg" data-ap="merge" ${S.tree?'':'disabled'}>＋ ${L('دمج مع الخطة الحالية','Merge with current plan')}</button>`:''}`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا؛ يمكنك الاطلاع فقط.','The plan is not editable now; view only.')}</span>`):''}
- ${adm?`<button data-sv="tree" ${S.tree?'':'disabled'} title="${L('حفظ المعاينة كنموذج معتمد','Save preview as an approved template')}">⭐ ${L('حفظ المعاينة كنموذج','Save preview as template')}</button>${has?`<button data-sv="plan">⭐ ${L('حفظ الخطة الحالية كنموذج','Save current plan as template')}</button>`:''}`:''}</div></div>`;
- const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y}
-function setTree(t,src,ag){S.tree=t;S.src=src;S.agile=!!ag;draw()}
+ <div class="lf">${S.tab!='ide'&&(S.tab=='tpl'||S.step==STEPS.length-1)?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ دمج مع الخطة الحالية','＋ Merge with current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا؛ يمكنك الاطلاع فقط.','The plan is not editable now; view only.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ المعاينة كنموذج','Save preview as template')}</button>${has?`<button data-sv="plan">⭐ ${L('حفظ الخطة الحالية كنموذج','Save current plan as template')}</button>`:''}`:''):(S.tab=='wiz'?`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your proposed plan.')}</span>`:'')}</div></div>`;
+ const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y;
+ if(af&&af.k){const el=o.querySelector(`[data-${af.k}${af.v?`="${af.v}"`:''}]`);if(el&&el.focus){el.focus();try{if(af.s!=null&&el.setSelectionRange)el.setSelectionRange(af.s,af.s)}catch(_){}}}}
+function setTree(t,src,ag){S.tree=markPost(t);S.src=src;S.agile=!!ag;draw()}
+let rt=0;const later=()=>{clearTimeout(rt);rt=setTimeout(draw,450)};
 window.labOpen=async function(){css();close();const o=document.createElement('div');o.id='labw';document.body.appendChild(o);document.body.style.overflow='hidden';
- o.addEventListener('click',async e=>{if(e.target===o)return close();const b=e.target.closest('button,[data-dt]');if(!b)return;const D=b.dataset;
+ if(!S.ev.d&&cr.data.edate)S.ev.d='';
+ o.addEventListener('click',async e=>{if(e.target===o)return close();const b=e.target.closest('button,[data-dt],[data-chdl]');if(!b)return;const D=b.dataset;
   if(b.classList.contains('lx'))return close();
   if(D.tab){S.tab=D.tab;if(S.tab=='wiz'){S.tree=wizBuild();S.src='wiz';S.agile=!!TY[S.ty].agile}return draw()}
   if(D.dt!=null){e.stopPropagation();const L2=(S.tpls||[]).slice(),x=L2[+D.dt];if(!confirm(L('حذف النموذج «'+x.name+'»؟','Delete template “'+x.name+'”?')))return;L2.splice(+D.dt,1);try{await saveT(L2);if(S.src=='ct:'+D.dt){S.tree=null;S.src=''}draw()}catch(er){msg(er.message||er)}return}
+  if(D.chdl){S.dl=String(cr.data.deliv||cr.data.outputs||'').split(/\n|،|,|;/).map(x=>x.trim()).filter(Boolean).join('\n');S.tree=wizBuild();return draw()}
   if(D.ty)return setTree(phTree(D.ty),'ty:'+D.ty,TY[D.ty].agile);
   if(D.tp)return setTree(tplTree(D.tp),'tp:'+D.tp);
   if(D.ct!=null)return setTree(clone(S.tpls[+D.ct].tree),'ct:'+D.ct);
   if(D.wty){S.ty=D.wty;S.ph=null;S.tree=wizBuild();S.agile=!!TY[S.ty].agile;return draw()}
   if(D.wdt){S.det=D.wdt;S.tree=wizBuild();return draw()}
+  if(D.stp){S.step=Math.max(0,Math.min(STEPS.length-1,S.step+(+D.stp)));S.tree=wizBuild();draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
+  if(D.post){const n=nodeAt(D.post);if(n){n.post=!n.post;draw()}return}
+  if(D.fit)return fit();
+  if(D.md){S.mode=D.md;return draw()}
   if(D.ap)return apply(D.ap);
   if(D.sv){const tr=D.sv=='plan'?fromPlan():clone(S.tree).filter(n=>!n.off);const nm=prompt(L('اسم النموذج:','Template name:'),D.sv=='plan'?(cr.data.pname||''):'');if(!nm)return;const ds2=prompt(L('وصف قصير (اختياري):','Short description (optional):'),'')||'';
    const strip=a=>a.filter(n=>!n.off).map(n=>n.ch?{n:n.n,ch:strip(n.ch)}:(n.ms?{n:n.n,du:0,ms:1}:{n:n.n,du:+n.du||1}));
-   try{const L2=(await loadT()).slice();L2.push({name:nm.trim(),desc:ds2.trim(),tree:strip(tr),by:me.full_name||'',at:new Date().toISOString().slice(0,10)});await saveT(L2);S.tab='tpl';msg(L('تم حفظ النموذج، وأصبح متاحًا لكل المستخدمين في مختبر الخطط.','Template saved and available to everyone in the plan lab.'));draw()}catch(er){msg(L('تعذّر الحفظ: ','Could not save: ')+(er.message||er))}}});
+   try{const L2=(await loadT()).slice();L2.push({name:nm.trim(),desc:ds2.trim(),tree:strip(tr),by:me.full_name||'',at:new Date().toISOString().slice(0,10)});await saveT(L2);S.tab='tpl';msg(L('تم حفظ النموذج، وأصبح متاحًا لكل المستخدمين في مختبر الخطط.','Template saved and available to everyone.'));draw()}catch(er){msg(L('تعذّر الحفظ: ','Could not save: ')+(er.message||er))}}});
  o.addEventListener('change',e=>{const D=e.target.dataset;
   if(D.tog){const n=nodeAt(D.tog);if(n){n.off=!e.target.checked;draw()}}
   if(D.wph!=null){S.ph[+D.wph]=e.target.checked;S.tree=wizBuild();draw()}
-  if(D.wex){S.ex[D.wex]=e.target.checked;S.tree=wizBuild();draw()}});
+  if(D.wex){S.ex[D.wex]=e.target.checked;S.tree=wizBuild();draw()}
+  if(D.evon!=null){S.ev.on=e.target.checked;if(S.tree){S.tree.forEach(n=>{if(!S.ev.on)delete n.post});markPost(S.tree)}draw()}
+  if(D.evd!=null){S.ev.d=e.target.value;draw()}
+  if(D.chain!=null){S.chain=e.target.checked}
+  if(D.buf!=null){S.buf=e.target.checked;draw()}});
  o.addEventListener('input',e=>{const D=e.target.dataset;
   if(D.nm){const n=nodeAt(D.nm);if(n)n.n=e.target.value}
-  if(D.du){const n=nodeAt(D.du);if(n){const v=parseInt(String(e.target.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));n.du=v>0?v:1}}
+  if(D.du){const n=nodeAt(D.du);if(n){const v=parseInt(String(e.target.value).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));n.du=v>0?v:1;later()}}
+  if(D.evn!=null){S.ev.n=e.target.value;later()}
   if(D.wcu!=null){S.cust=e.target.value}if(D.wdl!=null){S.dl=e.target.value}});
- o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.wcu!=null||D.wdl!=null){S.tree=wizBuild();setTimeout(draw,350)}if(D.du!=null)setTimeout(draw,350)});
+ o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.wcu!=null||D.wdl!=null){S.tree=wizBuild()}});
  draw();await loadT();draw()};
 })();
-</script><script src="ido-ui.js?v=19"></script></body></html>
+</script><script>/*evlink*/
+/* ===== ربط المهام بحدث محوري (فعالية، نشر، افتتاح…) + شريط «الانتهاء المخطط» أثناء التخطيط ===== */
+(function(){
+const L=(a,e)=>lang=='ar'?a:e;
+const fmtL=n=>{if(n==null||isNaN(n))return '—';const p=ds(n).split('-');return (+p[2])+'/'+(+p[1])+'/'+p[0]};
+let E={id:'',nw:false,n:'',d:'',sel:{},fx:true};
+const leafs=()=>T().filter(isLeaf);
+function evs(){return leafs().filter(x=>x.fx||x.ms)}
+function classify(evd){const S2={};leafs().forEach(x=>{if(x.id==E.id)return;const e=dn(x.e),s=dn(x.s);if(isNaN(e)&&isNaN(s))return;S2[x.id]=(!isNaN(s)&&s>evd)?'a':'b'});return S2}
+function close(){const o=document.getElementById('evw');if(o)o.remove();document.body.style.overflow=''}
+function evDate(){if(E.nw)return dn(E.d);const x=byId(E.id);return x?dn(x.s):NaN}
+function draw(){const o=document.getElementById('evw');if(!o)return;const L2=leafs(),ev=evs(),evd=evDate(),y=(o.querySelector('.ev-eb')||{}).scrollTop||0;
+ const path=x=>{const a=[];let p=M[x.id]&&M[x.id].par;while(p){a.unshift(p.n||'');p=M[p.id]&&M[p.id].par}return a.join(' › ')};
+ const nb=Object.values(E.sel).filter(v=>v=='b').length,na=Object.values(E.sel).filter(v=>v=='a').length;
+ o.innerHTML=`<div class="ev-ebx"><div class="ev-eh"><b>📌 ${L('ربط المهام بحدث محوري','Link tasks to a key event')}</b><button class="ev-ex">✕</button></div><div class="ev-eb">
+ <div class="ev-ei">${L('اختر حدثًا ثابتًا (فعالية، موعد نشر، افتتاح…). المهام «قبل الحدث» تُرتَّب تلقائيًا لتنتهي قبله، والمهام «بعد الحدث» تبدأ بعده. إذا تغيّر موعد الحدث تتحرك كل المهام المرتبطة معه.','Pick a fixed event (launch, publication, opening…). “Before” tasks are scheduled to finish before it; “After” tasks start after it. If the event moves, linked tasks move with it.')}</div>
+ <div class="ev-es"><b>1. ${L('الحدث','The event')}</b>
+  <label class="ev-ec"><input type="radio" name="evk" data-nw="0" ${!E.nw?'checked':''} ${ev.length?'':'disabled'}> ${L('مهمة أو معلم موجود في الخطة','An existing task or milestone')}</label>
+  ${!E.nw?`<select data-eid style="width:100%"><option value="">${L('— اختر —','— choose —')}</option>${L2.map(x=>`<option value="${x.id}" ${E.id==x.id?'selected':''}>${x.fx?'📌 ':x.ms?'◆ ':''}${esc(x.n||'—')} (${esc(x.s||'')})</option>`).join('')}</select>`:''}
+  <label class="ev-ec"><input type="radio" name="evk" data-nw="1" ${E.nw?'checked':''}> ${L('حدث جديد','A new event')}</label>
+  ${E.nw?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><input data-en value="${esc(E.n)}" placeholder="${L('اسم الحدث','Event name')}"><input type="date" data-ed value="${esc(E.d)}"></div>`:''}
+  <label class="ev-ec"><input type="checkbox" data-efx ${E.fx?'checked':''}> ${L('تثبيت موعد الحدث (لا يتحرك)','Fix the event date (it does not move)')}</label></div>
+ ${isNaN(evd)?'':`<div class="ev-es"><b>2. ${L('المهام المرتبطة','Linked tasks')}</b><div class="ev-eq"><button data-all="b">${L('الكل قبل الحدث','All before')}</button><button data-all="auto">${L('حسب تواريخها','By their dates')}</button><button data-all="x">${L('إلغاء الكل','Clear')}</button></div>
+  ${L2.filter(x=>x.id!=E.id).map(x=>{const v=E.sel[x.id]||'';return `<div class="ev-er"><div class="ev-en2"><b>${esc(x.n||'—')}</b><small>${esc(path(x))}${path(x)?' · ':''}${esc(x.s||'')} ← ${esc(x.e||'')}</small></div><div class="ev-eg">${[['b',L('قبل','Before')],['a',L('بعد','After')],['',L('بدون','None')]].map(z=>`<button data-t="${x.id}" data-v="${z[0]}" class="${v==z[0]?'on':''} ${z[0]}">${z[1]}</button>`).join('')}</div></div>`}).join('')}</div>`}
+ </div><div class="ev-ef"><span class="mut">${isNaN(evd)?'':L('الحدث: ','Event: ')+fmtL(evd)+' · '+L(nb+' قبل · '+na+' بعد',nb+' before · '+na+' after')}</span><button class="p" data-go ${isNaN(evd)||!(nb+na)?'disabled':''}>🔗 ${L('اربط','Link')}</button></div></div>`;
+ const b=o.querySelector('.ev-eb');if(b)b.scrollTop=y}
+function apply(){const evd=evDate();if(isNaN(evd))return;snap();let ev;
+ if(E.nw){ev=blankTask('',ds(evd),ds(evd));ev.n=E.n||L('الحدث الرئيسي','Key event');ev.ms=1;T().push(ev)}else ev=byId(E.id);if(!ev)return;
+ if(E.fx)ev.fx=1;let lk=0,sk=0;const mp=()=>succMap();
+ Object.keys(E.sel).forEach(id=>{const v=E.sel[id],x=byId(id);if(!x||!v)return;
+  if(v=='b'){if(reaches(ev.id,x.id,mp())){sk++;return}ev.dep=(ev.dep||[]).filter(d=>d.t!=x.id);ev.dep.push({t:x.id,y:'FS',l:0});lk++}
+  else{if(reaches(x.id,ev.id,mp())){sk++;return}x.dep=(x.dep||[]).filter(d=>d.t!=ev.id);x.dep.push({t:ev.id,y:'FS',l:0});lk++}});
+ propagate();norm();rollup();close();renderPlan();pSave();
+ const sp=planSpan(),st=dn(cr.data.sdate),early=leafs().filter(x=>!isNaN(st)&&dn(x.s)<st).length,past=leafs().filter(x=>(+x.pc||0)<100&&dn(x.s)<todayN()).length;
+ msg(L('تم ربط '+ad(lk)+' مهمة بالحدث «'+ev.n+'» ('+fmtL(dn(ev.s))+').'+(sk?'\n'+ad(sk)+' مهمة لم تُربط لتجنّب حلقة في الاعتماديات.':'')+(early?'\n⚠️ '+ad(early)+' مهمة أصبحت تبدأ قبل بداية المشروع؛ قلّص مددها أو أخّر الحدث.':'')+(sp?'\nالانتهاء المخطط: '+fmtL(sp[1]):''),'Linked '+lk+' tasks to “'+ev.n+'”.'+(sk?'\n'+sk+' skipped to avoid a loop.':'')+(early?'\n⚠️ '+early+' tasks now start before the project start.':'')))}
+window.evOpen=function(){if(!PL.canEdit)return;const ex=evs();E={id:ex.length?ex.find(x=>x.fx)?ex.find(x=>x.fx).id:ex[0].id:'',nw:!ex.length,n:'',d:cr.data.edate||'',sel:{},fx:true};
+ if(!E.nw){const evd=evDate();if(!isNaN(evd))E.sel=classify(evd)}
+ if(!document.getElementById('evcss')){const s=document.createElement('style');s.id='evcss';s.textContent=`#evw{position:fixed;inset:0;z-index:9000;background:rgba(15,30,45,.45);display:flex;align-items:flex-end;justify-content:center}#evw .ev-ebx{background:#f6f8fb;width:min(720px,100%);max-height:92vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden}@media(min-width:900px){#evw{align-items:center}#evw .ev-ebx{border-radius:20px}}#evw .ev-eh{display:flex;align-items:center;padding:12px 14px;background:#fff4e0;border-bottom:1px solid #f1dfb3}#evw .ev-eh b{flex:1;font-size:15px}#evw .ev-ex{width:34px;height:34px;border-radius:50%;border:1px solid #e3eaf0;background:#fff;cursor:pointer}#evw .ev-eb{overflow:auto;padding:10px 12px;flex:1}#evw .ev-ei{font-size:12.5px;color:#41566b;background:#fff;border-radius:12px;padding:9px;margin-bottom:8px}#evw .ev-es{background:#fff;border:1px solid #e3eaf0;border-radius:12px;padding:10px;margin-bottom:8px}#evw .ev-es>b{display:block;margin-bottom:6px;color:#14324a}#evw .ev-ec{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13.5px}#evw .ev-ec input{width:18px;height:18px;flex:0 0 18px}#evw input:not([type]),#evw input[type=date],#evw select{box-sizing:border-box;border:1px solid #d5dfe8;border-radius:10px;padding:8px;font-family:inherit;font-size:14px;width:100%;min-width:0}#evw .ev-eq{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}#evw .ev-eq button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit}#evw .ev-er{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #eef2f6}#evw .ev-en2{flex:1;min-width:0}#evw .ev-en2 b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#evw .ev-en2 small{display:block;font-size:11px;color:#7b8a99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#evw .ev-eg{display:flex;flex:0 0 auto;border:1px solid #d5dfe8;border-radius:10px;overflow:hidden}#evw .ev-eg button{border:0;background:#fff;padding:5px 8px;font-size:12px;cursor:pointer;font-family:inherit}#evw .ev-eg button.on.b{background:#1d5f8a;color:#fff}#evw .ev-eg button.on.a{background:#BF9849;color:#fff}#evw .ev-eg button.on:not(.a):not(.b){background:#eef3f8}#evw .ev-ef{display:flex;align-items:center;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:#fff;border-top:1px solid #e3eaf0}#evw .ev-ef .mut{flex:1;font-size:12px}#evw .ev-ef button{padding:10px 18px;border-radius:12px}#evw .ev-ef button[disabled]{opacity:.4}`;document.head.appendChild(s)}
+ close();const o=document.createElement('div');o.id='evw';document.body.appendChild(o);document.body.style.overflow='hidden';
+ o.addEventListener('click',e=>{if(e.target===o)return close();const b=e.target.closest('button');if(!b)return;const D=b.dataset;if(b.classList.contains('ev-ex'))return close();
+  if(D.t){E.sel[D.t]=D.v;return draw()}
+  if(D.all){const evd=evDate();if(D.all=='x')E.sel={};else if(D.all=='b'){E.sel={};leafs().forEach(x=>{if(x.id!=E.id)E.sel[x.id]='b'})}else E.sel=classify(evd);return draw()}
+  if(D.go!=null)return apply()});
+ o.addEventListener('change',e=>{const D=e.target.dataset;if(D.nw!=null){E.nw=D.nw=='1';E.sel={};const evd=evDate();if(!isNaN(evd))E.sel=classify(evd);return draw()}
+  if(D.eid!=null){E.id=e.target.value;const evd=evDate();E.sel=isNaN(evd)?{}:classify(evd);return draw()}
+  if(D.ed!=null){E.d=e.target.value;const evd=evDate();if(!isNaN(evd)&&!Object.keys(E.sel).length)E.sel=classify(evd);return draw()}
+  if(D.efx!=null){E.fx=e.target.checked}});
+ o.addEventListener('input',e=>{if(e.target.dataset.en!=null)E.n=e.target.value});
+ draw()};
+/* شريط الانتهاء المخطط (يظهر أثناء التخطيط) */
+window.finBarH=function(){if(!cr||!T().length)return '';const sp=planSpan();if(!sp)return '';const d=cr.data,en=dn(d.edate),st=dn(d.sdate),over=!isNaN(en)&&sp[1]>en?wdays(en+1,sp[1]):0,early=!isNaN(st)&&sp[0]<st?wdays(sp[0],st-1):0,ok=!over&&!early;
+ const ev=T().filter(x=>x.fx&&isLeaf(x)).sort((a,b)=>dn(a.s)-dn(b.s));
+ return `<div class="finbar ${ok?'ok':'bad'}"><div><small>🏁 ${L('الانتهاء المخطط','Planned finish')}</small><b>${fmtL(sp[1])}</b></div><div><small>▶ ${L('البداية','Start')}</small><b>${fmtL(sp[0])}</b></div><div><small>${L('نهاية الميثاق','Charter end')}</small><b>${fmtL(en)}</b></div><div class="st">${ok?'✅ '+L('ضمن المدة','On time'):over?'⚠️ '+L('تتجاوز بـ '+ad(over)+' يوم عمل','Over by '+over+' work days'):'⚠️ '+L('تبدأ قبل بداية المشروع','Starts before project start')}</div>${ev.length?`<div class="evl">${ev.slice(0,3).map(x=>`📌 ${esc(x.n||'')}: <b>${fmtL(dn(x.s))}</b>`).join(' · ')}</div>`:''}</div>`};
+const s=document.createElement('style');s.textContent=`.finbar{position:sticky;top:calc(var(--hdh,64px) + 4px);z-index:30;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;background:#fff;border:2px solid #1c7a45;border-radius:14px;padding:7px 12px;margin:6px 0 8px;box-shadow:0 4px 14px rgba(16,42,67,.10)}.finbar.bad{border-color:#d1101d;background:#fff8f8}.finbar small{display:block;font-size:10.5px;color:#6b7c8c}.finbar b{font-size:14px;color:#14324a}.finbar>div:first-child b{font-size:16px}.finbar .st{margin-inline-start:auto;font-size:12.5px;font-weight:700}.finbar.ok .st{color:#1c7a45}.finbar.bad .st{color:#d1101d}.finbar .evl{flex-basis:100%;font-size:12px;color:#8a6a1f;border-top:1px dashed #eef2f6;padding-top:4px}
+@media(max-width:640px){.lvs{grid-template-columns:1fr 1fr!important;gap:7px!important}.lvc{padding:9px!important}.lvc b{font-size:13px}.lvc .tree{font-size:11px!important;line-height:1.55!important;margin-top:4px!important}.lvc .mut{font-size:11.5px}}`;document.head.appendChild(s);
+function hdh(){try{let b=0;document.querySelectorAll('header,#hd,#hd2,.top,.hdr,.ttl').forEach(e=>{const c=getComputedStyle(e);if(c.position!='fixed'&&c.position!='sticky')return;const r=e.getBoundingClientRect();if(r.top<=1&&r.height>0&&r.bottom<innerHeight/2)b=Math.max(b,r.bottom)});document.documentElement.style.setProperty('--hdh',Math.round(b||0)+'px')}catch(_){}}
+addEventListener('resize',hdh);setTimeout(hdh,600);setInterval(hdh,2000);
+})();
+</script><script src="ido-ui.js?v=20"></script></body></html>
