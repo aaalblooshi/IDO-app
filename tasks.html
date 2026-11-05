@@ -225,7 +225,7 @@ async function reload(){
   const hid={};CFGW={};cf.forEach(c=>{if(c.hidden&&!(c.hidden_users||[]).includes(ME.id))hid[c.pcode]=1;if(c.weight!=null)CFGW[c.pcode]=+c.weight});
   if(ADM){try{const ss=await sb.from('app_settings').select('key,value').in('key',['w_ratio','w_sector']);WRx=2;WSx={};(ss.data||[]).forEach(s=>{if(s.key=='w_ratio'&&+s.value>0)WRx=+s.value;if(s.key=='w_sector'){try{WSx=JSON.parse(s.value)||{}}catch(_){}}})}catch(_){}}
   const best={};pl.forEach(p=>{const k=p.pc||p.code;if(hid[k]&&!ADM)return;if(!best[k]||p.id>best[k].id)best[k]=p});
-  rows=Object.values(best).map(p=>({id:p.id,code:p.code,pcode:p.pc||p.code,pname:p.pn,sc:p.sc,pt:p.pt,wm:p.wm,pm:p.pm,cb:p.created_by,tasks:p.tasks||[]}))}
+  rows=Object.values(best).map(p=>({id:p.id,code:p.code,pcode:p.pc||p.code,pname:(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||''),sc:p.sc,pt:p.pt,wm:p.wm,pm:p.pm,cb:p.created_by,tasks:p.tasks||[]}))}
  try{const {data}=await sb.from('closure_reports').select('id,status,archived,pc:data->>pcode');CLS={};(data||[]).filter(c=>!c.archived).forEach(c=>{if(c.pc&&(!CLS[c.pc]||c.id>CLS[c.pc].id))CLS[c.pc]=c})}catch(_){CLS={}}
  PR=rows.map(mkProject).sort((a,b)=>a.pname.localeCompare(b.pname,'ar'));
  ALLR=[];PR.forEach(p=>p.rs.forEach(r=>ALLR.push(r)));

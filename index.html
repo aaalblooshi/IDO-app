@@ -495,7 +495,7 @@ async function load(){
    T.forEach(x=>{try{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
     const s0=dn(x.s),e0=dn(x.e),pc=+x.pc||0;let stg;if(pc>=100)stg=5;else if(e0!=null&&e0<td)stg=4;else if(s0!=null&&s0>td)stg=1;else if(pc>0)stg=3;else stg=2;if(pc<100)open++;
     var nums=[];const path=[];{let c=x,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}let pre='';nums=path.map((q,i)=>{const sib=T.filter(z=>(z.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(z=>z.id==q.id)+1);return pre})}
-    E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:x.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',tw:x.w||'',ts:x.s||'',te:x.e||'',tas:x.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(x.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:stg>=2&&stg<=4,roles:new Set(['tk','pm']),own:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})}catch(er){window.CMERR=(window.CMERR||[]).concat('task '+String(er&&er.message||er))}});
+    E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:x.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:(((p.tasks||[]).some(q=>q&&q.spr))?'🔄 ':'')+(p.pname||''),tw:x.w||'',ts:x.s||'',te:x.e||'',tas:x.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(x.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:stg>=2&&stg<=4,roles:new Set(['tk','pm']),own:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})}catch(er){window.CMERR=(window.CMERR||[]).concat('task '+String(er&&er.message||er))}});
    E.mt[p.id]=open})}catch(er){window.CMERR=(window.CMERR||[]).concat('tasks '+String(er&&er.message||er))}
   /* مهام الآخرين: الأدمن (كل المشاريع)، مدير المشروع (مشاريعه)، مسؤول الوحدة (مشاريع وحداته) — المفتوحة الجارية أو المتأخرة أو المستحقة خلال ١٤ يومًا */
   try{const adm=me.role=='admin',hu=me.head_units||[],hc=new Set();
@@ -508,7 +508,7 @@ async function load(){
     T.forEach(z=>{if(par.has(z.id)||have.has(p.id+'|'+z.id))return;const pc=+z.pc||0;if(pc>=100)return;const s0=dn(z.s),e0=dn(z.e);
      let stg;if(e0!=null&&e0<td)stg=4;else if(s0!=null&&s0>td)stg=1;else if(pc>0)stg=3;else stg=2;if(stg==1&&!(e0!=null&&e0-td<=14)&&!E.tu)return;
      const path=[];{let c=z,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}}let pre='';const nums=path.map((q,i)=>{const sib=T.filter(y=>(y.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(y=>y.id==q.id)+1);return pre});
-     E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:z.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:p.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:z.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(z.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:false,roles:new Set([pm?'pm':hd||tmP?'uh':'of']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})})})}catch(_){}
+     E.items.push({k:'tasks',p:'tasks.html',id:p.id,tid:z.id,tpath:path.map((q,i)=>({n:q.n||'—',w:nums[i]})),tpn:(((p.tasks||[]).some(q=>q&&q.spr))?'🔄 ':'')+(p.pname||''),tw:z.w||'',ts:z.s||'',te:z.e||'',tas:z.as||'',tpc:pc,code:p.code,pc:p.pcode||'',name:(z.n||'—')+' — '+(p.pname||''),st:'',stage:stg,act:false,roles:new Set([pm?'pm':hd||tmP?'uh':'of']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0})})})}catch(_){}
   {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
   if(!E.scope)E.scope=E.items.some(i=>i.oth)?'all':'mine';
   /* مدد مخصصة لكل طلب */
