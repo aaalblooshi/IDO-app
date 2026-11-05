@@ -3361,7 +3361,7 @@ function evH(){const E=S.evs;return `<div class="q"><b>📌 ${L('هل ترتبط
  ${E.map((e,i)=>`<div class="evr"><input type="text" data-evn="${i}" value="${esc(e.n)}" placeholder="${L('اسم الحدث','Event name')}"><button class="evd" data-evd="${i}">📅 ${e.d?fmt(dn(e.d)):L('التاريخ','Date')}</button><label class="evu"><input type="text" inputmode="numeric" data-evu="${i}" value="${ad(e.du||1)}"><small>${L('يوم','days')}</small></label><button class="evx" data-evx="${i}">✕</button></div>`).join('')}
  <button class="evadd" data-evadd="1">＋ ${E.length?L('إضافة حدث آخر','Add another event'):L('إضافة حدث','Add an event')}</button>${E.length?`<div class="why">💡 ${L('في المعاينة اختر لكل مرحلة: قبل أي حدث أو بعده.','In the preview, choose for each phase: before or after which event.')}</div>`:''}</div>`}
 /* المعاينة: شجرة قابلة للسحب على كل المستويات */
-function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر نموذجًا أو أجب عن أسئلة المعالج لتظهر المعاينة هنا.','Pick a template or answer the wizard to see a preview here.')}</div>`;
+function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر نموذجًا أو أجب عن أسئلة مساعد التخطيط لتظهر المعاينة هنا.','Pick a template or answer the wizard to see a preview here.')}</div>`;
  const sc=schedule(tr,startDay()),E=sc.E,tops=tr.map((n,i)=>({n,i})).filter(z=>!z.n.off&&z.n.ch);
  const node=(n,lv,path,idx)=>{const r=sc.R.get(n),dt=r?(r[0]==r[1]?fmt(r[0]):fmt(r[0])+' ← '+fmt(r[1])):'',p=path;
   const anc=lv==0&&E.length?`<select class="anc" data-anc="${p}"><option value="">${L('بلا ربط بحدث','No event link')}</option>${E.map(e=>`<option value="b${e.i}" ${n.anc=='b'+e.i?'selected':''}>${L('قبل: ','Before: ')+esc(e.n)}</option><option value="a${e.i}" ${n.anc=='a'+e.i?'selected':''}>${L('بعد: ','After: ')+esc(e.n)}</option>`).join('')}</select>`:'';
@@ -3406,7 +3406,7 @@ const DU=[
  [['الموارد البشرية والتدريب','HR & training'],[[['استقطاب موظف جديد','Recruit a new hire'],45,'30–60'],[['انتداب داخلي','Internal secondment'],10,'5–15'],[['إعداد مادة تدريبية','Training material'],7,'5–10'],[['تنفيذ دورة تدريبية','Run a course'],3,'1–5']]]];
 function issues(){const ts=cr.data.tasks||[];const kids=id=>ts.filter(x=>x.p==id),lf=ts.filter(x=>!kids(x.id).length),tops=ts.filter(x=>!x.p&&kids(x.id).length);const out=[];
  const noW=lf.filter(x=>!x.w&&!x.wn&&!x.fx).length,noD=lf.filter(x=>!x.s||!x.e).length,long=lf.filter(x=>{try{return !x.fx&&wdays(dn(x.s),dn(x.e))>20}catch(_){return false}}).length,msN=lf.filter(x=>x.ms||x.fx||(x.s&&x.s==x.e)).length,dep=lf.filter(x=>(x.dep||[]).length).length,sp=planSpan(),en=dn(cr.data.edate),st=dn(cr.data.sdate);
- if(!ts.length)out.push(['📭',L('الخطة فارغة. ابدأ من «النماذج» أو «المعالج».','The plan is empty. Start from Templates or the Wizard.'),'']);
+ if(!ts.length)out.push(['📭',L('الخطة فارغة. ابدأ من «النماذج» أو «مساعد التخطيط».','The plan is empty. Start from Templates or the Wizard.'),'']);
  if(sp&&!isNaN(en)&&sp[1]>en)out.push(['🏁',L('الخطة تنتهي ('+fmtL(sp[1])+') بعد نهاية الميثاق ('+fmtL(en)+').','The plan ends after the charter end.'),'']);
  if(sp&&!isNaN(st)&&sp[0]<st)out.push(['▶',L('الخطة تبدأ ('+fmtL(sp[0])+') قبل بداية الميثاق ('+fmtL(st)+').','The plan starts before the charter start.'),'fxstart']);
  if(noD)out.push(['📅',L(ad(noD)+' مهمة بلا تواريخ.',noD+' tasks have no dates.'),'']);
@@ -3474,10 +3474,10 @@ function css(){if(document.getElementById('labcss'))return;const s=document.crea
 function draw(){const o=document.getElementById('labw');if(!o)return;const adm=me&&me.role=='admin',ed=PL.canEdit,has=(cr.data.tasks||[]).length,sc=o.querySelector('.lc');const y=sc?sc.scrollTop:0;
  const ae=document.activeElement,ak=ae&&ae.closest&&ae.closest('#labw')&&ae.dataset?Object.keys(ae.dataset)[0]:null,af=ak?{k:ak,v:ae.dataset[ak],s:ae.selectionStart}:null;
  const showAp=S.tab=='tpl'||(S.tab=='wiz'&&S.step==STEPS.length-1);
- o.innerHTML=`<div class="lb"><div class="lh"><h3>🧪 ${L('مختبر الخطط','Plan lab')}<small>${L('نماذج، ومعالج خطوة بخطوة، وتخطيط حول الأحداث، ومساعد للمبتدئين','Templates, a wizard, event planning and a helper')}</small></h3><button class="lx" aria-label="close">✕</button></div>
- <div class="lt">${[['tpl',L('🧩 النماذج','🧩 Templates')],['wiz',L('🪄 المعالج','🪄 Wizard')],['ide',L('💡 مساعد التخطيط','💡 Planning helper')]].map(x=>`<button data-tab="${x[0]}" class="${S.tab==x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
+ o.innerHTML=`<div class="lb"><div class="lh"><h3>🧪 ${L('مختبر الخطط','Plan lab')}<small>${L('نماذج جاهزة، ومساعد تخطيط خطوة بخطوة، وتخطيط حول الأحداث، وفحص للخطة','Templates, a step-by-step assistant, event planning and a plan check')}</small></h3><button class="lx" aria-label="close">✕</button></div>
+ <div class="lt">${[['tpl',L('🧩 النماذج','🧩 Templates')],['wiz',L('🪄 مساعد التخطيط','🪄 Planning assistant')],['ide',L('🩺 فحص الخطة','🩺 Plan check')]].map(x=>`<button data-tab="${x[0]}" class="${S.tab==x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
  <div class="lc">${S.tab=='tpl'?tplTab():S.tab=='wiz'?wizTab():ideasTab()}</div>
- ${showAp||S.tab=='wiz'?`<div class="lf"><span class="svd">${S.saved?'✓ '+L('حُفظت المسودة','Draft saved'):''}</span>${showAp?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ إضافة بعد الخطة الحالية','＋ Add after current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا.','The plan is not editable now.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ كنموذج','Save as template')}</button>`:''):`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your plan.')}</span>`}</div>`:''}</div>`;
+ ${showAp||S.tab=='wiz'?`<div class="lf"><span class="svd">${S.saved?'✓ '+L('حُفظت المسودة على جهازك — لن تتغير الخطة حتى تضيفها','Draft saved on this device — the plan changes only when you add it'):''}</span>${showAp?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ إضافة بعد الخطة الحالية','＋ Add after current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا.','The plan is not editable now.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ كنموذج','Save as template')}</button>`:''):`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your plan.')}</span>`}</div>`:''}</div>`;
  const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y;saveDraft();
  if(af){const el=o.querySelector(`[data-${af.k.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())}="${af.v}"]`);if(el&&el.focus){el.focus({preventScroll:true});try{if(af.s!=null&&el.setSelectionRange)el.setSelectionRange(af.s,af.s)}catch(_){}}}}
 function setTree(t,src,ag){S.hist=[];S.fut=[];S.note='';S.tree=markAnc(t);S.src=src;S.agile=!!ag;draw()}
@@ -3496,15 +3496,15 @@ function drag(e,h){const row=h.closest('[data-si]'),list=row&&row.parentElement.
  const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);cancelAnimationFrame(raf);rows.forEach(r=>{r.style.transform='';r.style.transition=''});row.classList.remove('drg');reorder(list.dataset.sl,from,to)};
  h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
 const num=v=>{const n=parseInt(String(v).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));return n>0?n:1};
-/* حفظ مسودة المعالج تلقائيًا (في الخطة نفسها عند صلاحية التعديل، وعلى الجهاز دائمًا) */
+/* مسودة مساعد التخطيط: تُحفظ على الجهاز فقط، ولا تدخل الخطة إلا عند ضغط «إضافة إلى الخطة» */
 const DK=()=>'labDraft:'+(cr&&cr.id);
 function draftObj(){return{v:1,at:Date.now(),S:{tab:S.tab,tree:S.tree,src:S.src,ty:S.ty,phl:S.phl,phlTy:S.phl&&S.phl.ty,dl:S.dl,det:S.det,ms:S.ms,step:S.step,evs:S.evs,chain:S.chain,buf:S.buf,mode:S.mode,agile:S.agile}}}
 let dT=0,dSig='';function saveDraft(){clearTimeout(dT);dT=setTimeout(()=>{if(!cr||!S.tree&&S.tab!='wiz')return;const o=draftObj(),sig=JSON.stringify(o.S);if(sig==dSig)return;dSig=sig;try{localStorage.setItem(DK(),JSON.stringify(o))}catch(_){}
- if(PL.canEdit){cr.data._lab=o;pSave()}S.saved=Date.now();const el=document.querySelector('#labw .svd');if(el)el.textContent='✓ '+L('حُفظت المسودة','Draft saved')},900)}
-function loadDraft(){let a=cr&&cr.data&&cr.data._lab,b=null;try{b=JSON.parse(localStorage.getItem(DK())||'null')}catch(_){}const o=[a,b].filter(x=>x&&x.S).sort((x,y)=>(y.at||0)-(x.at||0))[0];return o||null}
-function clearDraft(){try{localStorage.removeItem(DK())}catch(_){}if(cr&&cr.data&&cr.data._lab){delete cr.data._lab}dSig=''}
+ S.saved=Date.now();const el=document.querySelector('#labw .svd');if(el)el.textContent='✓ '+L('حُفظت المسودة على جهازك — لن تتغير الخطة حتى تضيفها','Draft saved on this device — the plan changes only when you add it')},900)}
+function loadDraft(){let a=null,b=null;try{b=JSON.parse(localStorage.getItem(DK())||'null')}catch(_){}const o=[a,b].filter(x=>x&&x.S).sort((x,y)=>(y.at||0)-(x.at||0))[0];return o||null}
+function clearDraft(){try{localStorage.removeItem(DK())}catch(_){}dSig=''}
 function applyDraft(o){const v=o.S;Object.assign(S,{tab:v.tab||'wiz',tree:v.tree,src:v.src,ty:v.ty||'gen',phl:v.phl,dl:v.dl||'',det:v.det||'med',ms:v.ms!==false,step:v.step||0,evs:v.evs||[],chain:v.chain!==false,buf:!!v.buf,mode:v.mode||'replace',agile:!!v.agile,hist:[],fut:[]});if(S.phl)S.phl.ty=v.phlTy;dSig=JSON.stringify(draftObj().S)}
-window.labOpen=async function(){css();close();
+window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delete cr.data._lab;
  if(S.pid!==(cr&&cr.id)){Object.assign(S,{pid:cr&&cr.id,tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:''});const dr=loadDraft();if(dr){applyDraft(dr);const t=new Date(dr.at);S.note='📝 '+L('استرجعنا مسودتك المحفوظة ('+t.toLocaleDateString('en-GB')+' '+t.toTimeString().slice(0,5)+'). ','We restored your saved draft ('+t.toLocaleString()+'). ')+`<button data-newd="1" class="lnk">${L('ابدأ من جديد','Start over')}</button>`}}const o=document.createElement('div');o.id='labw';o.className='no-dr';document.body.appendChild(o);document.body.style.overflow='hidden';
  o.addEventListener('pointerdown',e=>{const h=e.target.closest('.hd');if(h)drag(e,h)});
  o.addEventListener('click',async e=>{if(e.target===o)return close();const b=e.target.closest('button,[data-dt]');if(!b)return;const D=b.dataset;
@@ -3529,7 +3529,7 @@ window.labOpen=async function(){css();close();
   if(D.phadd){const inp=o.querySelector('[data-phnew]'),v=inp&&inp.value.trim();if(!v)return;const P2=phl(),cl=P2.filter(z=>z.on).pop();P2.splice(cl?P2.indexOf(cl):P2.length,0,{k:'c'+Date.now(),n:v,on:true});S.tree=wizBuild();return draw()}
   if(D.fix)return fixIt(D.fix);
   if(D.mn!=null)return menu(D.mn);
-  if(D.newd){if(!confirm(L('حذف المسودة والبدء من جديد؟','Discard the draft and start over?')))return;clearDraft();if(PL.canEdit)pSave();Object.assign(S,{tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',saved:0});return draw()}
+  if(D.newd){if(!confirm(L('حذف المسودة والبدء من جديد؟','Discard the draft and start over?')))return;clearDraft();Object.assign(S,{tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',saved:0});return draw()}
   if(D.undo)return undoL();
   if(D.redo)return redoL();
   if(D.addph){snapL(L('إضافة مرحلة','Add phase'));S.tree.push({n:L('مرحلة جديدة','New phase'),ch:[{n:L('مهمة جديدة','New task'),du:3}]});markAnc(S.tree);S.note='';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=c.scrollHeight;return}
