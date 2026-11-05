@@ -95,13 +95,13 @@ main{max-width:1100px;padding:10px 12px 0}
 .ib{background:none;width:40px;height:44px;font-size:24px;color:#54656f}.snd{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:#00a884;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.2)}html[dir=rtl] .snd svg{transform:scaleX(-1)}
 .pls{display:flex;flex-direction:column;gap:2px;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:6px;margin-bottom:6px;max-width:260px}.pls button{border:0;background:none;text-align:start;padding:9px 12px;border-radius:10px;font-size:14.5px}.pls button:active{background:#f0f2f5}
 @media(max-width:899px){
- .chat.has .conv{position:fixed;inset:0;top:0;height:var(--vvh,100dvh);z-index:5000;border:0;border-radius:0}
+ .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;height:var(--vvh,100dvh);z-index:5000;border:0;border-radius:0}
  .chat.has .chd{padding-top:max(8px,env(safe-area-inset-top))}
  .chat{height:calc(var(--vvh,100dvh) - 150px)}
  .chat:not(.has) .rail{border-radius:16px}
 }
 body.emb .chat{height:var(--vvh,100dvh)!important}
-body.emb .chat.has .conv{position:fixed;inset:0;height:var(--vvh,100dvh)}
+body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;height:var(--vvh,100dvh)}
  .ha{position:relative}.ha button{font-size:19px;color:#54656f}.hmn{position:absolute;top:100%;inset-inline-end:0;z-index:20;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;min-width:220px;display:flex;flex-direction:column}.hmn button{font-size:14.5px!important;text-align:start;padding:10px 12px!important;color:var(--ink)!important;white-space:nowrap}
  .hmn[hidden],.pls[hidden]{display:none!important}
  .msgs>:first-child{margin-top:auto}
@@ -372,7 +372,7 @@ function rtSend(ev){const k=myKeyFor();if(!RTG||!k)return;try{RTG.send({type:'br
 function rtPing(){const k=myKeyFor();if(!RTG||!k)return;try{RTG.send({type:'broadcast',event:'msg',payload:Object.assign({u:ME.id},k)})}catch(_){}}
 let _lsig='';function liveTick(){const sig=JSON.stringify(Object.keys(TYP).map(k=>[k,typingIn(k)]))+'|'+[...ONL].sort().join(',');if(sig==_lsig)return;_lsig=sig;drawRail();updHst()}
 /* لوحة المفاتيح على الهاتف: نعتمد الارتفاع الظاهر فعليًا */
-(function(){function vv(){const h=window.visualViewport?visualViewport.height:innerHeight;document.documentElement.style.setProperty('--vvh',h+'px')}vv();if(window.visualViewport){visualViewport.addEventListener('resize',()=>{vv();const b=$('msgs');if(b&&CUR)b.scrollTop=b.scrollHeight});visualViewport.addEventListener('scroll',()=>{if(document.querySelector('.chat.has'))window.scrollTo(0,0)})}addEventListener('resize',vv)})();
+(function(){function vv(){const h=window.visualViewport?visualViewport.height:innerHeight,t=window.visualViewport?Math.max(0,visualViewport.offsetTop):0;document.documentElement.style.setProperty('--vvh',h+'px');document.documentElement.style.setProperty('--vvt',t+'px')}vv();if(window.visualViewport){visualViewport.addEventListener('resize',()=>{vv();const b=$('msgs');if(b&&CUR)b.scrollTop=b.scrollHeight});visualViewport.addEventListener('scroll',()=>{vv();if(document.querySelector('.chat.has'))window.scrollTo(0,0)})}addEventListener('resize',vv)})();
 /* ---- التحميل والتحديث الدوري ---- */
 let _uSum=null;const uSum=()=>Object.keys(UNR).filter(k=>!PINS.has('m:'+k)&&(!CUR||k!=keyOf(CUR))).reduce((a,k)=>a+(+UNR[k]||0),0);
 async function refreshLists(){
