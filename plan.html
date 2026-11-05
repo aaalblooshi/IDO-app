@@ -3184,7 +3184,7 @@ function wizBuild(){const ty=TY[S.ty];let ph=ty.ph.map((p,i)=>({on:S.ph?S.ph[i]!
 /* تحويل الشجرة إلى مهام بتواريخ */
 function toTasks(tr,startN,fit){const flat=[];const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;flat.push({x,n,leaf:!n.ch});if(n.ch)walk(n.ch,x.id)});walk(tr,'');
  const lf=flat.filter(f=>f.leaf),tot=lf.reduce((a,f)=>a+(+f.n.du||0),0),d=cr.data,span=wdays(dn(d.sdate),dn(d.edate)),fac=fit&&span>0&&tot>0?Math.min(3,span/tot):1;
- let s=nextWork(startN);lf.forEach(f=>{if(f.n.ms){const e=addWork(s,-1);f.x.s=ds(Math.max(startN,e));f.x.e=f.x.s;return}const du=Math.max(1,Math.round((+f.n.du||1)*fac));f.x.s=ds(s);f.x.e=ds(addWork(s,du-1));s=addWork(s,du)});
+ let s=nextWork(startN),le=s;lf.forEach(f=>{if(f.n.ms){f.x.s=ds(le);f.x.e=f.x.s;return}const du=Math.max(1,Math.round((+f.n.du||1)*fac));f.x.s=ds(s);le=addWork(s,du-1);f.x.e=ds(le);s=addWork(s,du)});
  return flat.map(f=>f.x)}
 function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;const need=Math.min(3,depth(tr.filter(n=>!n.off)));
  const ts=cr.data.tasks||[],d=cr.data;let st=dn(d.sdate);if(isNaN(st))st=todayN();
