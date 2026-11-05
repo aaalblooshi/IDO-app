@@ -196,7 +196,7 @@ let ISO=null;
 async function start(){if(!TEAM())MODE='me';{const hh=location.hash;if(hh=='#team'&&TEAM()){MODE='team';ALLM=false}else if(/^#tab=(\w+)$/.test(hh)){TAB=hh.slice(5)}if(hh=='#team'||/^#tab=/.test(hh)){try{history.replaceState(null,'',location.pathname)}catch(_){}}}const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM()){MODE='team';ALLM=ALLOK()}stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';ALLM=ALLOK();await reload();if(!findR(k)&&!ALLM){ALLM=true;await reload()}}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
 let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
-function mkProject(p){
+function mkProject(p){try{(window.TRAW=window.TRAW||{})[p.id]=p.tasks||[]}catch(_){}
  const tasks=p.tasks||[],m={};tasks.forEach(x=>m[x.id]=x);
  const an=analyze(tasks,p.wm),kids=an.kids;
  const pr={pid:p.id,pcode:p.pcode||p.code||'',pname:p.pname||p.code||'',sc:+p.sc||0,pt:p.pt,pm:p.pm||'',cb:p.cb,wm:p.wm,tasks,m,an,kids};
@@ -389,7 +389,7 @@ function vProj(rs){
   const concerned=ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||!!ME.view_scope;
   const tree=CFG.wbs?wbsH(p,vis,''):(p.kids['']||[]).map(x=>nodeH(p,x,vis,0)).join('');
   return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="PEXP.has(${p.pid})?PEXP.delete(${p.pid}):PEXP.add(${p.pid});paint()"><b>${open?'▾':'▸'} ${esc(p.pname)}</b><span style="color:${hCol[h]}">● <span class="mut">${t('h_'+h)}</span></span></div>
-  <div class="mut"><span dir="ltr">${esc(p.pcode)}</span>${p.pm?' · '+esc(p.pm):''}${p.sc?' · '+esc(secN(p.sc)):''}</div>${pbar(a.a,a.ex,hCol[h])}
+  <div class="mut"><span dir="ltr">${esc(p.pcode)}</span>${p.pm?' · '+esc(p.pm):''}${p.sc?' · '+esc(secN(p.sc)):''} · <a href="#" onclick="event.preventDefault();event.stopPropagation();const r=(window.TRAW||{})[${p.pid}];if(r&&window.NetDiag)NetDiag.open(r,{title:'${esc(p.pname).replace(/'/g,'')}'})">🕸 ${lang=='ar'?'مخطط الشبكة':'Network'}</a></div>${pbar(a.a,a.ex,hCol[h])}
   <div class="stp" style="margin:2px 0">${['done','prog','fut','late'].map(k=>`<span style="--c:${SCOL[k]}"><b class="num">${cnt(k)}</b> ${t('st_'+k)}</span>`).join('')}</div>
   ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a>${ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRPL[p.pcode]?`<a href="plan.html#o=${p.pid}&e=1"><button>${t('pEdit')}</button></a>`:''}<button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
   ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}${tree}`:`<div class="row" style="margin-top:6px"><button onclick="PEXP.add(${p.pid});paint()">${t('pDet')}</button></div>`}</div>`}).join('')}
@@ -979,4 +979,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=20"></script></body></html>
+<script src="netdiag.js?v=3"></script><script src="ido-ui.js?v=20"></script></body></html>
