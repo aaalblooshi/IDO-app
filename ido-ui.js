@@ -313,3 +313,86 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
+
+/* تنبيه منبثق لبضع ثوانٍ عند وصول رسالة جديدة في التواصل (مثل برامج المحادثة) */
+(function () {
+  if (/chat\.html/.test(location.pathname)) return;
+  try { if (window.self !== window.top) return; } catch (e) { return; }
+  function on() { try { return localStorage.getItem('chatToast') !== '0'; } catch (e) { return true; } }
+  function ar() { try { return (localStorage.getItem('lang') || 'ar') !== 'en'; } catch (e) { return true; } }
+  var ME = null, BASE = null, busy = 0, NAMES = {}, CHN = {}, Q = [], showing = 0;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function css() {
+    if (document.getElementById('ctoastcss')) return;
+    var s = document.createElement('style'); s.id = 'ctoastcss';
+    s.textContent = '#ctoast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 10px);left:50%;z-index:2147483000;width:min(420px,calc(100vw - 24px));transform:translate(-50%,-140%);transition:transform .32s cubic-bezier(.2,.9,.3,1.2),opacity .25s;opacity:0;pointer-events:none}' +
+      '#ctoast.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}' +
+      '#ctoast .ct{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.97);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border:1px solid #dfe7ef;border-radius:18px;box-shadow:0 12px 34px rgba(16,42,67,.22);padding:11px 13px;cursor:pointer;font-family:inherit;direction:inherit;text-align:start}' +
+      '#ctoast .av{flex:0 0 40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1d5f8a,#3ea3dc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}' +
+      '#ctoast .tx{flex:1;min-width:0}#ctoast .nm{font-weight:800;font-size:14px;color:#14324a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ctoast .gp{font-weight:600;color:#6b7c8c;font-size:12px}' +
+      '#ctoast .bd{font-size:13px;color:#33475b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}' +
+      '#ctoast .x{flex:0 0 28px;height:28px;border-radius:50%;border:0;background:#eef3f8;color:#5b6b7b;font-size:13px;cursor:pointer}';
+    document.head.appendChild(s);
+  }
+  function pop(m) {
+    css();
+    var el = document.getElementById('ctoast'); if (!el) { el = document.createElement('div'); el.id = 'ctoast'; document.body.appendChild(el); }
+    var nm = m.name || (ar() ? 'رسالة جديدة' : 'New message');
+    el.innerHTML = '<div class="ct" role="status"><div class="av">' + esc((nm.trim()[0] || '💬')) + '</div><div class="tx"><div class="nm">' + esc(nm) + (m.grp ? ' <span class="gp">· ' + esc(m.grp) + '</span>' : '') + '</div><div class="bd">' + esc(m.body || (ar() ? '📎 مرفق' : '📎 Attachment')) + (m.more > 1 ? ' <b style="color:#1d5f8a">(+' + (m.more - 1) + ')</b>' : '') + '</div></div><button class="x" aria-label="close">✕</button></div>';
+    var t, y0 = null;
+    var hide = function () { clearTimeout(t); el.classList.remove('on'); setTimeout(function () { showing = 0; next(); }, 350); };
+    el.querySelector('.x').onclick = function (e) { e.stopPropagation(); hide(); };
+    el.querySelector('.ct').onclick = function () { location.href = 'chat.html?o=' + encodeURIComponent(m.key); };
+    el.ontouchstart = function (e) { y0 = e.touches[0].clientY; };
+    el.ontouchmove = function (e) { if (y0 != null && e.touches[0].clientY - y0 < -25) { y0 = null; hide(); } };
+    showing = 1; requestAnimationFrame(function () { el.classList.add('on'); });
+    t = setTimeout(hide, 4500);
+  }
+  function next() { if (!showing && Q.length) pop(Q.shift()); }
+  function name(id) {
+    if (NAMES[id]) return Promise.resolve(NAMES[id]);
+    return sb.from('profiles').select('full_name').eq('id', id).maybeSingle().then(function (r) { return (NAMES[id] = (r && r.data && r.data.full_name) || ''); }, function () { return ''; });
+  }
+  function chn(id) {
+    if (CHN[id] !== undefined) return Promise.resolve(CHN[id]);
+    return sb.from('chat_channels').select('name,pcode,kind').eq('id', id).maybeSingle().then(function (r) { var d = r && r.data; return (CHN[id] = d ? (d.name || d.pcode || '') : ''); }, function () { return ''; });
+  }
+  function chatOpen() { var p = document.getElementById('cpan'); return !!(p && p.classList.contains('on')); }
+  function check() {
+    if (busy || !ME || document.visibilityState !== 'visible') return; busy = 1;
+    sb.rpc('chat_unread').then(function (u) {
+      busy = 0; if (!u || u.error) return;
+      var cur = {}; (u.data || []).forEach(function (x) { var k = x.channel_id ? 'ch:' + x.channel_id : 'dm:' + x.from_user; cur[k] = (cur[k] || 0) + (+x.n || 0); });
+      var first = BASE === null, prev = BASE || {}; BASE = cur;
+      if (first || !on() || chatOpen()) return;
+      Object.keys(cur).forEach(function (k) {
+        var d = cur[k] - (prev[k] || 0); if (d <= 0) return;
+        var dm = k.indexOf('dm:') === 0, id = k.slice(3);
+        var q = sb.from('chat_messages').select('from_user,body,created_at').order('created_at', { ascending: false }).limit(1);
+        q = dm ? q.eq('from_user', id).eq('to_user', ME).is('channel_id', null) : q.eq('channel_id', id).neq('from_user', ME);
+        q.then(function (r) {
+          var m = r && r.data && r.data[0]; var who = m ? m.from_user : (dm ? id : null);
+          Promise.all([who ? name(who) : '', dm ? '' : chn(id)]).then(function (a) {
+            Q.push({ key: k, name: a[0], grp: a[1], body: m ? String(m.body || '').replace(/\s+/g, ' ').slice(0, 120) : '', more: d }); next();
+          });
+        });
+      });
+    }, function () { busy = 0; });
+  }
+  function rt() {
+    try {
+      if (!sb.channel) return;
+      sb.channel('ido-chat', { config: { broadcast: { self: false } } })
+        .on('broadcast', { event: 'msg' }, function (e) { var p = e && e.payload; if (!p || p.u === ME) return; if (p.to && p.to !== ME) return; setTimeout(check, 900); })
+        .subscribe();
+    } catch (e) {}
+  }
+  var n = 0;
+  (function w() {
+    if (typeof sb === 'undefined' || !sb || !sb.auth) { if (n++ < 40) setTimeout(w, 500); return; }
+    sb.auth.getSession().then(function (g) {
+      var s = g && g.data && g.data.session; if (!s) return; ME = s.user.id;
+      return sb.rpc('chat_on').then(function (r) { if (!(r && r.data === true)) return; check(); rt(); setInterval(check, 15000); document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); }); });
+    }).catch(function () {});
+  })();
+})();
