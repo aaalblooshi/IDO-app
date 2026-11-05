@@ -3303,11 +3303,11 @@ function schedule(tr,start){const E=EV(),R=new Map(),G={'':[]},bn=bufNode(tr);le
  return{R,lo,hi,E,G,bn}}
 function startDay(){const d=cr.data,ts=d.tasks||[];let st=dn(d.sdate);if(isNaN(st))st=todayN();if(S.mode=='merge'&&ts.length){const ends=ts.map(x=>dn(x.e)).filter(v=>!isNaN(v));if(ends.length)st=addWork(Math.max(...ends),1)}return st}
 /* ملاءمة المدد: بلا أحداث حتى نهاية الميثاق، ومع الأحداث تُضبط المهام قبل كل حدث لتتسع بين بدايتها والحدث */
-function fit(){if(!S.tree)return;const d=cr.data,st=startDay(),en=dn(d.edate),sc=schedule(S.tree,st),E=sc.E;
+function fit(){if(!S.tree)return;const d=cr.data,st=startDay(),en=dn(d.edate),sc=schedule(S.tree,st),E=sc.E,b0=[sc.lo,sc.hi];snapL(L('ملاءمة المدد','Fit durations'));
  const scale=(L2,avail)=>{const tot=L2.filter(f=>!f.ms).reduce((a,f)=>a+(+f.du||1),0);if(!tot||avail<=0)return;const k=avail/tot;L2.forEach(f=>{if(!f.ms)f.du=Math.max(1,Math.floor((+f.du||1)*k))})};
  if(!E.length){if(isNaN(en))return msg(L('لا يوجد تاريخ نهاية في الميثاق.','No end date in the charter.'));scale(sc.G['']||[],wdays(st,en))}
  else{let prev=st;E.forEach(e=>{if(sc.G['b'+e.i])scale(sc.G['b'+e.i],wdays(prev,e.s-1));prev=e.e+1});if(sc.G['']&&sc.G[''].length&&!isNaN(en))scale(sc.G[''],wdays(st,en))}
- draw()}
+ const a2=schedule(S.tree,st);S.note=L('📐 تمت الملاءمة: البداية '+fmtL(b0[0])+' ← '+fmtL(a2.lo)+'، والنهاية '+fmtL(b0[1])+' ← '+fmtL(a2.hi)+'. اضغط «↶ تراجع» للعودة.','📐 Fitted: start '+fmtL(b0[0])+' → '+fmtL(a2.lo)+', end '+fmtL(b0[1])+' → '+fmtL(a2.hi)+'. Tap Undo to revert.');draw()}
 /* تحويل الشجرة إلى مهام بتواريخ واعتماديات وأحداث مثبتة */
 function toTasks(tr,start){const sc=schedule(tr,start),out=[],idOf=new Map(),E=sc.E,evx={};
  const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;const r=sc.R.get(n);if(r){x.s=ds(r[0]);x.e=ds(r[1])}out.push(x);idOf.set(n,x);if(n.ch)walk(n.ch,x.id)});
@@ -3331,10 +3331,32 @@ function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const
  const sp=planSpan();msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.'+(sp?'\nالخطة: '+fmtL(sp[0])+' ← '+fmtL(sp[1]):''),nt.length+' tasks added.'))}
 function close(){const o=document.getElementById('labw');if(o)o.remove();const m=document.getElementById('mcw');if(m)m.remove();document.body.style.overflow=''}
 /* بطاقة التواريخ + الخط الزمني */
-function finH(sc){const d=cr.data;if(sc.lo==null)return '';const st=startDay();
- const ex=`<div class="d4x">${(!isNaN(dn(d.edate))||sc.E.length)?`<button data-fit="1">📐 ${sc.E.length?L('ملاءمة المدد مع مواعيد الأحداث','Fit durations to the events'):L('ملاءمة المدد مع نهاية الميثاق','Fit durations to the charter end')}</button>`:''}${(cr.data.tasks||[]).length?`<button data-md="${S.mode=='merge'?'replace':'merge'}">${S.mode=='merge'?L('🔁 احسب كاستبدال للخطة','🔁 Compute as replace'):L('➕ احسب كإضافة بعد الخطة الحالية','➕ Compute as add-on after current plan')}</button>`:''}${sc.lo<todayN()?`<span style="color:#c0392b">⚠️ ${L('بعض المهام تبدأ قبل اليوم','Some tasks start before today')}</span>`:''}</div>`;
+function finH(sc){const d=cr.data;if(sc.lo==null)return '';const has=(cr.data.tasks||[]).length;
+ const md=has?`<div class="d4m"><small>${L('كيف تُضاف هذه الخطة؟','How should this be added?')}</small><div class="seg2"><button data-md="replace" class="${S.mode!='merge'?'on':''}">${L('↻ تستبدل الخطة الحالية','↻ Replace current plan')}</button><button data-md="merge" class="${S.mode=='merge'?'on':''}">${L('＋ تُضاف بعد آخر مهمة','＋ Add after the last task')}</button></div><small>${S.mode=='merge'?L('ستبقى مهامك الحالية ('+ad(has)+')، وتبدأ هذه المهام في '+fmtL(startDay())+'.','Your '+has+' tasks stay; these start on '+fmtL(startDay())+'.'):L('ستُحذف المهام الحالية ('+ad(has)+') وتحل هذه محلها، بدءًا من بداية الميثاق. يمكنك التراجع بعد الإضافة.','Your '+has+' tasks will be replaced, starting at the charter start. You can undo afterwards.')}</small></div>`:'';
+ const ex=`<div class="d4x">${(!isNaN(dn(d.edate))||sc.E.length)?`<button data-fit="1">📐 ${sc.E.length?L('ملاءمة المدد مع مواعيد الأحداث','Fit durations to the events'):L('ملاءمة المدد مع نهاية الميثاق','Fit durations to the charter end')}</button>`:''}${sc.lo<todayN()?`<span style="color:#c0392b">⚠️ ${L('بعض المهام تبدأ قبل اليوم','Some tasks start before today')}</span>`:''}</div>${S.note?`<div class="d4n">${S.note}</div>`:''}${md}`;
  const rows=S.tree.filter(n=>!n.off).map(n=>{const r=sc.R.get(n);return{n:n.n,s:r?r[0]:null,e:r?r[1]:null}});
  return (window.dates4H?dates4H({cs:dn(d.sdate),ce:dn(d.edate),ps:sc.lo,pe:sc.hi,extra:ex}):'')+(window.tlineH?tlineH(rows,sc.E):'')}
+/* سجل التراجع داخل المختبر */
+function snapL(lbl){S.hist=S.hist||[];S.fut=[];S.hist.push({j:JSON.stringify({t:S.tree,e:S.evs,p:S.phl,ty:S.phl&&S.phl.ty}),l:lbl||''});if(S.hist.length>60)S.hist.shift()}
+function restoreL(o){const v=JSON.parse(o.j);S.tree=v.t;S.evs=v.e||[];if(v.p){S.phl=v.p;S.phl.ty=v.ty}}
+function curJ(){return JSON.stringify({t:S.tree,e:S.evs,p:S.phl,ty:S.phl&&S.phl.ty})}
+function undoL(){if(!(S.hist||[]).length)return;const o=S.hist.pop();(S.fut=S.fut||[]).push({j:curJ(),l:o.l});restoreL(o);S.note=L('↶ تم التراجع عن: ','↶ Undone: ')+o.l;draw()}
+function redoL(){if(!(S.fut||[]).length)return;const o=S.fut.pop();S.hist.push({j:curJ(),l:o.l});restoreL(o);S.note=L('↷ تمت إعادة: ','↷ Redone: ')+o.l;draw()}
+function undoH(){const h=(S.hist||[]).length,f=(S.fut||[]).length;return `<div class="ub"><button data-undo="1" ${h?'':'disabled'}>↶ ${L('تراجع','Undo')}${h?' ('+ad(h)+')':''}</button><button data-redo="1" ${f?'':'disabled'}>↷ ${L('إعادة','Redo')}</button><span>${h?L('آخر تغيير: ','Last change: ')+esc(S.hist[h-1].l):L('عدّل بحرية، ويمكنك التراجع دائمًا.','Edit freely; you can always undo.')}</span></div>`}
+/* قائمة خيارات العنصر */
+function menu(p){const n=nodeAt(p),arr=parentArr(p);if(!n)return;const lv=String(p).split('.').length-1,tops=S.tree.map((z,i)=>({z,i})).filter(o=>!o.z.off&&o.z.ch&&String(o.i)!=String(p).split('.')[0]);
+ const o=document.createElement('div');o.id='lam';o.className='no-dr';
+ o.innerHTML=`<div class="lmb"><b>${esc(n.n||'')}</b>${lv<2?`<button data-a="child">＋ ${L('إضافة مهمة فرعية داخلها','Add a sub-task inside')}</button>`:''}<button data-a="after">＋ ${lv==0?L('إضافة مرحلة بعدها','Add a phase after'):L('إضافة مهمة بعدها','Add a task after')}</button><button data-a="dup">⧉ ${L('تكرار','Duplicate')}</button>${!n.ch?`<button data-a="ms">${n.ms?L('↩ تحويلها إلى مهمة عادية','↩ Make it a normal task'):L('◆ تحويلها إلى معلم','◆ Make it a milestone')}</button>`:''}<button data-a="del" class="lmdel">🗑 ${L('حذف','Delete')}${n.ch?' '+L('(مع ما بداخلها)','(with its contents)'):''}</button>${lv>0&&tops.length?`<div class="lmh">${L('نقل إلى مرحلة:','Move to phase:')}</div>${tops.map(t=>`<button data-a="mv:${t.i}">⇄ ${esc(t.z.n)}</button>`).join('')}`:''}<button data-a="x" class="lmcn">${L('إلغاء','Cancel')}</button></div>`;
+ document.body.appendChild(o);
+ o.addEventListener('click',e=>{const b=e.target.closest('button');if(e.target===o||(b&&b.dataset.a=='x'))return o.remove();if(!b)return;const a=b.dataset.a;o.remove();
+  const nw=(nm)=>({n:nm,du:3});
+  if(a=='child'){snapL(L('إضافة مهمة فرعية','Add sub-task'));if(!n.ch){const old={n:n.n+' — '+L('الجزء 1','part 1'),du:n.du||3};n.ch=[old];delete n.du;delete n.ms}n.ch.push(nw(L('مهمة جديدة','New task')))}
+  else if(a=='after'){snapL(lv==0?L('إضافة مرحلة','Add phase'):L('إضافة مهمة','Add task'));arr.splice(arr.indexOf(n)+1,0,lv==0?{n:L('مرحلة جديدة','New phase'),ch:[nw(L('مهمة جديدة','New task'))],anc:n.anc}:nw(L('مهمة جديدة','New task')))}
+  else if(a=='dup'){snapL(L('تكرار','Duplicate'));arr.splice(arr.indexOf(n)+1,0,clone(n))}
+  else if(a=='ms'){snapL(L('معلم','Milestone'));if(n.ms){n.ms=0;n.du=n.du||1}else{n.ms=1;n.du=0}}
+  else if(a=='del'){if(n.ch&&!confirm(L('حذف «'+n.n+'» مع كل ما بداخلها؟','Delete “'+n.n+'” and its contents?')))return;snapL(L('حذف: ','Delete: ')+n.n);arr.splice(arr.indexOf(n),1)}
+  else if(a.startsWith('mv:')){const tg=S.tree[+a.slice(3)];if(!tg)return;snapL(L('نقل إلى: ','Move to: ')+tg.n);arr.splice(arr.indexOf(n),1);tg.ch=tg.ch||[];tg.ch.push(n)}
+  S.note='';draw()})}
 function evH(){const E=S.evs;return `<div class="q"><b>📌 ${L('هل ترتبط المهام بحدث أو موعد ثابت؟','Are tasks tied to a fixed event or date?')}</b><div class="h">${L('مثل: فعالية، معرض، إطلاق، نشر، اجتماع مجلس. يمكنك إضافة أكثر من حدث، ولكل حدث مدة بالأيام. المراحل المرتبطة «قبل الحدث» تُخطَّط عكسيًا لتنتهي قبله، و«بعد الحدث» تبدأ بعده.','e.g. an event, exhibition, launch, publication. Add several; each has a length in days. Phases “before” are planned backwards to finish before it; “after” start after it.')}</div>
  ${E.map((e,i)=>`<div class="evr"><input type="text" data-evn="${i}" value="${esc(e.n)}" placeholder="${L('اسم الحدث','Event name')}"><button class="evd" data-evd="${i}">📅 ${e.d?fmt(dn(e.d)):L('التاريخ','Date')}</button><label class="evu"><input type="text" inputmode="numeric" data-evu="${i}" value="${ad(e.du||1)}"><small>${L('يوم','days')}</small></label><button class="evx" data-evx="${i}">✕</button></div>`).join('')}
  <button class="evadd" data-evadd="1">＋ ${E.length?L('إضافة حدث آخر','Add another event'):L('إضافة حدث','Add an event')}</button>${E.length?`<div class="why">💡 ${L('في المعاينة اختر لكل مرحلة: قبل أي حدث أو بعده.','In the preview, choose for each phase: before or after which event.')}</div>`:''}</div>`}
@@ -3342,15 +3364,15 @@ function evH(){const E=S.evs;return `<div class="q"><b>📌 ${L('هل ترتبط
 function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر نموذجًا أو أجب عن أسئلة المعالج لتظهر المعاينة هنا.','Pick a template or answer the wizard to see a preview here.')}</div>`;
  const sc=schedule(tr,startDay()),E=sc.E,tops=tr.map((n,i)=>({n,i})).filter(z=>!z.n.off&&z.n.ch);
  const node=(n,lv,path,idx)=>{const r=sc.R.get(n),dt=r?(r[0]==r[1]?fmt(r[0]):fmt(r[0])+' ← '+fmt(r[1])):'',p=path;
-  const anc=lv==0&&E.length?`<select class="anc" data-anc="${p}"><option value="">${L('بلا ربط','No link')}</option>${E.map(e=>`<option value="b${e.i}" ${n.anc=='b'+e.i?'selected':''}>${L('قبل: ','Before: ')+esc(e.n)}</option><option value="a${e.i}" ${n.anc=='a'+e.i?'selected':''}>${L('بعد: ','After: ')+esc(e.n)}</option>`).join('')}</select>`:'';
-  const mv=lv>0&&!n.ch&&tops.length>1?`<select class="mvs" data-mvto="${p}" title="${L('نقل إلى مرحلة أخرى','Move to another phase')}"><option value="">⇄</option>${tops.filter(z=>p.split('.')[0]!=String(z.i)).map(z=>`<option value="${z.i}">${esc(z.n.n)}</option>`).join('')}</select>`:'';
-  const row=`<div class="tn l${lv} ${n.off?'off':''}"><span class="hd" title="${L('اسحب لتغيير الترتيب','Drag to reorder')}">≡</span><input type="checkbox" ${n.off?'':'checked'} data-tog="${p}"><input type="text" class="nm" value="${esc(n.n)}" data-nm="${p}">${anc}${mv}${n.ch?`<span class="dd"><b>${ad(dur(n))} ${L('يوم','d')}</b>${dt}</span>`:(n.ms?`<span class="dd"><b>◆</b>${dt}</span>`:`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p}" title="${L('المدة بأيام العمل','Duration (work days)')}"><span class="dd">${dt.replace(' ← ','<br>')}</span>`)}</div>`;
+  const anc=lv==0&&E.length?`<select class="anc" data-anc="${p}"><option value="">${L('بلا ربط بحدث','No event link')}</option>${E.map(e=>`<option value="b${e.i}" ${n.anc=='b'+e.i?'selected':''}>${L('قبل: ','Before: ')+esc(e.n)}</option><option value="a${e.i}" ${n.anc=='a'+e.i?'selected':''}>${L('بعد: ','After: ')+esc(e.n)}</option>`).join('')}</select>`:'';
+  const cap=n.ch?`<b>${ad(dur(n))} ${L('يوم','d')}</b> · ${dt}`:n.ms?`◆ ${L('معلم','Milestone')} · ${dt}`:dt;
+  const row=`<div class="tn l${lv} ${n.off?'off':''}"><span class="hd" title="${L('اسحب لتغيير الترتيب','Drag to reorder')}">≡</span><input type="checkbox" ${n.off?'':'checked'} data-tog="${p}"><div class="tnb"><input type="text" class="nm" value="${esc(n.n)}" data-nm="${p}"><div class="cap">${cap}${anc}</div></div>${!n.ch&&!n.ms?`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p}" title="${L('المدة بأيام العمل','Duration (work days)')}">`:''}<button class="mn" data-mn="${p}" aria-label="${L('خيارات','Options')}">⋯</button></div>`;
   return `<div class="nw l${lv}" data-si="${idx}">${row}${n.ch?`<div class="sl kids" data-sl="ch:${p}">${n.ch.map((c,i)=>node(c,lv+1,p+'.'+i,i)).join('')}</div>`:''}</div>`};
  const body=tr.map((n,i)=>node(n,0,String(i),i)).join('');
  const bn=sc.bn?(()=>{const r=sc.R.get(sc.bn);return `<div class="tn"><span>🛟</span><span style="flex:1;font-size:13px">${esc(sc.bn.n)}</span><span class="dd"><b>${ad(sc.bn.du)} ${L('يوم','d')}</b>${r?fmt(r[0])+'<br>'+fmt(r[1]):''}</span></div>`})():'';
  const evr=E.map(e=>`<div class="tn ev"><span>📌</span><b style="flex:1">${esc(e.n)}</b><span class="dd"><b>${ad(e.e-e.s+1)} ${L('يوم','d')}</b>${fmt(e.s)}${e.e>e.s?'<br>'+fmt(e.e):''}</span></div>`).join('');
  const dp=depth(tr.filter(n=>!n.off)),lv=cr.data.levels||3;
- return finH(sc)+`<div class="tip">✏️ ${L('اسحب ≡ لترتيب المراحل أو المهام، و⇄ لنقل مهمة إلى مرحلة أخرى. عدّل الأسماء والمدد (بأيام العمل) وستتحدث التواريخ فورًا.','Drag ≡ to reorder phases or tasks; use ⇄ to move a task to another phase. Edit names and durations; dates update instantly.')}${dp>lv?' '+L('سيُرفع عدد مستويات الخطة إلى ','Plan levels will be raised to ')+ad(Math.min(3,dp))+'.':''}</div>${evr?`<div class="tr" style="margin-bottom:8px">${evr}</div>`:''}<div class="tr sl" data-sl="tree">${body}</div>${bn?`<div class="tr" style="margin-top:8px">${bn}</div>`:''}`}
+ return finH(sc)+`<div class="tip">✏️ ${L('اسحب ≡ للترتيب. زر ⋯ لإضافة مهمة فرعية أو مهمة بعدها، أو التكرار، أو النقل لمرحلة أخرى، أو الحذف. عدّل الأسماء والمدد (أيام عمل) وتتحدث التواريخ فورًا.','Drag ≡ to reorder. ⋯ to add a sub-task or a task after, duplicate, move or delete. Dates update instantly.')}${dp>lv?' '+L('سيُرفع عدد مستويات الخطة إلى ','Plan levels will be raised to ')+ad(Math.min(3,dp))+'.':''}</div>${evr?`<div class="tr" style="margin-bottom:8px">${evr}</div>`:''}${undoH()}<div class="tr sl" data-sl="tree">${body}</div><button class="evadd" data-addph="1" style="margin-top:8px">＋ ${L('إضافة مرحلة','Add a phase')}</button>${bn?`<div class="tr" style="margin-top:8px">${bn}</div>`:''}`}
 function nodeAt(p){const ix=String(p).split('.').map(Number);let a=S.tree,n=null;ix.forEach(i=>{n=a&&a[i];a=n&&n.ch});return n}
 function parentArr(p){const ix=String(p).split('.').map(Number);if(ix.length==1)return S.tree;const par=nodeAt(ix.slice(0,-1).join('.'));return par&&par.ch}
 function tplTab(){const adm=me&&me.role=='admin',T2=S.tpls||[];
@@ -3430,8 +3452,10 @@ function css(){if(document.getElementById('labcss'))return;const s=document.crea
 #labw .tn .nm{flex:1 1 auto!important;width:auto!important;min-width:0!important;border:1px solid transparent;background:transparent;padding:4px 6px;font-size:13px;font-family:inherit;color:#14324a;border-radius:8px}#labw .tn .nm:focus{border-color:#d5dfe8;background:#fff}
 #labw .tn.l0 .nm{font-weight:800}#labw .tn.l1 .nm{font-weight:600}#labw .tn.off{opacity:.4}#labw .tn.ev{background:#fff4e0;border-radius:10px;padding:6px}
 #labw .kids{padding-inline-start:14px;border-inline-start:2px solid #eef2f6;margin-inline-start:12px}
+#labw .tnb{flex:1 1 auto;min-width:0}#labw .tnb .nm{width:100%!important}#labw .cap{font-size:11px;color:#6b7c8c;padding:1px 6px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.5}#labw .cap b{color:#1d5f8a}#labw .cap .anc{margin:0}#labw .mn{flex:0 0 30px;height:30px;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:8px;font-size:16px;line-height:1;cursor:pointer;color:#41566b;padding:0}#labw .ub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px}#labw .ub button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#1d5f8a}#labw .ub button[disabled]{opacity:.35}#labw .ub span{font-size:11.5px;color:#6b7c8c}#labw .d4n,.d4n{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px;font-size:12.5px;color:#1d5f8a;font-weight:600}.d4m{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px}.d4m small{display:block;font-size:11.5px;color:#6b7c8c;margin:2px 0}.seg2{display:flex;border:1px solid #d5dfe8;border-radius:10px;overflow:hidden;margin:4px 0}.seg2 button{flex:1;border:0;background:#fff;padding:7px 6px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#41566b}.seg2 button.on{background:#1d5f8a;color:#fff}
+#lam{position:fixed;inset:0;z-index:9400;background:rgba(15,30,45,.35);display:flex;align-items:flex-end;justify-content:center}#lam .lmb{background:#fff;width:min(420px,100%);border-radius:18px 18px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;max-height:80%;overflow:auto}#lam b{font-size:14px;padding:2px 4px 6px;color:#14324a}#lam button{width:100%!important;display:block;margin:0!important;flex:0 0 auto;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:12px;padding:11px;font-size:14px;text-align:start;cursor:pointer;font-family:inherit;color:#14324a}#lam .lmdel{display:block!important;color:#c0392b;background:#fff5f5;border-color:#f5c6c6}#lam .lmcn{text-align:center;background:#fff}#lam .lmh{font-size:12px;color:#6b7c8c;padding:4px 4px 0}
 #labw .tn .du{width:44px!important;flex:0 0 44px!important;min-width:0!important;text-align:center;border:1px solid #d5dfe8;border-radius:8px;padding:4px 2px;font-size:13px;font-family:inherit}
-@media(max-width:640px){#labw .tn{flex-wrap:wrap;row-gap:4px}#labw .tn .nm{flex:1 1 calc(100% - 64px)!important}#labw .tn .anc,#labw .tn .mvs,#labw .tn .du{margin-inline-start:56px}#labw .tn .anc~.dd,#labw .tn .mvs~.du{margin-inline-start:0}#labw .tn .dd{margin-inline-start:auto}#labw .tn.ev .dd{margin-inline-start:auto}}
+
 #labw .tn .dd{flex:0 0 auto;font-size:11px;color:#6b7c8c;white-space:nowrap;text-align:end;line-height:1.25}#labw .tn .dd b{display:block;color:#1d5f8a;font-weight:700}
 #labw .anc{flex:0 1 auto;max-width:110px!important;font-size:11px;border:1px solid #ecdcb4;background:#fffaf0;color:#8a6a1f;border-radius:99px;padding:3px 6px;font-family:inherit}
 #labw .mvs{flex:0 0 32px;width:32px!important;height:28px;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:8px;font-size:13px;padding:0;text-align:center;color:#5b6b7b;-webkit-appearance:none;appearance:none;text-align-last:center}
@@ -3456,10 +3480,10 @@ function draw(){const o=document.getElementById('labw');if(!o)return;const adm=m
  ${showAp||S.tab=='wiz'?`<div class="lf">${showAp?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ إضافة بعد الخطة الحالية','＋ Add after current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا.','The plan is not editable now.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ كنموذج','Save as template')}</button>`:''):`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your plan.')}</span>`}</div>`:''}</div>`;
  const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y;
  if(af){const el=o.querySelector(`[data-${af.k.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())}="${af.v}"]`);if(el&&el.focus){el.focus({preventScroll:true});try{if(af.s!=null&&el.setSelectionRange)el.setSelectionRange(af.s,af.s)}catch(_){}}}}
-function setTree(t,src,ag){S.tree=markAnc(t);S.src=src;S.agile=!!ag;draw()}
+function setTree(t,src,ag){S.hist=[];S.fut=[];S.note='';S.tree=markAnc(t);S.src=src;S.agile=!!ag;draw()}
 let rt=0;const later=()=>{clearTimeout(rt);rt=setTimeout(draw,450)};
 function mvArr(a,f,t){const x=a.splice(f,1)[0];a.splice(t,0,x)}
-function reorder(kind,f,t){if(f==t)return;if(kind=='phl'){mvArr(phl(),f,t);S.tree=wizBuild()}else if(kind=='tree'&&S.tree)mvArr(S.tree,f,t);else if(kind.startsWith('ch:')){const n=nodeAt(kind.slice(3));if(n&&n.ch)mvArr(n.ch,f,t)}draw()}
+function reorder(kind,f,t){if(f==t)return;snapL(L('تغيير الترتيب','Reorder'));if(kind=='phl'){mvArr(phl(),f,t);S.tree=wizBuild()}else if(kind=='tree'&&S.tree)mvArr(S.tree,f,t);else if(kind.startsWith('ch:')){const n=nodeAt(kind.slice(3));if(n&&n.ch)mvArr(n.ch,f,t)}draw()}
 function drag(e,h){const row=h.closest('[data-si]'),list=row&&row.parentElement.closest('[data-sl]');if(!list||!row)return;e.preventDefault();
  const rows=[...list.querySelectorAll(':scope > [data-si]')],from=rows.indexOf(row);if(from<0)return;const lc=document.querySelector('#labw .lc'),sc0=lc?lc.scrollTop:0;
  const R=rows.map(r=>r.getBoundingClientRect()),hh=R[from].height+(rows[1]?Math.max(0,(R[1].top-R[0].bottom)):6),y0=e.clientY;let to=from,ly=y0,raf=0;
@@ -3495,27 +3519,31 @@ window.labOpen=async function(){css();close();const o=document.createElement('di
   if(D.phd!=null){phl().splice(+D.phd,1);S.tree=wizBuild();return draw()}
   if(D.phadd){const inp=o.querySelector('[data-phnew]'),v=inp&&inp.value.trim();if(!v)return;const P2=phl(),cl=P2.filter(z=>z.on).pop();P2.splice(cl?P2.indexOf(cl):P2.length,0,{k:'c'+Date.now(),n:v,on:true});S.tree=wizBuild();return draw()}
   if(D.fix)return fixIt(D.fix);
+  if(D.mn!=null)return menu(D.mn);
+  if(D.undo)return undoL();
+  if(D.redo)return redoL();
+  if(D.addph){snapL(L('إضافة مرحلة','Add phase'));S.tree.push({n:L('مرحلة جديدة','New phase'),ch:[{n:L('مهمة جديدة','New task'),du:3}]});markAnc(S.tree);S.note='';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=c.scrollHeight;return}
   if(D.fit)return fit();
-  if(D.md){S.mode=D.md;return draw()}
+  if(D.md){S.mode=D.md;S.note='';return draw()}
   if(D.ap)return apply(D.ap);
   if(D.sv){const tr=clone(S.tree).filter(n=>!n.off);const nm=prompt(L('اسم النموذج:','Template name:'),'');if(!nm)return;const ds2=prompt(L('وصف قصير (اختياري):','Short description (optional):'),'')||'';
    const strip=a=>a.filter(n=>!n.off).map(n=>n.ch?{n:n.n,ch:strip(n.ch)}:(n.ms?{n:n.n,du:0,ms:1}:{n:n.n,du:+n.du||1}));
    try{const L2=(await loadT()).slice();L2.push({name:nm.trim(),desc:ds2.trim(),tree:strip(tr),by:me.full_name||'',at:new Date().toISOString().slice(0,10)});await saveT(L2);S.tab='tpl';msg(L('تم حفظ النموذج، وأصبح متاحًا لكل المستخدمين.','Template saved for everyone.'));draw()}catch(er){msg(L('تعذّر الحفظ: ','Could not save: ')+(er.message||er))}}});
  o.addEventListener('change',e=>{const D=e.target.dataset;
-  if(D.tog){const n=nodeAt(D.tog);if(n){n.off=!e.target.checked;draw()}}
+  if(D.tog){const n=nodeAt(D.tog);if(n){snapL((e.target.checked?L('تفعيل: ','Include: '):L('استبعاد: ','Exclude: '))+n.n);n.off=!e.target.checked;draw()}}
   if(D.wph!=null){const x=phl()[+D.wph];if(x){if(e.target.checked&&x.lib)enable(x.k,true);else x.on=e.target.checked}S.tree=wizBuild();draw()}
-  if(D.anc!=null){const n=nodeAt(D.anc);if(n){n.anc=e.target.value;draw()}}
+  if(D.anc!=null){const n=nodeAt(D.anc);if(n){snapL(L('ربط بحدث: ','Event link: ')+n.n);n.anc=e.target.value;draw()}}
   if(D.mvto!=null&&e.target.value!==''){const n=nodeAt(D.mvto),arr=parentArr(D.mvto),tg=S.tree[+e.target.value];if(n&&arr&&tg){arr.splice(arr.indexOf(n),1);tg.ch=tg.ch||[];tg.ch.push(n)}draw()}
   if(D.chain!=null){S.chain=e.target.checked}
   if(D.buf!=null){S.buf=e.target.checked;draw()}});
  o.addEventListener('input',e=>{const D=e.target.dataset;
-  if(D.nm){const n=nodeAt(D.nm);if(n)n.n=e.target.value}
-  if(D.du){const n=nodeAt(D.du);if(n){n.du=num(e.target.value);later()}}
+  if(D.nm){const n=nodeAt(D.nm);if(n){if(S._nmk!==D.nm){S._nmk=D.nm;snapL(L('تعديل الاسم','Rename'))}n.n=e.target.value}}
+  if(D.du){const n=nodeAt(D.du);if(n){if(S._duk!==D.du){S._duk=D.du;snapL(L('تعديل المدة: ','Duration: ')+n.n)}n.du=num(e.target.value);later()}}
   if(D.evn!=null){S.evs[+D.evn].n=e.target.value;later()}
   if(D.evu!=null){S.evs[+D.evu].du=Math.min(60,num(e.target.value));later()}
   if(D.phn!=null){phl()[+D.phn].n=e.target.value}
   if(D.wdl!=null){S.dl=e.target.value}});
- o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.phn!=null||D.wdl!=null){S.tree=wizBuild()}});
+  o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.du!=null)S._duk=null;if(D.nm!=null)S._nmk=null;if(D.phn!=null||D.wdl!=null){S.tree=wizBuild()}});
  o.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.dataset.phnew!=null){e.preventDefault();const b=o.querySelector('[data-phadd]');if(b)b.click()}});
  draw();await loadT();draw()};
 })();
