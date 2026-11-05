@@ -986,7 +986,7 @@ async function filLoad(){const ids=scoped().map(p=>p.id).filter(Boolean);FIL=[];
 let FILK='';
 async function filOpen(path){try{const r=await sb.storage.from('pl-attachments').createSignedUrl(path,300);if(r.error)throw r.error;window.open(r.data.signedUrl,'_blank')}catch(e){alert(e.message||e)}}
 function vFil(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=scoped();
- if(FIL==null||FILK!==L.map(p=>p.id).join(',')){B.innerHTML=`<div class="card mut">${t('loading')}</div>`;filLoad();return}
+ const fk=L.map(p=>p.id).filter(Boolean).join(',');if(FIL==null||FILK!==fk){B.innerHTML=`<div class="card mut">${t('loading')}</div>`;if(!window._filBusy){window._filBusy=1;filLoad().finally(()=>{window._filBusy=0})}return}
  const by={};FIL.forEach(a=>{(by[a.cr_id+'|'+a.task_id]=by[a.cr_id+'|'+a.task_id]||[]).push(a)});
  const rows=[];L.forEach(p=>(p.tasks||[]).forEach(x=>{const at=by[p.id+'|'+x.id]||[],nt=[x.nt,x.tn].filter(Boolean);if(!at.length&&!nt.length)return;rows.push({p,x,at,nt})}));
  const q=FILQ.trim().toLowerCase(),F=rows.filter(z=>(FILM=='all'||(FILM=='att'?z.at.length:z.nt.length))&&(!q||(z.x.n+' '+z.p.name+' '+z.nt.join(' ')+' '+z.at.map(a=>a.title).join(' ')).toLowerCase().includes(q)));
