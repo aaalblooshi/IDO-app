@@ -3323,7 +3323,7 @@ function toTasks(tr,start){const sc=schedule(tr,start),out=[],idOf=new Map(),E=s
 function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const need=Math.min(3,depth(tr.filter(n=>!n.off)));
  const ts=cr.data.tasks||[],d=cr.data;
  if(mode=='replace'&&ts.length&&!confirm(L('سيتم استبدال الخطة الحالية بالكامل ('+ad(ts.length)+' مهمة). يمكنك التراجع بزر «تراجع». متابعة؟','The current plan ('+ts.length+' tasks) will be replaced. You can undo. Continue?')))return;
- snap();const nt=toTasks(tr,startDay());
+ snap();const nt=toTasks(tr,startDay());clearDraft();S.pid=null;
  if(mode=='replace')cr.data.tasks=nt;else cr.data.tasks=ts.concat(nt);
  if(!d.levels||d.levels<need)d.levels=need;
  if(S.agile&&window.agAfterLab)agAfterLab();
@@ -3376,7 +3376,7 @@ function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر �
 function nodeAt(p){const ix=String(p).split('.').map(Number);let a=S.tree,n=null;ix.forEach(i=>{n=a&&a[i];a=n&&n.ch});return n}
 function parentArr(p){const ix=String(p).split('.').map(Number);if(ix.length==1)return S.tree;const par=nodeAt(ix.slice(0,-1).join('.'));return par&&par.ch}
 function tplTab(){const adm=me&&me.role=='admin',T2=S.tpls||[];
- return `<div class="sec">🧩 ${L('النماذج الأساسية','Built-in templates')}</div><div class="tg">${Object.keys(TY).map(k=>`<button class="tc ${S.src=='ty:'+k?'on':''}" data-ty="${k}"><span class="ic">${TY[k].i}</span><b>${lt(TY[k].n)}</b><small>${ad(TY[k].ph.length)} ${L('مراحل','phases')}</small></button>`).join('')}${Object.keys(TPL).map(k=>`<button class="tc ${S.src=='tp:'+k?'on':''}" data-tp="${k}"><span class="ic">📁</span><b>${TPL[k][lang]}</b><small>${L('نموذج البداية السريعة','Quick-start template')}</small></button>`).join('')}</div>
+ return `${S.note&&S.note.indexOf('📝')==0?`<div class="tip">${S.note}</div>`:''}<div class="sec">🧩 ${L('النماذج الأساسية','Built-in templates')}</div><div class="tg">${Object.keys(TY).map(k=>`<button class="tc ${S.src=='ty:'+k?'on':''}" data-ty="${k}"><span class="ic">${TY[k].i}</span><b>${lt(TY[k].n)}</b><small>${ad(TY[k].ph.length)} ${L('مراحل','phases')}</small></button>`).join('')}${Object.keys(TPL).map(k=>`<button class="tc ${S.src=='tp:'+k?'on':''}" data-tp="${k}"><span class="ic">📁</span><b>${TPL[k][lang]}</b><small>${L('نموذج البداية السريعة','Quick-start template')}</small></button>`).join('')}</div>
  <div class="sec">🏛 ${L('نماذج المركز المعتمدة','Centre-approved templates')}</div>${T2.length?`<div class="tg">${T2.map((x,i)=>`<button class="tc ${S.src=='ct:'+i?'on':''}" data-ct="${i}"><span class="ic">⭐</span><b>${esc(x.name)}</b><small>${esc(x.desc||'')} · ${ad(leaves(x.tree))} ${L('مهمة','tasks')}</small>${adm?`<span class="del" data-dt="${i}">${L('حذف','Delete')}</span>`:''}</button>`).join('')}</div>`:`<div class="tip">${L('لا توجد نماذج معتمدة بعد.','No approved templates yet.')}${adm?' '+L('يمكنك حفظ أي خطة جيدة كنموذج من زر «حفظ كنموذج» بالأسفل.','Save any good plan as a template below.'):''}</div>`}
  ${S.tree?`<div class="sec">👁 ${L('المعاينة والتواريخ','Preview & dates')}</div>${evH()}${treeH()}`:''}`}
 /* المعالج خطوة بخطوة */
@@ -3393,7 +3393,7 @@ const STEPS=[
  ()=>`<div class="sec">👁 ${L('خطتك المقترحة','Your proposed plan')}</div>${treeH()}`];
 const STN=[L('النوع','Type'),L('أسئلة','Questions'),L('الأحداث','Events'),L('المراحل','Phases'),L('المخرجات','Deliverables'),L('الخيارات','Options'),L('المراجعة','Review')];
 function wizTab(){const n=STEPS.length,i=Math.max(0,Math.min(n-1,S.step));
- return `<div class="stp">${STEPS.map((_,k)=>`<button data-go="${k}" class="${k<=i?'on':''} ${k==i?'cur':''}"><i></i><small>${STN[k]}</small></button>`).join('')}</div>${STEPS[i]()}
+ return `${S.note&&S.note.indexOf('📝')==0?`<div class="tip">${S.note}</div>`:''}<div class="stp">${STEPS.map((_,k)=>`<button data-go="${k}" class="${k<=i?'on':''} ${k==i?'cur':''}"><i></i><small>${STN[k]}</small></button>`).join('')}</div>${STEPS[i]()}
  <div class="nav">${i>0?`<button data-stp="-1">${L('→ السابق','← Back')}</button>`:'<span></span>'}${i<n-1?`<button class="nx" data-stp="1">${L('التالي ←','Next →')}</button>`:''}</div>`}
 /* مساعد التخطيط: فحص مع إصلاح بضغطة، وأقسام قابلة للطي */
 const DU=[
@@ -3452,7 +3452,7 @@ function css(){if(document.getElementById('labcss'))return;const s=document.crea
 #labw .tn .nm{flex:1 1 auto!important;width:auto!important;min-width:0!important;border:1px solid transparent;background:transparent;padding:4px 6px;font-size:13px;font-family:inherit;color:#14324a;border-radius:8px}#labw .tn .nm:focus{border-color:#d5dfe8;background:#fff}
 #labw .tn.l0 .nm{font-weight:800}#labw .tn.l1 .nm{font-weight:600}#labw .tn.off{opacity:.4}#labw .tn.ev{background:#fff4e0;border-radius:10px;padding:6px}
 #labw .kids{padding-inline-start:14px;border-inline-start:2px solid #eef2f6;margin-inline-start:12px}
-#labw .tnb{flex:1 1 auto;min-width:0}#labw .tnb .nm{width:100%!important}#labw .cap{font-size:11px;color:#6b7c8c;padding:1px 6px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.5}#labw .cap b{color:#1d5f8a}#labw .cap .anc{margin:0}#labw .mn{flex:0 0 30px;height:30px;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:8px;font-size:16px;line-height:1;cursor:pointer;color:#41566b;padding:0}#labw .ub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px}#labw .ub button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#1d5f8a}#labw .ub button[disabled]{opacity:.35}#labw .ub span{font-size:11.5px;color:#6b7c8c}#labw .d4n,.d4n{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px;font-size:12.5px;color:#1d5f8a;font-weight:600}.d4m{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px}.d4m small{display:block;font-size:11.5px;color:#6b7c8c;margin:2px 0}.seg2{display:flex;border:1px solid #d5dfe8;border-radius:10px;overflow:hidden;margin:4px 0}.seg2 button{flex:1;border:0;background:#fff;padding:7px 6px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#41566b}.seg2 button.on{background:#1d5f8a;color:#fff}
+#labw .tnb{flex:1 1 auto;min-width:0}#labw .tnb .nm{width:100%!important}#labw .cap{font-size:11px;color:#6b7c8c;padding:1px 6px 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.5}#labw .cap b{color:#1d5f8a}#labw .cap .anc{margin:0}#labw .mn{flex:0 0 30px;height:30px;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:8px;font-size:16px;line-height:1;cursor:pointer;color:#41566b;padding:0}#labw .svd{align-self:center;font-size:11.5px;color:#1c7a45;flex-basis:100%;order:9}#labw .lnk{border:0;background:none;color:#1d5f8a;text-decoration:underline;font-weight:700;cursor:pointer;font-family:inherit;padding:0;font-size:inherit}#labw .ub{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 8px}#labw .ub button{border:1px solid #d5dfe8;background:#fff;border-radius:99px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#1d5f8a}#labw .ub button[disabled]{opacity:.35}#labw .ub span{font-size:11.5px;color:#6b7c8c}#labw .d4n,.d4n{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px;font-size:12.5px;color:#1d5f8a;font-weight:600}.d4m{border-top:1px dashed #eef2f6;margin-top:6px;padding-top:6px}.d4m small{display:block;font-size:11.5px;color:#6b7c8c;margin:2px 0}.seg2{display:flex;border:1px solid #d5dfe8;border-radius:10px;overflow:hidden;margin:4px 0}.seg2 button{flex:1;border:0;background:#fff;padding:7px 6px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;color:#41566b}.seg2 button.on{background:#1d5f8a;color:#fff}
 #lam{position:fixed;inset:0;z-index:9400;background:rgba(15,30,45,.35);display:flex;align-items:flex-end;justify-content:center}#lam .lmb{background:#fff;width:min(420px,100%);border-radius:18px 18px 0 0;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:6px;max-height:80%;overflow:auto}#lam b{font-size:14px;padding:2px 4px 6px;color:#14324a}#lam button{width:100%!important;display:block;margin:0!important;flex:0 0 auto;border:1px solid #e3eaf0;background:#f7f9fc;border-radius:12px;padding:11px;font-size:14px;text-align:start;cursor:pointer;font-family:inherit;color:#14324a}#lam .lmdel{display:block!important;color:#c0392b;background:#fff5f5;border-color:#f5c6c6}#lam .lmcn{text-align:center;background:#fff}#lam .lmh{font-size:12px;color:#6b7c8c;padding:4px 4px 0}
 #labw .tn .du{width:44px!important;flex:0 0 44px!important;min-width:0!important;text-align:center;border:1px solid #d5dfe8;border-radius:8px;padding:4px 2px;font-size:13px;font-family:inherit}
 
@@ -3477,8 +3477,8 @@ function draw(){const o=document.getElementById('labw');if(!o)return;const adm=m
  o.innerHTML=`<div class="lb"><div class="lh"><h3>🧪 ${L('مختبر الخطط','Plan lab')}<small>${L('نماذج، ومعالج خطوة بخطوة، وتخطيط حول الأحداث، ومساعد للمبتدئين','Templates, a wizard, event planning and a helper')}</small></h3><button class="lx" aria-label="close">✕</button></div>
  <div class="lt">${[['tpl',L('🧩 النماذج','🧩 Templates')],['wiz',L('🪄 المعالج','🪄 Wizard')],['ide',L('💡 مساعد التخطيط','💡 Planning helper')]].map(x=>`<button data-tab="${x[0]}" class="${S.tab==x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
  <div class="lc">${S.tab=='tpl'?tplTab():S.tab=='wiz'?wizTab():ideasTab()}</div>
- ${showAp||S.tab=='wiz'?`<div class="lf">${showAp?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ إضافة بعد الخطة الحالية','＋ Add after current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا.','The plan is not editable now.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ كنموذج','Save as template')}</button>`:''):`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your plan.')}</span>`}</div>`:''}</div>`;
- const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y;
+ ${showAp||S.tab=='wiz'?`<div class="lf"><span class="svd">${S.saved?'✓ '+L('حُفظت المسودة','Draft saved'):''}</span>${showAp?(ed?`<button class="go" data-ap="${S.mode=='merge'&&has?'merge':'replace'}" ${S.tree?'':'disabled'}>${!has?L('✔ إضافة إلى الخطة','✔ Add to plan'):S.mode=='merge'?L('＋ إضافة بعد الخطة الحالية','＋ Add after current plan'):L('↻ استبدال الخطة الحالية','↻ Replace current plan')}</button>`:`<span class="mut" style="align-self:center;font-size:12.5px">${L('الخطة غير قابلة للتعديل حاليًا.','The plan is not editable now.')}</span>`)+(adm?`<button data-sv="tree" ${S.tree?'':'disabled'}>⭐ ${L('حفظ كنموذج','Save as template')}</button>`:''):`<span class="mut" style="align-self:center;font-size:12.5px">${L('أكمل الخطوات لتظهر خطتك المقترحة.','Complete the steps to see your plan.')}</span>`}</div>`:''}</div>`;
+ const nc=o.querySelector('.lc');if(nc)nc.scrollTop=y;saveDraft();
  if(af){const el=o.querySelector(`[data-${af.k.replace(/[A-Z]/g,c=>'-'+c.toLowerCase())}="${af.v}"]`);if(el&&el.focus){el.focus({preventScroll:true});try{if(af.s!=null&&el.setSelectionRange)el.setSelectionRange(af.s,af.s)}catch(_){}}}}
 function setTree(t,src,ag){S.hist=[];S.fut=[];S.note='';S.tree=markAnc(t);S.src=src;S.agile=!!ag;draw()}
 let rt=0;const later=()=>{clearTimeout(rt);rt=setTimeout(draw,450)};
@@ -3496,12 +3496,21 @@ function drag(e,h){const row=h.closest('[data-si]'),list=row&&row.parentElement.
  const up=()=>{h.removeEventListener('pointermove',mv);h.removeEventListener('pointerup',up);h.removeEventListener('pointercancel',up);cancelAnimationFrame(raf);rows.forEach(r=>{r.style.transform='';r.style.transition=''});row.classList.remove('drg');reorder(list.dataset.sl,from,to)};
  h.addEventListener('pointermove',mv);h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up)}
 const num=v=>{const n=parseInt(String(v).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));return n>0?n:1};
-window.labOpen=async function(){css();close();const o=document.createElement('div');o.id='labw';o.className='no-dr';document.body.appendChild(o);document.body.style.overflow='hidden';
+/* حفظ مسودة المعالج تلقائيًا (في الخطة نفسها عند صلاحية التعديل، وعلى الجهاز دائمًا) */
+const DK=()=>'labDraft:'+(cr&&cr.id);
+function draftObj(){return{v:1,at:Date.now(),S:{tab:S.tab,tree:S.tree,src:S.src,ty:S.ty,phl:S.phl,phlTy:S.phl&&S.phl.ty,dl:S.dl,det:S.det,ms:S.ms,step:S.step,evs:S.evs,chain:S.chain,buf:S.buf,mode:S.mode,agile:S.agile}}}
+let dT=0,dSig='';function saveDraft(){clearTimeout(dT);dT=setTimeout(()=>{if(!cr||!S.tree&&S.tab!='wiz')return;const o=draftObj(),sig=JSON.stringify(o.S);if(sig==dSig)return;dSig=sig;try{localStorage.setItem(DK(),JSON.stringify(o))}catch(_){}
+ if(PL.canEdit){cr.data._lab=o;pSave()}S.saved=Date.now();const el=document.querySelector('#labw .svd');if(el)el.textContent='✓ '+L('حُفظت المسودة','Draft saved')},900)}
+function loadDraft(){let a=cr&&cr.data&&cr.data._lab,b=null;try{b=JSON.parse(localStorage.getItem(DK())||'null')}catch(_){}const o=[a,b].filter(x=>x&&x.S).sort((x,y)=>(y.at||0)-(x.at||0))[0];return o||null}
+function clearDraft(){try{localStorage.removeItem(DK())}catch(_){}if(cr&&cr.data&&cr.data._lab){delete cr.data._lab}dSig=''}
+function applyDraft(o){const v=o.S;Object.assign(S,{tab:v.tab||'wiz',tree:v.tree,src:v.src,ty:v.ty||'gen',phl:v.phl,dl:v.dl||'',det:v.det||'med',ms:v.ms!==false,step:v.step||0,evs:v.evs||[],chain:v.chain!==false,buf:!!v.buf,mode:v.mode||'replace',agile:!!v.agile,hist:[],fut:[]});if(S.phl)S.phl.ty=v.phlTy;dSig=JSON.stringify(draftObj().S)}
+window.labOpen=async function(){css();close();
+ if(S.pid!==(cr&&cr.id)){Object.assign(S,{pid:cr&&cr.id,tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:''});const dr=loadDraft();if(dr){applyDraft(dr);const t=new Date(dr.at);S.note='📝 '+L('استرجعنا مسودتك المحفوظة ('+t.toLocaleDateString('en-GB')+' '+t.toTimeString().slice(0,5)+'). ','We restored your saved draft ('+t.toLocaleString()+'). ')+`<button data-newd="1" class="lnk">${L('ابدأ من جديد','Start over')}</button>`}}const o=document.createElement('div');o.id='labw';o.className='no-dr';document.body.appendChild(o);document.body.style.overflow='hidden';
  o.addEventListener('pointerdown',e=>{const h=e.target.closest('.hd');if(h)drag(e,h)});
  o.addEventListener('click',async e=>{if(e.target===o)return close();const b=e.target.closest('button,[data-dt]');if(!b)return;const D=b.dataset;
   if(b.classList.contains('lx'))return close();
-  if(D.tab){S.tab=D.tab;if(S.tab=='wiz'){S.tree=wizBuild();S.src='wiz';S.agile=!!TY[S.ty].agile}return draw()}
-  if(D.go!=null){S.step=+D.go;S.tree=wizBuild();S.src='wiz';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
+  if(D.tab){S.tab=D.tab;if(S.tab=='wiz'&&(!S.tree||S.src!='wiz')){S.tree=wizBuild();S.src='wiz';S.agile=!!TY[S.ty].agile}return draw()}
+  if(D.go!=null){S.step=+D.go;if(!S.tree||S.src!='wiz'){S.tree=wizBuild();S.src='wiz'}draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
   if(D.dt!=null){e.stopPropagation();const L2=(S.tpls||[]).slice(),x=L2[+D.dt];if(!confirm(L('حذف النموذج «'+x.name+'»؟','Delete template “'+x.name+'”?')))return;L2.splice(+D.dt,1);try{await saveT(L2);if(S.src=='ct:'+D.dt){S.tree=null;S.src=''}draw()}catch(er){msg(er.message||er)}return}
   if(D.chdl){S.dl=String(cr.data.deliv||cr.data.outputs||'').split(/\n|،|,|;/).map(x=>x.trim()).filter(Boolean).join('\n');S.tree=wizBuild();return draw()}
   if(D.ty)return setTree(phTree(D.ty),'ty:'+D.ty,TY[D.ty].agile);
@@ -3510,7 +3519,7 @@ window.labOpen=async function(){css();close();const o=document.createElement('di
   if(D.wty){S.ty=D.wty;S.phl=null;S.tree=wizBuild();S.agile=!!TY[S.ty].agile;return draw()}
   if(D.wdt){S.det=D.wdt;S.tree=wizBuild();return draw()}
   if(D.qq){const [k,v]=D.qq.split('|');enable(k,v=='1');S.tree=wizBuild();return draw()}
-  if(D.stp){S.step=Math.max(0,Math.min(STEPS.length-1,S.step+(+D.stp)));S.tree=wizBuild();S.src='wiz';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
+  if(D.stp){S.step=Math.max(0,Math.min(STEPS.length-1,S.step+(+D.stp)));if(!S.tree||S.src!='wiz'){S.tree=wizBuild();S.src='wiz'}draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
   if(D.evadd){S.evs.push({n:'',d:'',du:1});return draw()}
   if(D.evx!=null){S.evs.splice(+D.evx,1);if(S.tree){S.tree.forEach(n=>{delete n.anc});markAnc(S.tree)}return draw()}
   if(D.evd!=null){const i=+D.evd;return miniCal(S.evs[i].d||cr.data.edate||ds(todayN()),v=>{S.evs[i].d=v;if(S.tree){S.tree.forEach(n=>{if(!n.anc)delete n.anc});markAnc(S.tree)}draw()},L('موعد الحدث','Event date'))}
@@ -3520,6 +3529,7 @@ window.labOpen=async function(){css();close();const o=document.createElement('di
   if(D.phadd){const inp=o.querySelector('[data-phnew]'),v=inp&&inp.value.trim();if(!v)return;const P2=phl(),cl=P2.filter(z=>z.on).pop();P2.splice(cl?P2.indexOf(cl):P2.length,0,{k:'c'+Date.now(),n:v,on:true});S.tree=wizBuild();return draw()}
   if(D.fix)return fixIt(D.fix);
   if(D.mn!=null)return menu(D.mn);
+  if(D.newd){if(!confirm(L('حذف المسودة والبدء من جديد؟','Discard the draft and start over?')))return;clearDraft();if(PL.canEdit)pSave();Object.assign(S,{tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',saved:0});return draw()}
   if(D.undo)return undoL();
   if(D.redo)return redoL();
   if(D.addph){snapL(L('إضافة مرحلة','Add phase'));S.tree.push({n:L('مرحلة جديدة','New phase'),ch:[{n:L('مهمة جديدة','New task'),du:3}]});markAnc(S.tree);S.note='';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=c.scrollHeight;return}
@@ -3541,9 +3551,9 @@ window.labOpen=async function(){css();close();const o=document.createElement('di
   if(D.du){const n=nodeAt(D.du);if(n){if(S._duk!==D.du){S._duk=D.du;snapL(L('تعديل المدة: ','Duration: ')+n.n)}n.du=num(e.target.value);later()}}
   if(D.evn!=null){S.evs[+D.evn].n=e.target.value;later()}
   if(D.evu!=null){S.evs[+D.evu].du=Math.min(60,num(e.target.value));later()}
-  if(D.phn!=null){phl()[+D.phn].n=e.target.value}
-  if(D.wdl!=null){S.dl=e.target.value}});
-  o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.du!=null)S._duk=null;if(D.nm!=null)S._nmk=null;if(D.phn!=null||D.wdl!=null){S.tree=wizBuild()}});
+  if(D.phn!=null){phl()[+D.phn].n=e.target.value;S._wch=1}
+  if(D.wdl!=null){S.dl=e.target.value;S._wch=1}});
+  o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.du!=null)S._duk=null;if(D.nm!=null)S._nmk=null;if((D.phn!=null||D.wdl!=null)&&S._wch){S._wch=0;S.tree=wizBuild();S.src='wiz'}});
  o.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.dataset.phnew!=null){e.preventDefault();const b=o.querySelector('[data-phadd]');if(b)b.click()}});
  draw();await loadT();draw()};
 })();
