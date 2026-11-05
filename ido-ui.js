@@ -43,6 +43,7 @@
     grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
     expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
     x: '<path d="M6 6l12 12M18 6 6 18"/>',
+    more: '<circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/>',
     dot: '<circle cx="12" cy="12" r="4"/>'
   };
   var BY = {
@@ -52,7 +53,7 @@
     'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
-  window.IDOI = { i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
+  window.IDOI = { svg: function (n) { return svg(n); }, i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
   function base(a) { var h = (a.getAttribute('href') || '').split('#')[0].split('?')[0]; if (h === './' || h === '') return 'index.html'; return h.replace(/^.*\//, ''); }
 
   /* ---------- styles ---------- */
@@ -126,7 +127,7 @@
   function navIcons() {
     document.querySelectorAll('#gnav a.gnb').forEach(function (a) {
       var i = a.querySelector('i'); if (!i || i.getAttribute('data-ui')) return;
-      var n = a.id === 'gback' ? 'back' : (BY[base(a)] || 'dot');
+      var n = a.id === 'gback' ? 'back' : a.id === 'gmore' ? 'more' : (BY[base(a)] || 'dot');
       i.innerHTML = svg(n); i.setAttribute('data-ui', '1');
     });
     document.querySelectorAll('.hmp a').forEach(function (a) {
