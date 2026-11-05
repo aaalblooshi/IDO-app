@@ -290,12 +290,18 @@ let PC='',CH=null,PLS=[],CRS=[],CLS=[],CFGP=null,MYSG={},LINKS=[],PLR=null,M=nul
 const F={ph:'',who:'',st:'',mine:false,late:false,q:''};
 const TABS=[['ov',['نظرة عامة','Overview']],['plan',['الخطة','Plan']],['tasks',['المهام','Tasks']],['req',['الطلبات والتغييرات','Requests & changes']],['log',['الوثائق والسجل','Documents & log']]];
 const VIEWS=[['gantt',['الجدول الزمني','Timeline']],['wbs',['الهيكل (WBS)','Structure (WBS)']],['who',['حسب المكلّف','By assignee']],['list',['قائمة','List']],['kb',['لوحة (كانبان)','Board']],['net',['مخطط الشبكة','Network diagram']]];
-const ROLEN={pm:['مدير المشروع','Project manager'],ow:['مالك المشروع','Project owner'],tk:['مكلّف بمهام','Task assignee'],fl:['متابع','Follower'],pt:['مشارك بالتخطيط','Planning participant'],of:['مكتب التطوير المؤسسي','Corporate development office'],vw:['اطّلاع','Viewer']};
+const ROLEN={pm:['مدير المشروع','Project manager'],ow:['مالك المشروع','Project owner'],tk:['مكلّف بمهام','Task assignee'],fl:['متابع','Follower'],pt:['مشارك بالتخطيط','Planning participant'],of:['👁 اطّلاع بصفتك من مكتب التطوير','👁 Visible to you as Corp. Dev. Office'],vw:['اطّلاع','Viewer']};
 function myRoles(){const r=[];if(!me)return r;if(CH&&(CH.created_by==me.id||(CH.pm&&CH.pm==me.full_name)))r.push('pm');else if(PLR&&PLR.created_by==me.id)r.push('pm');
  if(CH&&CH.sp&&CH.sp==me.full_name)r.push('ow');if(M&&M.mine)r.push('tk');if(LINKS.some(l=>l.kind=='follower'))r.push('fl');if(LINKS.some(l=>l.kind=='participant'))r.push('pt');
  if(r.includes('pm')||r.includes('ow'))['fl','pt'].forEach(k=>{const i=r.indexOf(k);if(i>=0)r.splice(i,1)});
  if(me.role=='admin'||me.role=='pmo'||me.role=='exec')r.push('of');if(!r.length)r.push('vw');return r}
 const tabsOn=()=>TABS.filter(t=>(t[0]!='plan'&&t[0]!='tasks')||(M&&M.tasks.length));
+let OLST=null;(function(){const go=()=>{if(typeof sb=='undefined'||!sb)return setTimeout(go,400);sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle().then(r=>{try{OLST=JSON.parse((r.data&&r.data.value)||'{}')||{}}catch(_){OLST={}}if(CH&&typeof drawHub=='function')try{drawHub()}catch(_){}},()=>{OLST={}})};go()})();
+function unitL(){const c=CH;if(!c||!OLST)return '';const ar_=(typeof lang=='undefined'||lang=='ar'),pk=a=>Array.isArray(a)?(ar_?a[0]:(a[1]||a[0])):(a||''),s=+c.sc||0,d=c.dp,n=c.sn;
+ if(n&&s&&d&&d!='na'){const L=(OLST.sects&&OLST.sects[s-1]&&OLST.sects[s-1][d-1])||[];const x=L.find(y=>y[0]==n);return x?pk(x):n}
+ if(s&&d&&d!='na'){const D=(OLST.depts&&OLST.depts[s-1]&&OLST.depts[s-1][d-1]);if(D)return pk(D)}
+ if(s&&OLST.sectors&&OLST.sectors[s-1])return pk(OLST.sectors[s-1]);return ''}
+window.chatPC=()=>(CH||PLR)&&PC?PC:'';
 const pName=()=>(CH&&CH.pn)||(PLR&&PLR.data&&PLR.data.pname)||PC;
 async function loadHub(){
  applyLang();if(!sb)return gate();
@@ -307,7 +313,7 @@ async function loadHub(){
  const mp=await sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]);
  if(!PC&&pid0){const m=mp.find(x=>x.id==pid0);if(m)PC=m.pcode;else{const r=await q('plans','id,pc:data->>pcode',x=>x.eq('id',+pid0));if(r[0])PC=r[0].pc||''}}
  if(!PC){$('app').innerHTML='<div class="card lock"><p>'+P(['لم يُحدَّد مشروع.','No project specified.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
- const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,pt:data->>ptype',x=>x.eq('code',PC))]);
+ const [ch]=await Promise.all([q('charters','id,code,doc_no,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,dp:data->>dept,sn:data->>section,pt:data->>ptype',x=>x.eq('code',PC))]);
  CH=ch[0]||null;
  const pf=x=>CH?x.or('data->>pcode.eq.'+PC+',charter_id.eq.'+CH.id):x.eq('data->>pcode',PC);
  [PLS,CRS,CLS]=await Promise.all([q('plans','id,code,status,version,archived,charter_id,created_by,created_at,stage_at,act:data->>_active',pf),
@@ -348,7 +354,7 @@ function journey(){const doc=a=>a.filter(x=>!x.archived).sort((x,y)=>y.id-x.id);
 function head(){const roles=myRoles(),ch=CH||{};
  const meta=[ch.code||PC,CH?stN(ch.status):'',ch.pm?P(['مدير المشروع: ','PM: '])+ch.pm:(PLR&&PLR.data&&PLR.data.pmname?P(['مدير المشروع: ','PM: '])+PLR.data.pmname:''),ch.sp?P(['المالك: ','Owner: '])+ch.sp:''].filter(Boolean).join(' · ');
  const h=health(M),sit=situ({ch:CH,pl:PLR&&Object.assign({},PLR,{act:PLR.data&&PLR.data._active}),M,crs:CRS,cls:CLS,restricted:PLR&&PLR.restricted});
- const RS=(PLR&&PLR.restricted),BL=x=>RS&&((PLR.blur||['people','kpi','team','events']).includes(x));return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p'+(BL('people')?' class="mk"':'')+'>'+esc(meta)+'</p></div><div class="row">'+(h&&!BL('kpi')?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الأداء: ','Performance: ']))+esc(h.t)+'</span>':'')+roles.map(r=>'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
+ const RS=(PLR&&PLR.restricted),BL=x=>RS&&((PLR.blur||['people','kpi','team','events']).includes(x));return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p'+(BL('people')?' class="mk"':'')+'>'+esc(meta)+'</p>'+(unitL()?'<p style="margin-top:4px;font-weight:700">🏢 '+esc(unitL())+'</p>':'')+'</div><div class="row">'+(h&&!BL('kpi')?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الأداء: ','Performance: ']))+esc(h.t)+'</span>':'')+roles.map(r=>r=='of'?'<span class="chip" title="'+esc(P(['تظهر لك هذه الصفحة لأنك من مكتب التطوير المؤسسي — المشروع لا يتبع المكتب','You see this because you are in the Corporate Development Office — the project does not belong to it']))+'" style="cursor:default;background:transparent;color:#fff;border:1.5px dashed rgba(255,255,255,.7);font-weight:600">'+esc(P(ROLEN[r]))+'</span>':'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
  '<div class="sit big" style="--k:'+SIT_C[sit.k]+'"><b>'+P(['الوضع الآن: ','Now: '])+esc(sit.t)+'</b>'+(sit.s?'<small>'+esc(sit.s)+'</small>':'')+'</div>'+
  '<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
 function goTab(t){TAB=t;history.replaceState(null,'','#'+t);draw()}
@@ -713,6 +719,7 @@ HUB?loadHub():load();
  pan.id='cpan';
  function code(){try{
    if(cur=='index'||cur=='tasks'||cur=='inbox')return '';
+   if(typeof window.chatPC==='function')return window.chatPC()||'';
    if(typeof pcOf==='function'&&typeof cr!=='undefined'&&cr)return pcOf(cr)||'';
    if(typeof PC!=='undefined'&&PC)return PC;
   }catch(e){}return ''}
