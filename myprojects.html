@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style><style>.wc{position:relative}.wdn{position:absolute;top:-9px;inset-inline-end:-9px;width:22px;height:22px;border-radius:50%;background:#1c9a55;color:#fff;font-size:13px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25);border:2px solid #fff;z-index:2}.wdi{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#1c9a55;color:#fff;font-size:11px;font-weight:900;flex:none;margin-inline:3px}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1d5f8a">
@@ -434,9 +434,10 @@ function gantt(rows,mini){if(M.start==null)return '<div class="none">'+P(['لا 
 function tgl(id){COLL[id]=!COLL[id];draw()}
 /* ---------- بقية العروض ---------- */
 function stBadge(x){return '<span class="dot" style="background:'+clr[x._st]+'"></span>'+esc(P(stT[x._st]))}
+function mpDone(x,kids){const k=kids[x.id]||[];return k.length?k.every(c=>mpDone(c,kids)):(+x._pc||0)>=100}
 function wbs(){const vs=visSet(),kids={};M.tasks.filter(x=>!vs||vs.has(x.id)).forEach(x=>{(kids[x._par||'']=kids[x._par||'']||[]).push(x)});
  const node=x=>{const k=kids[x.id]||[],c=clr[x._st]||'#949594';
-  return '<li><div class="wc" style="--lc:'+c+'" title="'+esc(x.n||'')+'"><div class="wch"><span class="wb">'+x._w+'</span>'+(x.ms?'<span>◆</span>':'')+'</div><b class="wcn">'+nm(x)+'</b><div class="wcd">'+fd(x._s)+' → '+fd(x._e)+'</div>'+(x._k||x._m?'':'<div class="wcw">👤 '+who(x)+'</div>')+'<div class="wcp"><i style="width:'+Math.round(x._pc)+'%"></i></div><div class="wcm">'+Math.round(x._pc)+'%</div></div>'+(k.length?'<ul>'+k.map(node).join('')+'</ul>':'')+'</li>'};
+  return '<li><div class="wc" style="--lc:'+c+'" title="'+esc(x.n||'')+'">'+(mpDone(x,kids)?'<span class="wdn" title="'+esc(P(['مكتملة','Done']))+'">✓</span>':'')+'<div class="wch"><span class="wb">'+x._w+'</span>'+(x.ms?'<span>◆</span>':'')+'</div><b class="wcn">'+nm(x)+'</b><div class="wcd">'+fd(x._s)+' → '+fd(x._e)+'</div>'+(x._k||x._m?'':'<div class="wcw">👤 '+who(x)+'</div>')+'<div class="wcp"><i style="width:'+Math.round(x._pc)+'%"></i></div><div class="wcm">'+Math.round(x._pc)+'%</div></div>'+(k.length?'<ul>'+k.map(node).join('')+'</ul>':'')+'</li>'};
  const roots=kids['']||[];if(!roots.length)return '<div class="none">'+P(['لا مهام','No tasks'])+'</div>';
  const pn=(PLR&&PLR.data&&PLR.data.pname)||(CH&&CH.pn)||'';
  return '<div class="zb" data-zk="mywbs'+esc(PC)+'"><div class="zi"><div class="otree" dir="ltr"><ul><li><div class="wc root"><b class="wcn">'+esc(pn)+'</b><div class="wcm">'+Math.round(M.pct||0)+'%</div></div><ul>'+roots.map(node).join('')+'</ul></li></ul></div></div></div>'}
