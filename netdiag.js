@@ -78,7 +78,7 @@
     var cols = {}; lv.forEach(function (x) { (cols[lvl[x.id]] = cols[lvl[x.id]] || []).push(x); });
     var phaseOf = function (x) { var c = x, g = 0; while (c && c.p && R.by[c.p] && g++ < 12) c = R.by[c.p]; return c && c !== x ? c.n : ''; };
     var nCols = Math.max.apply(null, Object.keys(cols).map(Number)) + 1;
-    var NW = 196, NH = 112, GX = 64, GY = 26, PX = 90, PY = 30, pos = {}, maxRows = 0;
+    var NW = 196, NH = 112, GX = 88, GY = 40, PX = 100, PY = 34, pos = {}, maxRows = 0;
     for (var ci = 0; ci < nCols; ci++) {
       var col = (cols[ci] || []).sort(function (a, b) { return (R.crit[b.id] ? 1 : 0) - (R.crit[a.id] ? 1 : 0) || dn(a.s) - dn(b.s); });
       col.forEach(function (x, ri) { pos[x.id] = { x: PX + ci * (NW + GX), y: PY + ri * (NH + GY) }; });
@@ -90,24 +90,62 @@
     var midY = PY + (H - PY * 2) / 2;
     var starts = lv.filter(function (x) { return !(R.preds[x.id] || []).length; }), ends = lv.filter(function (x) { return !(R.succs[x.id] || []).length; });
     var svg = [];
-    svg.push('<defs><marker id="ndA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#9aa7b4"/></marker><marker id="ndC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#d1101d"/></marker></defs>');
-    function edge(x1, y1, x2, y2, crit, dim) {
-      var a = X(x1), b = X(x2), mx = (a + b) / 2;
-      return '<path d="M' + a + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + b + ',' + y2 + '" fill="none" stroke="' + (crit ? '#d1101d' : '#b9c3cc') + '" stroke-width="' + (crit ? 3.4 : 1.6) + '" marker-end="url(#' + (crit ? 'ndC' : 'ndA') + ')" opacity="' + (dim ? .12 : 1) + '"' + (crit ? '' : ' stroke-dasharray="0"') + '/>';
+    svg.push('<defs><marker id="ndA" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#9aa7b4"/></marker><marker id="ndC" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="#d1101d"/></marker></defs>');
+    /* توجيه الأسهم بزوايا قائمة: خروج أفقي ← قناة رأسية في الفراغ بين الأعمدة ← ممر أفقي بين الصفوف ← دخول أفقي للمهمة */
+    var oc = ST.onlyCrit, E = [], CH = {}, CO = {};
+    function colOfX(x) { return Math.round((x - PX) / (NW + GX)); }
+    function addE(x1, y1, x2, y2, crit, dim, tRowTop) {
+      var e = { x1: x1, y1: y1, x2: x2, y2: y2, crit: crit, dim: dim };
+      var c1 = x1 + GX / 2, c2 = x2 - GX / 2;
+      e.k1 = 'v' + Math.round(c1); (CH[e.k1] = CH[e.k1] || []).push(e);
+      if (c2 - c1 > 4 && Math.abs(y2 - y1) > 1) {
+        e.span = true; e.c2raw = c2; e.k2 = 'v' + Math.round(c2); (CH[e.k2] = CH[e.k2] || []).push(e);
+        e.yc = tRowTop - GY / 2; e.kc = 'h' + Math.round(e.yc); (CO[e.kc] = CO[e.kc] || []).push(e);
+      }
+      e.c1raw = c1; E.push(e);
     }
-    var oc = ST.onlyCrit;
-    /* حواف */
     lv.forEach(function (x) {
       (R.preds[x.id] || []).forEach(function (p) {
         var A = pos[p.t], B = pos[x.id]; if (!A || !B) return;
         var c = R.crit[p.t] && R.crit[x.id] && (R.info[x.id].ES >= R.info[p.t].EF || p.y !== 'FS');
-        svg.push(edge(A.x + NW, A.y + NH / 2, B.x, B.y + NH / 2, c, oc && !c));
+        addE(A.x + NW, A.y + NH / 2, B.x, B.y + NH / 2, c, oc && !c, B.y);
       });
     });
-    /* البداية والنهاية */
     var sx = 18, ex = W - 18;
-    starts.forEach(function (x) { var B = pos[x.id]; svg.push(edge(sx + 22, midY, B.x, B.y + NH / 2, R.crit[x.id], oc && !R.crit[x.id])); });
-    ends.forEach(function (x) { var A = pos[x.id]; svg.push(edge(A.x + NW, A.y + NH / 2, ex - 22, midY, R.crit[x.id], oc && !R.crit[x.id])); });
+    starts.forEach(function (x) { var B = pos[x.id]; addE(sx + 22, midY, B.x, B.y + NH / 2, R.crit[x.id], oc && !R.crit[x.id], B.y); });
+    ends.forEach(function (x) { var A = pos[x.id]; addE(A.x + NW, A.y + NH / 2, ex - 22, midY, R.crit[x.id], oc && !R.crit[x.id], A.y); });
+    /* توزيع المسارات داخل كل قناة حتى لا تتطابق الخطوط */
+    function lanes(map, room, key) {
+      Object.keys(map).forEach(function (k) {
+        var arr = map[k], seen = [], n;
+        arr.forEach(function (e) { if (seen.indexOf(e) < 0) seen.push(e); });
+        seen.sort(function (a, b) { return (a.y2 - b.y2) || (a.y1 - b.y1); });
+        n = seen.length; var st = n > 1 ? Math.min(9, room / (n - 1)) : 0;
+        seen.forEach(function (e, i) { var o = (i - (n - 1) / 2) * st; if (e.k1 === k && key === 'v') e.o1 = o; if (e.k2 === k && key === 'v') e.o2 = o; if (key === 'h') e.oc = o; });
+      });
+    }
+    lanes(CH, GX - 36, 'v'); lanes(CO, GY - 16, 'h');
+    function rp(pts) {
+      var r = 7, d = 'M' + X(pts[0][0]) + ',' + pts[0][1];
+      for (var i = 1; i < pts.length; i++) {
+        var P = pts[i], N = pts[i + 1];
+        if (!N) { d += ' L' + X(P[0]) + ',' + P[1]; break; }
+        var Q = pts[i - 1], l1 = Math.abs(P[0] - Q[0]) + Math.abs(P[1] - Q[1]), l2 = Math.abs(N[0] - P[0]) + Math.abs(N[1] - P[1]), rr = Math.min(r, l1 / 2, l2 / 2);
+        var ax = P[0] - Math.sign(P[0] - Q[0]) * rr, ay = P[1] - Math.sign(P[1] - Q[1]) * rr, bx = P[0] + Math.sign(N[0] - P[0]) * rr, by = P[1] + Math.sign(N[1] - P[1]) * rr;
+        d += ' L' + X(ax) + ',' + ay + ' Q' + X(P[0]) + ',' + P[1] + ' ' + X(bx) + ',' + by;
+      }
+      return d;
+    }
+    function draw(e) {
+      var c1 = e.c1raw + (e.o1 || 0), pts;
+      if (Math.abs(e.y2 - e.y1) < 1) pts = [[e.x1, e.y1], [e.x2, e.y2]];
+      else if (!e.span) pts = [[e.x1, e.y1], [c1, e.y1], [c1, e.y2], [e.x2, e.y2]];
+      else { var c2 = e.c2raw + (e.o2 || 0), yc = e.yc + (e.oc || 0); pts = [[e.x1, e.y1], [c1, e.y1], [c1, yc], [c2, yc], [c2, e.y2], [e.x2, e.y2]]; }
+      var cr = e.crit;
+      return '<path d="' + rp(pts) + '" fill="none" stroke="' + (cr ? '#d1101d' : '#a3afba') + '" stroke-width="' + (cr ? 3.2 : 1.6) + '" stroke-linejoin="round" marker-end="url(#' + (cr ? 'ndC' : 'ndA') + ')" opacity="' + (e.dim ? .12 : 1) + '"/>';
+    }
+    E.filter(function (e) { return !e.crit; }).forEach(function (e) { svg.push(draw(e)); });
+    E.filter(function (e) { return e.crit; }).forEach(function (e) { svg.push(draw(e)); });
     svg.push('<circle cx="' + X(sx) + '" cy="' + midY + '" r="22" fill="#14324a"/><text x="' + X(sx) + '" y="' + (midY + 4) + '" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">' + L('بداية', 'Start') + '</text>');
     svg.push('<circle cx="' + X(ex) + '" cy="' + midY + '" r="22" fill="#14324a"/><text x="' + X(ex) + '" y="' + (midY + 4) + '" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">' + L('نهاية', 'End') + '</text>');
     /* العُقد */

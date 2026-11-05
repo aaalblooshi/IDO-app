@@ -257,7 +257,7 @@ function draw(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
  const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';try{localStorage.setItem('pfTab','${k}')}catch(_){};draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
- const TK=['exe','sum','tree','wbs','gantt','trd','fil','rec','rep'].concat(['kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);
+ const TK=['exe','sum','tree','wbs','gantt','net','xpl','trd','fil','rec','rep'].concat(['kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);
  const fAct=(FS?1:0)+(FP?1:0)+(FM?1:0);
  $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${TK.map(tab).join('')}</div>
  <div class="vbar"><select class="vsel" id="vsel" aria-label="view">${TK.map(k=>`<option value="${k}" ${TAB==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select><button class="fbt ${fAct?'on':''}" id="fbt" type="button">⚙ ${lang=='ar'?'تصفية':'Filter'}${fAct?' ('+fAct+')':''}</button></div>
@@ -268,7 +268,7 @@ function draw(){
  $('fs').onchange=e=>{FS=e.target.value;FP='';RP=null;draw()};$('fmb').onclick=async()=>{FM=(FM+1)%3;if(FM==2&&TEAM==null){try{const r0=await sb.rpc('my_team_pcodes');if(!r0.error){TPC=new Set(r0.data||[]);TEAM=[]}else{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}}catch(_){TEAM=[]}}try{localStorage.setItem('pfFM',FM)}catch(_){}FP='';RP=null;draw()};$('fp').onchange=e=>{FP=e.target.value;RP=null;draw()};
  if(TAB=='wts'&&ADM)return vWts();
  if(!PL.length){$('body').innerHTML=`<div class="card mut">${t('none')}${window.PFERR&&window.PFERR.length?'<div style="color:#a00;font-size:12px;margin-top:6px;direction:ltr">⚠ '+esc(window.PFERR.slice(0,3).join(' | '))+'</div>':''}</div>`;return}
- ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec,fil:vFil,trd:vTrd,rmap:vRmap,dq:vDq,att:vAtt,deg:vDeg,lag:vLag,otd:vOtd,kan:vKan,pln:vPln,goal:vGoal})[TAB]()}
+ ({drill:vDrill,exe:vExe,sum:vSum,tree:vTree,wbs:vWbs,gantt:vGantt,rep:vRep,rec:vRec,fil:vFil,trd:vTrd,rmap:vRmap,dq:vDq,att:vAtt,deg:vDeg,lag:vLag,otd:vOtd,kan:vKan,pln:vPln,goal:vGoal,net:vNet,xpl:vXpl})[TAB]()}
 /* ---- executive summary ---- */
 function vSum(){const L=scoped(),A=agg(L),h=hl(A.ex-A.a,A.late);
  $('body').innerHTML=`<div class="card"><div class="kpg"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b class="${h}">${pct(A.a)}</b><span>${t('kA')}</span></div><div><b class="${A.late?'bad':'ok'}">${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}<div class="mut">${t('legend')}</div></div>
@@ -1383,4 +1383,59 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=3"></script><script src="ido-ui.js?v=20"></script></body></html>
+<script>/*pfnet*/
+Object.assign(D,{tNet:['🕸 مخطط الشبكة','🕸 Network diagram'],tXpl:['📥 تنزيل الخطط','📥 Download plans']});
+window.NETP=window.NETP||'';window.XPP=window.XPP||'';
+function pfPlans(){return gsc().filter(p=>p.id&&(p.tasks||[]).length)}
+function pfSel(id,val,all){const L=pfPlans();return `<select id="${id}" style="flex:1;min-width:0;max-width:100%">${all?`<option value="*" ${val=='*'?'selected':''}>${lang=='ar'?'كل المشاريع المعروضة ('+L.length+')':'All shown projects ('+L.length+')'}</option>`:''}${L.map(p=>`<option value="${esc(p.k)}" ${val==p.k?'selected':''}>${esc(p.name)} — ${esc(p.k)}</option>`).join('')}</select>`}
+function vNet(){const L=pfPlans(),AR_=lang=='ar';
+ if(!L.length){$('body').innerHTML=`<div class="card mut">${AR_?'لا توجد خطط بمهام ضمن التصفية الحالية':'No plans with tasks in the current filter'}</div>`;return}
+ if(!L.some(p=>p.k==NETP))NETP=(FP&&L.some(p=>p.k==FP))?FP:L[0].k;const p=L.find(q=>q.k==NETP);
+ $('body').innerHTML=`<div class="card noprint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${AR_?'المشروع':'Project'}</b>${pfSel('netp',NETP)}<button onclick="NetDiag.open(PL.find(q=>q.k==NETP).tasks,{title:PL.find(q=>q.k==NETP).name})">⛶ ${AR_?'ملء الشاشة':'Full screen'}</button><button onclick="xpPlans(NETP)">📥 Excel</button></div><div class="card" style="padding:8px">${NetDiag.html(p.tasks,{title:p.name})}</div>`;
+ $('netp').onchange=e=>{NETP=e.target.value;vNet()}}
+function vXpl(){const L=pfPlans(),AR_=lang=='ar';if(XPP!='*'&&!L.some(p=>p.k==XPP))XPP='*';
+ const sel=XPP=='*'?L:L.filter(p=>p.k==XPP),nt=sel.reduce((s,p)=>s+p.tasks.length,0);
+ $('body').innerHTML=`<div class="card"><h3 style="margin:0 0 8px">📥 ${AR_?'تنزيل خطط المشاريع (Excel)':'Download project plans (Excel)'}</h3>
+ <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${AR_?'ماذا تنزّل؟':'What to download?'}</b>${pfSel('xpp',XPP,1)}</div>
+ <div class="mut" style="margin:10px 0;line-height:1.8">${AR_?`سيحتوي الملف على <b>${sel.length}</b> مشروع و<b>${nt}</b> مهمة، لكل مهمة: الترقيم الهيكلي، المرحلة، تاريخ البداية والنهاية، المدة، تعتمد على (التسلسل)، نسبة الإنجاز، الحالة، المكلّف، هل هي على المسار الحرج، ورابط يفتح المهمة مباشرة.<br>يتبع الملف التصفية الحالية (القطاع/أنا/فريقي).`:`The file will contain <b>${sel.length}</b> projects and <b>${nt}</b> tasks with WBS number, phase, start/end, duration, depends on, progress, status, assignee, critical flag and a direct link.`}</div>
+ <button class="p" id="xpgo" style="font-size:16px;padding:10px 18px">📥 ${AR_?'تنزيل ملف Excel':'Download Excel'}</button></div>`;
+ $('xpp').onchange=e=>{XPP=e.target.value;vXpl()};$('xpgo').onclick=()=>xpPlans(XPP)}
+function pfLoadXLSX(){return window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=ok;s.onerror=()=>no(new Error('xlsx'));document.head.appendChild(s)})}
+function xpRows(p){const AR_=lang=='ar',base=location.href.replace(/[#?].*$/,'').replace(/[^/]*$/,'');
+ const T=p.tasks,by={},kids={};T.forEach(x=>{by[x.id]=x;(kids[x.p&&T.some(y=>y.id==x.p)?x.p:'']=kids[x.p&&T.some(y=>y.id==x.p)?x.p:'']||[]).push(x)});
+ const num={},ord=[],seen=new Set();const walk=(pid,pre,lv)=>{(kids[pid]||[]).forEach((x,i)=>{if(seen.has(x.id))return;seen.add(x.id);num[x.id]=pre+(i+1);ord.push([x,lv]);walk(x.id,num[x.id]+'.',lv+1)})};walk('','',0);
+ T.forEach(x=>{if(!seen.has(x.id)){num[x.id]='?';ord.push([x,0])}});
+ let R={crit:{}};try{R=NetDiag.cpm(T)||R}catch(_){}
+ const an=p.an&&p.an.t?p.an.t:{};
+ const stO=(x,a)=>{if(!a)return '';if(a.a>=100)return AR_?'منجزة':'Done';if(a.late>0||a.lateN>0)return AR_?'متأخرة':'Late';if(a.s!=null&&a.s>TODAY)return AR_?'لم يحن موعدها':'Upcoming';if(a.a>0)return AR_?'قيد التنفيذ':'In progress';return AR_?'لم تبدأ (حان موعدها)':'Not started (due)'};
+ const fdx=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?m[3]+'/'+m[2]+'/'+m[1]:''};
+ const tyN={FS:AR_?'بعد انتهاء':'after finish of',SS:AR_?'مع بداية':'with start of',FF:AR_?'تنتهي مع':'finish with',SF:AR_?'بداية-نهاية':'SF'};
+ return ord.map(([x,lv])=>{const a=an[x.id],leaf=!(kids[x.id]||[]).length,s=dn(x.s),e=dn(x.e);
+  let ph='',c=x,g=0;while(c&&c.p&&by[c.p]&&g++<12)c=by[c.p];if(c&&c!==x)ph=c.n||'';
+  const dep=(x.dep||[]).map(d=>{const t=by[d.t];return (num[d.t]||'')+' '+(t?t.n:'')+((d.y&&d.y!='FS')?' ('+(tyN[d.y]||d.y)+')':'')+(+d.l?' '+(+d.l>0?'+':'')+d.l+(AR_?' يوم':'d'):'')}).join(' ، ');
+  const who=x.w?(UN[x.w]||x.wn||''):(x.wn||'');
+  const link=leaf&&x.w?base+'tasks.html#k='+encodeURIComponent(p.id+'|'+x.id):base+'plan.html#o='+p.id;
+  return {pn:p.name.replace(/^🔄 /,''),pk:p.k,wbs:num[x.id],n:'  '.repeat(lv)+(x.ms?'◆ ':'')+(x.n||''),ph,lv:lv+1,kind:x.ms?(AR_?'معلم':'Milestone'):leaf?(AR_?'مهمة':'Task'):(AR_?'مرحلة/مجموعة':'Phase'),
+   s:fdx(x.s),e:fdx(x.e),du:x.ms?0:(s!=null&&e!=null)?(e-s+1):'',dep,pc:a?Math.round(a.a):(+x.pc||0),st:stO(x,a),who,cr:R.crit&&R.crit[x.id]?(AR_?'نعم':'Yes'):'',link}})}
+async function xpPlans(which){const AR_=lang=='ar';
+ try{toast(AR_?'جارٍ تجهيز الملف…':'Preparing…')}catch(_){}
+ try{await pfLoadXLSX()}catch(_){alert(AR_?'تعذّر تحميل مكتبة Excel، تحقق من الاتصال':'Could not load Excel library');return}
+ const L=pfPlans(),sel=which=='*'?L:L.filter(p=>p.k==which);if(!sel.length)return;
+ const H=AR_?['المشروع','رمز المشروع','الترقيم','المهمة','المرحلة','المستوى','النوع','البداية','النهاية','المدة (يوم)','تعتمد على (التسلسل)','الإنجاز %','الحالة','المكلّف','مسار حرج','رابط المهمة']:['Project','Code','WBS','Task','Phase','Level','Type','Start','End','Days','Depends on','Progress %','Status','Assignee','Critical','Link'];
+ const K=['pn','pk','wbs','n','ph','lv','kind','s','e','du','dep','pc','st','who','cr','link'];
+ const mk=rows=>{const aoa=[H].concat(rows.map(r=>K.map(k=>k=='link'?(AR_?'فتح':'Open'):r[k])));const ws=XLSX.utils.aoa_to_sheet(aoa);
+  rows.forEach((r,i)=>{const ad=XLSX.utils.encode_cell({r:i+1,c:K.length-1});if(ws[ad])ws[ad].l={Target:r.link,Tooltip:r.link}});
+  ws['!cols']=[28,16,8,44,24,7,12,11,11,9,40,9,16,22,9,8].map(w=>({wch:w}));ws['!autofilter']={ref:XLSX.utils.encode_range({s:{r:0,c:0},e:{r:rows.length,c:K.length-1}})};ws['!freeze']={xSplit:0,ySplit:1};return ws};
+ const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:AR_}]};
+ const all=[];sel.forEach(p=>{all.push(...xpRows(p))});
+ if(sel.length>1){const sm=[AR_?['المشروع','رمز المشروع','مدير المشروع','عدد المهام','الإنجاز %','المخطط حتى اليوم %','مهام متأخرة','رابط الخطة']:['Project','Code','PM','Tasks','Progress %','Planned %','Late tasks','Plan link']];
+  const base=location.href.replace(/[#?].*$/,'').replace(/[^/]*$/,'');
+  sel.forEach(p=>sm.push([p.name.replace(/^🔄 /,''),p.k,p.pm||'',p.tasks.length,Math.round(p.a||0),Math.round(p.an&&p.an.ex||0),p.lateN||0,AR_?'فتح':'Open']));
+  const ws=XLSX.utils.aoa_to_sheet(sm);sel.forEach((p,i)=>{const ad=XLSX.utils.encode_cell({r:i+1,c:7});ws[ad].l={Target:base+'plan.html#o='+p.id}});ws['!cols']=[34,16,22,9,10,14,11,8].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws,AR_?'ملخص المشاريع':'Summary');
+  XLSX.utils.book_append_sheet(wb,mk(all),AR_?'كل المهام':'All tasks')}
+ else XLSX.utils.book_append_sheet(wb,mk(all),String(sel[0].k||'plan').replace(/[\\/?*\[\]:]/g,'-').slice(0,31));
+ const d=new Date(),ds_=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+ XLSX.writeFile(wb,(sel.length>1?'plans_all_':'plan_'+sel[0].k+'_')+ds_+'.xlsx')}
+</script>
+<script src="netdiag.js?v=4"></script><script src="ido-ui.js?v=20"></script></body></html>
