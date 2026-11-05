@@ -162,7 +162,7 @@ function analyze(tasks,wmode,now){
  let a=0,ex=0,n=0,done=0,lateN=0,s=null,e=null;
  roots.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;lateN+=r.lateN;if(r.s!=null)s=s==null?r.s:Math.min(s,r.s);if(r.e!=null)e=e==null?r.e:Math.max(e,r.e)});
  return {t:out,kids,a,ex,n,done,lateN,s,e,gap:ex-a}}
-const health=(gap,lateN)=>lateN>0&&gap>=15?'bad':(gap>=8||lateN>0)?'wa':'ok';
+const health=(gap,lateN)=>(gap>=15||(lateN>0&&gap>=8))?'bad':(gap>=8||lateN>0)?'wa':'ok';
 const hCol={ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'};
 const LBL={act:['الفعلي','Actual'],pln:['المخطط','Planned']};
 function pbar(a,ex,col){col=col||'#1c7a45';const L=k=>LBL[k][lang=='ar'?0:1];a=clamp(a,0,100);
