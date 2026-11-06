@@ -430,7 +430,7 @@ function vRep(){const d1=ds(TODAY),d0=d1.slice(0,8)+'01';
  $('body').innerHTML=`<div class="card noprint"><label>${t('rPer')}</label><div class="row" style="margin:0 0 6px"><select id="rpk" style="flex:1"><option value="m">${t('rP_m')}</option><option value="q">${t('rP_q')}</option><option value="h">${t('rP_h')}</option><option value="y">${t('rP_y')}</option></select><select id="rpo" style="flex:1"><option value="0">${t('rP_c')}</option><option value="-1">${t('rP_p')}</option></select><button onclick="rPreset()">${t('rApply')}</button></div>
  <div class="g2"><div><label>${t('rFrom')}</label><input type="date" id="rf" value="${RP?RP.f:d0}"></div><div><label>${t('rTo')}</label><input type="date" id="rt" value="${RP?RP.t:d1}"></div></div>
  <label class="ck"><span style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" id="rpl" ${RP&&RP.pl?'checked':''}> ${t('rPlan')}</span></label>
- <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${MSP?`<button onclick="mspExp()" title="${A()?'ملف XML يفتحه Microsoft Project (ملف ← فتح)':'XML file for Microsoft Project (File → Open)'}">⬇ Microsoft Project</button>`:''}${RP?`<button onclick="repCsv()">${t('rCsv')}</button><button onclick="repPptx()">${t('rPpt')}</button><button onclick="repShare()">${t('rShare')}</button><button class="dsk" onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
+ <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${MSP?`<button onclick="mspExp()" title="${lang=='ar'?'ملف XML يفتحه Microsoft Project (ملف ← فتح)':'XML file for Microsoft Project (File → Open)'}">⬇ Microsoft Project</button>`:''}${RP?`<button onclick="repCsv()">${t('rCsv')}</button><button onclick="repPptx()">${t('rPpt')}</button><button onclick="repShare()">${t('rShare')}</button><button class="dsk" onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
  if(RP)showRep()}
 function genRep(){RP={f:$('rf').value,t:$('rt').value,pl:$('rpl').checked};showRep()}
 function showRep(){const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t),scope=FP?t('rByP')+((L[0]||{}).name||''):FS?t('rBySec')+secN(FS):t('rAllS');
@@ -536,6 +536,7 @@ function vDrill(){const L0=scoped(),L=DR.sc?L0.filter(p=>p.sc==DR.sc):L0,et=exeT
  $('body').innerHTML=XE_CSS+`<button class="xbk" onclick="TAB='exe';draw();scrollTo(0,0)">${t('xe_back')}</button><div class="card"><h2 class="xs">${esc(ttl)}</h2>${body}</div>`}
 
 /* ---- تصدير إلى Microsoft Project (MSPDI XML) ---- */
+if(typeof window.A!=='function')window.A=function(){return lang=='ar'};
 function mspExp(){const L=(typeof scoped=='function'?scoped():PL).filter(p=>!p.closed||true);if(!L.length)return toast(A()?'لا مشاريع للتصدير':'Nothing to export');
  const X=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
  const day=d=>/^\d{4}-\d{2}-\d{2}/.test(d||'')?String(d).slice(0,10):null;
