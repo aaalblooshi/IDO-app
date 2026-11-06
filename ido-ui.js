@@ -358,6 +358,57 @@
   function ar() { try { return (localStorage.getItem('lang') || 'ar') !== 'en'; } catch (e) { return true; } }
   var ME = null, BASE = null, busy = 0, NAMES = {}, CHN = {}, Q = [], showing = 0;
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* نغمة التنبيه (نفس نغمة صفحة المحادثات) + تنبيهات سطح المكتب عندما تكون الصفحة في الخلفية */
+  var AUD = null, AUDok = false, ACX = null, TONE = [[523.25, 0], [783.99, .13]], TLEN = .75, TVOL = .2;
+  function lsN(k) { try { return +localStorage.getItem(k) || 0; } catch (e) { return 0; } }
+  function lsS(k) { try { localStorage.setItem(k, String(Date.now())); } catch (e) {} }
+  function sndOn() { try { return localStorage.getItem('chatSnd') !== '0'; } catch (e) { return true; } }
+  function toneAt(t) { var y = 0; TONE.forEach(function (z) { var u = t - z[1]; if (u < 0) return; var env = (u < .008 ? u / .008 : 1) * Math.exp(-u / .2); y += env * (Math.sin(2 * Math.PI * z[0] * u) + .18 * Math.sin(4 * Math.PI * z[0] * u) * Math.exp(-u / .06)); }); return y * TVOL / 1.18; }
+  function audMk() {
+    if (AUD) return AUD;
+    try {
+      var sr = 22050, n = Math.floor(sr * TLEN), buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), i;
+      var w = function (o, t) { for (var j = 0; j < t.length; j++) v.setUint8(o + j, t.charCodeAt(j)); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      for (i = 0; i < n; i++) { var t = i / sr, f = t > TLEN - .05 ? (TLEN - t) / .05 : 1; v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, toneAt(t) * f)) * 32767, true); }
+      var bin = '', u8 = new Uint8Array(buf); for (i = 0; i < u8.length; i += 8192) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
+      AUD = new Audio('data:audio/wav;base64,' + btoa(bin)); AUD.preload = 'auto'; AUD.setAttribute('playsinline', '');
+    } catch (e) { AUD = null; }
+    return AUD;
+  }
+  function acx() { try { if (!ACX) ACX = new (window.AudioContext || window.webkitAudioContext)(); if (ACX.state === 'suspended') ACX.resume(); return ACX; } catch (e) { return null; } }
+  function unlock() {
+    acx(); var a = audMk(); if (!a || AUDok) return;
+    try { a.muted = true; var pr = a.play(); if (pr && pr.then) pr.then(function () { a.pause(); a.currentTime = 0; a.muted = false; AUDok = true; }).catch(function () { a.muted = false; }); else { a.pause(); a.muted = false; AUDok = true; } } catch (e) { a.muted = false; }
+  }
+  ['pointerup', 'touchend', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, unlock, { passive: true }); });
+  function ding() {
+    if (!sndOn()) return; var now = Date.now();
+    if (now - lsN('chatDingAt') < 2500 || now - lsN('chatSentAt') < 5000) return; lsS('chatDingAt');
+    var a = audMk();
+    if (a && AUDok) { try { a.currentTime = 0; var pr = a.play(); if (pr && pr.catch) pr.catch(wa); return; } catch (e) {} }
+    wa();
+    function wa() { var c = acx(); if (!c) return; try { var t0 = c.currentTime; TONE.forEach(function (z) { var t = t0 + z[1], o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(z[0], t); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(TVOL * .5, t + .008); g.gain.exponentialRampToValueAtTime(0.0001, t + .6); o.connect(g).connect(c.destination); o.start(t); o.stop(t + .62); }); } catch (e) {} }
+  }
+  function sysNote(m) {
+    try {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+      var k = 'chatNtf:' + m.key; if (Date.now() - lsN(k) < 4000) return true; lsS(k);
+      var n = new Notification((m.name || (ar() ? 'رسالة جديدة' : 'New message')) + (m.grp ? ' · ' + m.grp : ''), { body: m.body || (ar() ? '📎 مرفق' : '📎 Attachment'), tag: 'ido-chat-' + m.key, icon: ((document.querySelector('link[rel=apple-touch-icon]') || {}).href) || undefined, silent: true });
+      n.onclick = function () { try { window.focus(); } catch (e) {} location.href = 'chat.html?o=' + encodeURIComponent(m.key); n.close(); };
+      return true;
+    } catch (e) { return false; }
+  }
+  function askNotif() {
+    try {
+      if (!('Notification' in window) || Notification.permission !== 'default' || lsN('chatNtfAsk') || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) return;
+      css(); var b = document.createElement('div'); b.id = 'cnask';
+      b.innerHTML = '<span>🔔 ' + (ar() ? 'هل تريد تنبيهًا على سطح المكتب عند وصول رسالة والمتصفح في الخلفية؟' : 'Get desktop alerts for new messages while the browser is in the background?') + '</span><button class="y">' + (ar() ? 'تفعيل' : 'Enable') + '</button><button class="n">' + (ar() ? 'لاحقًا' : 'Later') + '</button>';
+      document.body.appendChild(b);
+      b.querySelector('.y').onclick = function () { lsS('chatNtfAsk'); b.remove(); try { Notification.requestPermission(); } catch (e) {} };
+      b.querySelector('.n').onclick = function () { lsS('chatNtfAsk'); b.remove(); };
+    } catch (e) {}
+  }
   function css() {
     if (document.getElementById('ctoastcss')) return;
     var s = document.createElement('style'); s.id = 'ctoastcss';
@@ -367,7 +418,8 @@
       '#ctoast .av{flex:0 0 40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1d5f8a,#3ea3dc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px}' +
       '#ctoast .tx{flex:1;min-width:0}#ctoast .nm{font-weight:800;font-size:14px;color:#14324a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ctoast .gp{font-weight:600;color:#6b7c8c;font-size:12px}' +
       '#ctoast .bd{font-size:13px;color:#33475b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}' +
-      '#ctoast .x{flex:0 0 28px;height:28px;border-radius:50%;border:0;background:#eef3f8;color:#5b6b7b;font-size:13px;cursor:pointer}';
+      '#ctoast .x{flex:0 0 28px;height:28px;border-radius:50%;border:0;background:#eef3f8;color:#5b6b7b;font-size:13px;cursor:pointer}' +
+      '#cnask{position:fixed;bottom:18px;inset-inline-start:18px;z-index:2147483000;max-width:min(460px,calc(100vw - 36px));background:#fff;border:1px solid #dfe7ef;border-radius:16px;box-shadow:0 12px 34px rgba(16,42,67,.2);padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;color:#14324a}#cnask span{flex:1 1 220px}#cnask button{border:1px solid #d6dde3;background:#fff;border-radius:99px;padding:6px 14px;font:inherit;font-weight:700;cursor:pointer}#cnask .y{background:#1d5f8a;border-color:#1d5f8a;color:#fff}';
     document.head.appendChild(s);
   }
   function pop(m) {
@@ -395,7 +447,7 @@
   }
   function chatOpen() { var p = document.getElementById('cpan'); return !!(p && p.classList.contains('on')); }
   function check() {
-    if (busy || !ME || document.visibilityState !== 'visible') return; busy = 1;
+    if (busy || !ME) return; busy = 1;
     sb.rpc('chat_unread').then(function (u) {
       busy = 0; if (!u || u.error) return;
       var cur = {}; (u.data || []).forEach(function (x) { var k = x.channel_id ? 'ch:' + x.channel_id : 'dm:' + x.from_user; cur[k] = (cur[k] || 0) + (+x.n || 0); });
@@ -409,7 +461,10 @@
         q.then(function (r) {
           var m = r && r.data && r.data[0]; var who = m ? m.from_user : (dm ? id : null);
           Promise.all([who ? name(who) : '', dm ? '' : chn(id)]).then(function (a) {
-            Q.push({ key: k, name: a[0], grp: a[1], body: m ? String(m.body || '').replace(/\s+/g, ' ').slice(0, 120) : '', more: d }); next();
+            var it = { key: k, name: a[0], grp: a[1], body: m ? String(m.body || '').replace(/\s+/g, ' ').slice(0, 120) : '', more: d };
+            ding();
+            if (document.visibilityState !== 'visible') { sysNote(it); return; }
+            Q.push(it); next();
           });
         });
       });
@@ -428,7 +483,7 @@
     if (typeof sb === 'undefined' || !sb || !sb.auth) { if (n++ < 40) setTimeout(w, 500); return; }
     sb.auth.getSession().then(function (g) {
       var s = g && g.data && g.data.session; if (!s) return; ME = s.user.id;
-      return sb.rpc('chat_on').then(function (r) { if (!(r && r.data === true)) return; check(); rt(); setInterval(check, 15000); document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); }); });
+      return sb.rpc('chat_on').then(function (r) { if (!(r && r.data === true)) return; check(); rt(); setInterval(check, 15000); setTimeout(askNotif, 4000); document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); }); });
     }).catch(function () {});
   })();
 })();
