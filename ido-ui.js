@@ -496,3 +496,19 @@
     (document.head || document.documentElement).appendChild(s);
   } catch (e) {}
 })();
+
+/* إيقاف التواصل من الإعدادات: يختفي من كل مكان (الأزرار والقوائم والروابط والنافذة العائمة) */
+(function () {
+  try {
+    var s = document.createElement('style'); s.id = 'chatoffcss';
+    s.textContent = 'html.chat-off a[href^="chat.html"],html.chat-off a[href^="./chat.html"],html.chat-off #chb,html.chat-off #cfab,html.chat-off #cpan,html.chat-off #ctoast,html.chat-off [data-act="go:chat.html"],html.chat-off .chat-only{display:none!important}';
+    (document.head || document.documentElement).appendChild(s);
+  } catch (e) {}
+  function apply(off) { document.documentElement.classList.toggle('chat-off', !!off); try { localStorage.setItem('chatOff', off ? '1' : ''); } catch (e) {} }
+  try { if (localStorage.getItem('chatOff') === '1') apply(true); } catch (e) {}
+  var n = 0;
+  (function w() {
+    if (typeof sb === 'undefined' || !sb || !sb.rpc) { if (n++ < 40) setTimeout(w, 500); return; }
+    sb.rpc('chat_on').then(function (r) { if (r && !r.error) apply(r.data !== true); }, function () {});
+  })();
+})();
