@@ -39,7 +39,20 @@
     while (q.length) { var k = q.shift(); order.push(k); (succs[k] || []).forEach(function (e) { if (--indeg[e.to] === 0) q.push(e.to); }); }
     var cyc = order.length < lv.length;
     if (cyc) lv.forEach(function (x) { if (order.indexOf(x.id) < 0) order.push(x.id); });
-    var end = Math.max.apply(null, lv.map(function (x) { return EF[x.id]; })), LS = {}, LF = {};
+    /* التمرير الأمامي حسب منطق الاعتماديات: المهمة المرتبطة تبدأ مبكرًا بقدر ما تسمح سابقاتها
+       (الفجوات والعطل بين التواريخ المخططة لا تُخرج السلسلة من المسار الحرج) */
+    var ES2 = {}, EF2 = {};
+    order.forEach(function (id) {
+      var ps = preds[id] || [], s = ps.length ? null : ES[id];
+      ps.forEach(function (p) {
+        if (ES2[p.t] == null) return; var v;
+        if (p.y === 'SS') v = ES2[p.t] + p.l; else if (p.y === 'FF') v = EF2[p.t] + p.l - du[id]; else if (p.y === 'SF') v = ES2[p.t] + p.l - du[id]; else v = EF2[p.t] + p.l;
+        s = s == null ? v : Math.max(s, v);
+      });
+      if (s == null) s = ES[id];
+      ES2[id] = s; EF2[id] = s + du[id];
+    });
+    var end = Math.max.apply(null, lv.map(function (x) { return EF2[x.id]; })), LS = {}, LF = {};
     for (var i = order.length - 1; i >= 0; i--) {
       var id = order[i], lf = end, ls = null;
       (succs[id] || []).forEach(function (e) {
@@ -54,9 +67,9 @@
     var crit = {}, info = {}, linked = {};
     lv.forEach(function (x) { if (preds[x.id].length || (succs[x.id] || []).length) linked[x.id] = 1; });
     lv.forEach(function (x) {
-      var fl = LS[x.id] - ES[x.id];
+      var fl = LS[x.id] - ES2[x.id];
       /* بلا اعتماديات: الحرج هو ما ينتهي في آخر يوم للمشروع فقط */
-      var isC = any ? (fl <= 0 && (linked[x.id] || EF[x.id] === end)) : EF[x.id] === end;
+      var isC = any ? (fl <= 0 && (linked[x.id] || EF2[x.id] === end)) : EF[x.id] === Math.max.apply(null, lv.map(function (z) { return EF[z.id]; }));
       if (isC) crit[x.id] = 1;
       info[x.id] = { ES: back(ES[x.id]), EF: back(Math.max(ES[x.id], EF[x.id] - 1)), LS: back(LS[x.id]), LF: back(Math.max(LS[x.id], LF[x.id] - 1)), fl: fl, du: du[x.id] };
     });
@@ -107,7 +120,7 @@
     lv.forEach(function (x) {
       (R.preds[x.id] || []).forEach(function (p) {
         var A = pos[p.t], B = pos[x.id]; if (!A || !B) return;
-        var c = R.crit[p.t] && R.crit[x.id] && (R.info[x.id].ES >= R.info[p.t].EF || p.y !== 'FS');
+        var c = R.crit[p.t] && R.crit[x.id];
         addE(A.x + NW, A.y + NH / 2, B.x, B.y + NH / 2, c, oc && !c, B.y);
       });
     });
