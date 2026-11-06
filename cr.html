@@ -976,7 +976,20 @@ async function ret(){askNote(t('returnPM'),t('retPrompt'),t('returnPM'),async c=
  const nd={...cr.data};delete nd._anotes;if(Object.keys(items).length)nd._notes={v:cr.version,by:me.full_name,at:new Date().toISOString(),items:items};else delete nd._notes;
  await setStatus('Returned to PM',{comment:c,version:cr.version+1,data:nd});await lg(cr.id,'returned|'+c);delete NOTES[cr.id];noteMode=false;openCR(cr.id)},true)}
 const relPc=()=>{try{return SVC=='charter'?(cr&&cr.code):(cr&&cr.data&&cr.data.pcode)}catch(e){return ''}};
-const relBtn=()=>relPc()?`<button class="sm" onclick="relDocs()">📎 ${t('relDocs')}</button>`:'';
+const RELSV=(location.pathname.match(/(charter|plan|cr|closure)\.html/)||[])[1]||'';
+const relBtn=()=>{if(!relPc())return '';let n=0;const tr=()=>{const ab=document.querySelector('.actbar');if(ab&&ab.parentNode&&!ab.parentNode.querySelector(':scope > .rtabs'))relStrip();else if(!ab&&n++<25)setTimeout(tr,150)};setTimeout(tr,60);return `<button class="sm" onclick="relDocs()">📎 ${t('relDocs')}</button>`};
+/* تبويبات التنقل بين وثائق المشروع (الميثاق/الخطة/طلبات التغيير/التقرير الختامي) أثناء المراجعة دون مغادرة الصفحة */
+async function relStrip(){const ab=document.querySelector('.actbar'),c=ab&&ab.parentNode;if(!c||c.querySelector(':scope > .rtabs'))return;const pc=relPc();if(!pc)return;
+ if(!document.getElementById('rtabcss')){const s=document.createElement('style');s.id='rtabcss';s.textContent='.rtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;padding:6px;background:#f3f6f9;border:1px solid #e1e7ed;border-radius:14px}.rtabs button{flex:1 1 auto;border:0;background:transparent;border-radius:10px;padding:8px 10px;font:inherit;font-size:13px;font-weight:700;color:#3b5368;cursor:pointer;white-space:nowrap}.rtabs button.on{background:#fff;color:#1d5f8a;box-shadow:0 1px 4px rgba(0,0,0,.08);cursor:default}.rtabs button b{display:inline-block;min-width:18px;margin-inline-start:4px;font-size:11px;background:#dfe9f2;border-radius:99px;padding:0 5px}.rtabs button b:empty{display:none}.rtabs button.z{opacity:.45}';document.head.appendChild(s)}
+ const el=document.createElement('div');el.className='rtabs no-dr';const L=[['charter','📄'],['plan','🗓'],['cr','🔁'],['closure','🏁']];
+ const RN={charter:['الميثاق','Charter'],plan:['الخطة','Plan'],cr:['طلبات التغيير','Change requests'],closure:['التقرير الختامي','Closure report']};el.innerHTML=L.map(([k,i])=>`<button type="button" data-rs="${k}" class="${k==RELSV?'on':''}">${i} ${esc(RN[k][lang=='ar'?0:1])}<b></b></button>`).join('');const fc=c.querySelector(':scope > .card');c.insertBefore(el,fc||c.firstChild);
+ el.onclick=e=>{const b=e.target.closest('[data-rs]');if(!b||b.dataset.rs==RELSV)return;relGo(b.dataset.rs)};
+ try{const g=(tb,isData)=>{let q=sb.from(tb).select('id');q=isData?q.eq('data->>pcode',pc):q.eq('code',pc);return q.then(r=>(r.data||[]).length,()=>0)};
+  const n=await Promise.all([g('charters',0),g('plans',1),g('change_requests',1),g('closure_reports',1)]);
+  L.forEach(([k],i)=>{const b=el.querySelector('[data-rs="'+k+'"]');if(!b)return;if(k!=RELSV){b.querySelector('b').textContent=n[i]>1?n[i]:'';if(!n[i])b.classList.add('z')}})}catch(_){}}
+async function relGo(sv){await relDocs();const it=window._rdItems||[],ix=[];it.forEach((x,i)=>{if(x.sv==sv)ix.push(i)});
+ if(ix.length==1)return relOpen(ix[0]);if(ix.length>1&&sv=='cr')return;if(ix.length>1){const order=ix.sort((a,b)=>(it[b].id||0)-(it[a].id||0));return relOpen(order[0])}}
+
 async function relDocs(){const pc=relPc();if(!pc)return;
  const g=(tb,c,col,isData)=>{let q=sb.from(tb).select(c);q=isData?q.eq('data->>pcode',pc):q.eq('code',pc);return q.then(r=>r.data||[],()=>[])};
  const [ch,pl,cc,cl]=await Promise.all([g('charters','id,code,status',0,0),g('plans','id,code,status,version',0,1),g('change_requests','id,code,status',0,1),g('closure_reports','id,code,status',0,1)]);
