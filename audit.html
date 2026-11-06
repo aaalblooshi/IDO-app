@@ -105,6 +105,10 @@ function act(r){
   case 'created':return P('إنشاء ','Created ')+S;
   case 'assigned':return P('تعيين ','Assigned ')+(p[1]||'')+' — '+stg(p[2]);
   case 'removed':return P('إزالة موقّع','Signer removed');
+  case 'crlink':return P('ربط الخطة بطلب التغيير: ','Linked to change request: ')+(p[1]=='-'?P('بلا ربط','none'):(p[1]||''));
+  case 'crx':return P('اعتُمد طلب التغيير المرتبط ونُقلت مراجعته وتواقيعه للخطة: ','Linked change request approved; review and signatures carried over: ')+(p[1]||'');
+  case 'crxok':return P('أكّد المكتب اعتماد الخطة بتواقيع طلب التغيير: ','Office confirmed approval via change request: ')+(p[1]||'');
+  case 'crxno':return P('اختار المكتب متابعة المسار العادي بدل اعتماد طلب التغيير: ','Office chose the normal workflow instead of: ')+(p[1]||'');
   case 'draftassign':return (p[1]=='transfer'?P('تحويل المسودة إلى: ','Draft transferred to: '):P('إضافة مشارك لإكمال المسودة: ','Co-editor added to the draft: '))+(p[2]||'');
   case 'autoarchive':return P('أُلغيت المسودة وأُرشفت تلقائيًا لاعتماد خطة أخرى لنفس المشروع ','Draft cancelled and archived automatically: another plan was approved ')+(p[1]?'('+p[1]+')':'');
   case 'revised':return P('بدء إصدار جديد (مسودة)','New version started (draft)');
