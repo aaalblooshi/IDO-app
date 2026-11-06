@@ -1197,6 +1197,7 @@ function logT(a){const p=a.split('|'),k=p[0];
  if(k=='crx')return (lang=='ar'?'اعتُمد طلب التغيير المرتبط ونُقلت مراجعته وتواقيعه للخطة: ':'Linked change request approved, signatures carried over: ')+(p[1]||'');
  if(k=='crxok')return (lang=='ar'?'أكّد المكتب اعتماد الخطة بتواقيع طلب التغيير: ':'Office confirmed approval via change request: ')+(p[1]||'');
  if(k=='crxno')return (lang=='ar'?'متابعة المسار العادي بدل اعتماد طلب التغيير: ':'Normal workflow instead of: ')+(p[1]||'');
+ if(k=='docassign')return lang=='ar'?(p[1]=='transfer'?'نقل ملكية النموذج إلى: ':'إضافة محرر للتعديل والتحكم: ')+(p[2]||''):(p[1]=='transfer'?'Ownership transferred to: ':'Editor added: ')+(p[2]||'');
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير '+({r:'عند توجيه التصعيد',i:'عند تجاهل التصعيد',w:'عند سحب التصعيد'}[p[1]]||'')+': ':'Office note '+({r:'on redirecting the escalation',i:'on ignoring the escalation',w:'on withdrawing the escalation'}[p[1]]||'')+': ')+p.slice(2).join('|');
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
@@ -1587,10 +1588,10 @@ async function openCR0(id){
  if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
  acts+=relBtn();
  if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
- if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
+ if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;if(!arch&&window.DOCA)more+=DOCA.btn(SVC,cr);
  if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${isRevDraft()?(lang=='ar'?'إلغاء المسودة والعودة للخطة المعتمدة':'Cancel draft and return to approved plan'):t('cancelReq')}</button>`;
  if(adm&&SVC=='plan'&&cr.version>1&&st!='Approved')more+=`<button class="g" onclick="restoreApproved()">↩ ${lang=='ar'?'استعادة آخر نسخة معتمدة من الخطة':'Restore the last approved version'}</button>`;
- if(adm&&!arch&&(st=='Draft'||st=='Returned to PM'))more+=`<button onclick="draftAssign()">👥 ${lang=='ar'?'إسناد المسودة لمستخدم آخر':'Assign draft to another user'}</button>`;
+
  if(adm&&st=='Cancelled'&&!arch)more+=`<button class="g" onclick="restoreCR()">↩ ${lang=='ar'?'استعادة الطلب الملغى':'Restore cancelled request'}</button>`;
  if(adm&&((cr.data&&cr.data.pcode)||cr.code))more+=`<a href="portfolio.html#eval=${encodeURIComponent((cr.data&&cr.data.pcode)||cr.code)}"><button type="button">📋 ${lang=='ar'?'تقييم المشروع':'Project evaluation'}</button></a>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
@@ -4010,4 +4011,4 @@ const s=document.createElement('style');s.textContent=`.pbar{background:#fff;bor
 .pbv{font-size:12px;color:#8a6a1f;border-top:1px dashed #eef2f6;padding-top:5px;margin-top:4px}
 @media(max-width:640px){.lvs{grid-template-columns:1fr 1fr!important;gap:7px!important}.lvc{padding:9px!important}.lvc b{font-size:13px}.lvc .tree{font-size:11px!important;line-height:1.55!important;margin-top:4px!important}.lvc .mut{font-size:11.5px}.pbl{flex-basis:100%}}`;document.head.appendChild(s);
 })();
-</script><script src="netdiag.js?v=5"></script><script src="ido-ui.js?v=23"></script></body></html>
+</script><script src="netdiag.js?v=5"></script><script src="docassign.js?v=1"></script><script src="ido-ui.js?v=23"></script></body></html>

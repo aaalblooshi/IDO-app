@@ -499,6 +499,7 @@ async function adminEditDone(ok){const id=cr.id;
 function officeDecide(kind){const ap=kind=='approve';askNote(t(ap?'offApprove':'offReject'),t(ap?'offApprovePh':'rejPrompt'),t(ap?'offApprove':'offReject'),async c=>{await setStatus(ap?'Approved':'Rejected',c?{comment:c}:{});await lg(cr.id,(ap?'officeapproved|':'officerejected|')+(c||''));openCR(cr.id)},!ap)}
 const BHW={admin:['بصفة الأدمن','as administrator'],office:['بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'],unit:['بصفة مسؤول الوحدة','as unit head'],edit:['بصلاحية التعديل على المشروع','with edit rights on the project']};const bhw=w=>{const x=BHW[w];return x?(lang=='ar'?x[0]:x[1]):(w||'')};
 function logT(a){const p=a.split('|'),k=p[0];
+ if(k=='docassign')return lang=='ar'?(p[1]=='transfer'?'نقل ملكية النموذج إلى: ':'إضافة محرر للتعديل والتحكم: ')+(p[2]||''):(p[1]=='transfer'?'Ownership transferred to: ':'Editor added: ')+(p[2]||'');
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير '+({r:'عند توجيه التصعيد',i:'عند تجاهل التصعيد',w:'عند سحب التصعيد'}[p[1]]||'')+': ':'Office note '+({r:'on redirecting the escalation',i:'on ignoring the escalation',w:'on withdrawing the escalation'}[p[1]]||'')+': ')+p.slice(2).join('|');
  if(k=='created')return t('l_created');
  if(k=='delreq'||k=='delok'||k=='delno')return t('l_'+k);
@@ -782,7 +783,7 @@ async function openCR0(id){
  if(!arch&&st=='PMO Review'&&sigs.some(s=>isMine(s)&&s.stage=='reviewed'&&s.status=='pending'))acts+=`<button class="r" onclick="rejR()">${t('reject')}</button>`;
  acts+=relBtn();
  if(canAdm&&['PMO Review','Awaiting Approval'].includes(st))more+=`<button onclick="remind(${cr.id})">${t('remindBtn')}</button>`;
- if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;
+ if(adm)more+=`<button onclick="archiveCR(${!arch})">${arch?t('restore'):t('archive')}</button>`;if(!arch&&window.DOCA)more+=DOCA.btn(SVC,cr);
  if(ed&&!aed)more+=`<button class="r" onclick="cancelCR()">${t('cancelReq')}</button>`;
  if(adm&&st=='Cancelled'&&!arch)more+=`<button class="g" onclick="restoreCR()">↩ ${lang=='ar'?'استعادة الطلب الملغى':'Restore cancelled request'}</button>`;
  if(adm)more+=`<button class="r" onclick="delCR()">${t('del')}</button>`;
@@ -1513,4 +1514,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=23"></script></body></html>
+<script src="docassign.js?v=1"></script><script src="ido-ui.js?v=23"></script></body></html>

@@ -105,6 +105,7 @@ function act(r){
   case 'created':return P('إنشاء ','Created ')+S;
   case 'assigned':return P('تعيين ','Assigned ')+(p[1]||'')+' — '+stg(p[2]);
   case 'removed':return P('إزالة موقّع','Signer removed');
+  case 'docassign':return (p[1]=='transfer'?P('نقل ملكية النموذج إلى: ','Ownership transferred to: '):P('إضافة محرر للتعديل والتحكم: ','Editor added: '))+(p[2]||'');
   case 'crlink':return P('ربط الخطة بطلب التغيير: ','Linked to change request: ')+(p[1]=='-'?P('بلا ربط','none'):(p[1]||''));
   case 'crx':return P('اعتُمد طلب التغيير المرتبط ونُقلت مراجعته وتواقيعه للخطة: ','Linked change request approved; review and signatures carried over: ')+(p[1]||'');
   case 'crxok':return P('أكّد المكتب اعتماد الخطة بتواقيع طلب التغيير: ','Office confirmed approval via change request: ')+(p[1]||'');
