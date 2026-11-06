@@ -227,7 +227,7 @@ async function start(){
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||(p.id||0)>(best[k].id||0))best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!SECV&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,c=CFG[k]||{};let an;try{an=p.id?analyze(p.tasks||[],p.wm):chAn(p)}catch(er){window.PFERR=(window.PFERR||[]).concat(k+': '+String(er&&er.message||er));try{an=chAn(p)}catch(_){an={a:0,ex:0,gap:0,lateN:0,kids:{},t:{},s:null,e:null}}}
   return {k,sa:p.sa,sd:p.sd,ed:p.ed,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||k),ag:(p.tasks||[]).some(x=>x&&x.spr),sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
- PL.sort((a,b)=>a.sc-b.sc||a.name.localeCompare(b.name,'ar'));
+ {const HR={bad:0,wa:1,ok:2},hr=p=>p.closed?3:(HR[health(p.gap||0,p.lateN||0)]??2);PL.sort((a,b)=>a.sc-b.sc||hr(a)-hr(b)||(b.gap||0)-(a.gap||0)||(b.lateN||0)-(a.lateN||0)||a.name.localeCompare(b.name,'ar'))}
  if(ADM&&!window._tabInit){window._tabInit=1;let v=null;try{v=localStorage.getItem('pfTab')}catch(_){}TAB=['exe','sum','tree','wbs','gantt','net','xpl','trd','fil','rec','rep','kan','pln','goal','att','deg','lag','otd','rmap','dq','wts'].includes(v)?v:'att'}
  draw()}
 const wavg=(arr,f)=>{const W=arr.reduce((s,p)=>s+p.w,0);return W?arr.reduce((s,p)=>s+f(p)*p.w,0)/W:0};

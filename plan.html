@@ -1401,7 +1401,7 @@ async function adminDraft(){}
 let PICK=[],TPLS=[];
 async function pickView(){curView=pickView;editing=false;const adm=me.role=='admin';
  app.innerHTML=bar()+`<div class="card"><div class="mut">${t('x_wait')}</div></div>`;
- const {data,error}=await sb.rpc('pl_charters');PICK=data||[];try{const r=await sb.from('plans').select('id,code,pn:data->>pname').neq('status','Cancelled').order('id',{ascending:false}).limit(100);TPLS=r.data||[]}catch(e){TPLS=[]}
+ const {data,error}=await sb.rpc('pl_charters');PICK=data||[];try{const t=await sb.rpc('pl_templates');if(t.error)throw t.error;TPLS=t.data||[]}catch(e){TPLS=[]}
  app.innerHTML=bar()+`<div class="card"><div class="top"><h2>${t('pl_pick')}</h2><button onclick="listView()">${t('back')}</button></div><div class="mut">${t('pl_pickH')}</div>
  ${adm?`<label>${t('pl_pickFor')}</label><select id="pk_u"><option value="">${t('pl_pickMe')}</option>${Object.values(users).map(u=>`<option value="${u.id}">${esc(u.full_name)} (${esc(rl(u))})</option>`).join('')}</select>`:''}
  <label>${lang=='ar'?'قالب: نسخ هيكل خطة سابقة (اختياري)':'Template: copy structure of a previous plan (optional)'}</label><select id="pk_t"><option value="">${lang=='ar'?'— خطة فارغة —':'— Blank plan —'}</option>${TPLS.map(x=>`<option value="${x.id}">${esc(x.pn||x.code)} · ${esc(x.code)}</option>`).join('')}</select>
