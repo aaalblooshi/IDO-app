@@ -962,7 +962,7 @@ var SUMP={ap:['للاعتماد','to approve'],rv:['للمراجعة','to review
 function sumTxt(k,n,l){var t;
  if(k=='tk'){var pl=function(c){return c==1?'مهمة واحدة':c==2?'مهمتان':AR(c)+(c<=10?' مهام':' مهمة')},d=n-l;
   if(lang=='en')return l==n?n+' late task'+(n>1?'s':''):(l?l+' late and ':'')+d+' task'+(d>1?'s':'')+' within the execution period';
-  return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة، و ':'')+pl(d)+' في فترة التنفيذ'}
+  return l==n?pl(l)+(l==1?' متأخرة':l==2?' متأخرتان':' متأخرة'):(l?pl(l)+' متأخرة، و':'')+pl(d)+' في فترة التنفيذ'}
  t=lang=='en'?n+' '+SUMP[k][1]:AR(n)+' '+SUMP[k][0];
  return t+(l?(lang=='en'?' ('+(l==n?(n==1?'late':n==2?'both late':'all late'):l+' late')+')':' ('+(l==n?(n==1?'متأخرة':n==2?'كلاهما متأخر':'كلها متأخرة'):AR(l)+' متأخرة')+')'):'')}
 function kindOf(m){var x=m.x;if(m.act&&x.why){var WK={draft:'pmd',edit:'pmr',review:'rv',approve:'ap',assignRev:'of',assignApp:'of',office:'of',behalf:'ofs',consult:'pt',esc:'es',del:'dl'};if(WK[x.why])return WK[x.why]}if(m.esc&&m.act&&window.JNX.E.me&&window.JNX.E.me.role=='admin')return'es';if(!m.act){if(x.k=='tasks')return x.stage<5&&E_ok(x)?'tk':null;if(x.stage<5&&x.roles.has('of')&&window.JNX.E.role!='fl'&&window.JNX.E.role!='pt')return'mon';return null}if(x.k=='tasks')return'tk';if(x.cons)return'pt';
@@ -1037,7 +1037,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmh').textContent=P(['مرحبًا ','Hello '])+nm;
  var bk={},bl={};M.filter(function(m){return m.act}).forEach(function(m){var k=m.k||'ot';bk[k]=(bk[k]||0)+1;if(m.late)bl[k]=(bl[k]||0)+1});
  var bt=Object.keys(bk).map(function(k){return sumTxt(k,bk[k],bl[k]||0)}).join(' · ');
- document.getElementById('cmp').textContent=cnt.act?P([AR(cnt.act)+' بانتظار إجرائك'+(cnt.late?' ('+AR(cnt.late)+' منها متأخرة)':'')+': '+bt,cnt.act+' awaiting your action'+(cnt.late?' ('+cnt.late+' late)':'')+' — '+bt]):P(['لا شيء بانتظار إجرائك الآن','Nothing awaits your action right now']);
+ var la=M.filter(function(m){return m.act&&m.late}).length;document.getElementById('cmp').textContent=cnt.act?P([AR(cnt.act)+' بانتظار إجرائك'+(la?(la==cnt.act?' (كلها متأخرة)':' (منها '+AR(la)+' متأخرة)'):'')+': '+bt,cnt.act+' awaiting your action'+(la?' ('+la+' late)':'')+' — '+bt]):P(['لا شيء بانتظار إجرائك الآن','Nothing awaits your action right now']);
  var roles=[['all',['كل أدواري','All my roles']]].concat(window.JNX.ROLES.filter(function(z){return z[0]!='of'||(E.me&&E.me.role=='admin')}).filter(function(z){return E.items.some(function(x){return x.roles.has(z[0])})}));
  var hasO=E.items.some(function(i){return !i.own});if(!hasO&&E.scope!='mine')E.scope='mine';if(E.role!='all'){E.role='all'}
  var SCP=[['mine',['أنا','Me']],['team',['فريقي ووحدتي','Team & unit']],['all',['الكل','All']]];
