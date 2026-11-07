@@ -521,9 +521,10 @@
     if (!/[?&]new=1\b/.test(location.search)) return;
     var clean = function () { try { var u = new URL(location.href); u.searchParams.delete('new'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) {} };
     var t0 = Date.now(), iv = setInterval(function () {
-      var b = document.querySelector('[onclick="newCR()"],[data-new-btn]');
-      if (b) { clearInterval(iv); clean(); setTimeout(function () { b.click(); }, 150); return; }
-      if (Date.now() - t0 > 12000) { clearInterval(iv); clean(); }
+      var b = [].slice.call(document.querySelectorAll('[onclick="newCR()"],[data-new-btn]')).filter(function (x) { return x.offsetParent !== null && !x.disabled; })[0] || null, ready = false;
+      try { ready = typeof me !== 'undefined' && me && me.id && typeof sb !== 'undefined' && sb; } catch (e) { ready = false; }
+      if (b && ready) { clearInterval(iv); clean(); setTimeout(function () { b.click(); }, 150); return; }
+      if (Date.now() - t0 > 20000) { clearInterval(iv); clean(); }
     }, 250);
   } catch (e) {}
 })();
