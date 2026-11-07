@@ -3542,9 +3542,112 @@ const LIB=[
 /* أسئلة سريعة نعم/لا تفعّل المراحل المناسبة */
 const QQ=[['proc',['هل ستشتري شيئًا أو تتعاقد مع جهة خارجية؟','Will you buy anything or contract a supplier?']],['budget',['هل تحتاج اعتماد ميزانية؟','Do you need budget approval?']],['legal',['هل تحتاج موافقات قانونية أو تصاريح؟','Do you need legal approvals or permits?']],['hr',['هل تحتاج موظفين أو كوادر إضافية؟','Do you need extra staff?']],['pilot',['هل ستجرّب قبل التطبيق الكامل؟','Will you pilot before full rollout?']],['trn',['هل سيحتاج المستخدمون إلى تدريب؟','Will users need training?']],['comm',['هل يتطلب المشروع توعية أو تواصلًا مع الجمهور أو الموظفين؟','Does it need awareness or communication?']],['launch',['هل هناك إطلاق أو افتتاح؟','Is there a launch or opening?']],['support',['هل سيُسلَّم شيء للتشغيل بعد الانتهاء؟','Will something be handed to operations?']],['impact',['هل ستقيس الأثر بعد الانتهاء؟','Will you measure impact afterwards?']]];
 const POSTRE=/التقييم|الإغلاق|الدعم|المتابعة|قياس الأثر|التسليم|Evaluation|Closure|support|Control|Impact|Handover/i;
-let S={tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',ms:true,tpls:null,step:0,evs:[],chain:true,buf:false,mode:'replace',qa:{}};
+let S={tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',ms:true,tpls:null,step:0,evs:[],chain:true,buf:false,mode:'replace',qa:{},items:[],learn:true};
 const lt=x=>A()?x[0]:x[1];
 const ND=a=>a.map(q=>N(lt(q[0]),q[1]));
+/* ===== المقابلة الذكية: كل «نعم» تتحول إلى عناصر بأسمائها ومواعيدها، ثم إلى سلاسل مهام مرتبطة ===== */
+const SZN={s:['بسيط','Simple'],m:['متوسط','Standard'],l:['كبير','Large']};
+const arC=(n,f,e)=>{if(!A())return n+' '+(n==1?e[0]:e[1]);n=+n||0;return n==1?f[0]:n==2?f[1]:n+' '+(n>=3&&n<=10?f[2]:f[3])};
+const KN={
+ proc:{i:'🛒',pos:'start',q:['هل ستشتري شيئًا أو تتعاقد مع مورّد؟','Will you buy something or hire a supplier?'],ask:['ماذا ستشتري أو تتعاقد عليه؟','What will you buy or contract?'],ex:['مثال: أجهزة القاعة، خدمة التصوير','e.g. hall equipment, photography service'],need:['متى تحتاجه جاهزًا؟','Needed ready by'],lbl:['شراء: ','Purchase: '],dn:['مشتريات المشروع','Project purchases'],zh:{s:['شراء مباشر','Direct purchase'],m:['طلب عروض أسعار','Request for quotes'],l:['مناقصة','Tender']},
+  sz:{s:[[['طلب عروض الأسعار','Request quotes'],3],[['اختيار المورّد وإصدار أمر الشراء','Select supplier & PO'],3],[['التوريد والاستلام','Delivery & receipt'],7]],
+      m:[[['إعداد المواصفات','Prepare specifications'],5],[['طلب العروض','Request proposals'],10],[['تقييم العروض','Evaluate proposals'],5],[['الترسية وتوقيع العقد','Award & sign contract'],5],[['التوريد والاستلام','Delivery & receipt'],15]],
+      l:[[['إعداد كراسة الشروط','Prepare tender documents'],7],[['طرح المناقصة','Tender period'],15],[['تقييم العروض','Evaluate bids'],7],[['الترسية وتوقيع العقد','Award & sign contract'],7],[['التوريد والتنفيذ','Supply & delivery'],30],[['الفحص والاستلام','Inspection & acceptance'],3]]}},
+ agr:{i:'🤝',pos:'start',q:['هل ستوقّع عقدًا أو اتفاقية أو مذكرة تفاهم مع جهة؟','Will you sign a contract, agreement or MoU?'],ask:['مع أي جهة؟ وما موضوعها؟','With whom, and about what?'],ex:['مثال: اتفاقية تعاون مع جامعة','e.g. cooperation agreement with a university'],need:['متى يجب أن تكون موقّعة؟','Signed by'],lbl:['اتفاقية: ','Agreement: '],dn:['اتفاقية المشروع','Project agreement'],zh:{s:['نموذج جاهز','Standard form'],m:['اتفاقية عادية','Regular'],l:['تحتاج موافقة عليا','Needs top approval']},
+  sz:{s:[[['صياغة المسودة','Draft the text'],3],[['المراجعة والتوقيع','Review & sign'],5]],
+      m:[[['صياغة المسودة','Draft the text'],5],[['المراجعة القانونية','Legal review'],7],[['التفاوض والتعديلات','Negotiate & revise'],5],[['الاعتماد والتوقيع','Approve & sign'],5]],
+      l:[[['صياغة المسودة','Draft the text'],7],[['المراجعة القانونية','Legal review'],10],[['التفاوض والتعديلات','Negotiate & revise'],10],[['موافقة الإدارة العليا','Senior management approval'],7],[['التوقيع','Signing'],3]]}},
+ hr:{i:'👥',pos:'start',q:['هل تحتاج توظيف أو انتداب أشخاص للمشروع؟','Do you need to hire or second people?'],ask:['ما الوظيفة أو الدور؟','Which role?'],ex:['مثال: محلل بيانات','e.g. data analyst'],need:['متى يجب أن يباشر؟','Must start by'],lbl:['استقطاب: ','Staffing: '],dn:['كوادر المشروع','Project staff'],zh:{s:['انتداب داخلي','Internal secondment'],m:['تعاقد مؤقت','Temporary contract'],l:['توظيف جديد','New hire']},
+  sz:{s:[[['تحديد الاحتياج والمهام','Define needs & duties'],2],[['طلب الانتداب والموافقة','Secondment request & approval'],7],[['المباشرة والتهيئة','Onboarding'],2]],
+      m:[[['إعداد الوصف الوظيفي','Job description'],3],[['البحث والمقابلات','Search & interviews'],10],[['إجراءات التعاقد','Contracting'],7],[['المباشرة والتهيئة','Onboarding'],2]],
+      l:[[['إعداد الوصف الوظيفي','Job description'],3],[['الإعلان والفرز','Advertise & shortlist'],15],[['المقابلات والاختيار','Interviews & selection'],10],[['العرض الوظيفي وإجراءات التعيين','Offer & hiring formalities'],20],[['المباشرة والتهيئة','Onboarding'],3]]}},
+ appr:{i:'🛂',pos:'start',q:['هل تحتاج موافقة أو تصريحًا من جهة داخلية أو خارجية؟','Do you need an approval or permit?'],ask:['ما الموافقة؟ ومن أي جهة؟','Which approval, from whom?'],ex:['مثال: تصريح الفعالية من الجهة المختصة','e.g. event permit from the authority'],need:['متى تحتاجها؟','Needed by'],lbl:['موافقة: ','Approval: '],dn:['موافقات المشروع','Project approvals'],zh:{s:['داخلية','Internal'],m:['جهة خارجية','External'],l:['معقّدة / عدة جهات','Complex / several bodies']},
+  sz:{s:[[['إعداد الطلب','Prepare the request'],2],[['الحصول على الموافقة','Obtain approval'],5]],
+      m:[[['إعداد الطلب والمستندات','Prepare request & documents'],3],[['التقديم والمتابعة','Submit & follow up'],10],[['استلام الموافقة','Receive approval'],2]],
+      l:[[['إعداد الملف الكامل','Prepare full file'],5],[['المراجعة الداخلية','Internal review'],5],[['التقديم والمتابعة مع الجهات','Submit & follow up'],20],[['استلام الموافقة','Receive approval'],2]]}},
+ evt:{i:'🎤',pos:'mid',ev:1,q:['هل في المشروع فعالية أو ورشة أو اجتماع مهم أو إطلاق؟','Is there an event, workshop, key meeting or launch?'],ask:['ما اسمها؟','Its name?'],ex:['مثال: ملتقى الشباب السنوي','e.g. annual youth forum'],need:['موعدها','Date'],lbl:['التحضير لـ: ','Prepare: '],dn:['فعالية المشروع','Project event'],zh:{s:['اجتماع / ورشة','Meeting / workshop'],m:['فعالية متوسطة','Mid-size event'],l:['فعالية كبرى / مؤتمر','Major event / conference']},
+  sz:{s:[[['التحضير والدعوات','Preparation & invitations'],5],[['التجهيزات','Logistics'],2]],
+      m:[[['حجز المكان','Book the venue'],5],[['الدعوات والتسجيل','Invitations & registration'],10],[['المحتوى والمواد','Content & materials'],7],[['التجهيزات الفنية','Technical setup'],3],[['البروفة','Rehearsal'],1]],
+      l:[[['اعتماد الميزانية','Budget approval'],7],[['حجز المكان والمتحدثين','Venue & speakers'],10],[['الخطة الإعلامية','Media plan'],5],[['الدعوات والتسجيل','Invitations & registration'],15],[['المحتوى والمطبوعات','Content & print'],10],[['التجهيزات الفنية','Technical setup'],4],[['البروفة','Rehearsal'],1]]},
+  after:[[['تقرير ما بعد الفعالية','Post-event report'],3]]},
+ sys:{i:'💻',pos:'mid',q:['هل ستبني أو تشغّل نظامًا أو أداة تقنية؟','Will you build or launch a system or tool?'],ask:['ما النظام أو الأداة؟','Which system or tool?'],ex:['مثال: منصة التسجيل الإلكتروني','e.g. online registration platform'],need:['متى يجب أن يعمل؟','Live by'],lbl:['نظام: ','System: '],dn:['النظام التقني','IT system'],zh:{s:['أداة جاهزة تُهيّأ','Ready-made tool'],m:['نظام متوسط','Mid-size system'],l:['نظام كبير / تكامل','Large system / integration']},
+  sz:{s:[[['تحديد المتطلبات','Requirements'],3],[['الإعداد والتهيئة','Set up & configure'],7],[['الاختبار','Testing'],3],[['التشغيل','Go-live'],1]],
+      m:[[['تحديد المتطلبات','Requirements'],7],[['التصميم','Design'],7],[['التطوير أو التهيئة','Build / configure'],20],[['الاختبار وقبول المستخدم','Testing & UAT'],7],[['الإطلاق','Go-live'],2]],
+      l:[[['تحديد المتطلبات','Requirements'],10],[['التصميم','Design'],10],[['التطوير','Development'],40],[['التكامل مع الأنظمة','Integration'],10],[['الاختبار وقبول المستخدم','Testing & UAT'],10],[['نقل البيانات والإطلاق','Data migration & go-live'],5]]}},
+ doc:{i:'📄',pos:'mid',q:['هل ستُعِد تقريرًا أو دراسة أو دليلًا أو إصدارًا؟','Will you produce a report, study, guide or publication?'],ask:['ما عنوانه؟','Its title?'],ex:['مثال: دليل الإجراءات','e.g. procedures guide'],need:['متى يجب أن يكون جاهزًا؟','Ready by'],lbl:['إعداد: ','Prepare: '],dn:['مخرَج مكتوب','Written output'],zh:{s:['وثيقة قصيرة','Short document'],m:['تقرير / دليل','Report / guide'],l:['دراسة أو إصدار محكّم','Peer-reviewed study']},
+  sz:{s:[[['إعداد المسودة','Draft'],5],[['المراجعة والاعتماد','Review & approve'],3]],
+      m:[[['جمع المعلومات','Gather information'],7],[['كتابة المسودة','Write the draft'],10],[['المراجعة','Review'],5],[['الاعتماد','Approval'],3]],
+      l:[[['المنهجية وجمع البيانات','Method & data collection'],15],[['التحليل','Analysis'],10],[['كتابة المسودة','Write the draft'],15],[['التحكيم والمراجعة','Peer review'],15],[['الإخراج والنشر','Layout & publishing'],7]]}},
+ trn:{i:'🎓',pos:'end',q:['هل ستدرّب أشخاصًا أو تؤهلهم؟','Will you train people?'],ask:['من الفئة المستهدفة؟','Who is the audience?'],ex:['مثال: مستخدمو النظام الجديد','e.g. users of the new system'],need:['متى يجب أن ينتهي التدريب؟','Done by'],lbl:['تدريب: ','Training: '],dn:['تدريب المستفيدين','User training'],zh:{s:['جلسة تعريفية','Briefing session'],m:['دورة تدريبية','Course'],l:['برنامج تدريبي','Training programme']},
+  sz:{s:[[['إعداد المادة','Prepare material'],3],[['تنفيذ الجلسة','Deliver the session'],1]],
+      m:[[['تحديد الاحتياج التدريبي','Training needs'],3],[['إعداد المادة التدريبية','Prepare material'],7],[['تنفيذ الدورة','Deliver the course'],3],[['تقييم التدريب','Evaluate training'],2]],
+      l:[[['تحليل الاحتياج التدريبي','Training needs analysis'],5],[['تصميم البرنامج','Design the programme'],7],[['إعداد المواد','Prepare materials'],10],[['تنفيذ البرنامج','Deliver the programme'],15],[['قياس الأثر','Measure impact'],5]]}},
+ comm:{i:'📣',pos:'end',q:['هل تحتاج حملة توعية أو تغطية إعلامية؟','Do you need an awareness campaign or media coverage?'],ask:['ما موضوعها؟','About what?'],ex:['مثال: التعريف بالخدمة الجديدة','e.g. promoting the new service'],need:['متى تبدأ أو يجب أن تُطلق؟','Launch by'],lbl:['تواصل: ','Communication: '],dn:['حملة المشروع','Project campaign'],zh:{s:['منشورات بسيطة','Simple posts'],m:['حملة','Campaign'],l:['حملة واسعة متعددة القنوات','Multi-channel campaign']},
+  sz:{s:[[['إعداد المحتوى','Prepare content'],3],[['النشر','Publish'],5]],
+      m:[[['الخطة الإعلامية','Media plan'],3],[['المحتوى والتصميم','Content & design'],7],[['النشر','Publish'],10],[['قياس الوصول','Measure reach'],2]],
+      l:[[['الخطة الإعلامية','Media plan'],5],[['المحتوى والتصميم','Content & design'],10],[['إنتاج الفيديو والمواد','Video & assets'],10],[['النشر عبر القنوات','Multi-channel publishing'],20],[['قياس الأثر','Measure impact'],3]]}},
+ bud:{i:'💰',pos:'start',q:['هل تحتاج اعتماد ميزانية أو تمويل؟','Do you need budget approval or funding?'],ask:['لأي بند؟','For what?'],ex:['مثال: ميزانية الفعالية','e.g. event budget'],need:['متى يجب اعتمادها؟','Approved by'],lbl:['ميزانية: ','Budget: '],dn:['ميزانية المشروع','Project budget'],zh:{s:['ضمن الصلاحيات','Within authority'],m:['اعتماد عادي','Regular approval'],l:['تمويل إضافي','Extra funding']},
+  sz:{s:[[['تقدير التكلفة','Estimate the cost'],2],[['اعتماد الصرف','Spend approval'],3]],
+      m:[[['تقدير التكلفة','Estimate the cost'],3],[['رفع طلب الميزانية واعتماده','Submit & approve budget'],7]],
+      l:[[['دراسة التكلفة التفصيلية','Detailed costing'],5],[['رفع طلب التمويل','Submit funding request'],3],[['اعتماد التمويل','Funding approval'],15]]}}};
+/* الأسئلة الأكثر صلة بكل نوع مشروع تأتي أولًا */
+const KORD={sys:['sys','proc','trn','hr','appr','comm','doc','agr','evt','bud'],evt:['evt','proc','bud','comm','agr','appr','hr','doc','trn','sys'],std:['doc','hr','agr','proc','evt','bud','appr','comm','trn','sys'],prc:['doc','appr','trn','comm','sys','hr','evt','proc','agr','bud'],imp:['doc','sys','trn','proc','comm','appr','hr','agr','evt','bud'],agl:['sys','hr','proc','trn','comm','appr','doc','agr','evt','bud'],gen:['proc','agr','hr','appr','evt','sys','doc','trn','comm','bud']};
+const kOrd=()=>KORD[S.ty]||KORD.gen;
+const zOf=it=>SZN[it.z]?it.z:'m';
+const itName=it=>{const K=KN[it.k];return (String(it.n||'').trim())||lt(K.dn)};
+/* التعلّم من خطط المركز السابقة: متوسط المدد الفعلية لكل اسم مهمة */
+const nk=s=>String(s||'').replace(/[ً-ْـ]/g,'').replace(/[إأآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/\s*[—–-]\s.*$/,'').replace(/[^\p{L}\p{N}]+/gu,' ').trim().toLowerCase();
+async function loadLearn(){if(S.lrn)return S.lrn;S.lrn={};try{const r=await sb.from('plans').select('id,data->tasks').eq('status','Approved').order('id',{ascending:false}).limit(60);const M={};
+ (r.data||[]).forEach(p=>{const ts=p.tasks||[],par=new Set(ts.map(x=>x.p).filter(Boolean));ts.forEach(x=>{if(!x||par.has(x.id)||x.ms||x.fx)return;const a=dn(x.as||x.s),b=dn(x.ae||x.e);if(isNaN(a)||isNaN(b)||b<a)return;const d=wdays(a,b);if(d<1||d>200)return;const k=nk(x.n);if(!k||k.length<3)return;(M[k]=M[k]||{}).hasOwnProperty(p.id)?0:((M[k][p.id]=d))})});
+ Object.keys(M).forEach(k=>{const v=Object.values(M[k]).sort((a,b)=>a-b);if(v.length>=2)S.lrn[k]={d:v[Math.floor(v.length/2)],n:v.length}})}catch(_){}return S.lrn}
+function lrnDu(name,du){if(S.learn===false||!S.lrn)return [du,0];const h=S.lrn[nk(name)];return h?[h.d,h.n]:[du,0]}
+function itemChain(it){const K=KN[it.k],nm=itName(it),z=zOf(it),dt=it.d&&!isNaN(dn(it.d))?fmt(dn(it.d)):'';
+ const why=lt(K.q)+' ← '+L('نعم','Yes')+': «'+nm+'» ('+lt(K.zh[z])+')'+(dt?' — '+lt(K.need)+' '+dt:'');
+ return K.sz[z].map(([a,du])=>{const n0=lt(a),r=lrnDu(n0,du);return {n:n0,du:r[0],why,lrn:r[1]||0}})}
+function chainDays(it){return itemChain(it).reduce((s,x)=>s+(+x.du||1),0)}
+/* الأحداث المشتقة من العناصر المؤرّخة (موعد الحاجة) */
+function itemEvs(){const out=[];(S.items||[]).forEach((it,ix)=>{if(!S.qa||!S.qa[it.k]||!KN[it.k])return;const s=dn(it.d);if(isNaN(s))return;const K=KN[it.k],nm=itName(it);out.push({i:'i'+ix,n:K.ev?nm:'◆ '+L('جاهزية: ','Ready: ')+nm,s,e:s,auto:1})});return out}
+/* عُقد العناصر في شجرة المساعد */
+function itemNodes(){const N2=[];if(S.agile)return N2;(S.items||[]).forEach((it,ix)=>{const K=KN[it.k];if(!K||!S.qa||!S.qa[it.k])return;const nm=itName(it),has=!isNaN(dn(it.d));
+  const node={n:K.i+' '+lt(K.lbl)+nm,ch:itemChain(it),anc:has?'bi'+ix:'p'+ix,itm:ix,pos:K.pos};N2.push(node);
+  if(K.ev&&K.after&&has){const why=node.ch[0].why;N2.push({n:K.i+' '+L('بعد: ','After: ')+nm,ch:K.after.map(([a,du])=>{const n0=lt(a),r=lrnDu(n0,du);return {n:n0,du:r[0],why,lrn:r[1]||0}}),anc:'ai'+ix,itm:ix,pos:'end'})}});
+ return N2}
+/* الجدوى: هل يكفي الوقت قبل موعد الحاجة؟ */
+function feas(it){const s=dn(it.d);if(isNaN(s))return null;const st=startDay(),need=chainDays(it),avail=wdays(st,s-1);return {ok:avail>=need,need,avail,earliest:addWork(st,need)}}
+function itemsH(){const ord=kOrd(),it=S.items||[];
+ const card=k=>{const K=KN[k],yes=!!(S.qa&&S.qa[k]),mine=it.map((x,ix)=>({x,ix})).filter(z=>z.x.k==k);
+  return `<div class="ki ${yes?'on':''}"><div class="qq"><span>${K.i} ${lt(K.q)}</span><span class="yn"><button data-kq="${k}|1" class="${yes?'on':''}">${L('نعم','Yes')}</button><button data-kq="${k}|0" class="${yes?'':'on'}">${L('لا','No')}</button></span></div>
+  ${yes?`<div class="kis">${mine.map(({x,ix})=>{const f=feas(x),z=zOf(x);return `<div class="kit"><div class="kr"><input type="text" data-itn="${ix}" value="${esc(x.n||'')}" placeholder="${esc(lt(K.ex))}"><button class="evx" data-itx="${ix}" aria-label="${L('حذف','Remove')}">✕</button></div>
+   <div class="kr2"><button class="evd" data-itd="${ix}">📅 ${x.d?fmt(dn(x.d)):lt(K.need)}</button>${x.d?`<button class="lnk" data-itdc="${ix}">${L('بلا موعد','No date')}</button>`:''}<span class="kz">${['s','m','l'].map(q=>`<button data-itz="${ix}|${q}" class="${z==q?'on':''}" title="${esc(lt(K.zh[q]))}">${lt(K.zh[q])}</button>`).join('')}</span></div>
+   <div class="kf ${f?(f.ok?'ok':'bad'):''}">${f?(f.ok?`✅ ${L('الوقت كافٍ','Enough time')}: ${L('يلزم','needs')} ${ad(f.need)} ${L('يوم عمل، والمتاح','work days; available')} ${ad(f.avail)}`:`⚠️ ${L('الوقت غير كافٍ','Not enough time')}: ${L('يلزم','needs')} ${ad(f.need)} ${L('يوم عمل والمتاح','work days, available')} ${ad(Math.max(0,f.avail))}. ${L('أقرب موعد واقعي','Earliest realistic date')} ${fmt(f.earliest)} <button class="lnk" data-itfix="${ix}">${L('اعتمده','Use it')}</button>`):`🔀 ${L('بلا موعد: تبدأ مع بداية المشروع بالتوازي مع باقي العمل','No date: runs in parallel from the project start')} (${ad(chainDays(x))} ${L('يوم عمل','work days')})`}</div>
+   <div class="kch">${itemChain(x).map(c=>`<span>${esc(c.n)} <b>${ad(c.du)}</b>${c.lrn?`<i title="${L('من مشاريع سابقة','From past projects')}">📊</i>`:''}</span>`).join('<em>←</em>')}</div></div>`}).join('')}
+   <button class="evadd" data-itadd="${k}">＋ ${mine.length?L('إضافة آخر','Add another'):L('أضف','Add')} — ${esc(lt(K.ask))}</button></div>`:''}</div>`};
+ const other=QQ.filter(q=>['pilot','launch','handover','impact','risk','quality','docs'].includes(q[0]));
+ const nY=Object.keys(S.qa||{}).filter(k=>S.qa[k]).length,nI=it.filter(x=>S.qa&&S.qa[x.k]).length;
+ return `<div class="q"><b>🧠 ${L('مقابلة التخطيط','Planning interview')}</b><div class="h">${L('أجب بنعم أو لا. عند «نعم» اكتب الاسم واختر الموعد والحجم، فتُبنى سلسلة مهام مرتبطة تنتهي قبل موعدك تلقائيًا.','Answer yes or no. On “yes”, name it and pick a date and size; a linked task chain is built to finish before your date.')}${S.agile?' '+L('في مشروع Agile تتحول العناصر إلى بنود عمل في قائمة البنود.','In an Agile project, items become backlog work items.'):''}</div>
+  ${nY?`<div class="kss">${L('حتى الآن','So far')}: ${arC(nI,['عنصر واحد','عنصران','عناصر','عنصرًا'],['item','items'])} ${L('في','in')} ${arC(nY,['محور واحد','محوران','محاور','محورًا'],['area','areas'])}${S.lrn&&Object.keys(S.lrn).length&&S.learn!==false?' · 📊 '+L('المدد تُقترح من مشاريع المركز السابقة','durations learned from past projects'):''}</div>`:''}
+  ${ord.map(card).join('')}
+  ${other.length?`<div class="q2"><b>${L('أسئلة سريعة أخرى','Other quick questions')}</b>${other.map(q=>{const on=(phl().find(x=>x.k==q[0])||{}).on;return `<div class="qq"><span>${lt(q[1])}</span><span class="yn"><button data-qq="${q[0]}|1" class="${on?'on':''}">${L('نعم','Yes')}</button><button data-qq="${q[0]}|0" class="${on?'':'on'}">${L('لا','No')}</button></span></div>`}).join('')}</div>`:''}</div>`}
+/* الفحص الذكي قبل الإضافة */
+function smartChecks(){if(!S.tree)return [];const out=[],st=startDay(),sc=schedule(S.tree,st),en=dn(cr.data.edate);
+ if(sc.hi!=null&&!isNaN(en)&&sc.hi>en)out.push(['🏁',L('الخطة المقترحة تنتهي '+fmt(sc.hi)+' بعد نهاية الميثاق '+fmt(en)+' بـ '+ad(wdays(en+1,sc.hi))+' يوم عمل.','The plan ends '+fmt(sc.hi)+', after the charter end '+fmt(en)+'.'),'fit',L('ملاءمة المدد','Fit durations')]);
+ if(sc.lo!=null&&sc.lo<st)out.push(['⏪',L('بعض المهام تبدأ قبل بداية الخطة '+fmt(st)+' لأن موعد الحاجة قريب.','Some tasks start before the plan start because a need date is too close.'),'','']);
+ (S.items||[]).forEach((it,ix)=>{if(!S.qa||!S.qa[it.k])return;const f=feas(it);if(f&&!f.ok)out.push(['⚠️',L('«'+itName(it)+'»: الوقت غير كافٍ قبل '+fmt(dn(it.d))+'. أقرب موعد واقعي '+fmt(f.earliest)+'.','“'+itName(it)+'”: not enough time; earliest '+fmt(f.earliest)+'.'),'itfix:'+ix,L('اعتماد الموعد الواقعي','Use realistic date')])});
+ const lf=[];const w=(a)=>a.forEach(n=>{if(n.off)return;if(n.ch)w(n.ch);else lf.push(n)});w(S.tree);
+ const noW=lf.filter(n=>!n.w&&!n.ms).length;if(noW)out.push(['👤',L(arC(noW,['مهمة واحدة','مهمتان','مهام','مهمة'],['task','tasks'])+' بلا مكلّف. اضغط 👤 بجانب أي مهمة لتعيينه.',noW+' tasks without an assignee.'),'','']);
+ const byW={};lf.forEach(n=>{if(!n.w||n.ms)return;const r=sc.R.get(n);if(r)(byW[n.w]=byW[n.w]||[]).push(r)});
+ Object.keys(byW).forEach(u=>{const R=byW[u];let mx=0,at=null;R.forEach(a=>{const c=R.filter(b=>b[0]<=a[0]&&b[1]>=a[0]).length;if(c>mx){mx=c;at=a[0]}});if(mx>=3){const nm=users[u]?users[u].full_name:'';out.push(['🔥',L('«'+nm+'» مكلّف بـ '+ad(mx)+' مهام في نفس الوقت (حول '+fmt(at)+'). وزّع بعضها أو باعد بينها.','“'+nm+'” has '+mx+' overlapping tasks around '+fmt(at)+'.'),'',''])}});
+ const hasMs=lf.some(n=>n.ms)||sc.E.length;if(!hasMs&&S.det!='full')out.push(['◆',L('لا توجد معالم لقياس التقدم. يُنصح بمعلم عند نهاية كل مرحلة.','No milestones to measure progress.'),'msful',L('إضافة المعالم','Add milestones')]);
+ if(!S.buf&&sc.hi!=null&&!isNaN(en)&&wdays(sc.hi,en)<=5)out.push(['🛟',L('لا يوجد هامش أمان: الخطة تنتهي قريبًا جدًا من نهاية الميثاق، وأي تأخير سيؤخر المشروع.','No safety margin before the charter end.'),'bufon',L('إضافة هامش 10٪','Add 10% buffer')]);
+ return out}
+function checksH(){const c=smartChecks();if(!c.length)return `<div class="sck ok">✅ ${L('الفحص الذكي: لا ملاحظات. خطتك متوازنة وجاهزة للإضافة.','Smart check: no issues. Your plan is ready.')}</div>`;
+ return `<div class="sck"><b>🔎 ${L('الفحص الذكي','Smart check')} (${ad(c.length)})</b>${c.map(x=>`<div class="scr"><span>${x[0]}</span><span style="flex:1">${x[1]}</span>${x[2]?`<button class="lnk" data-sck="${x[2]}">${x[3]}</button>`:''}</div>`).join('')}</div>`}
+/* الأجايل: العناصر تصبح بنود عمل */
+function itemsToBacklog(){const d=cr.data,pts={s:3,m:5,l:8};d.backlog=d.backlog||[];let n=0;
+ (S.items||[]).forEach(it=>{const K=KN[it.k];if(!K||!S.qa||!S.qa[it.k])return;const nm=itName(it);
+  d.backlog.push({id:'b'+Math.random().toString(36).slice(2,9),n:K.i+' '+lt(K.lbl)+nm,pts:pts[zOf(it)],pr:it.d?'h':'m',nt:L('من مقابلة التخطيط','From the planning interview')+(it.d?' — '+lt(K.need)+' '+fmt(dn(it.d)):'')+' · '+itemChain(it).map(c=>c.n).join(' ← ')});n++});
+ return n}
+
 function phTree(ty){return TY[ty].ph.map(p=>N(lt(p[0]),0,ND(p[1])))}
 function tplTree(k){const conv=a=>a.map(n=>{const nm=A()?n[0]:n[1];return typeof n[2]=='number'?N(nm,n[2]):N(nm,0,conv(n[2]))});return conv(TPL[k].t)}
 function depth(tr){return tr.reduce((m,n)=>Math.max(m,n.ch?1+depth(n.ch):1),0)}
@@ -3558,8 +3661,8 @@ async function saveT(Lst){const r=await sb.rpc('admin_set_setting',{k:'plan_tpls
 function fromPlan(){const ts=cr.data.tasks||[],by={};ts.forEach(x=>(by[x.p||'']=by[x.p||'']||[]).push(x));
  const mk=p=>(by[p]||[]).map(x=>{const k=by[x.id];if(k&&k.length)return N(x.n||'—',0,mk(x.id));let d=1;try{const a=dn(x.s),b=dn(x.e);if(!isNaN(a)&&!isNaN(b))d=Math.max(1,wdays(a,b))}catch(_){}return x.ms?{n:x.n||'—',du:0,ms:1}:N(x.n||'—',d)});return mk('')}
 /* الأحداث: عدة أحداث، ولكل حدث مدة بالأيام */
-function EV(){return S.evs.map((e,i)=>{const s=dn(e.d);return isNaN(s)?null:{i,n:e.n||L('حدث','Event')+' '+(i+1),s,e:s+Math.max(1,+e.du||1)-1}}).filter(Boolean)}
-function markAnc(tr){const E=EV();if(!tr)return tr;tr.forEach(n=>{if(n.anc&&!E.some(e=>n.anc.slice(1)==String(e.i)))n.anc='';if(E.length&&n.anc===undefined){const last=E[E.length-1].i;n.anc=POSTRE.test(n.n)?'a'+last:'b'+E[0].i}});return tr}
+function EV(){return S.evs.map((e,i)=>{const s=dn(e.d);return isNaN(s)?null:{i,n:e.n||L('حدث','Event')+' '+(i+1),s,e:s+Math.max(1,+e.du||1)-1}}).filter(Boolean).concat(S.src=='wiz'||S.tab=='wiz'?itemEvs():[])}
+function markAnc(tr){const E=EV();if(!tr)return tr;tr.forEach(n=>{if(n.anc&&n.anc[0]!='p'&&!E.some(e=>n.anc.slice(1)==String(e.i)))n.anc='';const UE=E.filter(e=>!e.auto);if(UE.length&&n.anc===undefined){const last=UE[UE.length-1].i;n.anc=POSTRE.test(n.n)?'a'+last:'b'+UE[0].i}});return tr}
 /* قائمة المراحل للمعالج: مراحل النوع (مفعّلة) + المكتبة (غير مفعّلة) */
 function phl(){if(!S.phl||S.phl.ty!=S.ty){const ty=TY[S.ty],names=new Set(ty.ph.map(p=>lt(p[0])));S.phl=ty.ph.map((p,i)=>({k:'t'+i,n:lt(p[0]),on:true,t:p[1]}));LIB.forEach(l=>{if(!names.has(lt(l[1])))S.phl.push({k:l[0],n:lt(l[1]),on:false,t:l[3],pos:l[2],lib:1})});S.phl.ty=S.ty}return S.phl}
 function enable(k,on){const P=phl(),i=P.findIndex(x=>x.k==k);if(i<0)return;const x=P[i];if(x.on==on)return;x.on=on;if(!on||!x.pos)return;P.splice(i,1);const act=P.filter(z=>z.on);let at;if(x.pos=='start'){const a=act[0];at=a?P.indexOf(a)+(POSTRE.test(a.n)?0:1):0}else if(x.pos=='mid'){const a=act[Math.floor(act.length/2)];at=a?P.indexOf(a):0}else{const cl=act.filter(z=>POSTRE.test(z.n)&&/الإغلاق|Closure/.test(z.n)).pop();at=cl?P.indexOf(cl):(act.length?P.indexOf(act[act.length-1])+1:0)}P.splice(Math.max(0,at),0,x)}
@@ -3568,20 +3671,23 @@ function wizBuild(){let ph=phl().filter(x=>x.on&&String(x.n||'').trim()).map(x=>
  if(dl.length){const tgt=ph.find(p=>/التنفيذ|البناء|Execution|Build|Delivery|السبرنت 1|Sprint 1|الكتابة|Writing/.test(p.n))||ph.find(p=>/التصميم|Design/.test(p.n))||ph[Math.min(1,ph.length-1)];
   const node=N(L('المخرجات','Deliverables'),0,dl.map(d=>S.det=='brief'?N(d,5):N(d,0,[N(L('إعداد: ','Prepare: ')+d,5),N(L('مراجعة واعتماد: ','Review & approve: ')+d,2)])));
   if(tgt){tgt.ch=tgt.ch||[];tgt.ch.push(node)}else ph.push(node)}
+ if(S.learn!==false&&S.lrn){const lw=a=>a.forEach(n=>{if(n.ch)lw(n.ch);else if(!n.ms&&!n.lrn){const r=lrnDu(n.n,n.du);if(r[1]){n.du=r[0];n.lrn=r[1]}}});lw(ph)}
  if(S.det=='brief')ph=ph.map(p=>p.ch?N(p.n,Math.max(1,dur(p))):p);
+ {const IN=itemNodes();if(IN.length){const cl=()=>{const i=ph.findIndex(p=>POSTRE.test(p.n));return i<0?ph.length:i};
+  IN.forEach(x=>{if(x.pos=='start')ph.splice(Math.min(1,ph.length),0,x);else if(x.pos=='mid')ph.splice(Math.max(0,Math.floor(cl()/2)+1),0,x);else ph.splice(cl(),0,x)})}}
  if(S.det=='full'&&S.ms)ph.forEach(p=>{if(p.ch)p.ch.push({n:'◆ '+L('اكتمال: ','Done: ')+p.n,du:0,ms:1})});
- const old=S.tree&&S.src=='wiz'?S.tree:null;if(old)ph.forEach(p=>{const o=old.find(z=>z.n==p.n);if(o&&o.anc!==undefined)p.anc=o.anc});
+ const old=S.tree&&S.src=='wiz'?S.tree:null;if(old)ph.forEach(p=>{if(p.itm!=null)return;const o=old.find(z=>z.n==p.n);if(o&&o.anc!==undefined)p.anc=o.anc});
  return markAnc(ph)}
 /* الجدولة: كل مرحلة رئيسية إمّا بلا ربط (من بداية المشروع)، أو قبل حدث (عكسيًا)، أو بعد حدث (من نهايته) */
 function flatOf(n){const out=[];const w=x=>{if(x.off)return;if(x.ch)x.ch.forEach(w);else out.push(x)};w(n);return out}
 function bufNode(tr){if(!S.buf)return null;const tot=tr.filter(n=>!n.off&&!(n.anc||'').startsWith('a')).reduce((a,n)=>a+flatOf(n).reduce((b,f)=>b+(+f.du||0),0),0);return tot?{n:L('هامش احتياطي (10٪)','Contingency buffer (10%)'),du:Math.max(1,Math.ceil(tot*.1)),buf:1}:null}
 function schedule(tr,start){const E=EV(),R=new Map(),G={'':[]},bn=bufNode(tr);let lo=null,hi=null;
  const put=(n,s,e)=>{R.set(n,[s,e]);if(lo==null||s<lo)lo=s;if(hi==null||e>hi)hi=e};
- tr.forEach(n=>{if(n.off)return;const k=E.length?(n.anc||''):'';(G[k]=G[k]||[]).push(...flatOf(n))});
+ tr.forEach(n=>{if(n.off)return;const k=(n.anc&&n.anc[0]=='p')?n.anc:(E.length?(n.anc||''):'');(G[k]=G[k]||[]).push(...flatOf(n))});
  if(bn){const k=E.length?'b'+E[0].i:'';(G[k]=G[k]||[]).push(bn)}
  const fwd=(L2,s)=>{let le=null;s=nextWork(s);L2.forEach(f=>{if(f.ms){const d=le!=null?le:s;put(f,d,d);return}const du=Math.max(1,+f.du||1),e=addWork(s,du-1);put(f,s,e);le=e;s=addWork(s,du)})};
  const bwd=(L2,end)=>{let cur=prevWork(end);for(let i=L2.length-1;i>=0;i--){const f=L2[i];if(f.ms)continue;const du=Math.max(1,+f.du||1),e=cur,s=subWork(e,du-1);put(f,s,e);cur=prevWork(s-1)}let le=null;L2.forEach(f=>{if(f.ms){const d=le!=null?le:prevWork(end);put(f,d,d)}else le=R.get(f)[1]})};
- fwd(G['']||[],start);
+ fwd(G['']||[],start);Object.keys(G).filter(k=>k[0]=='p').forEach(k=>fwd(G[k],start));
  E.forEach(e=>{if(G['b'+e.i])bwd(G['b'+e.i],e.s-1);if(G['a'+e.i])fwd(G['a'+e.i],e.e+1);if(lo==null||e.s<lo)lo=e.s;if(hi==null||e.e>hi)hi=e.e});
  const span=n=>{if(!n.ch)return R.get(n);let a=null,b=null;n.ch.forEach(c=>{if(c.off)return;const r=span(c);if(!r)return;if(a==null||r[0]<a)a=r[0];if(b==null||r[1]>b)b=r[1]});if(a!=null)R.set(n,[a,b]);return a!=null?[a,b]:null};tr.forEach(n=>{if(!n.off)span(n)});
  return{R,lo,hi,E,G,bn}}
@@ -3594,14 +3700,14 @@ function fit(){if(!S.tree)return;const d=cr.data,st=startDay(),en=dn(d.edate),sc
  const a2=schedule(S.tree,st);S.note=L('📐 تمت الملاءمة: البداية '+fmtL(b0[0])+' ← '+fmtL(a2.lo)+'، والنهاية '+fmtL(b0[1])+' ← '+fmtL(a2.hi)+'.','📐 Fitted: start '+fmtL(b0[0])+' → '+fmtL(a2.lo)+', end '+fmtL(b0[1])+' → '+fmtL(a2.hi)+'.');draw()}
 /* تحويل الشجرة إلى مهام بتواريخ واعتماديات وأحداث مثبتة */
 function toTasks(tr,start){const sc=schedule(tr,start),out=[],idOf=new Map(),E=sc.E,evx={};
- const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;if(n.w&&!n.ch)x.w=n.w;const r=sc.R.get(n);if(r){x.s=ds(r[0]);x.e=ds(r[1])}out.push(x);idOf.set(n,x);if(n.ch)walk(n.ch,x.id)});
+ const walk=(arr,pid)=>arr.forEach(n=>{if(n.off)return;const x=blankTask(pid,'','');x.n=n.n;if(n.ms)x.ms=1;if(n.w&&!n.ch)x.w=n.w;if(n.why&&!n.ch)x.why=n.why;const r=sc.R.get(n);if(r){x.s=ds(r[0]);x.e=ds(r[1])}out.push(x);idOf.set(n,x);if(n.ch)walk(n.ch,x.id)});
  const mkEv=e=>{if(evx[e.i])return;const x=blankTask('',ds(e.s),ds(e.e));x.n=e.n;x.fx=1;if(e.s==e.e)x.ms=1;out.push(x);evx[e.i]=x};
  tr.forEach(n=>{if(n.off)return;const a=E.length?(n.anc||''):'';if(a.startsWith('a')){const e=E.find(z=>'a'+z.i==a);if(e)mkEv(e)}walk([n],'');if(a.startsWith('b')){const e=E.find(z=>'b'+z.i==a),nx=tr.slice(tr.indexOf(n)+1).find(z=>!z.off&&z.anc==a);if(e&&!nx)mkEv(e)}});
  E.forEach(mkEv);
  if(sc.bn){const bx=blankTask('','','');bx.n=sc.bn.n;const r=sc.R.get(sc.bn);if(r){bx.s=ds(r[0]);bx.e=ds(r[1])}out.push(bx);idOf.set(sc.bn,bx)}
  Object.keys(sc.G).forEach(k=>{const L2=sc.G[k].map(f=>idOf.get(f)).filter(Boolean).sort((a,b)=>dn(a.s)-dn(b.s));
   if(S.chain)for(let i=1;i<L2.length;i++)L2[i].dep=[{t:L2[i-1].id,y:'FS',l:0}];
-  const e=k?E.find(z=>k.slice(1)==String(z.i)):null;if(!e||!L2.length)return;const ex=evx[e.i];
+  const e=k&&k[0]!='p'?E.find(z=>k.slice(1)==String(z.i)):null;if(!e||!L2.length)return;const ex=evx[e.i];
   if(k[0]=='b'){ex.dep=(ex.dep||[]).concat([{t:L2[L2.length-1].id,y:'FS',l:0}])}else{L2[0].dep=(L2[0].dep||[]).concat([{t:ex.id,y:'FS',l:0}])}});
  return out}
 function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const need=Math.min(3,depth(tr.filter(n=>!n.off)));
@@ -3610,9 +3716,10 @@ function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const
  snap();const nt=toTasks(tr,startDay());clearDraft();S.pid=null;
  if(mode=='replace')cr.data.tasks=nt;else cr.data.tasks=ts.concat(nt);
  if(!d.levels||d.levels<need)d.levels=need;
+ let nbI=0;if(S.agile&&S.src=='wiz')nbI=itemsToBacklog();
  if(S.agile&&window.agAfterLab)agAfterLab();
  PL.start=false;norm();rollup();close();renderPlan();pSave();
- const sp=planSpan();msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.'+(sp?'\nالخطة: '+fmtL(sp[0])+' ← '+fmtL(sp[1]):''),nt.length+' tasks added.'))}
+ const sp=planSpan();msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.'+(sp?'\nالخطة: '+fmtL(sp[0])+' ← '+fmtL(sp[1]):''),nt.length+' tasks added.')+(nbI?(A()?'\nوأُضيف '+ad(nbI)+' بند عمل من المقابلة إلى قائمة البنود.':'\n'+nbI+' work items added to the backlog.'):''))}
 function close(){const o=document.getElementById('labw');if(o)o.remove();const m=document.getElementById('mcw');if(m)m.remove();document.body.style.overflow=''}
 /* بطاقة التواريخ + الخط الزمني */
 function finH(sc){const d=cr.data;if(sc.lo==null)return '';const has=(cr.data.tasks||[]).length;
@@ -3649,10 +3756,10 @@ function evH(){const E=S.evs;return `<div class="q"><b>📌 ${L('هل ترتبط
 function treeH(){const tr=S.tree;if(!tr)return `<div class="tip">${L('اختر نموذجًا أو أجب عن أسئلة مساعد التخطيط لتظهر المعاينة هنا.','Pick a template or answer the wizard to see a preview here.')}</div>`;
  const sc=schedule(tr,startDay()),E=sc.E,tops=tr.map((n,i)=>({n,i})).filter(z=>!z.n.off&&z.n.ch);
  const node=(n,lv,path,idx)=>{const r=sc.R.get(n),dt=r?(r[0]==r[1]?fmt(r[0]):fmt(r[0])+' ← '+fmt(r[1])):'',p=path;
-  const anc=lv==0&&E.length?`<select class="anc" data-anc="${p}"><option value="">${L('بلا ربط بحدث','No event link')}</option>${E.map(e=>`<option value="b${e.i}" ${n.anc=='b'+e.i?'selected':''}>${L('قبل: ','Before: ')+esc(e.n)}</option><option value="a${e.i}" ${n.anc=='a'+e.i?'selected':''}>${L('بعد: ','After: ')+esc(e.n)}</option>`).join('')}</select>`:'';
-  const wn=n.w&&users[n.w]?users[n.w].full_name:'';const cap=(n.ch?`<b>${ad(dur(n))} ${L('يوم','d')}</b> `:n.ms?`◆ `:'')+`<span class="cdt">${dt.split(' ← ').map((x,i,a)=>`<i>${x}${i<a.length-1?' ←':''}</i>`).join(' ')}</span>`+(wn&&!n.ch?`<span class="cwn">👤 ${esc(wn)}</span>`:'');
+  const anc=lv==0&&E.length?`<select class="anc" data-anc="${p}"><option value="">${L('بلا ربط بحدث','No event link')}</option>${(n.anc||'').startsWith('p')?`<option value="${n.anc}" selected>${L('بالتوازي من البداية','Parallel from start')}</option>`:''}${E.map(e=>`<option value="b${e.i}" ${n.anc=='b'+e.i?'selected':''}>${L('قبل: ','Before: ')+esc(e.n)}</option><option value="a${e.i}" ${n.anc=='a'+e.i?'selected':''}>${L('بعد: ','After: ')+esc(e.n)}</option>`).join('')}</select>`:'';
+  const wn=n.w&&users[n.w]?users[n.w].full_name:'';const cap=(n.ch?`<b>${ad(dur(n))} ${L('يوم','d')}</b> `:n.ms?`◆ `:'')+`<span class="cdt">${dt.split(' ← ').map((x,i,a)=>`<i>${x}${i<a.length-1?' ←':''}</i>`).join(' ')}</span>`+(wn&&!n.ch?`<span class="cwn">👤 ${esc(wn)}</span>`:'')+(n.lrn&&!n.ch?`<span class="clr" title="${L('المدة من متوسط '+ad(n.lrn)+' مشاريع سابقة','Duration from '+n.lrn+' past projects')}">📊${ad(n.lrn)}</span>`:'');
   const ini=wn?wn.trim().split(/\s+/).slice(0,2).map(x=>x[0]).join(''):'';
-  const row=`<div class="tn l${lv} ${n.off?'off':''}"><span class="hd" title="${L('اسحب لتغيير الترتيب','Drag to reorder')}">≡</span><input type="checkbox" ${n.off?'':'checked'} data-tog="${p}"><input type="text" class="nm" value="${esc(n.n)}" data-nm="${p}"></div><div class="tn2 l${lv} ${n.off?'off':''}"><span class="cap">${cap}</span><span class="ctl">${anc}${!n.ch&&!n.ms?`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p}" title="${L('المدة بأيام العمل','Duration (work days)')}">`:''}<button class="who ${wn?'on':''}" data-who="${p}" title="${L('المكلّف','Assignee')}">${wn?esc(ini):'👤'}</button><button class="mn" data-mn="${p}" aria-label="${L('خيارات','Options')}">⋯</button></span></div>`;
+  const row=`<div class="tn l${lv} ${n.off?'off':''}"><span class="hd" title="${L('اسحب لتغيير الترتيب','Drag to reorder')}">≡</span><input type="checkbox" ${n.off?'':'checked'} data-tog="${p}"><input type="text" class="nm" value="${esc(n.n)}" data-nm="${p}"></div><div class="tn2 l${lv} ${n.off?'off':''}"><span class="cap">${cap}</span><span class="ctl">${anc}${!n.ch&&!n.ms?`<input type="text" inputmode="numeric" class="du" value="${ad(n.du)}" data-du="${p}" title="${L('المدة بأيام العمل','Duration (work days)')}">`:''}<button class="who ${wn?'on':''}" data-who="${p}" title="${L('المكلّف','Assignee')}">${wn?esc(ini):'👤'}</button><button class="mn" data-mn="${p}" aria-label="${L('خيارات','Options')}">⋯</button></span></div>${n.why&&lv==0?'':''}${n.why&&!n.ch?`<div class="wy l${lv}">💡 ${L('لماذا؟','Why?')} ${esc(n.why)}</div>`:''}`;
   return `<div class="nw l${lv}" data-si="${idx}">${row}${n.ch?`<div class="sl kids" data-sl="ch:${p}">${n.ch.map((c,i)=>node(c,lv+1,p+'.'+i,i)).join('')}</div>`:''}</div>`};
  const body=tr.map((n,i)=>node(n,0,String(i),i)).join('');
  const bn=sc.bn?(()=>{const r=sc.R.get(sc.bn);return `<div class="tn"><span>🛟</span><span style="flex:1;font-size:13px">${esc(sc.bn.n)}</span><span class="dd"><b>${ad(sc.bn.du)} ${L('يوم','d')}</b>${r?fmt(r[0])+'<br>'+fmt(r[1]):''}</span></div>`})():'';
@@ -3700,16 +3807,16 @@ function tplTab(){const adm=me&&me.role=='admin',T2=S.tpls||[];
 /* المعالج خطوة بخطوة */
 const STEPS=[
  ()=>`<div class="q"><b>${L('ما نوع مشروعك؟','What kind of project is it?')}</b><div class="chs">${Object.keys(TY).map(k=>`<button class="${S.ty==k?'on':''}" data-wty="${k}">${TY[k].i} ${lt(TY[k].n)}</button>`).join('')}</div><div class="why">💡 ${L('لكل نوع مراحل معروفة. اختر الأقرب، وستعدّل كل شيء لاحقًا. إن لم تجد نوعك اختر «مشروع عام».','Each type has known phases. Pick the closest; you can change everything later.')}</div></div>`,
- ()=>`<div class="q"><b>${L('أجب بنعم أو لا','Answer yes or no')}</b><div class="h">${L('كل «نعم» تضيف المرحلة المناسبة إلى خطتك تلقائيًا.','Each “yes” adds the right phase to your plan.')}</div>${QQ.map(q=>{const on=(phl().find(x=>x.k==q[0])||{}).on;return `<div class="qq"><span>${lt(q[1])}</span><span class="yn"><button data-qq="${q[0]}|1" class="${on?'on':''}">${L('نعم','Yes')}</button><button data-qq="${q[0]}|0" class="${on?'':'on'}">${L('لا','No')}</button></span></div>`}).join('')}</div>`,
+ ()=>itemsH(),
  ()=>evH(),
  ()=>{const P2=phl(),act=P2.filter(x=>x.on).length;return `<div class="q"><b>${L('المراحل وترتيبها','Phases and their order')}</b><div class="h">${L('المفعّلة '+ad(act)+'. اسحب ≡ لتغيير الترتيب، فعّل ما تحتاجه من المراحل المقترحة، واضغط على الاسم لتعديله.',act+' active. Drag ≡ to reorder, tick suggested phases you need, tap a name to rename.')}</div>
   <div class="sl" data-sl="phl">${P2.map((x,i)=>`<div class="si ${x.on?'':'off'}" data-si="${i}"><span class="hd">≡</span><input type="checkbox" data-wph="${i}" ${x.on?'checked':''}><div class="sn"><input type="text" class="nm" value="${esc(x.n)}" data-phn="${i}"><small>${x.t?x.t.map(q=>lt(q[0])).join('، '):L('مرحلة مضافة','Added phase')}</small></div>${x.lib&&!x.on?'<span class="sug">'+L('مقترحة','Suggested')+'</span>':''}<span class="mvb"><button data-mv="${i}|-1" ${i?'':'disabled'}>▲</button><button data-mv="${i}|1" ${i<P2.length-1?'':'disabled'}>▼</button></span>${!x.t?`<button class="dl" data-phd="${i}">✕</button>`:''}</div>`).join('')}</div>
   <div class="adr"><input type="text" data-phnew placeholder="${L('أضف مرحلة خاصة بمشروعك','Add your own phase')}"><button data-phadd="1">＋</button></div></div>`},
  ()=>{const d=cr.data,ch=d.deliv||d.outputs||'';return `<div class="q"><b>${L('ما المخرجات الرئيسية؟','What are the main deliverables?')}</b><div class="h">${L('سطر لكل مخرج. يُضاف لكل مخرج مهمة إعداد ومهمة مراجعة واعتماد.','One per line. Each gets a prepare and a review task.')}</div><textarea data-wdl placeholder="${L('مثال: التقرير النهائي\nدليل المستخدم','e.g. Final report\nUser guide')}">${esc(S.dl)}</textarea>${ch?`<button class="evadd" data-chdl="1">📄 ${L('استخدم مخرجات الميثاق','Use the charter deliverables')}</button>`:''}</div>`},
  ()=>`<div class="q"><b>${L('مستوى التفصيل','Level of detail')}</b><div class="chs">${[['brief',['مختصر (مراحل فقط)','Brief (phases only)']],['med',['متوسط','Standard']],['full',['مفصّل مع معالم','Detailed with milestones']]].map(o=>`<button class="${S.det==o[0]?'on':''}" data-wdt="${o[0]}">${lt(o[1])}</button>`).join('')}</div></div>
-  <div class="q"><b>${L('خيارات ذكية','Smart options')}</b><label class="ck"><input type="checkbox" data-chain ${S.chain?'checked':''}> ${L('ربط المهام بالتسلسل: إذا تأخرت مهمة تتحرك التي بعدها تلقائيًا','Link tasks in sequence: if one slips, the next moves')}</label><label class="ck"><input type="checkbox" data-buf ${S.buf?'checked':''}> ${L('إضافة هامش احتياطي 10٪ للطوارئ','Add a 10% contingency buffer')}</label></div>`,
- ()=>`<div class="sec">👁 ${L('خطتك المقترحة','Your proposed plan')}</div>${treeH()}`];
-const STN=[L('النوع','Type'),L('أسئلة','Questions'),L('الأحداث','Events'),L('المراحل','Phases'),L('المخرجات','Deliverables'),L('الخيارات','Options'),L('المراجعة','Review')];
+  <div class="q"><b>${L('خيارات ذكية','Smart options')}</b><label class="ck"><input type="checkbox" data-chain ${S.chain?'checked':''}> ${L('ربط المهام بالتسلسل: إذا تأخرت مهمة تتحرك التي بعدها تلقائيًا','Link tasks in sequence: if one slips, the next moves')}</label><label class="ck"><input type="checkbox" data-buf ${S.buf?'checked':''}> ${L('إضافة هامش احتياطي 10٪ للطوارئ','Add a 10% contingency buffer')}</label><label class="ck"><input type="checkbox" data-lrn ${S.learn!==false?'checked':''}> 📊 ${L('اقتراح المدد من خطط المركز السابقة','Suggest durations from past plans')}${S.lrn?' ('+ad(Object.keys(S.lrn).length)+' '+L('مهمة معروفة','known tasks')+')':''}</label></div>`,
+ ()=>`${checksH()}<div class="sec">👁 ${L('خطتك المقترحة','Your proposed plan')}</div>${treeH()}`];
+const STN=[L('النوع','Type'),L('المقابلة','Interview'),L('الأحداث','Events'),L('المراحل','Phases'),L('المخرجات','Deliverables'),L('الخيارات','Options'),L('المراجعة','Review')];
 function wizTab(){const n=STEPS.length,i=Math.max(0,Math.min(n-1,S.step));
  return `${S.note&&S.note.indexOf('📝')==0?`<div class="tip">${S.note}</div>`:''}<div class="stp">${STEPS.map((_,k)=>`<button data-go="${k}" class="${k<=i?'on':''} ${k==i?'cur':''}"><i></i><small>${STN[k]}</small></button>`).join('')}</div>${STEPS[i]()}
  <div class="nav">${i>0?`<button data-stp="-1">${L('→ السابق','← Back')}</button>`:'<span></span>'}${i<n-1?`<button class="nx" data-stp="1">${L('التالي ←','Next →')}</button>`:''}</div>`}
@@ -3750,6 +3857,21 @@ function css(){if(document.getElementById('labcss'))return;const s=document.crea
 #labw{position:fixed;inset:0;z-index:9000;background:rgba(15,30,45,.45);display:flex;align-items:flex-end;justify-content:center;overflow:hidden;overscroll-behavior:contain;padding-top:env(safe-area-inset-top,0px)}
 #labw .lb{background:#f6f8fb;width:min(860px,100%);max-width:100vw;height:92%;height:min(92dvh,100%);border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;overflow:clip;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
 @media(min-width:900px){#labw{align-items:center}#labw .lb{border-radius:20px;height:88vh}}
+#labw .ki{background:#fff;border:1px solid #e3eaf0;border-radius:14px;padding:4px 10px;margin:8px 0}#labw .ki.on{border-color:#9cc3e0;background:#fbfdff}
+#labw .ki>.qq{border:0;margin:0}#labw .kis{padding:2px 0 8px}
+#labw .kit{border:1px solid #e3eaf0;border-radius:12px;padding:8px;margin:6px 0;background:#fff}
+#labw .kr{display:flex;gap:6px;align-items:center}#labw .kr input{flex:1;min-width:0;border:1px solid #d5dfe8;border-radius:10px;padding:8px 10px;font:inherit;font-size:14px}
+#labw .kr2{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px}#labw .kr2 .evd{margin:0}
+#labw .kz{display:flex;gap:4px;flex-wrap:wrap}#labw .kz button{border:1px solid #d5dfe8;background:#f7f9fc;border-radius:99px;padding:4px 10px;font:inherit;font-size:12px;cursor:pointer}#labw .kz button.on{background:#1d5f8a;border-color:#1d5f8a;color:#fff}
+#labw .kf{font-size:12.5px;margin-top:6px;padding:6px 8px;border-radius:8px;background:#f2f6fa;color:#41566b;line-height:1.6}#labw .kf.ok{background:#e8f5ee;color:#1c6b40}#labw .kf.bad{background:#fdecea;color:#a3271b}
+#labw .kch{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;font-size:11.5px;color:#56687a}#labw .kch span{background:#f2f6fa;border-radius:8px;padding:2px 7px}#labw .kch b{color:#1d5f8a}#labw .kch em{font-style:normal;color:#9aa8b5}#labw .kch i{font-style:normal}
+#labw .kss{font-size:12.5px;color:#1c6b40;background:#e8f5ee;border-radius:10px;padding:6px 10px;margin:6px 0}
+#labw .q2{margin-top:12px;padding-top:6px;border-top:1px dashed #d5dfe8}#labw .q2>b{display:block;margin:6px 0;font-size:13.5px}
+#labw .sck{background:#fff8ec;border:1px solid #f0d9a8;border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:13px}#labw .sck.ok{background:#e8f5ee;border-color:#b9dfc8;color:#1c6b40}
+#labw .sck>b{display:block;margin-bottom:4px}#labw .scr{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-top:1px solid rgba(0,0,0,.05);line-height:1.6}#labw .scr:first-of-type{border-top:0}
+#labw .wy{font-size:11.5px;color:#6b7c8c;padding:0 10px 6px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#labw .clr{font-size:11px;color:#1d5f8a;background:#e8f3fb;border-radius:8px;padding:0 5px;margin-inline-start:4px}
+#labw .lnk{border:0;background:none;color:#1d5f8a;font:inherit;font-weight:700;cursor:pointer;padding:0 2px;text-decoration:underline}
 #labw .lh{display:flex;align-items:center;gap:10px;padding:10px 14px 8px;background:linear-gradient(135deg,#14324a,#1d5f8a);color:#fff}#labw .lh h3{margin:0;font-size:16px;flex:1}#labw .lh small{display:block;font-weight:400;opacity:.8;font-size:11.5px;margin-top:2px}
 #labw .lx{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:15px;cursor:pointer;flex:0 0 34px}
 #labw .lt{display:flex;gap:4px;padding:7px 10px;background:#fff;border-bottom:1px solid #e3eaf0;overflow-x:auto}#labw .lt button{border:0;background:#eef3f8;border-radius:99px;padding:6px 12px;font-weight:700;font-size:12.5px;color:#41566b;cursor:pointer;white-space:nowrap;font-family:inherit}#labw .lt button.on{background:#1d5f8a;color:#fff}
@@ -3819,14 +3941,14 @@ function drag(e,h){const row=h.closest('[data-si]'),list=row&&row.parentElement.
 const num=v=>{const n=parseInt(String(v).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)));return n>0?n:1};
 /* مسودة مساعد التخطيط: تُحفظ على الجهاز فقط، ولا تدخل الخطة إلا عند ضغط «إضافة إلى الخطة» */
 const DK=()=>'labDraft:'+(cr&&cr.id);
-function draftObj(){return{v:1,at:Date.now(),S:{tab:S.tab,tree:S.tree,src:S.src,ty:S.ty,phl:S.phl,phlTy:S.phl&&S.phl.ty,dl:S.dl,det:S.det,ms:S.ms,step:S.step,evs:S.evs,chain:S.chain,buf:S.buf,mode:S.mode,agile:S.agile}}}
+function draftObj(){return{v:1,at:Date.now(),S:{tab:S.tab,tree:S.tree,src:S.src,ty:S.ty,phl:S.phl,phlTy:S.phl&&S.phl.ty,dl:S.dl,det:S.det,ms:S.ms,step:S.step,evs:S.evs,chain:S.chain,buf:S.buf,mode:S.mode,agile:S.agile,items:S.items,qa:S.qa,learn:S.learn}}}
 let dT=0,dSig='';function saveDraft(){clearTimeout(dT);dT=setTimeout(()=>{if(!cr||!S.tree&&S.tab!='wiz')return;const o=draftObj(),sig=JSON.stringify(o.S);if(sig==dSig)return;dSig=sig;try{localStorage.setItem(DK(),JSON.stringify(o))}catch(_){}
  S.saved=Date.now();const el=document.querySelector('#labw .svd');if(el)el.textContent='✓ '+L('حُفظت المسودة على جهازك — لن تتغير الخطة حتى تضيفها','Draft saved on this device — the plan changes only when you add it')},900)}
 function loadDraft(){let a=null,b=null;try{b=JSON.parse(localStorage.getItem(DK())||'null')}catch(_){}const o=[a,b].filter(x=>x&&x.S).sort((x,y)=>(y.at||0)-(x.at||0))[0];return o||null}
 function clearDraft(){try{localStorage.removeItem(DK())}catch(_){}dSig=''}
-function applyDraft(o){const v=o.S;Object.assign(S,{tab:v.tab||'wiz',tree:v.tree,src:v.src,ty:v.ty||'gen',phl:v.phl,dl:v.dl||'',det:v.det||'med',ms:v.ms!==false,step:v.step||0,evs:v.evs||[],chain:v.chain!==false,buf:!!v.buf,mode:v.mode||'replace',agile:!!v.agile,hist:[],fut:[]});if(S.phl)S.phl.ty=v.phlTy;dSig=JSON.stringify(draftObj().S)}
+function applyDraft(o){const v=o.S;Object.assign(S,{tab:v.tab||'wiz',tree:v.tree,src:v.src,ty:v.ty||'gen',phl:v.phl,dl:v.dl||'',det:v.det||'med',ms:v.ms!==false,step:v.step||0,evs:v.evs||[],chain:v.chain!==false,buf:!!v.buf,mode:v.mode||'replace',agile:!!v.agile,items:v.items||[],qa:v.qa||{},learn:v.learn!==false,hist:[],fut:[]});if(S.phl)S.phl.ty=v.phlTy;dSig=JSON.stringify(draftObj().S)}
 window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delete cr.data._lab;
- if(S.pid!==(cr&&cr.id)){Object.assign(S,{pid:cr&&cr.id,tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:''});const dr=loadDraft();if(dr){applyDraft(dr);const t=new Date(dr.at);S.note='📝 '+L('استرجعنا مسودتك المحفوظة ('+t.toLocaleDateString('en-GB')+' '+t.toTimeString().slice(0,5)+'). ','We restored your saved draft ('+t.toLocaleString()+'). ')+`<button data-newd="1" class="lnk">${L('ابدأ من جديد','Start over')}</button>`}}const o=document.createElement('div');o.id='labw';o.className='no-dr';document.body.appendChild(o);document.body.style.overflow='hidden';
+ if(S.pid!==(cr&&cr.id)){Object.assign(S,{pid:cr&&cr.id,tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',items:[],qa:{},learn:true});const dr=loadDraft();if(dr){applyDraft(dr);const t=new Date(dr.at);S.note='📝 '+L('استرجعنا مسودتك المحفوظة ('+t.toLocaleDateString('en-GB')+' '+t.toTimeString().slice(0,5)+'). ','We restored your saved draft ('+t.toLocaleString()+'). ')+`<button data-newd="1" class="lnk">${L('ابدأ من جديد','Start over')}</button>`}}const o=document.createElement('div');o.id='labw';o.className='no-dr';document.body.appendChild(o);document.body.style.overflow='hidden';
  o.addEventListener('pointerdown',e=>{const h=e.target.closest('.hd');if(h)drag(e,h)});
  o.addEventListener('click',e=>{const z=e.target.closest('.lwbs [data-z="fs"]');if(z){e.stopPropagation();e.preventDefault();wbsFull()}},true);
  o.addEventListener('click',async e=>{if(e.target===o)return close();const b=e.target.closest('button,[data-dt]');if(!b)return;const D=b.dataset;
@@ -3841,6 +3963,15 @@ window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delet
   if(D.wty){S.ty=D.wty;S.phl=null;S.tree=wizBuild();S.agile=!!TY[S.ty].agile;return draw()}
   if(D.wdt){S.det=D.wdt;S.tree=wizBuild();return draw()}
   if(D.qq){const [k,v]=D.qq.split('|');enable(k,v=='1');S.tree=wizBuild();return draw()}
+  const reb=()=>{S.tree=wizBuild();S.src='wiz';draw()};
+  if(D.kq){const [k,v]=D.kq.split('|');S.qa=S.qa||{};S.items=S.items||[];S.qa[k]=v=='1';if(S.qa[k]&&!S.items.some(x=>x.k==k))S.items.push({k,n:'',d:'',z:'m'});return reb()}
+  if(D.itadd){S.items.push({k:D.itadd,n:'',d:'',z:'m'});reb();const ins=o.querySelectorAll('[data-itn]');if(ins.length){const el=ins[[...ins].map(x=>+x.dataset.itn).indexOf(S.items.length-1)];if(el)el.focus()}return}
+  if(D.itx!=null){const it=S.items[+D.itx];S.items.splice(+D.itx,1);if(it&&!S.items.some(x=>x.k==it.k))S.qa[it.k]=false;return reb()}
+  if(D.itd!=null){const it=S.items[+D.itd];return miniCal(it.d||cr.data.edate||ds(todayN()),v=>{it.d=v;reb()},lt(KN[it.k].need)+' — '+itName(it))}
+  if(D.itdc!=null){S.items[+D.itdc].d='';return reb()}
+  if(D.itz){const [i,z]=D.itz.split('|');S.items[+i].z=z;return reb()}
+  if(D.itfix!=null){const it=S.items[+D.itfix],f=feas(it);if(f){it.d=ds(f.earliest)}return reb()}
+  if(D.sck){const v=D.sck;if(v=='fit')return fit();if(v=='bufon'){S.buf=true;return draw()}if(v=='msful'){S.det='full';return reb()}if(v.startsWith('itfix:')){const it=S.items[+v.split(':')[1]],f=it&&feas(it);if(f)it.d=ds(f.earliest);return reb()}return}
   if(D.stp){S.step=Math.max(0,Math.min(STEPS.length-1,S.step+(+D.stp)));if(!S.tree||S.src!='wiz'){S.tree=wizBuild();S.src='wiz'}draw();const c=o.querySelector('.lc');if(c)c.scrollTop=0;return}
   if(D.evadd){S.evs.push({n:'',d:'',du:1});return draw()}
   if(D.evx!=null){S.evs.splice(+D.evx,1);if(S.tree){S.tree.forEach(n=>{delete n.anc});markAnc(S.tree)}return draw()}
@@ -3855,7 +3986,7 @@ window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delet
   if(D.mn!=null)return menu(D.mn);
   if(D.who!=null)return whoPick(D.who);
   if(D.vw){S.view=D.vw;return draw()}
-  if(D.newd){if(!confirm(L('حذف المسودة والبدء من جديد؟','Discard the draft and start over?')))return;clearDraft();Object.assign(S,{tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',saved:0});return draw()}
+  if(D.newd){if(!confirm(L('حذف المسودة والبدء من جديد؟','Discard the draft and start over?')))return;clearDraft();Object.assign(S,{tab:'tpl',tree:null,src:'',ty:'gen',phl:null,dl:'',det:'med',step:0,evs:[],chain:true,buf:false,mode:'replace',hist:[],fut:[],note:'',saved:0,items:[],qa:{},learn:true});return draw()}
   if(D.undo)return undoL();
   if(D.redo)return redoL();
   if(D.addph){snapL(L('إضافة مرحلة','Add phase'));S.tree.push({n:L('مرحلة جديدة','New phase'),ch:[{n:L('مهمة جديدة','New task'),du:3}]});markAnc(S.tree);S.note='';draw();const c=o.querySelector('.lc');if(c)c.scrollTop=c.scrollHeight;return}
@@ -3871,6 +4002,7 @@ window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delet
   if(D.anc!=null){const n=nodeAt(D.anc);if(n){snapL(L('ربط بحدث: ','Event link: ')+n.n);n.anc=e.target.value;draw()}}
   if(D.mvto!=null&&e.target.value!==''){const n=nodeAt(D.mvto),arr=parentArr(D.mvto),tg=S.tree[+e.target.value];if(n&&arr&&tg){arr.splice(arr.indexOf(n),1);tg.ch=tg.ch||[];tg.ch.push(n)}draw()}
   if(D.chain!=null){S.chain=e.target.checked}
+  if(D.lrn!=null){S.learn=e.target.checked;S.tree=wizBuild();S.src='wiz';draw()}
   if(D.buf!=null){snapL(e.target.checked?L('تفعيل الهامش الاحتياطي','Buffer on'):L('إلغاء الهامش الاحتياطي','Buffer off'));S.buf=e.target.checked;draw()}});
  o.addEventListener('input',e=>{const D=e.target.dataset;
   if(D.nm){const n=nodeAt(D.nm);if(n){if(S._nmk!==D.nm){S._nmk=D.nm;snapL(L('تعديل الاسم','Rename'))}n.n=e.target.value}}
@@ -3878,10 +4010,11 @@ window.labOpen=async function(){css();close();if(cr&&cr.data&&cr.data._lab)delet
   if(D.evn!=null){S.evs[+D.evn].n=e.target.value;later()}
   if(D.evu!=null){S.evs[+D.evu].du=Math.min(60,num(e.target.value));later()}
   if(D.phn!=null){phl()[+D.phn].n=e.target.value;S._wch=1}
-  if(D.wdl!=null){S.dl=e.target.value;S._wch=1}});
-  o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.du!=null)S._duk=null;if(D.nm!=null)S._nmk=null;if((D.phn!=null||D.wdl!=null)&&S._wch){S._wch=0;S.tree=wizBuild();S.src='wiz'}});
+  if(D.wdl!=null){S.dl=e.target.value;S._wch=1}
+  if(D.itn!=null){const it=S.items[+D.itn];if(it){it.n=e.target.value;S._wch=1}}});
+  o.addEventListener('focusout',e=>{const D=e.target.dataset;if(D.du!=null)S._duk=null;if(D.nm!=null)S._nmk=null;if((D.phn!=null||D.wdl!=null||D.itn!=null)&&S._wch){S._wch=0;S.tree=wizBuild();S.src='wiz';if(D.itn!=null)setTimeout(()=>{const a=document.activeElement;if(!a||!a.closest||!a.closest('#labw [data-itn]'))draw()},0)}});
  o.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.dataset.phnew!=null){e.preventDefault();const b=o.querySelector('[data-phadd]');if(b)b.click()}});
- draw();await loadT();draw()};
+ draw();await loadT();draw();await loadLearn();if(S.tab=='wiz'&&S.src=='wiz'){S.tree=wizBuild()}draw()};
 })();
 </script><script>/*plui*/
 /* ===== أدوات مشتركة: منتقي تاريخ صغير، بطاقة التواريخ الأربعة، خط زمني مبسط ===== */
