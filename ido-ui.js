@@ -319,7 +319,7 @@
     var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
     var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
-      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') || hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
+      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view') && !hc('adm.settings'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo') && !hc('adm.settings'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
@@ -359,7 +359,7 @@
   var ME = null, BASE = null, busy = 0, NAMES = {}, CHN = {}, Q = [], showing = 0;
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   /* نغمة التنبيه (نفس نغمة صفحة المحادثات) + تنبيهات سطح المكتب عندما تكون الصفحة في الخلفية */
-  var AUD = null, AUDok = false, ACX = null, TONE = [[523.25, 0], [783.99, .13]], TLEN = .75, TVOL = .2;
+  var AUD = null, AUDok = false, ACX = null, TURI = '', SIL = 'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==', TONE = [[523.25, 0], [783.99, .13]], TLEN = .75, TVOL = .2;
   function lsN(k) { try { return +localStorage.getItem(k) || 0; } catch (e) { return 0; } }
   function lsS(k) { try { localStorage.setItem(k, String(Date.now())); } catch (e) {} }
   function sndOn() { try { return localStorage.getItem('chatSnd') !== '0'; } catch (e) { return true; } }
@@ -372,21 +372,23 @@
       w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
       for (i = 0; i < n; i++) { var t = i / sr, f = t > TLEN - .05 ? (TLEN - t) / .05 : 1; v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, toneAt(t) * f)) * 32767, true); }
       var bin = '', u8 = new Uint8Array(buf); for (i = 0; i < u8.length; i += 8192) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 8192));
-      AUD = new Audio('data:audio/wav;base64,' + btoa(bin)); AUD.preload = 'auto'; AUD.setAttribute('playsinline', '');
+      TURI = 'data:audio/wav;base64,' + btoa(bin); AUD = new Audio(SIL); AUD.preload = 'auto'; AUD.setAttribute('playsinline', '');
     } catch (e) { AUD = null; }
     return AUD;
   }
   function acx() { try { if (!ACX) ACX = new (window.AudioContext || window.webkitAudioContext)(); if (ACX.state === 'suspended') ACX.resume(); return ACX; } catch (e) { return null; } }
   function unlock() {
+    /* فتح الصوت في الآيفون بملف صامت تمامًا، ثم تحميل النغمة — حتى لا تُسمع النغمة عند أول لمسة */
     acx(); var a = audMk(); if (!a || AUDok) return;
-    try { a.muted = true; var pr = a.play(); if (pr && pr.then) pr.then(function () { a.pause(); a.currentTime = 0; a.muted = false; AUDok = true; }).catch(function () { a.muted = false; }); else { a.pause(); a.muted = false; AUDok = true; } } catch (e) { a.muted = false; }
+    try { a.src = SIL; var pr = a.play(); var done = function () { try { a.pause(); } catch (e) {} AUDok = true; a.src = TURI; try { a.load(); } catch (e) {} };
+      if (pr && pr.then) pr.then(done).catch(function () {}); else done(); } catch (e) {}
   }
   ['pointerup', 'touchend', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, unlock, { passive: true }); });
   function ding() {
     if (!sndOn()) return; var now = Date.now();
     if (now - lsN('chatDingAt') < 2500 || now - lsN('chatSentAt') < 5000) return; lsS('chatDingAt');
     var a = audMk();
-    if (a && AUDok) { try { a.currentTime = 0; var pr = a.play(); if (pr && pr.catch) pr.catch(wa); return; } catch (e) {} }
+    if (a && AUDok) { try { if (a.src !== TURI) a.src = TURI; a.currentTime = 0; var pr = a.play(); if (pr && pr.catch) pr.catch(wa); return; } catch (e) {} }
     wa();
     function wa() { var c = acx(); if (!c) return; try { var t0 = c.currentTime; TONE.forEach(function (z) { var t = t0 + z[1], o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(z[0], t); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(TVOL * .5, t + .008); g.gain.exponentialRampToValueAtTime(0.0001, t + .6); o.connect(g).connect(c.destination); o.start(t); o.stop(t + .62); }); } catch (e) {} }
   }
@@ -511,4 +513,17 @@
     if (typeof sb === 'undefined' || !sb || !sb.rpc) { if (n++ < 40) setTimeout(w, 500); return; }
     sb.rpc('chat_on').then(function (r) { if (r && !r.error) apply(r.data !== true); }, function () {});
   })();
+})();
+
+/* فتح نموذج الإنشاء مباشرة عند القدوم من «إنشاء جديد» (?new=1) */
+(function () {
+  try {
+    if (!/[?&]new=1\b/.test(location.search)) return;
+    var clean = function () { try { var u = new URL(location.href); u.searchParams.delete('new'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); } catch (e) {} };
+    var t0 = Date.now(), iv = setInterval(function () {
+      var b = document.querySelector('[onclick="newCR()"],[data-new-btn]');
+      if (b) { clearInterval(iv); clean(); setTimeout(function () { b.click(); }, 150); return; }
+      if (Date.now() - t0 > 12000) { clearInterval(iv); clean(); }
+    }, 250);
+  } catch (e) {}
 })();
