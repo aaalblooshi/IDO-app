@@ -205,7 +205,7 @@ xe_ok:['المحفظة منتظمة','The portfolio is on track'],xe_wa:['الم
  st:['الحالة','Status'],cnt:['مشروع','projects'],ms:['مرحلة','Milestone'],lateD:['يوم تأخير','d late']});
 let FM=0;try{FM=+localStorage.getItem('pfFM')||0}catch(_){}
 let TPC=null;if(FM==2)setTimeout(async()=>{try{const r0=await sb.rpc('my_team_pcodes');if(!r0.error){TPC=new Set(r0.data||[]);TEAM=[]}else{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}}catch(_){TEAM=[]};if(typeof draw=='function'&&PL&&PL.length)draw()},1500);
-let PROGV={},MSP=false,SECV=false,CLS={},GL={},OG=null,SHC=false,PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
+let PROGV={},MSP=false,XPLC=false,RECC=false,SECV=false,CLS={},GL={},OG=null,SHC=false,PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
 const LC=['#B39A6B','#949594','#3D96C7','#7a6740','#2a6a90'];
 async function start(){
  if(!(ADM||ME.view_scope))return gate('noacc');
@@ -221,12 +221,13 @@ async function start(){
  CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
  ss.forEach(s=>{if(s.key=='opt_goals'){try{const g=JSON.parse(s.value);if(Array.isArray(g)&&g.length)OG=g}catch(_){}}if(s.key=='goal_w'){try{GW=JSON.parse(s.value)||{}}catch(_){GW={}}}if(s.key=='w_ratio'&&+s.value>0)WR=+s.value;if(s.key=='w_sector'){try{WS=JSON.parse(s.value)||{}}catch(_){}}});
  try{const r=await sb.rpc('prog_values');PROGV={};(r.data||[]).forEach(x=>{if(x.pct!=null)PROGV[x.pcode]=+x.pct})}catch(_){}
- try{const c=await sb.rpc('my_caps');const m=(c&&c.data)||{};MSP=ADM||m._admin||m['exp.msp']==='true';SECV=ADM||m._admin||m['sec.view']==='true'}catch(_){MSP=ADM}
+ try{const c=await sb.rpc('my_caps');const m=(c&&c.data)||{};MSP=ADM||m._admin||m['exp.msp']==='true';SECV=ADM||m._admin||m['sec.view']==='true';XPLC=ADM||m._admin||m['exp.plans']==='true';RECC=ADM||m._admin||m['pf.records']==='true'}catch(_){MSP=ADM;XPLC=ADM;RECC=ADM}
  try{const wr=await sb.rpc('project_weights');WM={};if(!wr.error)(wr.data||[]).forEach(x=>WM[x.pcode]=+x.weight)}catch(_){}
  try{const ch=await q('charters','id,code,status,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,sd:data->>sdate,ed:data->>edate,sa:stage_at,cb:created_by',r=>r.eq('archived',false).eq('status','Approved'));const have=new Set(pl.map(p=>p.pc||p.code));const seen={};ch.sort((a,b)=>b.id-a.id).forEach(c=>{if(have.has(c.code)||seen[c.code])return;seen[c.code]=1;pl.push({id:null,code:c.code,pc:c.code,status:'Approved',pn:c.pn,sc:c.sc,pt:c.pt,pm:c.pm,wm:null,cb:c.cb,bud:c.bud,ow:c.ow,dsc:c.dsc,sd:c.sd,ed:c.ed,sa:c.sa,tasks:[]})})}catch(_){}
+ if(!ADM){try{const xr=await sb.rpc('unit_ext_tasks');if(!xr.error){const have=new Set(pl.map(p=>p.pc||p.code));(xr.data||[]).forEach(x=>{if(!x.pc||have.has(x.pc)||!(x.tasks||[]).length)return;have.add(x.pc);pl.push({id:x.id,code:x.code,pc:x.pc,status:'Approved',pn:x.pn,sc:x.sc,pm:x.pm,wm:x.wm,tasks:x.tasks,ext:1})})}}catch(_){}}
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||(p.id||0)>(best[k].id||0))best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!SECV&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,c=CFG[k]||{};let an;try{an=p.id?analyze(p.tasks||[],p.wm):chAn(p)}catch(er){window.PFERR=(window.PFERR||[]).concat(k+': '+String(er&&er.message||er));try{an=chAn(p)}catch(_){an={a:0,ex:0,gap:0,lateN:0,kids:{},t:{},s:null,e:null}}}
-  return {k,sa:p.sa,sd:p.sd,ed:p.ed,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||k),ag:(p.tasks||[]).some(x=>x&&x.spr),sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+  return {k,ext:!!p.ext,sa:p.sa,sd:p.sd,ed:p.ed,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k],id:p.id,wm:p.wm,cb:p.cb,name:(p.ext?'🔗 ':'')+(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||k),ag:(p.tasks||[]).some(x=>x&&x.spr),sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0,ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
  {const HR={bad:0,wa:1,ok:2},hr=p=>p.closed?3:(HR[health(p.gap||0,p.lateN||0)]??2);PL.sort((a,b)=>a.sc-b.sc||hr(a)-hr(b)||(b.gap||0)-(a.gap||0)||(b.lateN||0)-(a.lateN||0)||a.name.localeCompare(b.name,'ar'))}
  if(ADM&&!window._tabInit){window._tabInit=1;let v=null;try{v=localStorage.getItem('pfTab')}catch(_){}TAB=['exe','sum','tree','wbs','gantt','net','xpl','trd','fil','rec','rep','kan','pln','goal','att','deg','lag','otd','rmap','dq','wts'].includes(v)?v:'att'}
  draw()}
@@ -260,7 +261,7 @@ function draw(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
  const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';try{localStorage.setItem('pfTab','${k}')}catch(_){};draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
- const TK=['exe','sum','tree','wbs','gantt','net','xpl','trd','fil','rec','rep'].concat(['kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);
+ const TK=['exe','sum','tree','wbs','gantt','net'].concat(XPLC?['xpl']:[]).concat(['trd','fil']).concat(RECC?['rec']:[]).concat(['rep','kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);if(!TK.includes(TAB)&&TAB!='drill')TAB=TK[0];
  const fAct=(FS?1:0)+(FP?1:0)+(FM?1:0);
  $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${TK.map(tab).join('')}</div>
  <div class="vbar"><select class="vsel" id="vsel" aria-label="view">${TK.map(k=>`<option value="${k}" ${TAB==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select><button class="fbt ${fAct?'on':''}" id="fbt" type="button">⚙ ${lang=='ar'?'تصفية':'Filter'}${fAct?' ('+fAct+')':''}</button></div>
@@ -411,8 +412,8 @@ const RST_AR={'Draft':'مسودة','Submitted':'مقدّم للمراجعة','PM
 const RST_EN=k=>k;const rst=k=>lang=='ar'?(RST_AR[k]||k):(k=='PMO Review'?'IDO Review':k);
 const rcol=k=>({Approved:'#1c7a45',Rejected:'#d1101d',Cancelled:'#d1101d',Draft:'#949594'})[k]||'#a8761a';
 async function loadRec(){REC=[];await Promise.all(RTYPES.map(async([ty,tb,pg,nm])=>{
-  const {data}=await sb.from(tb).select('id,code,status,archived,created_at,pn:data->>pname,sc:data->>sector'+(ty=='charter'?'':',pc:data->>pcode')).order('id',{ascending:false}).limit(500).then(r=>r,()=>({data:[]}));
-  (data||[]).forEach(r=>REC.push({ty,pg,nm,id:r.id,code:r.code,st:r.status,arch:!!r.archived,at:r.created_at,pn:r.pn||'',sc:+r.sc||0,pc:ty=='charter'?r.code:(r.pc||'')}))}));
+  const {data}=await sb.from(tb).select('id,code,status,archived,created_at,created_by,pn:data->>pname,sc:data->>sector'+(ty=='charter'?'':',pc:data->>pcode')).order('id',{ascending:false}).limit(500).then(r=>r,()=>({data:[]}));
+  (data||[]).filter(r=>ADM||!['Draft','Returned to PM'].includes(r.status)||r.created_by==ME.id).forEach(r=>REC.push({ty,pg,nm,id:r.id,code:r.code,st:r.status,arch:!!r.archived,at:r.created_at,pn:r.pn||'',sc:+r.sc||0,pc:ty=='charter'?r.code:(r.pc||'')}))}));
  REC.sort((a,b)=>String(b.at).localeCompare(String(a.at)));vRec()}
 function recF(){const q=RQ.trim().toLowerCase();return (REC||[]).filter(r=>(!RT||r.ty==RT)&&(!RST||r.st==RST)&&(RARC?r.arch:!r.arch)&&(!FS||r.sc==FS)&&(!FP||r.pc==FP)&&(!q||(r.pn+' '+r.code).toLowerCase().includes(q)))}
 function vRec(){if(REC==null){$('body').innerHTML=`<div class="card mut">${t('loading')}</div>`;return loadRec()}
@@ -1395,7 +1396,7 @@ function pfSel(id,val,all){const L=pfPlans();return `<select id="${id}" style="f
 function vNet(){const L=pfPlans(),AR_=lang=='ar';
  if(!L.length){$('body').innerHTML=`<div class="card mut">${AR_?'لا توجد خطط بمهام ضمن التصفية الحالية':'No plans with tasks in the current filter'}</div>`;return}
  if(!L.some(p=>p.k==NETP))NETP=(FP&&L.some(p=>p.k==FP))?FP:L[0].k;const p=L.find(q=>q.k==NETP);
- $('body').innerHTML=`<div class="card noprint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${AR_?'المشروع':'Project'}</b>${pfSel('netp',NETP)}<button onclick="NetDiag.open(PL.find(q=>q.k==NETP).tasks,{title:PL.find(q=>q.k==NETP).name})">⛶ ${AR_?'ملء الشاشة':'Full screen'}</button><button onclick="xpPlans(NETP)">📥 Excel</button></div><div class="card" style="padding:8px">${NetDiag.html(p.tasks,{title:p.name})}</div>`;
+ $('body').innerHTML=`<div class="card noprint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b>${AR_?'المشروع':'Project'}</b>${pfSel('netp',NETP)}<button onclick="NetDiag.open(PL.find(q=>q.k==NETP).tasks,{title:PL.find(q=>q.k==NETP).name})">⛶ ${AR_?'ملء الشاشة':'Full screen'}</button>${XPLC?`<button onclick="xpPlans(NETP)">📥 Excel</button>`:''}</div><div class="card" style="padding:8px">${NetDiag.html(p.tasks,{title:p.name})}</div>`;
  $('netp').onchange=e=>{NETP=e.target.value;vNet()}}
 function vXpl(){const L=pfPlans(),AR_=lang=='ar';if(XPP!='*'&&!L.some(p=>p.k==XPP))XPP='*';
  const sel=XPP=='*'?L:L.filter(p=>p.k==XPP),nt=sel.reduce((s,p)=>s+p.tasks.length,0);
@@ -1421,7 +1422,7 @@ function xpRows(p){const AR_=lang=='ar',base=location.href.replace(/[#?].*$/,'')
   const link=leaf&&x.w?base+'tasks.html#k='+encodeURIComponent(p.id+'|'+x.id):base+'plan.html#o='+p.id;
   return {pn:p.name.replace(/^🔄 /,''),pk:p.k,wbs:num[x.id],n:'  '.repeat(lv)+(x.ms?'◆ ':'')+(x.n||''),ph,lv:lv+1,kind:x.ms?(AR_?'معلم':'Milestone'):leaf?(AR_?'مهمة':'Task'):(AR_?'مرحلة/مجموعة':'Phase'),
    s:fdx(x.s),e:fdx(x.e),du:x.ms?0:(s!=null&&e!=null)?(e-s+1):'',dep,pc:a?Math.round(a.a):(+x.pc||0),st:stO(x,a),who,cr:R.crit&&R.crit[x.id]?(AR_?'نعم':'Yes'):'',link}})}
-async function xpPlans(which){const AR_=lang=='ar';
+async function xpPlans(which){const AR_=lang=='ar';if(!XPLC)return;
  try{toast(AR_?'جارٍ تجهيز الملف…':'Preparing…')}catch(_){}
  try{await pfLoadXLSX()}catch(_){alert(AR_?'تعذّر تحميل مكتبة Excel، تحقق من الاتصال':'Could not load Excel library');return}
  const L=pfPlans(),sel=which=='*'?L:L.filter(p=>p.k==which);if(!sel.length)return;
