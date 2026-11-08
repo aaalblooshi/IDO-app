@@ -13,6 +13,8 @@
   if(prep&&st=='Returned to PM')return 'edit';
   if(st=='PMO Review'&&sg.some(function(s){return s.stage=='reviewed'&&s.status=='pending'}))return 'review';
   if(st=='Awaiting Approval'&&sg.some(function(s){return s.stage=='approved'&&s.status=='pending'}))return 'approve';
+  if(st=='Approved'&&o.ftr=='review'&&sg.some(function(s){return s.stage=='reviewed'&&s.status=='pending'}))return 'review';
+  if(st=='Approved'&&o.ftr=='approval'&&sg.some(function(s){return s.stage=='approved'&&s.status=='pending'}))return 'approve';
   if(o.office&&OFF.indexOf(st)>=0)return st=='Submitted'?'assignRev':st=='Reviewed'?'assignApp':'office';
   if(o.behalf&&!o.byMe&&st=='Draft'&&o.createdSigned)return 'behalf';
   if(o.consult&&!o.byMe&&st=='Draft')return 'consult';
