@@ -349,6 +349,9 @@ function tpBubble(){const b=$('msgs');if(!b||!CUR)return;let t=b.querySelector('
  if(tp.length){const near=b.scrollHeight-b.scrollTop-b.clientHeight<90;if(!t){t=document.createElement('div');t.className='mg tpb';b.appendChild(t)}t.innerHTML=`<div class="bb">${CUR.t=='ch'?`<div class="nm">${esc(snm(tp[0]).split(' ')[0])}</div>`:''}<span class="dots"><i></i><i></i><i></i></span></div>`;if(near)b.scrollTop=b.scrollHeight}else if(t)t.remove()}
 function sdbUpd(){const b=$('msgs'),s=$('sdb');if(!b||!s)return;s.hidden=b.scrollHeight-b.scrollTop-b.clientHeight<160}
 function selMsg(id,e){if(e.target.closest('a,button,img'))return;SEL=SEL==id?null:id;drawMsgs(false)}
+function selClear(){if(SEL==null)return;SEL=null;drawMsgs(false)}
+document.addEventListener('pointerdown',e=>{if(SEL==null)return;const g=e.target.closest('.mg');if(g&&String(g.dataset.m)==String(SEL))return;if(g)return;selClear()},true);
+document.addEventListener('keydown',e=>{if(e.key=='Escape')selClear()});
 async function openAtt(p){try{let u=URLC[p];if(!u){const r=await sb.storage.from('chat').createSignedUrl(p,3600);u=r.data&&r.data.signedUrl;URLC[p]=u}if(u)window.open(u,'_blank')}catch(e){toast(e.message||e)}}
 async function pinMsg(id,on){const r=await sb.rpc('chat_pin_msg',{p_id:id,p_on:on});if(r.error)return toast(r.error.message);SEL=null;SIG='';await loadMsgs(false)}
 async function delMsg(id){if(!confirm(T2('حذف هذه الرسالة؟','Delete this message?')))return;const r=await sb.rpc('chat_delete_msg',{p_id:id});if(r.error)return toast(r.error.message);SEL=null;SIG='';await loadMsgs(false)}
