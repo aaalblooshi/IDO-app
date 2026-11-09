@@ -1127,7 +1127,7 @@ function lpOpen(key){var m=POP[key];if(!m)return;var x=m.x;popClose();var o=docu
  var row=function(l,v){return v?'<div class="lp-r"><span>'+esc(P(l))+'</span><b>'+v+'</b></div>':''};
  var svc=x.k=='tasks'?P(['مهمة','Task']):P(window.JNX.SV[x.k].t);
  var late=m.late?(x.k=='tasks'?(x.late?P(['متأخرة '+DY(x.late),'Late '+x.late+'d']):P(['متأخرة','Late'])):(m.s&&m.s.left<0?P(['متأخر '+DY(-m.s.left),'Late '+(-m.s.left)+'d']):P(['متأخر','Late']))):'';
- var h='<div class="cm-pb lp"><div class="cm-ph"><div><b>'+esc(svc)+(x.code?' · '+esc(x.code):'')+'</b><small style="white-space:normal">'+esc(x.name||x.code||'—')+'</small></div><button class="cm-px" aria-label="close">✕</button></div><div class="cm-pc">'
+ var h='<div class="cm-pb lp"><div class="cm-ph"><div><b style="white-space:normal;font-size:17px;line-height:1.45">'+esc(x.name||x.code||'—')+'</b><small style="white-space:normal">'+esc(svc)+(x.code&&x.code!=x.name?' · '+esc(x.code):'')+'</small></div><button class="cm-px" aria-label="close">✕</button></div><div class="cm-pc">'
   +row(['الحالة','Status'],esc(st(m))+(m.esc?' · ⬆ '+esc(P(['مُصعَّد','Escalated'])):'')+(late?' · ⏱ '+esc(late):''))
   +(x.k=='tasks'?row(['المكلّف','Assignee'],esc(String(whoT(x)).replace(/<[^>]+>/g,'')))+row(['المشروع','Project'],esc(x.tpn||''))+row(['الموعد المخطط','Planned'],esc((x.ts||'—')+' → '+(x.te||'—')))+row(['الإنجاز','Progress'],AR(+x.tpc||0)+'٪')+(x.tpath&&x.tpath.length?row(['التسلسل','Path'],x.tpath.map(function(q){return esc(q.n)}).join(' ← ')):'')
    :row(['دورك','Your role'],esc(youOf(x)||''))+row(['المطلوب منك','Your action'],esc(lpNeed(x,m)))+row(['المشروع','Project'],esc(x.pc||'')))
