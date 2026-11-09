@@ -130,6 +130,24 @@ body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;h
  .jr{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef1f4}.jr .av{width:40px;height:40px}.jr .tx span{white-space:normal}.jr button{border:0;border-radius:99px;padding:6px 12px;background:#f0f2f5;font-weight:700}.jr button.ok{background:#00a884;color:#fff}
  .ac{gap:4px}.ac button{border-radius:99px;background:#f0f2f5;border:0;font-size:12.5px}
  .rk{font-weight:700;color:#8696a0}.rk.r{color:#53bdeb}
+.mic{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:#00a884;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.2);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer}
+.cin .snd[hidden],.mic[hidden]{display:none!important}
+#vrec{flex:1;display:flex;align-items:center;gap:10px;min-height:46px;background:#fff;border-radius:24px;padding:0 12px;overflow:hidden;font-size:14px}
+#vrec[hidden]{display:none}
+.cin.vrm textarea,.cin.vrm .plb{display:none}
+.vdot{width:10px;height:10px;border-radius:50%;background:#e02424;animation:vblink 1s infinite;flex:none}@keyframes vblink{50%{opacity:.25}}
+.vtm{font-variant-numeric:tabular-nums;min-width:38px}
+.vh{color:#667781;font-size:13px;white-space:nowrap;transition:transform .05s}.vh2{color:#98a2ab;font-size:12px;margin-inline-start:auto;white-space:nowrap}
+.vx{border:0;background:none;font-size:20px;cursor:pointer;padding:4px;flex:none}
+.vstop{border:0;background:#e02424;color:#fff;width:34px;height:34px;border-radius:50%;margin-inline-start:auto;flex:none;cursor:pointer;font-size:14px}
+.vsend{border:0;background:#00a884;color:#fff;width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-inline-start:auto}
+.vn{display:flex;align-items:center;gap:8px;min-width:200px;max-width:280px;padding:4px 2px}
+.vn .vp{border:0;background:#00a884;color:#fff;width:34px;height:34px;border-radius:50%;flex:none;cursor:pointer;font-size:13px;padding:0}
+.vn .vbar{flex:1;height:6px;border-radius:3px;background:rgba(0,0,0,.12);position:relative;cursor:pointer;overflow:hidden}
+.vn .vbar i{position:absolute;top:0;bottom:0;inset-inline-start:0;width:0;background:#00a884;border-radius:3px}
+.vn .vt{font-size:12px;color:#667781;font-variant-numeric:tabular-nums;min-width:32px}
+.vpv{flex:1;max-width:none;min-width:0}
+.vsend svg,.mic svg{width:22px!important;height:22px!important;min-width:22px;flex:none}.vsend svg{transform:scaleX(-1)}
 </style>
 </head><body>
 <div class="top"><button onclick="location.href='index.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
@@ -188,7 +206,7 @@ function items(){
  Object.keys(UN).filter(i=>i!=ME.id&&(ME.role=='admin'||(UN[i]||{}).role!='admin'||DMS[i])).forEach(i=>{const d=DMS[i];all.push(mk({t:'dm',id:i,name:dmn(i),icon:ini(dmn(i)),sub:d?'':(UN[i].job_title||''),at:d?+new Date(d.created_at):0,kind:'dm',has:!!d}))});
  all.forEach(o=>{const k=keyOf(o);if(o.kind=='dm'&&DMS[o.id])LAST[k]=DMS[o.id];const pv=prevOf(k,o.kind=='dm'?o.sub:(o.kind=='proj'?o.pcode:o.sub));o.sub=pv.t;o.typ=!!pv.typ;if(LAST[k]&&!o.at)o.at=+new Date(LAST[k].created_at)});
  all.forEach(o=>{if(ql&&!norm(o.name+' '+(o.pcode||'')+' '+(o.kind=='grp'?(PROJ.find(p=>p.pcode==o.pcode)||{}).name||'':'')).includes(ql))return;
-  if(HIDEADM&&ME.role=='admin'&&((o.kind=='proj'&&ADMONLY.p.has(o.pcode))||(o.kind=='grp'&&ADMONLY.c.has(String(o.id)))))return;
+  if(HIDEADM&&((o.kind=='proj'&&ADMONLY.p.has(o.pcode))||(o.kind=='grp'&&ADMONLY.c.has(String(o.id)))))return;
   if(CHF=='unread'&&!(o.n>0))return;if(CHF=='proj'&&o.kind=='dm')return;if(CHF=='dm'&&o.kind!='dm')return;
   if(o.pin)out.pin.push(o);else if(o.kind=='proj'||o.kind=='gen'||o.kind=='grp')out.proj.push(o);else if(o.has||ql||SHOWALL||CHF=='dm')out.ppl.push(o)});
  const srt=(a,b)=>(b.at-a.at)||((b.n>0&&!b.mu)-(a.n>0&&!a.mu))||String(a.name).localeCompare(b.name);
@@ -201,7 +219,7 @@ function drawRail(){const el=$('rl');if(!el)return;const o=items();
  const sec=(h,L,n)=>L.length?`<div class="sh">${h}</div>${n?nest(L):L.map(x=>row(x)).join('')}`:'';
  const chip=(k,l)=>`<button class="${CHF==k?'on':''}" onclick="CHF='${k}';drawRail()">${l}</button>`;
  const un=Object.keys(UNR).filter(k=>UNR[k]>0).length;
- el.innerHTML=`<div class="rf2"><button class="snt" title="${SND?T2('إسكات صوت الرسائل','Mute sound'):T2('تشغيل الصوت','Sound on')}" onclick="sndTog()">${SND?'🔈':'🔇'}</button>${ME.role=='admin'?`<button class="${HIDEADM?'on':''}" onclick="HIDEADM=!HIDEADM;try{localStorage.setItem('chatHideAdm',HIDEADM?'1':'0')}catch(_){};drawRail()" title="${T2('إخفاء المحادثات التي أراها لأني أدمن فقط','Hide chats I only see as admin')}">${HIDEADM?EYE_X+' '+T2('محادثاتي فقط','Mine only'):EYE_O+' '+T2('كل المحادثات','All chats')}</button>`:''}${chip('all',T2('الكل','All'))}${chip('unread',T2('غير المقروءة','Unread')+(un?' '+un:''))}${chip('proj',T2('المشاريع','Projects'))}${chip('dm',T2('الأشخاص','People'))}</div>`+(JRP.length?`<div class="jrb" onclick="jrOpen()">🔔 ${JRP.length} ${T2('طلبات انضمام للمحادثات بانتظار قرارك','chat join requests await your decision')} ›</div>`:'')+sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع والمجموعات','Projects & groups'),o.proj,true)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
+ el.innerHTML=`<div class="rf2"><button class="snt" title="${SND?T2('إسكات صوت الرسائل','Mute sound'):T2('تشغيل الصوت','Sound on')}" onclick="sndTog()">${SND?'🔈':'🔇'}</button>${(ME.role=='admin'||ADMONLY.p.size||ADMONLY.c.size)?`<button class="${HIDEADM?'on':''}" onclick="HIDEADM=!HIDEADM;try{localStorage.setItem('chatHideAdm',HIDEADM?'1':'0')}catch(_){};drawRail()" title="${T2('إخفاء المحادثات التي أراها لأني أدمن فقط','Hide chats I only see as admin')}">${HIDEADM?EYE_X+' '+T2('محادثاتي فقط','Mine only'):EYE_O+' '+T2('كل المحادثات','All chats')}</button>`:''}${chip('all',T2('الكل','All'))}${chip('unread',T2('غير المقروءة','Unread')+(un?' '+un:''))}${chip('proj',T2('المشاريع','Projects'))}${chip('dm',T2('الأشخاص','People'))}</div>`+(JRP.length?`<div class="jrb" onclick="jrOpen()">🔔 ${JRP.length} ${T2('طلبات انضمام للمحادثات بانتظار قرارك','chat join requests await your decision')} ›</div>`:'')+sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع والمجموعات','Projects & groups'),o.proj,true)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
   (!Q&&!SHOWALL&&CHF!='dm'?`<div class="more"><button onclick="SHOWALL=true;drawRail()">＋ ${T2('محادثة جديدة مع زميل','New chat with a colleague')}</button></div>`:'')+
   (!o.pin.length&&!o.proj.length&&!o.ppl.length?`<div class="mut" style="padding:14px">${T2('لا نتائج','No results')}</div>`:'')}
 let FROMCH=null,_KF=false;
@@ -302,10 +320,10 @@ function dmOk(u){return !!u&&u!=ME.id&&!!UN[u]&&(ME.role=='admin'||(UN[u]||{}).r
 function dmMenu(u){let o=document.getElementById('gnw');if(o)o.remove();o=document.createElement('div');o.id='gnw';o.className='gnw';o.onclick=ev=>{if(ev.target==o)o.remove()};
  o.innerHTML=`<div class="gb"><div class="jr" style="border:0"><div class="av" style="${avC(nm(u))}">${esc(ini(nm(u)))}</div><div class="tx"><b>${esc(nm(u))}</b><span>${esc((UN[u]||{}).job_title||'')}</span></div></div><button class="p" onclick="document.getElementById('gnw').remove();dmFrom('${u}')">💬 ${T2('محادثة خاصة مع ','Private chat with ')+esc(nm(u))}</button><button onclick="document.getElementById('gnw').remove()">${T2('إلغاء','Cancel')}</button></div>`;document.body.appendChild(o)}
 function msgHtml(m,prev){if(m.sys){const ds=(!prev||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString())?`<div class="dsep"><span>${fmtD(m.created_at)}</span></div>`:'';return ds+`<div class="sysm" data-id="${m.id}"><span>👤 ${esc(m.body)}<small>${new Date(m.created_at).toLocaleTimeString(lang=='ar'?'ar-AE':'en-GB',{hour:'2-digit',minute:'2-digit'})}</small></span></div>`}const mine=m.from_user==ME.id,grp=CUR.t=='ch'&&!mine,first=!prev||prev.from_user!=m.from_user||(new Date(m.created_at)-new Date(prev.created_at))>3e5||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString();
- let tx=esc(m.body||'').replace(/\n/g,'<br>');const refs=m.refs||[];
+ const isV=(m.attachments||[]).some(a=>a.voice);let tx=isV&&/^🎤/.test(m.body||'')?'':esc(m.body||'').replace(/\n/g,'<br>');const refs=m.refs||[];
  refs.forEach(r=>{if(r.tk){const e=esc(r.tk);tx=tx.split(e).join('<b class="tk">'+e+'</b>')}});
  const rq=refs.find(r=>r.k=='reply');const chips=refs.filter(r=>r.k!='user'&&r.k!='reply').map(r=>{const h=refHref(r);return `<a class="rf" ${h?`href="${h}" target="_top"`:''}>${KI[r.k]||'🔗'} ${esc(r.label||'')}</a>`}).join('');
- const atts=(m.attachments||[]).map(a=>/^image\//.test(a.type||'')?`<img class="ai" data-p="${esc(a.path)}" alt="${esc(a.name)}" onclick="openAtt('${esc(a.path)}')">`:`<a class="fl" href="#" onclick="openAtt('${esc(a.path)}');return false">📎 ${esc(a.name)}${a.size?' <small>'+sz(a.size)+'</small>':''}</a>`).join('');
+ const atts=(m.attachments||[]).map(a=>a.voice||/^audio\//.test(a.type||'')?vnH(a):/^image\//.test(a.type||'')?`<img class="ai" data-p="${esc(a.path)}" alt="${esc(a.name)}" onclick="openAtt('${esc(a.path)}')">`:`<a class="fl" href="#" onclick="openAtt('${esc(a.path)}');return false">📎 ${esc(a.name)}${a.size?' <small>'+sz(a.size)+'</small>':''}</a>`).join('');
  const body=m.deleted?`<i class="mut">${T2('تم حذف هذه الرسالة','This message was deleted')}</i>`:`${rq?`<div class="rq" onclick="event.stopPropagation();jump(${+rq.id||0})" style="--qc:hsl(${hue(snm(rq.u))},55%,40%)"><b>${esc(rq.u==ME.id?T2('أنت','You'):snm(rq.u))}</b><span>${esc(rq.label||'')}</span></div>`:''}${tx?`<div class="tx2">${tx}</div>`:''}${chips?`<div class="rfs">${chips}</div>`:''}${atts?`<div class="ats">${atts}</div>`:''}`;
  const act=m.deleted?'':`<div class="ac"><button onclick="rxPick(${m.id})">😊 ${T2('تفاعل','React')}</button><button onclick="replyTo(${m.id})">↩ ${T2('رد','Reply')}</button><button onclick="pinMsg(${m.id},${!m.pinned})">📌 ${m.pinned?T2('إلغاء التثبيت','Unpin'):T2('تثبيت','Pin')}</button><button onclick="cpMsg(${m.id})">⧉ ${T2('نسخ','Copy')}</button>${!mine&&CUR.t!='dm'&&dmOk(m.from_user)?`<button onclick="event.stopPropagation();dmFrom('${m.from_user}')">💬 ${T2('مراسلة خاصة','Message privately')}</button>`:''}${mine||ME.role=='admin'?`<button class="r" onclick="delMsg(${m.id})">🗑 ${T2('حذف','Delete')}</button>`:''}</div>`;
  return (!prev||new Date(prev.created_at).toDateString()!=new Date(m.created_at).toDateString()?`<div class="dsep"><span>${fmtD(m.created_at)}</span></div>`:'')+
@@ -337,8 +355,8 @@ async function delMsg(id){if(!confirm(T2('حذف هذه الرسالة؟','Delet
 function cpMsg(id){const m=MSGS.find(x=>x.id==id);if(m){try{navigator.clipboard.writeText(m.body||'');toast(T2('تم النسخ','Copied'))}catch(_){}}SEL=null;drawMsgs(false)}
 /* ---- المحرّر ---- */
 function drawCmp(){const el=$('cmp');if(!el||!CUR)return;const canRef=!!CUR.pcode,canAt=CUR.t=='ch';
- el.innerHTML=`<div id="qref"></div><div id="achips" class="achips"></div><div id="menpop"></div><div id="rpb"></div><div class="pls" id="pls" hidden><button onclick="plusT();$('fi').click()">📎 ${T2('ملف أو صورة','File or photo')}</button>${canRef?`<button onclick="plusT();menBtn('#')"># ${T2('مهمة أو طلب','Task or request')}</button>`:''}${canAt?`<button onclick="plusT();menBtn('@')">@ ${T2('إشارة لشخص','Mention someone')}</button>`:''}</div><div class="cin"><button class="ib plb" title="${T2('إرفاق وإشارة','Attach & mention')}" onclick="plusT(event)">＋</button><textarea id="mt" rows="1" enterkeyhint="send" placeholder="${T2('اكتب رسالة','Message')}"></textarea><button class="snd" aria-label="${T2('إرسال','Send')}" onclick="sendM()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button></div><input type="file" id="fi" multiple style="display:none">`;
- const ta=$('mt');ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping();sndSt()};ta.onfocus=()=>{const p=$('pls');if(p)p.hidden=true;setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},250)};
+ el.innerHTML=`<div id="qref"></div><div id="achips" class="achips"></div><div id="menpop"></div><div id="rpb"></div><div class="pls" id="pls" hidden><button onclick="plusT();$('fi').click()">📎 ${T2('ملف أو صورة','File or photo')}</button>${canRef?`<button onclick="plusT();menBtn('#')"># ${T2('مهمة أو طلب','Task or request')}</button>`:''}${canAt?`<button onclick="plusT();menBtn('@')">@ ${T2('إشارة لشخص','Mention someone')}</button>`:''}</div><div class="cin"><button class="ib plb" title="${T2('إرفاق وإشارة','Attach & mention')}" onclick="plusT(event)">＋</button><textarea id="mt" rows="1" enterkeyhint="send" placeholder="${T2('اكتب رسالة','Message')}"></textarea><div id="vrec" hidden></div><button class="mic" id="micb" aria-label="${T2('تسجيل رسالة صوتية','Record voice message')}" title="${T2('اضغط مطولًا للتسجيل، واسحب لليسار للتسجيل المستمر','Hold to record, slide left to lock')}"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg></button><button class="snd" aria-label="${T2('إرسال','Send')}" onclick="sendM()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button></div><input type="file" id="fi" multiple style="display:none">`;
+ const ta=$('mt');setTimeout(()=>{vrInit();micSync()},0);ta.addEventListener('input',micSync);ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping();sndSt()};ta.onfocus=()=>{const p=$('pls');if(p)p.hidden=true;setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},250)};
  ta.onkeydown=e=>{if(MEN&&['ArrowDown','ArrowUp','Enter','Escape','Tab'].includes(e.key)){e.preventDefault();menKey(e.key);return}if(e.key=='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendM()}};
  $('fi').onchange=e=>upFiles([...e.target.files]).then(()=>{e.target.value=''});
  ta.addEventListener('paste',e=>{const f=[...(e.clipboardData||{}).files||[]];if(f.length){e.preventDefault();upFiles(f)}});
@@ -347,7 +365,7 @@ function plusT(e){if(e&&e.stopPropagation)e.stopPropagation();const p=$('pls');i
 document.addEventListener('click',e=>{const p=$('pls');if(p&&!p.hidden&&!e.target.closest('#pls,.plb'))p.hidden=true},true);
 function drawQref(){const el=$('qref');if(!el)return;const p=R0.split(':');if(!R0||p.length<3||!CUR||!CUR.pcode||REFS.some(r=>r.k==p[0]&&String(r.id)==p[1])){el.innerHTML='';return}
  const lb=decodeURIComponent(p.slice(2).join(':'));el.innerHTML=`<div class="qr"><span>${T2('أشر إلى هذا الطلب:','Mention this record:')} <b>${esc(lb)}</b></span><button onclick="addRef({k:'${p[0]}',id:'${p[1]}',label:${JSON.stringify(lb).replace(/"/g,'&quot;')}})">＋ ${T2('إضافة إشارة','Add mention')}</button></div>`}
-function drawChips(){const el=$('achips');if(!el)return;el.innerHTML=ATT.map((a,i)=>`<span class="ac2">📎 ${esc(a.name)} <small>${sz(a.size||0)}</small><button onclick="ATT.splice(${i},1);drawChips()">✕</button></span>`).join('')}
+function drawChips(){setTimeout(micSync,0);const el=$('achips');if(!el)return;el.innerHTML=ATT.map((a,i)=>`<span class="ac2">📎 ${esc(a.name)} <small>${sz(a.size||0)}</small><button onclick="ATT.splice(${i},1);drawChips()">✕</button></span>`).join('')}
 async function upFiles(fs){if(!CUR||!fs.length)return;const base=CUR.t=='ch'?'ch/'+CUR.id:'dm/'+[ME.id,CUR.id].sort().join('_');
  for(const f of fs){if(f.size>10485760){toast(T2('الملف أكبر من 10 م.ب: ','File over 10 MB: ')+f.name);continue}if(ATT.length>=10)break;
   const ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0],path=base+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
@@ -371,6 +389,59 @@ function menKey(k){const L=MEN.list||[];if(k=='Escape'){MEN=null;$('menpop').inn
 function menPick(i){const x=(MEN.list||[])[i];if(!x)return;const ta=$('mt'),r={k:x.k,id:x.id,label:x.label};r.tk=(r.k=='user'?'@':'#')+String(r.label).replace(/\s+/g,'_');
  if(!REFS.some(q=>q.k==r.k&&String(q.id)==String(r.id)))REFS.push(r);
  ta.value=ta.value.slice(0,MEN.from)+r.tk+' '+ta.value.slice(MEN.pos);const p=MEN.from+r.tk.length+1;ta.setSelectionRange(p,p);MEN=null;$('menpop').innerHTML='';ta.focus();drawQref();ta.dispatchEvent(new Event('input'))}
+
+/* ---- الرسائل الصوتية ---- */
+const VR={st:'',rec:null,chunks:[],stream:null,t0:0,tm:null,blob:null,url:'',dur:0,x0:0,lock:false,mime:'',aud:null,cancel:false};
+function vnFmt(s){s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function vnH(a){return `<div class="vn" data-p="${esc(a.path)}" data-d="${+a.dur||0}"><button class="vp" onclick="event.stopPropagation();vnPlay(this)" aria-label="${T2('تشغيل','Play')}">▶</button><div class="vbar" onclick="event.stopPropagation();vnSeek(event,this)"><i></i></div><span class="vt">${vnFmt(a.dur)}</span></div>`}
+let VA=null,VEL=null;
+async function vnPlay(btn){const el=btn.closest('.vn'),p=el.dataset.p;
+ if(VEL===el&&VA){if(VA.paused)VA.play().catch(e=>toast(e.message||e));else VA.pause();return}
+ if(VA){VA.pause();if(VEL){const b=VEL.querySelector('.vp');if(b)b.textContent='▶';VEL.classList.remove('on')}}
+ let u=URLC[p];if(!u){try{const r=await sb.storage.from('chat').createSignedUrl(p,3600);u=r.data&&r.data.signedUrl;URLC[p]=u}catch(_){}}
+ if(!u)return toast(T2('تعذّر تشغيل الرسالة','Could not play'));
+ VA=new Audio(u);VEL=el;el.classList.add('on');const bar=el.querySelector('.vbar i'),vt=el.querySelector('.vt'),d0=+el.dataset.d||0;
+ VA.onplay=()=>{btn.textContent='❚❚'};VA.onpause=()=>{btn.textContent='▶'};
+ VA.ontimeupdate=()=>{const d=isFinite(VA.duration)&&VA.duration>0?VA.duration:d0;bar.style.width=(d?Math.min(100,VA.currentTime/d*100):0)+'%';vt.textContent=vnFmt(VA.currentTime)};
+ VA.onended=()=>{btn.textContent='▶';bar.style.width='0';vt.textContent=vnFmt(d0);el.classList.remove('on')};
+ VA.play().catch(e=>toast(e.message||e))}
+function vnSeek(ev,bar){const el=bar.closest('.vn');if(VEL!==el||!VA)return;const r=bar.getBoundingClientRect(),rtl=getComputedStyle(bar).direction=='rtl',f=rtl?(r.right-ev.clientX)/r.width:(ev.clientX-r.left)/r.width;const d=isFinite(VA.duration)&&VA.duration>0?VA.duration:+el.dataset.d||0;if(d)VA.currentTime=Math.max(0,Math.min(d,f*d))}
+function micSync(){const ta=$('mt'),mb=$('micb'),sd=document.querySelector('.cin .snd');if(!mb||!sd)return;const has=!!((ta&&ta.value.trim())||ATT.length),rec=VR.st!=='';mb.hidden=has||rec;sd.hidden=!has||rec}
+function vrBar(){const el=$('vrec');if(!el)return;const cin=el.closest('.cin');if(cin)cin.classList.toggle('vrm',VR.st!=='');micSync();
+ if(VR.st===''){el.hidden=true;el.innerHTML='';return}el.hidden=false;
+ if(VR.st=='rec'){const t=vnFmt((Date.now()-VR.t0)/1000);
+  el.innerHTML=VR.lock?`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">🗑</button><span class="vdot"></span><b class="vtm">${t}</b><span class="vh">${T2('جارٍ التسجيل…','Recording…')}</span><button class="vstop" onclick="vrStop()" title="${T2('إيقاف والاستماع','Stop & review')}">■</button>`
+   :`<span class="vdot"></span><b class="vtm">${t}</b><span class="vh">◀ ${T2('اسحب لليسار للتسجيل المستمر','Slide left to lock')}</span><span class="vh2">${T2('أفلت للإيقاف','Release to stop')}</span>`;return}
+ if(VR.st=='prev'){el.innerHTML=`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">🗑</button><div class="vn vpv"><button class="vp" onclick="vrPlay(this)">▶</button><div class="vbar"><i></i></div><span class="vt">${vnFmt(VR.dur)}</span></div><button class="vsend" onclick="vrSend()" title="${T2('إرسال','Send')}"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>`;return}
+ if(VR.st=='up')el.innerHTML=`<span class="vh">⏳ ${T2('جارٍ الإرسال…','Sending…')}</span>`}
+function vrMime(){const c=['audio/mp4','audio/mp4;codecs=mp4a.40.2','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];try{for(const m of c)if(MediaRecorder.isTypeSupported(m))return m}catch(_){}return ''}
+async function vrStart(){if(VR.st||!CUR)return;if(!navigator.mediaDevices||!window.MediaRecorder){toast(T2('المتصفح لا يدعم التسجيل الصوتي','Recording is not supported in this browser'));return}
+ VR.st='wait';try{VR.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){VR.st='';toast(T2('اسمح باستخدام الميكروفون من إعدادات الجهاز أو المتصفح','Allow microphone access'));return}
+ VR.mime=vrMime();try{VR.rec=VR.mime?new MediaRecorder(VR.stream,{mimeType:VR.mime}):new MediaRecorder(VR.stream)}catch(_){VR.rec=new MediaRecorder(VR.stream)}
+ VR.chunks=[];VR.rec.ondataavailable=e=>{if(e.data&&e.data.size)VR.chunks.push(e.data)};
+ VR.rec.onstop=()=>{const type=(VR.rec.mimeType||VR.mime||'audio/webm').split(';')[0];VR.blob=new Blob(VR.chunks,{type});VR.dur=Math.max(1,Math.round((Date.now()-VR.t0)/1000));try{VR.stream.getTracks().forEach(t=>t.stop())}catch(_){}
+  if(VR.cancel){vrReset();return}if((Date.now()-VR.t0)<800||VR.blob.size<300){toast(T2('التسجيل قصير جدًا','Too short'));vrReset();return}VR.url=URL.createObjectURL(VR.blob);VR.st='prev';vrBar()};
+ VR.rec.start(250);VR.t0=Date.now();VR.st='rec';VR.lock=false;vrBar();clearInterval(VR.tm);VR.tm=setInterval(()=>{if(VR.st!='rec')return clearInterval(VR.tm);const t=$('vrec')&&$('vrec').querySelector('.vtm');if(t)t.textContent=vnFmt((Date.now()-VR.t0)/1000);if(Date.now()-VR.t0>300000){toast(T2('الحد الأقصى 5 دقائق','Max 5 minutes'));vrStop()}},250);
+ try{navigator.vibrate&&navigator.vibrate(30)}catch(_){}}
+function vrStop(){if(VR.st!='rec'||!VR.rec)return;clearInterval(VR.tm);try{VR.rec.stop()}catch(_){vrReset()}}
+function vrCancel(){if(VR.st=='rec'){VR.cancel=true;vrStop();return}vrReset()}
+function vrReset(){clearInterval(VR.tm);if(VR.aud){try{VR.aud.pause()}catch(_){}}if(VR.url){try{URL.revokeObjectURL(VR.url)}catch(_){}}try{VR.stream&&VR.stream.getTracks().forEach(t=>t.stop())}catch(_){}Object.assign(VR,{st:'',rec:null,chunks:[],stream:null,blob:null,url:'',dur:0,lock:false,cancel:false,aud:null});vrBar()}
+function vrPlay(btn){const el=btn.closest('.vn');if(!VR.aud){const a=new Audio(VR.url),dd=VR.dur||1;VR.aud=a;const bar=el.querySelector('.vbar i'),vt=el.querySelector('.vt');a.onplay=()=>{btn.textContent='❚❚'};a.onpause=()=>{btn.textContent='▶'};a.ontimeupdate=()=>{bar.style.width=Math.min(100,a.currentTime/dd*100)+'%';vt.textContent=vnFmt(a.currentTime)};a.onended=()=>{btn.textContent='▶';bar.style.width='0';vt.textContent=vnFmt(dd)}}
+ if(VR.aud.paused)VR.aud.play().catch(e=>toast(e.message||e));else VR.aud.pause()}
+async function vrSend(){if(VR.st!='prev'||!VR.blob||!CUR)return;if(VR.aud){try{VR.aud.pause()}catch(_){}}const blob=VR.blob,dur=VR.dur,type=blob.type||'audio/mp4';VR.st='up';vrBar();
+ const base=CUR.t=='ch'?'ch/'+CUR.id:'dm/'+[ME.id,CUR.id].sort().join('_'),ext=/mp4|aac|m4a/.test(type)?'.m4a':/ogg/.test(type)?'.ogg':'.webm',path=base+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
+ const up=await sb.storage.from('chat').upload(path,blob,{contentType:type});if(up.error){toast(T2('تعذّر رفع التسجيل: ','Upload failed: ')+up.error.message);VR.st='prev';return vrBar()}
+ const refs=REPLY?[{k:'reply',id:String(REPLY.id),label:REPLY.label,u:REPLY.u}]:[];
+ const {error}=await sb.rpc('chat_post',{p_to:CUR.t=='dm'?CUR.id:null,p_cid:CUR.t=='ch'?CUR.id:null,p_body:'🎤 '+T2('رسالة صوتية','Voice message')+' ('+vnFmt(dur)+')',p_refs:refs,p_att:[{path,name:T2('رسالة صوتية','Voice message')+ext,size:blob.size,type,dur,voice:1}]});
+ if(error){toast(T2('تعذّر الإرسال: ','Could not send: ')+(error.message||error));VR.st='prev';return vrBar()}
+ vrReset();lsS('chatSentAt');rtPing();REPLY=null;drawRpb();SIG='';await loadMsgs(true);
+ if(CUR.t=='dm'){DMS[CUR.id]=MSGS[MSGS.length-1];drawRail()}else{const pp=PROJ.find(x=>x.channel_id==CUR.id);if(pp){pp.last_at=new Date().toISOString();drawRail()}}}
+function vrInit(){const mb=$('micb');if(!mb||mb._vr)return;mb._vr=1;let down=false,tDown=0;
+ const mv=e=>{if(!down||VR.st!='rec'||VR.lock)return;const dx=e.clientX-VR.x0;if(dx<-70){VR.lock=true;vrBar();try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}}else{const h=$('vrec')&&$('vrec').querySelector('.vh');if(h)h.style.transform='translateX('+Math.min(0,dx)+'px)'}};
+ const fin=()=>{if(VR.st=='rec'&&!VR.lock){if(Date.now()-tDown<450){VR.lock=true;vrBar()}else vrStop()}};
+ const upf=()=>{if(!down)return;down=false;window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',upf);window.removeEventListener('pointercancel',upf);fin()};
+ mb.addEventListener('contextmenu',e=>e.preventDefault());
+ mb.addEventListener('pointerdown',async e=>{e.preventDefault();if(VR.st)return;down=true;tDown=Date.now();VR.x0=e.clientX;window.addEventListener('pointermove',mv);window.addEventListener('pointerup',upf);window.addEventListener('pointercancel',upf);await vrStart();if(!down&&VR.st=='rec'){VR.lock=true;vrBar()}})}
 async function sendM(){if(BUSY||!CUR)return;const ta=$('mt'),v=ta.value.trim();if(!v&&!ATT.length)return;BUSY=true;
  const refs=REFS.filter(r=>v.includes(r.tk)).map(r=>({k:r.k,id:String(r.id),label:r.label,tk:r.tk}));if(REPLY)refs.push({k:'reply',id:String(REPLY.id),label:REPLY.label,u:REPLY.u});
  const {error}=await sb.rpc('chat_post',{p_to:CUR.t=='dm'?CUR.id:null,p_cid:CUR.t=='ch'?CUR.id:null,p_body:v,p_refs:refs,p_att:ATT});BUSY=false;
@@ -404,7 +475,7 @@ async function refreshLists(){try{await refreshLists0()}finally{try{drawPinbar()
 async function refreshLists0(){
  const [u,p,d,um]=await Promise.all([sb.rpc('chat_unread'),sb.rpc('chat_my_projects'),sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300),sb.rpc('chat_unread_muted')]);
  UNR={};(um&&um.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});(u.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});
- if(!p.error)PROJ=p.data||[];if(ME.role=='admin'){try{const a=await sb.rpc('chat_admin_only');if(!a.error){ADMONLY={p:new Set((a.data||[]).filter(x=>x.kind=='project').map(x=>x.pcode)),c:new Set((a.data||[]).filter(x=>x.channel_id).map(x=>String(x.channel_id)))}}}catch(_){}}try{const j=await sb.rpc('chat_join_pending',{p_pcode:null});JRP=j.error?[]:(j.data||[])}catch(_){JRP=[]}try{const gq=await sb.rpc('chat_group_pending');if(!gq.error)(gq.data||[]).forEach(q=>JRP.push({id:'g'+q.id,gid:q.id,grp:true,cid:q.channel_id,pcode:q.pcode,pname:'👥 '+(q.gname||'')+(q.pname?' — '+q.pname:''),user_id:q.user_id,source:'request',requested_by:q.requested_by,why:''}))}catch(_){}try{const g=await sb.rpc('chat_my_groups');GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}
+ if(!p.error)PROJ=p.data||[];{try{const a=await sb.rpc('chat_admin_only');if(!a.error){ADMONLY={p:new Set((a.data||[]).filter(x=>x.kind=='project').map(x=>x.pcode)),c:new Set((a.data||[]).filter(x=>x.channel_id).map(x=>String(x.channel_id)))}}}catch(_){}}try{const j=await sb.rpc('chat_join_pending',{p_pcode:null});JRP=j.error?[]:(j.data||[])}catch(_){JRP=[]}try{const gq=await sb.rpc('chat_group_pending');if(!gq.error)(gq.data||[]).forEach(q=>JRP.push({id:'g'+q.id,gid:q.id,grp:true,cid:q.channel_id,pcode:q.pcode,pname:'👥 '+(q.gname||'')+(q.pname?' — '+q.pname:''),user_id:q.user_id,source:'request',requested_by:q.requested_by,why:''}))}catch(_){}try{const g=await sb.rpc('chat_my_groups');GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}
  try{const ids=PROJ.map(x=>x.channel_id).filter(Boolean).concat(GRPS.map(g=>g.id)).concat(GEN?[GEN.id]:[]);if(ids.length){const r=await sb.from('chat_messages').select('id,channel_id,from_user,body,deleted,created_at').in('channel_id',ids).order('created_at',{ascending:false}).limit(500);(r.data||[]).forEach(m=>{const k='ch:'+m.channel_id;if(!LAST[k]||new Date(LAST[k].created_at)<new Date(m.created_at))LAST[k]=m})}}catch(_){}
  DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o])DMS[o]=m});
  if(CUR){delete UNR[keyOf(CUR)]}{const u=uSum();if(_uSum!=null&&u>_uSum)ding();_uSum=u}drawRail()}
