@@ -292,13 +292,13 @@ const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
   return[{k:'created',n:created,c:'#23272b',href:page+'#f=created'},{k:'action',n:action,c:'#d1101d',href:page+'#f=action',hot:true},{k:'done',n:done,c:'#0a6b3d',href:page+'#f=done'}].concat(dOk?[{k:'del',n:del,c:'#d1101d',href:page+'#f=action'}]:[])};
 const ddp=a=>{const b={};(a||[]).forEach(p=>{const k=p.pcode||p.code;if(!b[k]||p.id>b[k].id)b[k]=p});return Object.values(b)};const tkLoad=async(me)=>{let data=null;try{const r=await sb.rpc('my_plans');if(r.error)return[];data=ddp(r.data)}catch(_){return[]}
  const dn=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
- const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0,done=0,sA=0,sE=0,nn=0,ld=0,mx=0;
+ const td=dn(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()));let late=0,today=0,open=0,done=0,sA=0,sE=0,nn=0,ld=0,mx=0,cur=0;
  (data||[]).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));
   T.forEach(x=>{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
    {const s0=dn(x.s),e0=dn(x.e);nn++;sA+=Math.min(100,+x.pc||0);let ex=0;if(s0!=null&&e0!=null){ex=td<s0?0:td>=e0?100:Math.round((td-s0+1)/(e0-s0+1)*100)}sE+=ex}
    if((+x.pc||0)>=100){done++;return}
-   open++;const e=dn(x.e);if(e!=null&&e<td){late++;const dl=td-e;ld+=dl;if(dl>mx)mx=dl}else if(e==td)today++})});
- window.TKC={late,today,open,done};tkFab();
+   open++;{const s1=dn(x.s);if(s1==null||s1<=td||(dn(x.e)!=null&&dn(x.e)<td))cur++}const e=dn(x.e);if(e!=null&&e<td){late++;const dl=td-e;ld+=dl;if(dl>mx)mx=dl}else if(e==td)today++})});
+ window.TKC={late,today,open,done,cur};tkFab();
  window.TKD={late,today,open,done,nn,a:nn?Math.round(sA/nn):0,e:nn?Math.round(sE/nn):0,ld,mx,av:late?Math.round(ld/late):0};
  return tkTiles(tkMode())};
 let TKM='cnt';const tkMode=()=>TKM;
@@ -308,7 +308,7 @@ function tkTiles(m){const d=window.TKD;if(!d)return[];const H='tasks.html';
  return[{k:'tkn',n:d.nn,c:'#23272b',href:H},{k:'tkl',n:d.late,c:'#d1101d',href:H,hot:true},{k:'tkd',n:d.done,c:'#1c7a45',href:H},{k:'tko',n:d.open,c:'#3D96C7',href:H}]}
 function setTkMode(m){TKM=m;if(MINE&&MINE.panels){const p=MINE.panels.find(x=>x.s.stats=='tk');if(p)p.tiles=tkTiles(m)}drawMine()}
 function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
- const n=c.late+c.today;try{const nl=document.querySelector('#gnav a[href="tasks.html"]');if(nl){let bb=nl.querySelector('.tkb');if(!n){if(bb)bb.remove()}else{if(!bb){bb=document.createElement('b');bb.className='tkb'+(c.late?' lt':'');nl.appendChild(bb)}bb.textContent=n}}}catch(_){}a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
+ const n=c.cur!=null?c.cur:c.late+c.today;try{const nl=document.querySelector('#gnav a[href="tasks.html"]');if(nl){let bb=nl.querySelector('.tkb');if(!n){if(bb)bb.remove()}else{if(!bb){bb=document.createElement('b');bb.className='tkb'+(c.late?' lt':'');nl.appendChild(bb)}bb.textContent=n}}}catch(_){}a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
 const STATS={tk:tkLoad,cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
 async function loadMine(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
