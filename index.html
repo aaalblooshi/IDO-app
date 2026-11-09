@@ -501,7 +501,7 @@ async function load(){
   const me=(typeof ME0!='undefined'&&ME0)||(await sb.from('profiles').select('*').eq('id',session.user.id).single()).data;E.me=me;if(!me)return;
   if(E.tu==null){try{E.tu=localStorage.getItem('jnTU')=='1';E.td=localStorage.getItem('jnTD')=='1'}catch(_){E.tu=E.td=false}}
   E.role='all';
-  const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||'mine';
+  const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
   E.tpc=null;try{const tr=await sb.rpc('my_team_pcodes');if(!tr.error)E.tpc=new Set(tr.data||[])}catch(_){}
@@ -1074,7 +1074,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmtabs').innerHTML='<button data-tab="home" class="'+(S.tab=='home'?'on':'')+'">🏠 '+P(['الطلبات والمهام','Requests & tasks'])+'</button><button data-tab="cal" class="'+(S.tab=='cal'?'on':'')+'">📅 '+P(['التقويم','Calendar'])+'</button>';
  (function(){var f=document.getElementById('cmflt'),cc=document.getElementById('cmcal'),tt=document.getElementById('cmtt');if(f&&cc&&tt){if(S.tab=='cal'){if(f.nextSibling!==cc)cc.parentNode.insertBefore(f,cc);f.classList.add('cal')}else{if(f.nextSibling!==tt)tt.parentNode.insertBefore(f,tt);f.classList.remove('cal')}}})();document.getElementById('cmmain').hidden=S.tab!='home';document.getElementById('cmcal').hidden=S.tab!='cal';if(S.tab=='cal')calRender(D);
  document.getElementById('cmmain').classList.toggle('sc',!S.side);var tg=document.getElementById('cmtg');tg.hidden=S.side;tg.textContent=P(['إظهار المواعيد ◂','Show deadlines ◂']);
- var kt=document.getElementById('cmkt'),hasO=E.items.some(function(i){return !i.own});kt.innerHTML=esc(P(scT(['رحلتي','My journey'],['رحلة فريقي ووحدتي','Team & unit journey'],['كل الرحلات','All journeys'])))+'<span class="cm-bv"><button data-bv="kb" class="'+(S.bv!='tbl'?'on':'')+'" title="'+esc(P(['عرض اللوحة','Board view']))+'">▦ '+esc(P(['لوحة','Board']))+'</button><button data-bv="tbl" class="'+(S.bv=='tbl'?'on':'')+'" title="'+esc(P(['المهام والخدمات في جدولين','Tasks and services in two tables']))+'">☰ '+esc(P(['جداول','Tables']))+'</button></span>';
+ var kt=document.getElementById('cmkt'),hasO=E.items.some(function(i){return !i.own});kt.innerHTML=esc(P(['رحلتي','My journey']))+'<span class="cm-bv"><button data-bv="kb" class="'+(S.bv!='tbl'?'on':'')+'" title="'+esc(P(['عرض اللوحة','Board view']))+'">▦ '+esc(P(['لوحة','Board']))+'</button><button data-bv="tbl" class="'+(S.bv=='tbl'?'on':'')+'" title="'+esc(P(['المهام والخدمات في جدولين','Tasks and services in two tables']))+'">☰ '+esc(P(['جداول','Tables']))+'</button></span>';
 
 (function(){var sc=function(x){return E.scope=='all'||(E.scope=='team'?(!x.own&&(!E.tpc||E.tpc.has(x.pc))):x.own)};var nU=E.items.filter(function(x){return x.k=='tasks'&&x.stage==1&&sc(x)}).length,nD=E.items.filter(function(x){return x.k=='tasks'&&x.stage==5&&sc(x)}).length;
   document.getElementById('cmtt').innerHTML='<button class="cm-tfx '+(E.tu?'on':'')+'" data-tfu>'+(E.tu?'✓ ':'＋ ')+esc(P(['المهام القادمة','Upcoming tasks']))+(nU?' ('+AR(nU)+')':'')+'</button><button class="cm-tfx '+(E.td?'on':'')+'" data-tfd>'+(E.td?'✓ ':'＋ ')+esc(P(['المهام المنجزة','Done tasks']))+(nD?' ('+AR(nD)+')':'')+'</button>'})();
