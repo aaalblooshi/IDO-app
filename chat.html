@@ -131,13 +131,13 @@ body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;h
  .ac{gap:4px}.ac button{border-radius:99px;background:#f0f2f5;border:0;font-size:12.5px}
  .rk{font-weight:700;color:#8696a0}.rk.r{color:#53bdeb}
 .mic{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:#00a884;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.2);touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:pointer}
-.cin .snd[hidden],.mic[hidden]{display:none!important}
-#vrec{flex:1;display:flex;align-items:center;gap:10px;min-height:46px;background:#fff;border-radius:24px;padding:0 12px;overflow:hidden;font-size:14px}
+.cin .snd[hidden],.mic[hidden]{display:none!important}.mic.on{background:#e02424;transform:scale(1.12);box-shadow:0 0 0 6px rgba(224,36,36,.18);transition:background .15s}
+#vrec{flex:1;min-width:0;display:flex;align-items:center;gap:10px;min-height:46px;background:#fff;border-radius:24px;padding:0 12px;overflow:hidden;font-size:14px}
 #vrec[hidden]{display:none}
 .cin.vrm textarea,.cin.vrm .plb{display:none}
 .vdot{width:10px;height:10px;border-radius:50%;background:#e02424;animation:vblink 1.2s infinite;flex:none}@keyframes vblink{50%{opacity:.45}}
 .vtm{font-variant-numeric:tabular-nums;min-width:38px}
-.vh{color:#667781;font-size:13px;white-space:nowrap;transition:transform .05s}.vh2{color:#98a2ab;font-size:12px;margin-inline-start:auto;white-space:nowrap}
+.vh{color:#667781;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;transition:transform .05s}.vh2{color:#98a2ab;font-size:12px;margin-inline-start:auto;white-space:nowrap}
 .vx{border:0;background:none;font-size:20px;cursor:pointer;padding:4px;flex:none}
 .vstop{border:0;background:#e02424;color:#fff;width:40px;height:40px;border-radius:50%;margin-inline-start:auto;flex:none;cursor:pointer;font-size:14px}
 .vsend{border:0;background:#00a884;color:#fff;width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-inline-start:auto}
@@ -396,7 +396,7 @@ function menPick(i){const x=(MEN.list||[])[i];if(!x)return;const ta=$('mt'),r={k
 /* ---- الرسائل الصوتية ---- */
 const IC_PLAY='<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8c.6-.4.6-1.2 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z"/></svg>',IC_PAUSE='<svg viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>',IC_STOP='<svg viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>',IC_TRASH='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M10 11v6M14 11v6"/></svg>',IC_SEND='<svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>';
 
-const VR={st:'',rec:null,chunks:[],stream:null,t0:0,tm:null,blob:null,url:'',dur:0,x0:0,lock:false,mime:'',aud:null,cancel:false};
+const VR={dir:1,y0:0,st:'',rec:null,chunks:[],stream:null,t0:0,tm:null,blob:null,url:'',dur:0,x0:0,lock:false,mime:'',aud:null,cancel:false};
 function vnFmt(s){s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
 function vnH(a){return `<div class="vn" data-p="${esc(a.path)}" data-d="${+a.dur||0}"><button class="vp" onclick="event.stopPropagation();vnPlay(this)" aria-label="${T2('تشغيل','Play')}">${IC_PLAY}</button><div class="vbar" onclick="event.stopPropagation();vnSeek(event,this)"><i></i></div><span class="vt">${vnFmt(a.dur)}</span></div>`}
 let VA=null,VEL=null;
@@ -411,12 +411,12 @@ async function vnPlay(btn){const el=btn.closest('.vn'),p=el.dataset.p;
  VA.onended=()=>{btn.innerHTML=IC_PLAY;bar.style.width='0';vt.textContent=vnFmt(d0);el.classList.remove('on')};
  VA.play().catch(e=>toast(e.message||e))}
 function vnSeek(ev,bar){const el=bar.closest('.vn');if(VEL!==el||!VA)return;const r=bar.getBoundingClientRect(),rtl=getComputedStyle(bar).direction=='rtl',f=rtl?(r.right-ev.clientX)/r.width:(ev.clientX-r.left)/r.width;const d=isFinite(VA.duration)&&VA.duration>0?VA.duration:+el.dataset.d||0;if(d)VA.currentTime=Math.max(0,Math.min(d,f*d))}
-function micSync(){const ta=$('mt'),mb=$('micb'),sd=document.querySelector('.cin .snd');if(!mb||!sd)return;const has=!!((ta&&ta.value.trim())||ATT.length),rec=VR.st!=='';mb.hidden=has||rec;sd.hidden=!has||rec}
+function micSync(){const ta=$('mt'),mb=$('micb'),sd=document.querySelector('.cin .snd');if(!mb||!sd)return;const has=!!((ta&&ta.value.trim())||ATT.length),rec=VR.st!=='',hold=(VR.st=='rec'||VR.st=='wait')&&!VR.lock;mb.hidden=has||(rec&&!hold);mb.classList.toggle('on',hold);sd.hidden=!has||rec}
 function vrBar(){const el=$('vrec');if(!el)return;const cin=el.closest('.cin');if(cin)cin.classList.toggle('vrm',VR.st!=='');micSync();
  if(VR.st===''){el.hidden=true;el.innerHTML='';return}el.hidden=false;
  if(VR.st=='rec'){const t=vnFmt((Date.now()-VR.t0)/1000);
   el.innerHTML=VR.lock?`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">${IC_TRASH}</button><span class="vdot"></span><b class="vtm">${t}</b><span class="vh">${T2('جارٍ التسجيل…','Recording…')}</span><button class="vstop" onclick="vrStop()" title="${T2('إيقاف والاستماع','Stop & review')}">${IC_STOP}</button>`
-   :`<span class="vdot"></span><b class="vtm">${t}</b><span class="vh">◀ ${T2('اسحب لليسار للتسجيل المستمر','Slide left to lock')}</span><span class="vh2">${T2('أفلت للإيقاف','Release to stop')}</span>`;return}
+   :`<span class="vdot"></span><b class="vtm">${t}</b><span class="vh">${VR.dir>0?T2('اسحب لليمين ▶ للتسجيل المستمر','Slide right ▶ to lock'):T2('◀ اسحب لليسار للتسجيل المستمر','◀ Slide left to lock')}</span>`;return}
  if(VR.st=='prev'){el.innerHTML=`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">${IC_TRASH}</button><div class="vn vpv"><button class="vp" onclick="vrPlay(this)">${IC_PLAY}</button><div class="vbar"><i></i></div><span class="vt">${vnFmt(VR.dur)}</span></div><button class="vsend" onclick="vrSend()" title="${T2('إرسال','Send')}">${IC_SEND}</button>`;return}
  if(VR.st=='up')el.innerHTML=`<span class="vh">⏳ ${T2('جارٍ الإرسال…','Sending…')}</span>`}
 function vrMime(){const c=['audio/mp4','audio/mp4;codecs=mp4a.40.2','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];try{for(const m of c)if(MediaRecorder.isTypeSupported(m))return m}catch(_){}return ''}
@@ -442,11 +442,11 @@ async function vrSend(){if(VR.st!='prev'||!VR.blob||!CUR)return;if(VR.aud){try{V
  vrReset();lsS('chatSentAt');rtPing();REPLY=null;drawRpb();SIG='';await loadMsgs(true);
  if(CUR.t=='dm'){DMS[CUR.id]=MSGS[MSGS.length-1];drawRail()}else{const pp=PROJ.find(x=>x.channel_id==CUR.id);if(pp){pp.last_at=new Date().toISOString();drawRail()}}}
 function vrInit(){const mb=$('micb');if(!mb||mb._vr)return;mb._vr=1;let down=false,tDown=0;
- const mv=e=>{if(!down||VR.st!='rec'||VR.lock)return;const dx=e.clientX-VR.x0;if(dx<-70){VR.lock=true;vrBar();try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}}else{const h=$('vrec')&&$('vrec').querySelector('.vh');if(h)h.style.transform='translateX('+Math.min(0,dx)+'px)'}};
+ const mv=e=>{if(!down||VR.st!='rec'||VR.lock)return;const dx=(e.clientX-VR.x0)*VR.dir,dy=e.clientY-VR.y0;if(dx>60||dy<-60){VR.lock=true;vrBar();try{navigator.vibrate&&navigator.vibrate(20)}catch(_){}}else{const h=$('vrec')&&$('vrec').querySelector('.vh');if(h)h.style.transform='translateX('+(Math.max(0,dx)*VR.dir)+'px)';mb.style.transform='translate('+(Math.max(0,dx)*VR.dir)+'px,'+Math.min(0,dy)+'px) scale(1.12)'}};
  const fin=()=>{if(VR.st=='rec'&&!VR.lock){if(Date.now()-tDown<450){VR.lock=true;vrBar()}else vrStop()}};
- const upf=()=>{if(!down)return;down=false;window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',upf);window.removeEventListener('pointercancel',upf);fin()};
+ const upf=()=>{if(!down)return;down=false;mb.style.transform='';window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',upf);window.removeEventListener('pointercancel',upf);fin()};
  mb.addEventListener('contextmenu',e=>e.preventDefault());
- mb.addEventListener('pointerdown',async e=>{e.preventDefault();if(VR.st)return;down=true;tDown=Date.now();VR.x0=e.clientX;window.addEventListener('pointermove',mv);window.addEventListener('pointerup',upf);window.addEventListener('pointercancel',upf);await vrStart();if(!down&&VR.st=='rec'){VR.lock=true;vrBar()}})}
+ mb.addEventListener('pointerdown',async e=>{e.preventDefault();if(VR.st)return;down=true;tDown=Date.now();VR.x0=e.clientX;VR.y0=e.clientY;{const r=mb.getBoundingClientRect();VR.dir=(r.left+r.width/2)<innerWidth/2?1:-1}try{mb.setPointerCapture(e.pointerId)}catch(_){}window.addEventListener('pointermove',mv);window.addEventListener('pointerup',upf);window.addEventListener('pointercancel',upf);await vrStart();if(!down&&VR.st=='rec'){VR.lock=true;vrBar()}})}
 async function sendM(){if(BUSY||!CUR)return;const ta=$('mt'),v=ta.value.trim();if(!v&&!ATT.length)return;BUSY=true;
  const refs=REFS.filter(r=>v.includes(r.tk)).map(r=>({k:r.k,id:String(r.id),label:r.label,tk:r.tk}));if(REPLY)refs.push({k:'reply',id:String(REPLY.id),label:REPLY.label,u:REPLY.u});
  const {error}=await sb.rpc('chat_post',{p_to:CUR.t=='dm'?CUR.id:null,p_cid:CUR.t=='ch'?CUR.id:null,p_body:v,p_refs:refs,p_att:ATT});BUSY=false;
