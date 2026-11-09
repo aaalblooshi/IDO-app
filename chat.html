@@ -94,7 +94,7 @@ main{max-width:1100px;padding:10px 12px 0}
 .empty{background:#fff9e6;border-radius:12px;padding:10px 16px;box-shadow:0 1px .5px rgba(11,20,26,.13);margin:auto 0 0;align-self:center;font-size:13px}.empty>div:first-child{font-size:24px!important}.empty b{font-size:14px}
 .cmp{background:#f0f2f5;border-top:0;padding:6px 8px;padding-bottom:max(6px,env(safe-area-inset-bottom))}
 .cin{align-items:flex-end;gap:6px}.cin textarea{font-size:16px!important;border:0!important;border-radius:22px!important;padding:10px 14px!important;background:#fff!important;min-height:44px;line-height:1.4}
-.ib{background:none;width:40px;height:44px;font-size:24px;color:#54656f}.snd{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:#00a884;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.2)}html[dir=rtl] .snd svg{transform:scaleX(-1)}
+.ib{background:none;width:40px;height:44px;font-size:24px;color:#54656f}.snd{flex:none;width:46px;height:46px;border-radius:50%;border:0;background:#00a884;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.2)}html[dir=rtl] .snd svg{transform:none}
 .pls{display:flex;flex-direction:column;gap:2px;background:#fff;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.15);padding:6px;margin-bottom:6px;max-width:260px}.pls button{border:0;background:none;text-align:start;padding:9px 12px;border-radius:10px;font-size:14.5px}.pls button:active{background:#f0f2f5}
 @media(max-width:899px){
  .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;height:var(--vvh,100dvh);z-index:5000;border:0;border-radius:0}
@@ -135,11 +135,11 @@ body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;h
 #vrec{flex:1;display:flex;align-items:center;gap:10px;min-height:46px;background:#fff;border-radius:24px;padding:0 12px;overflow:hidden;font-size:14px}
 #vrec[hidden]{display:none}
 .cin.vrm textarea,.cin.vrm .plb{display:none}
-.vdot{width:10px;height:10px;border-radius:50%;background:#e02424;animation:vblink 1s infinite;flex:none}@keyframes vblink{50%{opacity:.25}}
+.vdot{width:10px;height:10px;border-radius:50%;background:#e02424;animation:vblink 1.2s infinite;flex:none}@keyframes vblink{50%{opacity:.45}}
 .vtm{font-variant-numeric:tabular-nums;min-width:38px}
 .vh{color:#667781;font-size:13px;white-space:nowrap;transition:transform .05s}.vh2{color:#98a2ab;font-size:12px;margin-inline-start:auto;white-space:nowrap}
 .vx{border:0;background:none;font-size:20px;cursor:pointer;padding:4px;flex:none}
-.vstop{border:0;background:#e02424;color:#fff;width:34px;height:34px;border-radius:50%;margin-inline-start:auto;flex:none;cursor:pointer;font-size:14px}
+.vstop{border:0;background:#e02424;color:#fff;width:40px;height:40px;border-radius:50%;margin-inline-start:auto;flex:none;cursor:pointer;font-size:14px}
 .vsend{border:0;background:#00a884;color:#fff;width:40px;height:40px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-inline-start:auto}
 .vn{display:flex;align-items:center;gap:8px;min-width:200px;max-width:280px;padding:4px 2px}
 .vn .vp{border:0;background:#00a884;color:#fff;width:34px;height:34px;border-radius:50%;flex:none;cursor:pointer;font-size:13px;padding:0}
@@ -147,7 +147,7 @@ body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;h
 .vn .vbar i{position:absolute;top:0;bottom:0;inset-inline-start:0;width:0;background:#00a884;border-radius:3px}
 .vn .vt{font-size:12px;color:#667781;font-variant-numeric:tabular-nums;min-width:32px}
 .vpv{flex:1;max-width:none;min-width:0}
-.vsend svg,.mic svg{width:22px!important;height:22px!important;min-width:22px;flex:none}.vsend svg{transform:scaleX(-1)}
+.vsend svg,.mic svg,.vx svg{width:22px!important;height:22px!important;min-width:22px;flex:none}.vp svg,.vstop svg{width:18px!important;height:18px!important;flex:none}.vn .vp,.vstop{display:flex;align-items:center;justify-content:center}.vn .vp svg{transform:translateX(1px)}.vx{color:#667781;display:flex;align-items:center}
 </style>
 </head><body>
 <div class="top"><button onclick="location.href='index.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
@@ -394,28 +394,30 @@ function menPick(i){const x=(MEN.list||[])[i];if(!x)return;const ta=$('mt'),r={k
  ta.value=ta.value.slice(0,MEN.from)+r.tk+' '+ta.value.slice(MEN.pos);const p=MEN.from+r.tk.length+1;ta.setSelectionRange(p,p);MEN=null;$('menpop').innerHTML='';ta.focus();drawQref();ta.dispatchEvent(new Event('input'))}
 
 /* ---- الرسائل الصوتية ---- */
+const IC_PLAY='<svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M8 5.2v13.6c0 .8.9 1.3 1.6.8l10.2-6.8c.6-.4.6-1.2 0-1.6L9.6 4.4C8.9 3.9 8 4.4 8 5.2z"/></svg>',IC_PAUSE='<svg viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>',IC_STOP='<svg viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>',IC_TRASH='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M10 11v6M14 11v6"/></svg>',IC_SEND='<svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg>';
+
 const VR={st:'',rec:null,chunks:[],stream:null,t0:0,tm:null,blob:null,url:'',dur:0,x0:0,lock:false,mime:'',aud:null,cancel:false};
 function vnFmt(s){s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-function vnH(a){return `<div class="vn" data-p="${esc(a.path)}" data-d="${+a.dur||0}"><button class="vp" onclick="event.stopPropagation();vnPlay(this)" aria-label="${T2('تشغيل','Play')}">▶</button><div class="vbar" onclick="event.stopPropagation();vnSeek(event,this)"><i></i></div><span class="vt">${vnFmt(a.dur)}</span></div>`}
+function vnH(a){return `<div class="vn" data-p="${esc(a.path)}" data-d="${+a.dur||0}"><button class="vp" onclick="event.stopPropagation();vnPlay(this)" aria-label="${T2('تشغيل','Play')}">${IC_PLAY}</button><div class="vbar" onclick="event.stopPropagation();vnSeek(event,this)"><i></i></div><span class="vt">${vnFmt(a.dur)}</span></div>`}
 let VA=null,VEL=null;
 async function vnPlay(btn){const el=btn.closest('.vn'),p=el.dataset.p;
  if(VEL===el&&VA){if(VA.paused)VA.play().catch(e=>toast(e.message||e));else VA.pause();return}
- if(VA){VA.pause();if(VEL){const b=VEL.querySelector('.vp');if(b)b.textContent='▶';VEL.classList.remove('on')}}
+ if(VA){VA.pause();if(VEL){const b=VEL.querySelector('.vp');if(b)b.innerHTML=IC_PLAY;VEL.classList.remove('on')}}
  let u=URLC[p];if(!u){try{const r=await sb.storage.from('chat').createSignedUrl(p,3600);u=r.data&&r.data.signedUrl;URLC[p]=u}catch(_){}}
  if(!u)return toast(T2('تعذّر تشغيل الرسالة','Could not play'));
  VA=new Audio(u);VEL=el;el.classList.add('on');const bar=el.querySelector('.vbar i'),vt=el.querySelector('.vt'),d0=+el.dataset.d||0;
- VA.onplay=()=>{btn.textContent='❚❚'};VA.onpause=()=>{btn.textContent='▶'};
+ VA.onplay=()=>{btn.innerHTML=IC_PAUSE};VA.onpause=()=>{btn.innerHTML=IC_PLAY};
  VA.ontimeupdate=()=>{const d=isFinite(VA.duration)&&VA.duration>0?VA.duration:d0;bar.style.width=(d?Math.min(100,VA.currentTime/d*100):0)+'%';vt.textContent=vnFmt(VA.currentTime)};
- VA.onended=()=>{btn.textContent='▶';bar.style.width='0';vt.textContent=vnFmt(d0);el.classList.remove('on')};
+ VA.onended=()=>{btn.innerHTML=IC_PLAY;bar.style.width='0';vt.textContent=vnFmt(d0);el.classList.remove('on')};
  VA.play().catch(e=>toast(e.message||e))}
 function vnSeek(ev,bar){const el=bar.closest('.vn');if(VEL!==el||!VA)return;const r=bar.getBoundingClientRect(),rtl=getComputedStyle(bar).direction=='rtl',f=rtl?(r.right-ev.clientX)/r.width:(ev.clientX-r.left)/r.width;const d=isFinite(VA.duration)&&VA.duration>0?VA.duration:+el.dataset.d||0;if(d)VA.currentTime=Math.max(0,Math.min(d,f*d))}
 function micSync(){const ta=$('mt'),mb=$('micb'),sd=document.querySelector('.cin .snd');if(!mb||!sd)return;const has=!!((ta&&ta.value.trim())||ATT.length),rec=VR.st!=='';mb.hidden=has||rec;sd.hidden=!has||rec}
 function vrBar(){const el=$('vrec');if(!el)return;const cin=el.closest('.cin');if(cin)cin.classList.toggle('vrm',VR.st!=='');micSync();
  if(VR.st===''){el.hidden=true;el.innerHTML='';return}el.hidden=false;
  if(VR.st=='rec'){const t=vnFmt((Date.now()-VR.t0)/1000);
-  el.innerHTML=VR.lock?`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">🗑</button><span class="vdot"></span><b class="vtm">${t}</b><span class="vh">${T2('جارٍ التسجيل…','Recording…')}</span><button class="vstop" onclick="vrStop()" title="${T2('إيقاف والاستماع','Stop & review')}">■</button>`
+  el.innerHTML=VR.lock?`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">${IC_TRASH}</button><span class="vdot"></span><b class="vtm">${t}</b><span class="vh">${T2('جارٍ التسجيل…','Recording…')}</span><button class="vstop" onclick="vrStop()" title="${T2('إيقاف والاستماع','Stop & review')}">${IC_STOP}</button>`
    :`<span class="vdot"></span><b class="vtm">${t}</b><span class="vh">◀ ${T2('اسحب لليسار للتسجيل المستمر','Slide left to lock')}</span><span class="vh2">${T2('أفلت للإيقاف','Release to stop')}</span>`;return}
- if(VR.st=='prev'){el.innerHTML=`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">🗑</button><div class="vn vpv"><button class="vp" onclick="vrPlay(this)">▶</button><div class="vbar"><i></i></div><span class="vt">${vnFmt(VR.dur)}</span></div><button class="vsend" onclick="vrSend()" title="${T2('إرسال','Send')}"><svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button>`;return}
+ if(VR.st=='prev'){el.innerHTML=`<button class="vx" onclick="vrCancel()" title="${T2('حذف','Delete')}">${IC_TRASH}</button><div class="vn vpv"><button class="vp" onclick="vrPlay(this)">${IC_PLAY}</button><div class="vbar"><i></i></div><span class="vt">${vnFmt(VR.dur)}</span></div><button class="vsend" onclick="vrSend()" title="${T2('إرسال','Send')}">${IC_SEND}</button>`;return}
  if(VR.st=='up')el.innerHTML=`<span class="vh">⏳ ${T2('جارٍ الإرسال…','Sending…')}</span>`}
 function vrMime(){const c=['audio/mp4','audio/mp4;codecs=mp4a.40.2','audio/aac','audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus'];try{for(const m of c)if(MediaRecorder.isTypeSupported(m))return m}catch(_){}return ''}
 async function vrStart(){if(VR.st||!CUR)return;if(!navigator.mediaDevices||!window.MediaRecorder){toast(T2('المتصفح لا يدعم التسجيل الصوتي','Recording is not supported in this browser'));return}
@@ -429,7 +431,7 @@ async function vrStart(){if(VR.st||!CUR)return;if(!navigator.mediaDevices||!wind
 function vrStop(){if(VR.st!='rec'||!VR.rec)return;clearInterval(VR.tm);try{VR.rec.stop()}catch(_){vrReset()}}
 function vrCancel(){if(VR.st=='rec'){VR.cancel=true;vrStop();return}vrReset()}
 function vrReset(){clearInterval(VR.tm);if(VR.aud){try{VR.aud.pause()}catch(_){}}if(VR.url){try{URL.revokeObjectURL(VR.url)}catch(_){}}try{VR.stream&&VR.stream.getTracks().forEach(t=>t.stop())}catch(_){}Object.assign(VR,{st:'',rec:null,chunks:[],stream:null,blob:null,url:'',dur:0,lock:false,cancel:false,aud:null});vrBar()}
-function vrPlay(btn){const el=btn.closest('.vn');if(!VR.aud){const a=new Audio(VR.url),dd=VR.dur||1;VR.aud=a;const bar=el.querySelector('.vbar i'),vt=el.querySelector('.vt');a.onplay=()=>{btn.textContent='❚❚'};a.onpause=()=>{btn.textContent='▶'};a.ontimeupdate=()=>{bar.style.width=Math.min(100,a.currentTime/dd*100)+'%';vt.textContent=vnFmt(a.currentTime)};a.onended=()=>{btn.textContent='▶';bar.style.width='0';vt.textContent=vnFmt(dd)}}
+function vrPlay(btn){const el=btn.closest('.vn');if(!VR.aud){const a=new Audio(VR.url),dd=VR.dur||1;VR.aud=a;const bar=el.querySelector('.vbar i'),vt=el.querySelector('.vt');a.onplay=()=>{btn.innerHTML=IC_PAUSE};a.onpause=()=>{btn.innerHTML=IC_PLAY};a.ontimeupdate=()=>{bar.style.width=Math.min(100,a.currentTime/dd*100)+'%';vt.textContent=vnFmt(a.currentTime)};a.onended=()=>{btn.innerHTML=IC_PLAY;bar.style.width='0';vt.textContent=vnFmt(dd)}}
  if(VR.aud.paused)VR.aud.play().catch(e=>toast(e.message||e));else VR.aud.pause()}
 async function vrSend(){if(VR.st!='prev'||!VR.blob||!CUR)return;if(VR.aud){try{VR.aud.pause()}catch(_){}}const blob=VR.blob,dur=VR.dur,type=blob.type||'audio/mp4';VR.st='up';vrBar();
  const base=CUR.t=='ch'?'ch/'+CUR.id:'dm/'+[ME.id,CUR.id].sort().join('_'),ext=/mp4|aac|m4a/.test(type)?'.m4a':/ogg/.test(type)?'.ogg':'.webm',path=base+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+ext;
