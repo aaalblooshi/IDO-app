@@ -154,6 +154,7 @@ body.emb .chat.has .conv{position:fixed;inset:0;top:var(--vvt,0px);bottom:auto;h
 .mg.pk.on{background:rgba(0,168,132,.10);border-radius:10px}.mg.pk.on .ck{background:#00a884;border-color:#00a884}.mg.pk.on .ck::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
 .fwd{font-size:12px;color:#667781;font-style:italic;margin-bottom:2px}
 .pbn{background:#f1e3bf;border-radius:10px;padding:0 6px;font-size:11.5px;font-weight:700}
+#robar{padding:12px 14px;background:#f4f6f9;border-top:1px solid #e3e8ee;color:#5b6b7b;font-size:13.5px;text-align:center}
 </style>
 </head><body>
 <div class="top"><button onclick="location.href='index.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
@@ -321,15 +322,16 @@ async function grpGo(){const n=(($('gn_n')||{}).value||'').trim();if(!n)return t
  const w=document.getElementById('gnw');if(w)w.remove();await refreshLists();PANEL=null;await openItem('ch',String(r.data));toast(T2('أُنشئت المجموعة','Group created'))}
 
 /* ---- تحديد متعدد، حذف، تحويل، صلاحية الإدارة ---- */
-let SELM=null,CANMOD=false,PINI=0;
-async function modLoad(){CANMOD=false;if(!CUR||CUR.t!='ch')return;try{const r=await sb.rpc('chat_can_mod',{p_cid:CUR.id});CANMOD=!!(r&&r.data)}catch(_){}SIG='';drawMsgs(false)}
+let SELM=null,CANMOD=false,PINI=0,CANPOST=true;
+async function modLoad(){CANMOD=false;CANPOST=true;roSync();if(!CUR||CUR.t!='ch')return;const cid=CUR.id;try{const [r,q]=await Promise.all([sb.rpc('chat_can_mod',{p_cid:cid}),sb.rpc('chat_can_post',{p_cid:cid})]);if(!CUR||CUR.id!==cid)return;CANMOD=!!(r&&r.data);CANPOST=!(q&&q.data===false)}catch(_){}roSync();SIG='';drawMsgs(false)}
+function roSync(){const cin=document.querySelector('.cin');let b=$('robar');if(SELM)return;if(!CANPOST&&CUR){if(cin)cin.style.display='none';if(!b&&cin){b=document.createElement('div');b.id='robar';cin.parentNode.appendChild(b)}if(b)b.innerHTML='👁 '+T2('تطّلع على هذه المحادثة فقط — لست عضوًا فيها، فلا يمكنك الكتابة.','View only — you are not a member of this chat.')}else{if(b)b.remove();if(cin)cin.style.display=''}}
 function canDel(m){return !!m&&!m.deleted&&(m.from_user==ME.id||ME.role=='admin'||(CUR&&CUR.t=='ch'&&CANMOD))}
 function canPin(){return !!CUR&&(CUR.t=='dm'||CANMOD)}
 function selStart(id){SEL=null;SELM=new Set(id?[id]:[]);drawSel();drawMsgs(false)}
 function selEnd(){SELM=null;drawSel();drawMsgs(false)}
 function selTog(id){if(!SELM)return;const m=MSGS.find(x=>x.id==id);if(!m||m.deleted)return;SELM.has(id)?SELM.delete(id):SELM.add(id);drawSel();drawMsgs(false)}
 function drawSel(){let b=$('selbar');const cin=document.querySelector('.cin');
- if(!SELM){if(b)b.remove();if(cin)cin.style.display='';return}
+ if(!SELM){if(b)b.remove();if(cin)cin.style.display='';roSync();return}
  if(!b){b=document.createElement('div');b.id='selbar';const host=cin?cin.parentNode:$('msgs').parentNode;host.appendChild(b)}if(cin)cin.style.display='none';
  const L=[...SELM].map(id=>MSGS.find(x=>x.id==id)).filter(Boolean),nd=L.filter(canDel).length;
  b.innerHTML=`<button class="sx" onclick="selEnd()" title="${T2('إلغاء','Cancel')}">✕</button><b>${L.length} ${T2('محددة','selected')}</b><span style="flex:1"></span><button class="sfw" ${L.length?'':'disabled'} onclick="fwdOpen()">↪ ${T2('تحويل','Forward')}</button><button class="sdl" ${nd?'':'disabled'} onclick="selDel()">🗑 ${T2('حذف','Delete')}${nd&&nd<L.length?' ('+nd+')':''}</button>`}
@@ -402,7 +404,7 @@ function cpMsg(id){const m=MSGS.find(x=>x.id==id);if(m){try{navigator.clipboard.
 /* ---- المحرّر ---- */
 function drawCmp(){const el=$('cmp');if(!el||!CUR)return;const canRef=!!CUR.pcode,canAt=CUR.t=='ch';
  el.innerHTML=`<div id="qref"></div><div id="achips" class="achips"></div><div id="menpop"></div><div id="rpb"></div><div class="pls" id="pls" hidden><button onclick="plusT();$('fi').click()">📎 ${T2('ملف أو صورة','File or photo')}</button>${canRef?`<button onclick="plusT();menBtn('#')"># ${T2('مهمة أو طلب','Task or request')}</button>`:''}${canAt?`<button onclick="plusT();menBtn('@')">@ ${T2('إشارة لشخص','Mention someone')}</button>`:''}</div><div class="cin"><button class="ib plb" title="${T2('إرفاق وإشارة','Attach & mention')}" onclick="plusT(event)">＋</button><textarea id="mt" rows="1" enterkeyhint="send" placeholder="${T2('اكتب رسالة','Message')}"></textarea><div id="vrec" hidden></div><button class="mic" id="micb" aria-label="${T2('تسجيل رسالة صوتية','Record voice message')}" title="${T2('اضغط مطولًا للتسجيل، واسحب لليسار للتسجيل المستمر','Hold to record, slide left to lock')}"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-3.1A7 7 0 0 0 19 11h-2z"/></svg></button><button class="snd" aria-label="${T2('إرسال','Send')}" onclick="sendM()"><svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z"/></svg></button></div><input type="file" id="fi" multiple style="display:none">`;
- const ta=$('mt');setTimeout(()=>{vrInit();micSync()},0);ta.addEventListener('input',micSync);ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping();sndSt()};ta.onfocus=()=>{const p=$('pls');if(p)p.hidden=true;setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},250)};
+ const ta=$('mt');setTimeout(()=>{vrInit();micSync();roSync()},0);ta.addEventListener('input',micSync);ta.oninput=()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';menCheck();sendTyping();sndSt()};ta.onfocus=()=>{const p=$('pls');if(p)p.hidden=true;setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},250)};
  ta.onkeydown=e=>{if(MEN&&['ArrowDown','ArrowUp','Enter','Escape','Tab'].includes(e.key)){e.preventDefault();menKey(e.key);return}if(e.key=='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();sendM()}};
  $('fi').onchange=e=>upFiles([...e.target.files]).then(()=>{e.target.value=''});
  ta.addEventListener('paste',e=>{const f=[...(e.clipboardData||{}).files||[]];if(f.length){e.preventDefault();upFiles(f)}});
