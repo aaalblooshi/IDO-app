@@ -501,7 +501,7 @@ async function load(){
   const me=(typeof ME0!='undefined'&&ME0)||(await sb.from('profiles').select('*').eq('id',session.user.id).single()).data;E.me=me;if(!me)return;
   if(E.tu==null){try{E.tu=localStorage.getItem('jnTU')=='1';E.td=localStorage.getItem('jnTD')=='1'}catch(_){E.tu=E.td=false}}
   E.role='all';
-  const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');
+  const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||'mine';
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
   E.tpc=null;try{const tr=await sb.rpc('my_team_pcodes');if(!tr.error)E.tpc=new Set(tr.data||[])}catch(_){}
