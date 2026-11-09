@@ -127,6 +127,7 @@ function draw(){
  <div class="card"><h2>${t('s_aud')}<small>${t('s_aud_h')}</small></h2><div class="row"><button class="p" onclick="location.href='audit.html'">${t('s_aud')} ←</button></div></div>
  <div class="card"><h2>${t('s_users')}<small>${t('s_users_h')}</small></h2><div class="row"><button class="p" onclick="location.href='users.html'">${t('s_users')} ←</button></div></div>
  <div class="card"><h2>${t('s_aid')}<small>${t('s_aid_h')}</small></h2>${AIDK.map(k=>`<div class="row" style="align-items:center;gap:10px;margin:6px 0"><b style="min-width:170px">${t('aid_'+k)}</b><select id="aid_${k}">${['both','office','name'].map(m=>`<option value="${m}" ${aidV(k)==m?'selected':''}>${t('aidm_'+m)}</option>`).join('')}</select></div>`).join('')}<div class="row"><button class="p" onclick="saveAid()">${t('save')}</button></div></div>
+ <div class="card"><h2>${lang=='ar'?'📦 النسخة الاحتياطية الكاملة':'📦 Full backup'}<small>${lang=='ar'?'ملف واحد مضغوط فيه كل ما يلزم لنقل المنصة إلى خادم آخر: بنية قاعدة البيانات كاملة (الجداول، الدوال، الصلاحيات، القواعد، المشغّلات، المهام المجدولة، مجلدات التخزين)، وكل البيانات والحسابات، والملفات المرفوعة، وصفحات المنصة نفسها، مع تعليمات الاستعادة.':'One zip with the full database structure, all data and accounts, uploaded files, the portal pages and restore instructions.'}</small></h2><div id="bkbox"></div></div>
  <div class="card"><h2>${lang=='ar'?'🛠 مختبر الخطط: جودة الفهم':'🛠 Plan lab: understanding quality'}<small>${lang=='ar'?'بلاغات المستخدمين عن سوء فهم «اكتب فكرتك»، والكلمات التي تعلّمها النظام من تصحيحاتهم، وفحص المحرك على الجمل المرجعية، وتجربة أي نص.':'User reports, learned vocabulary, engine check and a sandbox.'}</small></h2><div id="labadm"></div></div>
  <div class="card"><h2>${lang=='ar'?'🤖 الذكاء الاصطناعي الداخلي لمختبر الخطط':'🤖 Internal AI for the plan lab'}<small>${lang=='ar'?'معطّل افتراضيًا. عند التفعيل يُرسل نص «اكتب فكرتك» فقط إلى الرابط الداخلي أدناه، وتعود النتيجة بنفس الشكل الذي يستخدمه المحرك الحالي. إذا تعذّر الاتصال أو تأخر الرد يُستخدم المحرك الحالي تلقائيًا.':'Off by default. When on, only the idea text is sent to the internal URL below; on failure the built-in engine is used.'}</small></h2>
  <label class="tg"><input type="checkbox" id="lab_ai_on" ${SET.lab_ai_on=='1'?'checked':''}><span>${lang=='ar'?'تفعيل الربط':'Enable'}</span></label>
@@ -154,7 +155,7 @@ c: cost (AED) · o: owner user id · neg: 1 = explicitly not needed</pre></detai
  <div class="card"><h2>${t('s_lists')}<small>${t('s_lists_h')}</small></h2><div id="lists"></div><div class="row"><button class="p" onclick="saveLists()">${t('save')}</button><button class="r" onclick="resetLists()">${t('resetL')}</button></div></div>
  <div class="card"><h2>${t('tp_t')}<small>${t('tp_h')}</small></h2><div id="tpl" class="mut" style="margin:6px 0">…</div><input type="file" id="tplf" accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation" style="display:none" onchange="tplUp(this)"><div class="row"><button class="p" onclick="$('tplf').click()">${t('tp_up')}</button><button class="r" onclick="tplDel()">${t('tp_del')}</button></div></div>
  <div class="card"><h2>${t('s_home')}<small>${t('s_home_h')}</small></h2><div id="home"></div><div class="row"><button class="p" onclick="saveHome()">${t('save')}</button><button class="r" onclick="resetHome()">${t('resetH')}</button></div></div>`
- drawLists();drawHome();drawCal();if(window.drawLA)drawLA();tplInfo();rtInfo();emInfo();wdDraw()}
+ drawLists();drawHome();drawCal();if(window.drawLA)drawLA();if(window.drawBK)drawBK();tplInfo();rtInfo();emInfo();wdDraw()}
 async function tplInfo(){const el=$('tpl');if(!el||!sb)return;try{const r=await sb.storage.from('templates').list('',{search:'report-template'});const f=(r.data||[]).find(x=>x.name=='report-template.pptx');
  el.innerHTML=f?t('tp_cur')+': <b dir="ltr">report-template.pptx</b> · <span dir="ltr">'+(f.updated_at||f.created_at||'').slice(0,10)+' · '+Math.round((f.metadata&&f.metadata.size||0)/1024)+' KB</span>':t('tp_none')}catch(e){el.textContent=t('tp_none')}}
 async function tplUp(i){const f=i.files&&i.files[0];i.value='';if(!f)return;if(!/\.pptx$/i.test(f.name))return toast(t('tp_bad'));
@@ -295,6 +296,48 @@ window.drawLA=drawLA;function drawLA(){const el=$('labadm');if(!el)return;const 
  <div class="row"><button class="p" onclick="laVoc()"${B('voc')}>${W('voc')}${LA.voc?TT('تحديث','Refresh'):TT('اعرض القاموس','Show')}</button></div>
  ${LA.voc?(LA.voc.length?`<div class="mut" style="font-size:12px;margin:4px 0">${TT('العبارة ← النوع الذي يُفهم به، وعدد مرات التصحيح. احذف أي تعلّم خاطئ.','Phrase → kind, times corrected. Delete wrong ones.')}</div>`+LA.voc.map(v=>`<div style="display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line);padding:5px 0;font-size:13.5px"><span style="flex:1">${esc(v.phrase)} ← <b>${esc(LA.KN?LA.KN(v.kind):v.kind)}</b> <span class="mut">×${v.n}</span></span><button class="r" onclick="laVocDel(${esc(JSON.stringify(v.phrase))})">✕</button></div>`).join(''):`<div class="mut">${TT('القاموس فارغ حتى الآن.','Empty.')}</div>`):''}`}
 
+
+/* ---------- النسخة الاحتياطية الكاملة ---------- */
+const BK={busy:false,log:[],last:null};
+const BKFILES=['index.html','access.html','account.html','archive.html','audit.html','charter.html','chat.html','closure.html','control.html','cr.html','help.html','history.html','inbox.html','mail.html','myprojects.html','perf.html','perms.html','plan.html','portfolio.html','projects.html','ratings.html','roles.html','settings.html','tasks.html','unit.html','users.html','acts.js','docassign.js','ido-ui.js','jmap.js','netdiag.js','sw.js','manifest.json'];
+window.drawBK=drawBK;function drawBK(){const el=$('bkbox');if(!el)return;const A=lang=='ar';
+ el.innerHTML=`<div class="row"><button class="p" onclick="runBK()"${BK.busy?' disabled':''}>${BK.busy?'⏳ '+(A?'جارٍ التجهيز…':'Working…'):'⬇ '+(A?'تنزيل نسخة احتياطية كاملة':'Download full backup')}</button></div>
+ ${BK.log.length?`<div style="font-size:13px;line-height:1.9;margin-top:8px">${BK.log.map(x=>esc(x)).join('<br>')}</div>`:''}
+ <div class="mut" style="font-size:12.5px;margin-top:8px">🔒 ${A?'الملف يحتوي حسابات المستخدمين (كلمات المرور مشفّرة) وإعدادات حساسة مثل سر البريد. احفظه في مكان آمن ولا ترسله لأحد.':'Contains user accounts (hashed passwords) and secrets. Keep it private.'}</div>`}
+function loadJSZip(){return window.JSZip?Promise.resolve(window.JSZip):new Promise((res,rej)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';sc.onload=()=>res(window.JSZip);sc.onerror=()=>rej(new Error('JSZip'));document.head.appendChild(sc)})}
+async function runBK(){if(BK.busy)return;const A=lang=='ar',L2=(a,e)=>A?a:e,lg=m=>{BK.log.push(m);drawBK()};BK.busy=true;BK.log=[];drawBK();
+ try{const JSZip=await loadJSZip(),z=new JSZip(),d=new Date(),stamp=d.toISOString().slice(0,10),fail=[];
+  lg(L2('١/٤ بنية قاعدة البيانات…','1/4 Database structure…'));const s1=await sb.rpc('ido_backup_schema');if(s1.error)throw s1.error;z.file('1-database/ido-schema.sql',s1.data);
+  lg(L2('٢/٤ البيانات والحسابات…','2/4 Data and accounts…'));const s2=await sb.rpc('ido_backup_data');if(s2.error)throw s2.error;z.file('1-database/ido-data.sql',s2.data);
+  lg(L2('٣/٤ الملفات المرفوعة…','3/4 Uploaded files…'));const s3=await sb.rpc('ido_backup_files');if(s3.error)throw s3.error;let nf=0;
+  for(const f of (s3.data||[])){try{const r=await sb.storage.from(f.b).download(f.n);if(r.error)throw r.error;z.file('2-storage/'+f.b+'/'+f.n,r.data);nf++}catch(e){fail.push(f.b+'/'+f.n+' — '+(e.message||e))}}
+  lg(L2('٤/٤ صفحات المنصة…','4/4 Portal pages…'));let np=0;for(const fn of BKFILES){try{const r=await fetch(fn+'?bk='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);z.file('3-portal/'+fn,await r.blob());np++}catch(e){fail.push(fn+' — '+(e.message||e))}}
+  const cnt=t=>(t.match(/\n-- [a-z_]+\.[a-z_0-9]+: (\d+) rows/g)||[]).length;
+  z.file('README.md',[
+   '# IDO Services — full backup ('+stamp+')','',
+   '## المحتويات / Contents',
+   '- 1-database/ido-schema.sql : بنية قاعدة البيانات كاملة (الإضافات، الجداول، الدوال، القيود، الفهارس، المشغّلات، الأمان RLS، الصلاحيات، Realtime، مجلدات التخزين وسياساتها، المهام المجدولة pg_cron)',
+   '- 1-database/ido-data.sql : كل البيانات ('+cnt(s2.data)+' جدولًا) مع حسابات المستخدمين auth.users و auth.identities',
+   '- 2-storage/ : الملفات المرفوعة ('+nf+' من '+(s3.data||[]).length+')',
+   '- 3-portal/ : صفحات المنصة ('+np+' ملفًا) — نفس محتوى مستودع GitHub',
+   '',
+   '## الاستعادة في مشروع Supabase جديد / Restore',
+   '1. أنشئ مشروع Supabase جديدًا.',
+   '2. افتح SQL Editor وشغّل 1-database/ido-schema.sql كاملًا.',
+   '3. شغّل 1-database/ido-data.sql كاملًا (الملف كبير؛ إن رفضه المحرر لحجمه شغّله عبر psql: psql "<connection string>" -f ido-data.sql).',
+   '4. Storage: ارفع محتوى كل مجلد داخل 2-storage إلى المجلد (bucket) الذي يحمل الاسم نفسه، بنفس المسارات.',
+   '5. المنصة: ارفع محتوى 3-portal إلى أي استضافة ثابتة (GitHub Pages أو غيرها)، ثم غيّر قيمتي SUPABASE_URL و SUPABASE_KEY (المفتاح العام anon) في كل الصفحات إلى بيانات المشروع الجديد (بحث واستبدال).',
+   '6. في المشروع الجديد: Authentication → URL Configuration: أضف رابط المنصة الجديد.',
+   '7. المهام المجدولة (pg_cron) التي ترسل البريد تستدعي رابط Google Apps Script المحفوظ في جدول app_config؛ تأكد أنه ما زال صحيحًا.',
+   '',
+   '## ملاحظات',
+   '- خدمة البريد تعمل عبر Google Apps Script خارج Supabase؛ احتفظ بنسخة من سكربتها في حساب Google.',
+   '- الملف يحتوي كلمات مرور مشفّرة وأسرارًا: احفظه في مكان آمن.',
+   fail.length?'\n## لم يُنسخ / Not copied\n- '+fail.join('\n- '):''].join('\n'));
+  lg(L2('ضغط الملف…','Zipping…'));const blob=await z.generateAsync({type:'blob',compression:'DEFLATE'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ido-backup-'+stamp+'.zip';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);
+  lg('✅ '+L2('تم: ','Done: ')+(blob.size/1048576).toFixed(1)+' MB'+(fail.length?' · ⚠️ '+L2('لم يُنسخ '+fail.length+' (التفاصيل في README)',fail.length+' not copied (see README)'):''));
+ }catch(e){lg('⛔ '+(e.message||e))}BK.busy=false;drawBK()}
 const saveAI=()=>run(async()=>{const on=$('lab_ai_on').checked?'1':'0',u=$('lab_ai_url').value.trim(),to=String(Math.max(3,Math.min(60,+$('lab_ai_to').value||15)));if(on=='1'&&!/^https:\/\//i.test(u))throw new Error(lang=='ar'?'الرابط يجب أن يبدأ بـ https://':'URL must start with https://');await setS('lab_ai_on',on);await setS('lab_ai_url',u);await setS('lab_ai_to',to);SET.lab_ai_on=on;SET.lab_ai_url=u;SET.lab_ai_to=to});
 async function testAI(){const o=$('ai_res'),u=$('lab_ai_url').value.trim();if(!/^https:\/\//i.test(u)){o.textContent=lang=='ar'?'أدخل رابطًا يبدأ بـ https://':'Enter an https URL';return}o.textContent='…';const t0=Date.now();try{const c=new AbortController();const tm=setTimeout(()=>c.abort(),(+$('lab_ai_to').value||15)*1000);const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({v:1,text:'شراء أجهزة قبل الافتتاح بشهر، والافتتاح في 30 مارس',lang:'ar',today:new Date().toISOString().slice(0,10),project:{},kinds:{}}),signal:c.signal});clearTimeout(tm);const j=await r.json();o.textContent=(lang=='ar'?'✓ استجابت الخدمة خلال ':'✓ Responded in ')+(Date.now()-t0)+'ms · '+(Array.isArray(j.items)?j.items.length+(lang=='ar'?' عنصر':' items'):(lang=='ar'?'⚠️ الرد لا يحتوي items':'⚠️ no items'))}catch(e){o.textContent=(lang=='ar'?'✗ تعذّر الاتصال: ':'✗ Failed: ')+(e.name=='AbortError'?(lang=='ar'?'انتهت المهلة':'timeout'):e.message)}}
 const saveChat=()=>run(async()=>{const v=$('chat_on').checked?'1':'0';await setS('chat_on',v);SET.chat_on=v;const g=$('chat_gen');if(g&&g.checked!==(window.GENON!==false)){const r=await sb.rpc('chat_set_general',{p_on:g.checked});if(r.error)throw r.error;window.GENON=g.checked}});
