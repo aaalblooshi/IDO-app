@@ -273,7 +273,7 @@ $('q').addEventListener('input',e=>{qs=e.target.value;const s=e.target.selection
 /* ---------- لوحة المستخدم: تُحمَّل من قاعدة البيانات مباشرة ---------- */
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{lock:(function(){var L={};return function(n,t,fn){var p=(L[n]||Promise.resolve()).then(function(){return fn()},function(){return fn()});L[n]=p.catch(function(){});return p}})()}})}catch(e){}
 let MINE=null; // null = loading, {state:'login'|'error'|'ok', name, panels:[]}
 /* كل خدمة لها مُحمِّل إحصائيات: يعيد 3 أرقام. لإضافة لوحة لخدمة جديدة أضف مُحمِّلًا هنا ثم stats:'اسم' في الخدمة */
 const mkStats=(tbl,stbl,page,svc)=>async(me)=>{
@@ -496,7 +496,7 @@ const stOf=(k,s)=>{if(s=='Draft'||s=='Returned to PM')return 1;if(s=='Submitted'
 const stName=s=>({'Draft':['مسودة','Draft'],'Returned to PM':['أُعيد للتعديل','Returned for edits'],'Submitted':['مقدَّم','Submitted'],'PMO Review':['قيد المراجعة','Under review'],'Reviewed':['تمت المراجعة','Reviewed'],'Awaiting Approval':['بانتظار الاعتماد','Awaiting approval'],'Office Decision':['قرار المكتب','Office decision'],'Approved':['معتمد','Approved'],'Rejected':['مرفوض','Rejected'],'Cancelled':['ملغى','Cancelled']}[s]||[s,s]);
 const slaDays=(k,stage)=>{const c=E.sla[k+':'+stage];if(c!=null)return {d:c,c:1};const v=+E.set['sla_'+k+'_'+(stage=='reviewed'?'rv':'ap')];return {d:v>0?v:3,c:0}};
 /* ======== التحميل ======== */
-async function load(){try{return await load0()}finally{E.loading=0;if(!E.ok)E.retryAt=Date.now()+1500}}
+async function load(){let tm;try{return await Promise.race([load0(),new Promise(r=>{tm=setTimeout(r,10000)})])}finally{clearTimeout(tm);E.loading=0;if(!E.ok)E.retryAt=Date.now()+1500}}
 async function load0(){
  if(!sb)return;try{
   const {data:{session}}=await sb.auth.getSession();if(!session)return;E.sess=true;

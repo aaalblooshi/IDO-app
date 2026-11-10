@@ -122,7 +122,7 @@ button,select,input,textarea,a,label,.item,.tile{touch-action:manipulation;-webk
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){}
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{lock:(function(){var L={};return function(n,t,fn){var p=(L[n]||Promise.resolve()).then(function(){return fn()},function(){return fn()});L[n]=p.catch(function(){});return p}})()}})}catch(e){}
 const $=i=>document.getElementById(i),app=$('app');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
