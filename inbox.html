@@ -158,7 +158,7 @@ async function boot(){
 Object.assign(D,{
  title:['الإشعارات','Notifications'],none:['لا توجد إشعارات.','No notifications.'],unread:['جديد','New'],markAll:['تعليم الكل كمقروء','Mark all as read'],
  only:['غير المقروءة فقط','Unread only'],ev:['حدث','event'],by:['بواسطة','by'],
- a_created:['تم إنشاء النموذج','Form created'],a_signed:['تم التوقيع','Signed'],a_status:['تغيّرت الحالة','Status changed'],a_assigned:['تم تكليف موقّع','Signer assigned'],
+ a_created:['تم إنشاء النموذج','Form created'],a_signed:['تم التوقيع','Signed'],a_status:['تغيّرت الحالة','Status changed'],a_assigned:['تم تعيين مُوقِّع (مراجِع أو معتمِد)','Signer assigned'],
  a_returned:['أُعيد للتعديل','Returned for edits'],a_revrejected:['رفض المراجع','Rejected by the reviewer'],a_apprejected:['رفض المعتمِد','Rejected by the approver'],a_rejected:['رُفض','Rejected'],a_reminded:['تم إرسال تذكير','Reminder sent'],a_attached:['أُرفق ملف','File attached'],
  a_approvenote:['ملاحظة على الاعتماد','Approval note'],a_adminedit:['عدّل مكتب التطوير المؤسسي النموذج','Edited by the Institutional Development Office'],
  a_officeapproved:['اعتمد المكتب','Approved by the office'],a_officerejected:['رفض المكتب','Rejected by the office'],a_taskprog:['تحديث إنجاز مهمة','Task progress updated'],a_taskadd:['إضافة مهمة تكميلية','Supplementary task added'],a_chgprop:['اقتراح تعديل مواعيد الخطة','Plan date changes proposed'],a_consultopen:['فتح مشاورة المسودة','Draft consultation opened'],a_consultclose:['إغلاق المشاورة','Consultation closed'],a_comment:['ملاحظة على المسودة','Draft comment'],
@@ -191,6 +191,7 @@ async function start(){
 function txt(a){const p=a.split('|'),k=p[0],b=D['a_'+k]?t('a_'+k):k;
  if(k=='docassign')return lang=='ar'?(p[1]=='transfer'?'نقل ملكية النموذج إلى: ':'إضافة محرر للتعديل والتحكم: ')+(p[2]||''):(p[1]=='transfer'?'Ownership transferred to: ':'Editor added: ')+(p[2]||'');
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير على التصعيد ('+({r:'توجيه',i:'تجاهل',w:'سحب'}[p[1]]||'')+'): ':'Office note on escalation ('+({r:'redirect',i:'ignored',w:'withdrawn'}[p[1]]||'')+'): ')+p.slice(2).join('|');
+ if(k=='assigned'){const R={created:['مُعِدًّا للنموذج','as preparer'],reviewed:['مراجِعًا','as reviewer'],approved:['معتمِدًا','as approver']}[p[2]]||['مُوقِّعًا','as signer'];return lang=='ar'?'تم تعيين '+(p[1]||'')+' '+R[0]:(p[1]||'')+' assigned '+R[1]}
  if(k=='taskprog')return b+': '+(p[1]||'')+' — '+(p[2]||'')+'%';
  if(k=='taskadd')return b+': '+(p[1]||'');
  if(k=='signed')return b+(p[1]?' ('+p[1]+')':'');if(k=='status')return b+': '+(p[1]||'');

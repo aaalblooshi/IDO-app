@@ -496,7 +496,8 @@ const stOf=(k,s)=>{if(s=='Draft'||s=='Returned to PM')return 1;if(s=='Submitted'
 const stName=s=>({'Draft':['مسودة','Draft'],'Returned to PM':['أُعيد للتعديل','Returned for edits'],'Submitted':['مقدَّم','Submitted'],'PMO Review':['قيد المراجعة','Under review'],'Reviewed':['تمت المراجعة','Reviewed'],'Awaiting Approval':['بانتظار الاعتماد','Awaiting approval'],'Office Decision':['قرار المكتب','Office decision'],'Approved':['معتمد','Approved'],'Rejected':['مرفوض','Rejected'],'Cancelled':['ملغى','Cancelled']}[s]||[s,s]);
 const slaDays=(k,stage)=>{const c=E.sla[k+':'+stage];if(c!=null)return {d:c,c:1};const v=+E.set['sla_'+k+'_'+(stage=='reviewed'?'rv':'ap')];return {d:v>0?v:3,c:0}};
 /* ======== التحميل ======== */
-async function load(){
+async function load(){try{return await load0()}finally{E.loading=0;if(!E.ok)E.retryAt=Date.now()+1500}}
+async function load0(){
  if(!sb)return;try{
   const {data:{session}}=await sb.auth.getSession();if(!session)return;E.sess=true;
   const me=(typeof ME0!='undefined'&&ME0)||(await sb.from('profiles').select('*').eq('id',session.user.id).single()).data;E.me=me;if(!me)return;
@@ -505,8 +506,16 @@ async function load(){
   const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');
   if(!E.role)E.role='all';
   const dsvc=['charter','plan','cr','closure'];
-  E.tpc=null;try{const tr=await sb.rpc('my_team_pcodes');if(!tr.error)E.tpc=new Set(tr.data||[])}catch(_){}
-  const AX=window.IDOACT,CX=await AX.ctx(sb,me),offK=k=>AX.office(me,k),edK=(k,pc)=>AX.edit(CX,k,pc),anyBh=k=>offK(k)||Object.keys(CX.gr).length>0,ME_IDS=[me.id].concat(CX.px||[]);
+  /* أداء: نطلق الاستعلامات المستقلة معًا بدل انتظار كل واحد على حدة */
+  const go=q=>Promise.resolve(q).then(r=>r,e=>({error:e}));
+  const pTpc=go(sb.rpc('my_team_pcodes')),pUn=go(sb.from('profiles').select('id,full_name')),pMyPl=go(sb.rpc('my_plans')),pCons=go(sb.rpc('my_consults')),pLinks=go(sb.rpc('my_links')),
+   pSla=go(sb.from('request_sla').select('svc,req_id,stage,days')),pRat=go(sb.from('service_ratings').select('svc,score,created_at').eq('user_id',me.id).order('created_at',{ascending:false}).limit(30)),
+   pAllPl=adm?go(sb.from('plans').select('id,code,status,created_by,act:data->>_active,pcode:data->>pcode,pname:data->>pname,pmname:data->>pmname,tasks:data->tasks').eq('archived',false)):null,
+   pUnits=Promise.all((me.head_units||[]).map(u=>go(sb.rpc('unit_projects',{p_unit:u}))));
+  const pCX=window.IDOACT.ctx(sb,me);
+  E.tpc=null;try{const tr=await pTpc;if(!tr.error)E.tpc=new Set(tr.data||[])}catch(_){}
+  const pTeam=(!adm&&E.tpc)?go(sb.rpc('team_plans')):null;
+  const AX=window.IDOACT,CX=await pCX,offK=k=>AX.office(me,k),edK=(k,pc)=>AX.edit(CX,k,pc),anyBh=k=>offK(k)||Object.keys(CX.gr).length>0,ME_IDS=[me.id].concat(CX.px||[]);
   const res=await Promise.all(dsvc.map(async k=>{const s=SV[k];const [a,b,cs]=await Promise.all([sb.from(s.tb).select('id,code,status,created_by,archived,stage_at,created_at,pn:data->>pname,pcd:data->>pcode,pmn:data->>pmname,own:data->>owner,ftr:data->ftr->>st').order('id',{ascending:false}).limit(400),sb.from(s.sg).select('cr_id,stage,status').in('user_id',ME_IDS),anyBh(k)?sb.from(s.sg).select('cr_id').eq('stage','created').eq('status','signed'):Promise.resolve({data:[]})]);
    const csg=new Set(((cs&&cs.data)||[]).map(x=>x.cr_id));
    const sg={};(b.data||[]).forEach(x=>(sg[x.cr_id]=sg[x.cr_id]||[]).push(x));
@@ -515,11 +524,11 @@ async function load(){
     const why=AX.reason({svc:k,ftr:r.ftr,st:st,byMe:r.created_by==me.id,pmMe:pmMe,sigs:my,createdSigned:csg.has(r.id),office:of,behalf:of||edK(k,k=='charter'?r.code:(r.pcd||'')),consult:k=='plan'&&CX.ci.has(r.id),esc:CX.esc.has(k+'|'+r.id)&&AX.escOk(me),del:CX.del.has(k+'|'+r.id)&&AX.delOk(me)}),act=!!why;if(why=='consult')roles.add('pt');
     return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',pmn:r.pmn||'',st,stage:stOf(k,st),act,why,roles,pmMe,owMe,crMe:r.created_by==me.id,own:mine||owMe||my.length>0||act,bh,at:r.stage_at||r.created_at}})}));
   E.items=res.flat();
-  try{const c=await sb.rpc('my_consults');if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
-  try{const l=await sb.rpc('my_links');if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add(z.kind=='participant'?'pt':'fl')}})}catch(_){}
+  try{const c=await pCons;if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
+  try{const l=await pLinks;if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add(z.kind=='participant'?'pt':'fl')}})}catch(_){}
   /* المهام: ذكيًا من الخطط المعتمدة */
-  try{const u=await sb.from('profiles').select('id,full_name');E.un={};(u.data||[]).forEach(z=>E.un[z.id]=z.full_name)}catch(_){E.un={}}
-  try{const r=await sb.rpc('my_plans');const td=today();ddp(r.data).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));let open=0;
+  try{const u=await pUn;E.un={};(u.data||[]).forEach(z=>E.un[z.id]=z.full_name)}catch(_){E.un={}}
+  try{const r=await pMyPl;const td=today();ddp(r.data).forEach(p=>{const T=p.tasks||[],m={};T.forEach(x=>m[x.id]=x);const par=new Set(T.map(x=>x.p).filter(Boolean));let open=0;
    T.forEach(x=>{try{if(par.has(x.id))return;let c=x,g=0,mine=false;while(c&&g++<12){if(c.w==me.id){mine=true;break}c=c.p?m[c.p]:null}if(!mine)return;
     const s0=dn(x.s),e0=dn(x.e),pc=+x.pc||0;let stg;if(pc>=100)stg=5;else if(e0!=null&&e0<td)stg=4;else if(s0!=null&&s0>td)stg=1;else if(pc>0)stg=3;else stg=2;if(pc<100)open++;
     var nums=[];const path=[];{let c=x,g=0;while(c&&g++<12){path.unshift(c);c=c.p?m[c.p]:null}let pre='';nums=path.map((q,i)=>{const sib=T.filter(z=>(z.p||'')==(q.p||''));pre=(i?pre+'.':'')+(sib.findIndex(z=>z.id==q.id)+1);return pre})}
@@ -527,9 +536,9 @@ async function load(){
    E.mt[p.id]=open})}catch(er){window.CMERR=(window.CMERR||[]).concat('tasks '+String(er&&er.message||er))}
   /* مهام الآخرين: الأدمن (كل المشاريع)، مدير المشروع (مشاريعه)، مسؤول الوحدة (مشاريع وحداته) — المفتوحة الجارية أو المتأخرة أو المستحقة خلال ١٤ يومًا */
   try{const adm=me.role=='admin',hu=me.head_units||[],hc=new Set();
-   for(const u of hu){try{const r=await sb.rpc('unit_projects',{p_unit:u});(r.data||[]).forEach(z=>hc.add(z.pcode))}catch(_){}}
-   let r=null;if(!adm&&E.tpc){const tp=await sb.rpc('team_plans');if(!tp.error)r={data:(tp.data||[]).map(z=>({id:z.id,code:z.code,status:'Approved',created_by:z.created_by,pcode:z.pcode,pname:z.pname,pmname:z.pm,tasks:z.tasks}))}}
-   if(!r)r=await sb.from('plans').select('id,code,status,created_by,act:data->>_active,pcode:data->>pcode,pname:data->>pname,pmname:data->>pmname,tasks:data->tasks').eq('archived',false);
+   try{(await pUnits).forEach(r=>((r&&r.data)||[]).forEach(z=>hc.add(z.pcode)))}catch(_){}
+   let r=null;if(!adm&&E.tpc&&pTeam){const tp=await pTeam;if(!tp.error)r={data:(tp.data||[]).map(z=>({id:z.id,code:z.code,status:'Approved',created_by:z.created_by,pcode:z.pcode,pname:z.pname,pmname:z.pm,tasks:z.tasks}))}}
+   if(!r)r=pAllPl?await pAllPl:await sb.from('plans').select('id,code,status,created_by,act:data->>_active,pcode:data->>pcode,pname:data->>pname,pmname:data->>pmname,tasks:data->tasks').eq('archived',false);
    const td=today(),have=new Set(E.items.filter(i=>i.k=='tasks').map(i=>i.id+'|'+i.tid));
    ddp((r.data||[]).filter(p=>p.status=='Approved'||p.act=='true')).forEach(p=>{const pm=p.created_by==me.id||(!!p.pmname&&p.pmname==(me.full_name||'').trim()),hd=hc.has(p.pcode),tmP=!!(E.tpc&&E.tpc.has(p.pcode));if(!(adm||pm||hd||tmP))return;
     const T=p.tasks||[],m={};T.forEach(z=>m[z.id]=z);const par=new Set(T.map(z=>z.p).filter(Boolean));
@@ -540,8 +549,8 @@ async function load(){
   {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
   if(!E.scope)E.scope=E.items.some(i=>i.oth)?'all':'mine';
   /* مدد مخصصة لكل طلب */
-  try{const r=await sb.from('request_sla').select('svc,req_id,stage,days');(r.data||[]).forEach(x=>{E.sla[x.svc+':'+x.req_id+':'+x.stage]=x.days})}catch(_){}
-  try{const r=await sb.from('service_ratings').select('svc,score,created_at').eq('user_id',me.id).order('created_at',{ascending:false}).limit(30);(r.data||[]).forEach(x=>{if(!E.last[x.svc])E.last[x.svc]=x})}catch(_){}
+  try{const r=await pSla;(r.data||[]).forEach(x=>{E.sla[x.svc+':'+x.req_id+':'+x.stage]=x.days})}catch(_){}
+  try{const r=await pRat;(r.data||[]).forEach(x=>{if(!E.last[x.svc])E.last[x.svc]=x})}catch(_){}
   if(adm){try{const r=await sb.rpc('rating_summary');if(!r.error)E.sum=r.data||[];let c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).is('archived_at',null).order('created_at',{ascending:false}).limit(8);if(c.error)c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).order('created_at',{ascending:false}).limit(8);E.cms=c.data||[]}catch(_){}}
   E.ok=true}catch(e){E.ok=false}
  render();try{if(typeof MINE!='undefined'&&MINE&&MINE.state=='ok')drawMine()}catch(_){}}
@@ -615,7 +624,7 @@ window.jnSend=async()=>{const r=E.rate;if(!r.score||r.busy)return;r.busy=true;co
   try{const q=await sb.rpc('rating_summary');if(!q.error)E.sum=q.data||[];if(E.me.role=='admin'){let c=await sb.from('service_ratings').select('user_name,svc,score,comment,created_at').not('comment','is',null).is('archived_at',null).order('created_at',{ascending:false}).limit(8);if(!c.error)E.cms=c.data||[]}}catch(_){}E.rate.n=((E.sum||[]).find(x=>x.svc==r.svc)||{}).n}
  catch(e){r.busy=false;alert(P(['تعذّر إرسال التقييم (شغّل ملف التحديث الأخير): ','Could not send (run the latest SQL update): '])+(e.message||e))}render()};
 function tabs(){const t=document.getElementById('vt');if(!t)return;const j=document.body.classList.contains('vj');t.innerHTML=`<button class="${j?'':'on'}" onclick="jnV(0)">${P(['الخدمات','Services'])}</button><button class="${j?'on':''}" onclick="jnV(1)">🧭 ${P(['رحلة المتعامل','Customer journey'])}</button>`}
-window.JNX={P:P,roleText:roleText,STATE:STATE,STATE5:STATE5,TSTATE:TSTATE,PRE:PRE,NXT:NXT,reload:function(){return load()},E:E,vis:vis,slaOf:slaOf,SV:SV,ORDER:ORDER,ROLES:ROLES,stName:stName,cal:cal,load:function(){if(!E.ok&&!E.loading){E.loading=1;load()}}};
+window.JNX={P:P,roleText:roleText,STATE:STATE,STATE5:STATE5,TSTATE:TSTATE,PRE:PRE,NXT:NXT,reload:function(){return load()},E:E,vis:vis,slaOf:slaOf,SV:SV,ORDER:ORDER,ROLES:ROLES,stName:stName,cal:cal,load:function(){if(E.ok||E.loading||Date.now()<(E.retryAt||0))return;E.loading=1;load().catch(function(){})}};
 window.jnV=v=>{document.body.classList.toggle('vj',!!v);try{sessionStorage.setItem('idoVj',v?'1':'')}catch(_){}tabs();if(v){render();if(!E.ok&&!E.loading){E.loading=1;load()}let n=0;const iv=setInterval(()=>{if(++n>8||!document.body.classList.contains('vj'))return clearInterval(iv);render()},900)}history.replaceState(null,'',v?'#journey':location.pathname+location.search)};
 const _dr=draw;draw=function(){_dr();tabs();if(document.body.classList.contains('vj'))render()};
 async function cfg(){E.on=true;E.rt=true;try{if(sb){const r=await sb.from('app_settings').select('*');(r.data||[]).forEach(x=>E.set[x.key]=x.value);E.on=E.set.jny_on!='0';E.rt=E.set.jny_rate!='0'}}catch(_){}
