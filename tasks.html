@@ -134,7 +134,7 @@ function analyze(tasks,wmode,now){
  let a=0,ex=0,n=0,done=0,lateN=0,s=null,e=null;
  roots.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;lateN+=r.lateN;if(r.s!=null)s=s==null?r.s:Math.min(s,r.s);if(r.e!=null)e=e==null?r.e:Math.max(e,r.e)});
  return {t:out,kids,a,ex,n,done,lateN,s,e,gap:ex-a}}
-const health=(gap,lateN)=>(gap>=15||(lateN>0&&gap>=8))?'bad':(gap>=8||lateN>0)?'wa':'ok';
+const health=(gap,lateN,n)=>{const r=n?lateN/n:(lateN>0?.05:0);return (gap>=15||(r>=.2&&lateN>=3))?'bad':(gap>=5||r>=.05)?'wa':'ok'};/* متعثر: تأخر ١٥ نقطة، أو ٢٠% من المهام متأخرة مع ٣ مهام على الأقل · يحتاج متابعة: تأخر ٥ نقاط أو ٥% من المهام متأخرة */
 const hCol={ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'};
 const LBL={act:['الفعلي','Actual'],pln:['المخطط','Planned']};
 function pbar(a,ex,col){col=col||'#1c7a45';const L=k=>LBL[k][lang=='ar'?0:1];a=clamp(a,0,100);
@@ -384,7 +384,7 @@ function vProj(rs){
  const prs=PR.filter(p=>rs.some(r=>r.pr==p));
  if(!prs.length)return `<div class="card mut">${t('none')}</div>`;
  return prs.map(p=>{const vis=p.rs.filter(r=>ids.has(r.id)&&(MODE=='team'?(!FST||tabFs(r,FST)||(!r.leaf)):1)),
-  a=p.an,h=health(a.gap,a.lateN),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone),open=PEXP.has(p.pid);
+  a=p.an,h=health(a.gap,a.lateN,a.n),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone),open=PEXP.has(p.pid);
   const my=lv.filter(r=>MODE=='me'?r.mine:1),cnt=k=>my.filter(r=>stOf(r)==k).length;
   const concerned=ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||!!ME.view_scope;
   const tree=CFG.wbs?wbsH(p,vis,''):(p.kids['']||[]).map(x=>nodeH(p,x,vis,0)).join('');

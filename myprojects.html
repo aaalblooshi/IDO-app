@@ -231,8 +231,8 @@ function situ(c){const ch=c.ch,pl=c.pl,M=c.M,cls=(c.cls||[]).filter(x=>!x.archiv
  return add({k:M.late||gap<=-10?'bad':gap<=-3?'wait':'ok',t:R('التنفيذ جارٍ','Execution in progress'),s:R('أُنجز '+Math.round(M.pct)+'% من '+Math.round(M.exp)+'% كان مخططًا حتى اليوم'+(M.late?' · '+LT(M.late):''),Math.round(M.pct)+'% done of '+Math.round(M.exp)+'% planned to date'+(M.late?' · '+M.late+' late task(s)':''))})}
 /* ---------- مؤشر الأداء ---------- */
 function health(M){if(!M||!M.leaves.length)return null;const gap=M.pct-M.exp,lt=M.late/M.leaves.length;
- if(M.late>=3||gap<=-20||lt>=.25)return {k:'r',c:'var(--r)',t:P(['متعثر','Struggling'])};if(M.late>0||gap<=-5)return {k:'a',c:'var(--w)',t:P(['يحتاج متابعة','Needs follow-up'])};return {k:'g',c:'var(--ok)',t:P(['منتظم','On track'])}}
-const HLP=()=>P(['متعثر: ٣ مهام متأخرة فأكثر، أو تأخر ٢٠ نقطة فأكثر. يحتاج متابعة: أي مهمة متأخرة أو تأخر ٥ نقاط. منتظم: غير ذلك.','Struggling: 3+ late tasks or 20+ points behind. Needs follow-up: any late task or 5+ points behind. On track: otherwise.']);
+ if(gap<=-15||(lt>=.2&&M.late>=3))return {k:'r',c:'var(--r)',t:P(['متعثر','Struggling'])};if(gap<=-5||lt>=.05)return {k:'a',c:'var(--w)',t:P(['يحتاج متابعة','Needs follow-up'])};return {k:'g',c:'var(--ok)',t:P(['منتظم','On track'])}}
+const HLP=()=>P(['متعثر: تأخر ١٥ نقطة فأكثر عن المخطط، أو ٢٠% فأكثر من المهام متأخرة مع ٣ مهام متأخرة على الأقل. يحتاج متابعة: تأخر ٥ نقاط فأكثر، أو ٥% فأكثر من المهام متأخرة. منتظم: غير ذلك.','Struggling: 15+ points behind plan, or 20%+ of tasks late with at least 3 late tasks. Needs follow-up: 5+ points behind, or 5%+ of tasks late. On track: otherwise.']);
 /* مقاييس ثابتة: المخطط ← الفعلي ← الفارق */
 function prog3(M){if(!M||!M.leaves.length)return '<div class="bar"><i style="width:0"></i></div><small class="mut">'+P(['لا مهام في الخطة بعد','No tasks in the plan yet'])+'</small>';
  const pl=Math.round(M.exp),ac=Math.round(M.pct),gap=ac-pl,gc=gap<=-5?'var(--r)':gap>=5?'var(--ok)':'#374151',lab=gap<=-5?P(['متأخر عن المخطط','Behind plan']):gap>=5?P(['متقدّم عن المخطط','Ahead of plan']):P(['على المسار','On track']);
