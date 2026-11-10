@@ -318,7 +318,10 @@ function setTkMode(m){TKM=m;if(MINE&&MINE.panels){const p=MINE.panels.find(x=>x.
 function tkFab(){const c=window.TKC;if(!c)return;let a=document.getElementById('tkfab');if(!a){a=document.createElement('a');a.id='tkfab';a.className='fab';a.href='tasks.html';document.body.appendChild(a)}
  const n=c.late;try{const nl=document.querySelector('#gnav a[href="tasks.html"]');if(nl){let bb=nl.querySelector('.tkb');if(!n){if(bb)bb.remove()}else{if(!bb){bb=document.createElement('b');bb.className='tkb'+(c.late?' lt':'');nl.appendChild(bb)}bb.textContent=n}}}catch(_){}a.innerHTML='✅ <span>'+T('tkFab')+'</span>'+(n?'<b class="'+(c.late?'lt':'')+'">'+n+'</b>':'');a.style.display=c.open?'flex':'none'}
 const STATS={tk:tkLoad,cr:mkStats('change_requests','signatories','cr.html','cr'),ch:mkStats('charters','charter_signatories','charter.html','charter'),cl:mkStats('closure_reports','closure_signatories','closure.html','closure'),pl:mkStats('plans','plan_signatories','plan.html','plan')};
-async function loadMine(){
+let MINET=0;async function loadMine(){const my=++MINET;if(!MINE||MINE.state!='ok'){MINE={state:'loading'};try{drawMine()}catch(_){}}
+ const to=setTimeout(()=>{if(my==MINET&&MINE.state=='loading'){MINE={state:'error',msg:lang=='ar'?'التحميل أخذ وقتًا طويلًا. افتح «لوحتي» مرة أخرى للمحاولة.':'Loading took too long. Open the dashboard again to retry.'};try{drawMine()}catch(_){}}},15000);
+ try{await loadMine0()}finally{clearTimeout(to)}}
+async function loadMine0(){
  const sv=[];AXES.forEach(a=>a.services.forEach(s=>{if(s.stats&&STATS[s.stats])sv.push(s)}));
  if(!sv.length||!sb){MINE={state:'none'};return drawMine()}
  try{
@@ -351,7 +354,7 @@ function secCfg(k){const c=(CFG&&CFG.secs&&CFG.secs[k])||{};const d=SECDEF[k];le
 let FOLDST=null;
 function foldInit(){const a=lang=='ar';
  if(!FOLDST){FOLDST={};['j','m','s'].forEach(k=>FOLDST[k]=secCfg(k).open)}
- const mk=(k,ico,t)=>{let h=document.getElementById('fh-'+k);if(!h){h=document.createElement('button');h.type='button';h.id='fh-'+k;h.className='fh';h.onclick=()=>{FOLDST[k]=!FOLDST[k];foldApply()}}h.innerHTML=`<span class="fi">${ico}</span><span class="ft">${t}</span><span class="fs"></span><span class="fc">▼</span>`;return h};
+ const mk=(k,ico,t)=>{let h=document.getElementById('fh-'+k);if(!h){h=document.createElement('button');h.type='button';h.id='fh-'+k;h.className='fh';h.onclick=()=>{FOLDST[k]=!FOLDST[k];foldApply();if(k=='m'&&FOLDST.m&&typeof MINE!='undefined'&&MINE&&(MINE.state=='error'||MINE.state=='none'))loadMine()}}h.innerHTML=`<span class="fi">${ico}</span><span class="ft">${t}</span><span class="fs"></span><span class="fc">▼</span>`;return h};
  const cmd=document.getElementById('cmd');
  if(cmd){const ban=cmd.querySelector('.cm-ban');const h=mk('j','🧭',a?'رحلتي':'My journey');if(ban&&h.previousElementSibling!==ban)ban.after(h)}
  const mi=document.getElementById('mine');if(mi){const h=mk('m','📊',a?'لوحتي':'My dashboard');if(mi.previousElementSibling!==h)mi.before(h)}
@@ -405,7 +408,8 @@ function dBody(){const tk=MINE.panels.find(x=>x.s.stats=='tk'),sv=MINE.panels.fi
  if(tk)h+=`<div class="dh3"><b>${T('d_sec1')}</b><span>${T('d_sec1s')}</span></div><div class="dsec dt1 pan pantk" data-h="${esc(tk.s.href)}" onclick="if(!event.target.closest('a,button'))location.href=this.dataset.h"><a class="ph" href="${esc(tk.s.href)}"><div class="ico">${svg(tk.s.icon)}</div><b>${esc(L(tk.s.title))}</b>${svg('arrow','go')}</a><div class="tkm">${[['cnt','m_cnt'],['pct','m_pct'],['dly','m_dly']].map(([m,k])=>`<button class="${tkMode()==m?'on':''}" onclick="setTkMode('${m}')">${T(k)}</button>`).join('')}</div><div class="tl">${tk.tiles?tileList(tk.tiles).map(t=>`<a class="tile ${t.hot&&t.n?'hot':''}" style="--tc:${t.c}" href="${esc(t.href)}"><b dir="ltr" data-n="${t.n}" data-s="${t.s||''}">0</b><span>${T('t_'+t.k)}</span></a>`).join(''):''}</div></div>`;
  if(sv.length)h+=`<div class="dh3"><b>${T('d_sec2')}</b><span>${T('d_sec2s')}</span></div><div class="dsec dt2"><div class="dsg">${sv.map(dSvc).join('')}</div></div>`;
  return h}
-function drawMine(){
+function drawMine(){try{drawMine0()}catch(e){const el=$('mine');if(el){el.hidden=false;el.innerHTML='<div class="login"><span>'+(lang=='ar'?'تعذّر عرض لوحتي: ':'Could not show the dashboard: ')+esc(String(e&&e.message||e))+'</span></div>'}}}
+function drawMine0(){
  const el=$('mine');if(!MINE||MINE.state=='none'){el.hidden=true;return}el.hidden=false;
  let body;
  if(MINE.state=='login')body=`<div class="login"><span>${T('needLogin')}</span><a href="cr.html">${T('signIn')}</a></div>`;
