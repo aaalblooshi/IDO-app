@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}body.ax1 .axis>.axh{display:none}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -259,12 +260,13 @@ function draw(){
  const all=AXES.reduce((n,a)=>n+a.services.length,0),live=AXES.reduce((n,a)=>n+a.services.filter(s=>s.status=='live').length,0);
  $('stats').innerHTML=[[all,'services'],[live,'avail']].map(([n,k])=>`<div class="stat"><b data-n="${n}">0</b><span>${T(k)}</span></div>`).join('');
  document.querySelectorAll('.stat b').forEach(b=>counter(b,+b.dataset.n));
- $('chips').innerHTML=[['all',T('all')],...AXES.map(a=>[a.id,L(a.title)])].map(([id,t])=>`<button class="chip ${flt==id?'on':''}" data-f="${id}">${esc(t)}</button>`).join('')+(ME0?`<button class="cust" onclick="custOpen()">⚙ ${lang=='ar'?'تخصيص':'Customize'}</button>`:'');
+ const ONE=AXES.length<=1;if(ONE)flt='all';document.body.classList.toggle('ax1',ONE);
+ $('chips').innerHTML=(ONE?[]:[['all',T('all')],...AXES.map(a=>[a.id,L(a.title)])]).map(([id,t])=>`<button class="chip ${flt==id?'on':''}" data-f="${id}">${esc(t)}</button>`).join('')+(ME0?`<button class="cust" onclick="custOpen()">⚙ ${lang=='ar'?'تخصيص':'Customize'}</button>`:'');
  const k=norm(qs.trim());let shown=0;
  const html=AXES.filter(a=>flt=='all'||flt==a.id).map((a,i)=>{
   const sv=a.services.filter(s=>!k||norm(L(s.title)+' '+L(s.desc)+' '+L(a.title)).includes(k));
   if(k&&!sv.length)return'';shown++;
-  const op=k?true:!closed[a.id];
+  const op=k||ONE?true:!closed[a.id];
   const cards=sv.map(s=>{const live=s.status=='live',tag=live?'a':'div';
    return`<${tag} class="svc ${live?'live':'soon'}" ${live?`href="${esc(s.href)}"`:'aria-disabled="true"'}><div class="ico">${svg(s.icon)}</div><h3>${hl(L(s.title))}</h3><p>${hl(L(s.desc))}</p><div class="ft"><span class="badge ${live?'ok':'soon'}">${live?T('live'):T('soon')}</span>${live?svg('arrow','go'):''}</div></${tag}>`}).join('');
   const n=a.services.length;
