@@ -362,7 +362,12 @@
   var AUD = null, AUDok = false, ACX = null, TURI = '', SIL = 'data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YSADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==', TONE = [[523.25, 0], [783.99, .13]], TLEN = .75, TVOL = .2;
   function lsN(k) { try { return +localStorage.getItem(k) || 0; } catch (e) { return 0; } }
   function lsS(k) { try { localStorage.setItem(k, String(Date.now())); } catch (e) {} }
-  function sndOn() { try { return localStorage.getItem('chatSnd') !== '0'; } catch (e) { return true; } }
+  function ntfOn(cat) { var c = window.IDONTF; if (!c) return true; if (c.all === '0') return false; return String(c.off || '').split(',').indexOf(cat) < 0; }
+  window.idoNtfOn = ntfOn;
+  function ntfLoad() { try { var c = JSON.parse(localStorage.getItem('idoNtf') || 'null'); if (c && Date.now() - c.t < 600000) { window.IDONTF = c; return; } } catch (e) {}
+    try { if (typeof sb === 'undefined' || !sb) return; sb.from('app_settings').select('key,value').in('key', ['notif_all', 'notif_off']).then(function (r) { var c = { all: '1', off: '', t: Date.now() }; ((r && r.data) || []).forEach(function (x) { if (x.key == 'notif_all') c.all = x.value; if (x.key == 'notif_off') c.off = x.value || ''; }); window.IDONTF = c; try { localStorage.setItem('idoNtf', JSON.stringify(c)); } catch (e) {} }, function () {}); } catch (e) {} }
+  (function nt(n) { setTimeout(function () { if (typeof sb === 'undefined' || !sb) { if (n < 15) nt(n + 1); return; } ntfLoad(); }, 800); })(0);
+  function sndOn() { if (!ntfOn('chat')) return false; try { return localStorage.getItem('chatSnd') !== '0'; } catch (e) { return true; } }
   function toneAt(t) { var y = 0; TONE.forEach(function (z) { var u = t - z[1]; if (u < 0) return; var env = (u < .008 ? u / .008 : 1) * Math.exp(-u / .2); y += env * (Math.sin(2 * Math.PI * z[0] * u) + .18 * Math.sin(4 * Math.PI * z[0] * u) * Math.exp(-u / .06)); }); return y * TVOL / 1.18; }
   function audMk() {
     if (AUD) return AUD;
@@ -394,6 +399,7 @@
   }
   function sysNote(m) {
     try {
+      if (!ntfOn('chat')) return true;
       if (!('Notification' in window) || Notification.permission !== 'granted') return false;
       var k = 'chatNtf:' + m.key; if (Date.now() - lsN(k) < 4000) return true; lsS(k);
       var n = new Notification((m.name || (ar() ? 'رسالة جديدة' : 'New message')) + (m.grp ? ' · ' + m.grp : ''), { body: m.body || (ar() ? '📎 مرفق' : '📎 Attachment'), tag: 'ido-chat-' + m.key, icon: ((document.querySelector('link[rel=apple-touch-icon]') || {}).href) || undefined, silent: true });

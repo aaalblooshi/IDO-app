@@ -282,7 +282,7 @@ function audUnlock(){acx();const a=audMk();if(!a||AUDok)return;try{a.src=SIL;con
 ['pointerup','touchend','click','keydown'].forEach(ev=>document.addEventListener(ev,audUnlock,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&ACX&&ACX.state=='suspended')try{ACX.resume()}catch(_){}});
 function lsN(k){try{return +localStorage.getItem(k)||0}catch(_){return 0}}function lsS(k){try{localStorage.setItem(k,String(Date.now()))}catch(_){}}
-let _sndT=0;function ding(){if(!SND)return;const now=Date.now();
+let _sndT=0;function ding(){if(window.idoNtfOn&&!window.idoNtfOn('chat'))return;if(!SND)return;const now=Date.now();
  if(now-_sndT<2500||now-lsN('chatDingAt')<2500||now-lsN('chatSentAt')<5000)return;   /* مرة واحدة فقط لكل الصفحات المفتوحة، ولا صوت للمرسل */
  _sndT=now;lsS('chatDingAt');
  const a=audMk();if(a&&AUDok){try{if(a.src!==TURI)a.src=TURI;a.currentTime=0;const pr=a.play();if(pr&&pr.catch)pr.catch(()=>wa());return}catch(_){}}wa();
@@ -499,7 +499,7 @@ async function sendM(){if(BUSY||!CUR)return;const ta=$('mt'),v=ta.value.trim();i
  lsS('chatSentAt');rtPing();REPLY=null;drawRpb();const pl=$('pls');if(pl)pl.hidden=true;ta.value='';ta.style.height='auto';ATT=[];REFS=[];delete DR[keyOf(CUR)];MEN=null;$('menpop').innerHTML='';drawChips();drawQref();SIG='';await loadMsgs(true);ta.focus();
  if(CUR.t=='dm'){DMS[CUR.id]=MSGS[MSGS.length-1];drawRail()}else{const p=PROJ.find(x=>x.channel_id==CUR.id);if(p){p.last_at=new Date().toISOString();drawRail()}}}
 /* ---- حيوية: من يكتب الآن، المتصلون، وصول الرسائل فورًا ---- */
-function sysNote(k,p){try{if(!('Notification' in window)||Notification.permission!=='granted')return;const lk='chatNtf:'+k;if(Date.now()-lsN(lk)<4000)return;lsS(lk);const nm=(UN[p.u]&&UN[p.u].full_name)||T2('رسالة جديدة','New message');let g='';if(p.cid){const pr=PROJ.find(x=>x.channel_id==p.cid),gr=GRPS.find(x=>x.id==p.cid);g=pr?(pr.name||pr.pcode||''):gr?(gr.name||''):''}const n=new Notification(nm+(g?' · '+g:''),{body:T2('رسالة جديدة في التواصل','New message'),tag:'ido-chat-'+k,icon:((document.querySelector('link[rel=apple-touch-icon]')||{}).href)||undefined,silent:true});n.onclick=()=>{try{window.focus()}catch(_){}n.close()}}catch(_){}}
+function sysNote(k,p){try{if(window.idoNtfOn&&!window.idoNtfOn('chat'))return;if(!('Notification' in window)||Notification.permission!=='granted')return;const lk='chatNtf:'+k;if(Date.now()-lsN(lk)<4000)return;lsS(lk);const nm=(UN[p.u]&&UN[p.u].full_name)||T2('رسالة جديدة','New message');let g='';if(p.cid){const pr=PROJ.find(x=>x.channel_id==p.cid),gr=GRPS.find(x=>x.id==p.cid);g=pr?(pr.name||pr.pcode||''):gr?(gr.name||''):''}const n=new Notification(nm+(g?' · '+g:''),{body:T2('رسالة جديدة في التواصل','New message'),tag:'ido-chat-'+k,icon:((document.querySelector('link[rel=apple-touch-icon]')||{}).href)||undefined,silent:true});n.onclick=()=>{try{window.focus()}catch(_){}n.close()}}catch(_){}}
 function myKeyFor(){if(!CUR)return null;return CUR.t=='dm'?{to:CUR.id}:{cid:CUR.id}}
 function rtStart(){try{if(!sb||!sb.channel||RTG)return;RTG=sb.channel('ido-chat',{config:{broadcast:{self:false},presence:{key:ME.id}}});
  RTG.on('broadcast',{event:'typing'},({payload:p})=>{if(!p||p.u==ME.id)return;let k=null;if(p.to){if(p.to!=ME.id)return;k='dm:'+p.u}else if(p.cid)k='ch:'+p.cid;if(!k)return;(TYP[k]=TYP[k]||{})[p.u]=Date.now();liveTick()})
