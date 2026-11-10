@@ -521,11 +521,18 @@ let _lsig='';function liveTick(){const sig=JSON.stringify(Object.keys(TYP).map(k
 (function(){function vv(){const h=window.visualViewport?visualViewport.height:innerHeight,t=window.visualViewport?Math.max(0,visualViewport.offsetTop):0;document.documentElement.style.setProperty('--vvh',h+'px');document.documentElement.style.setProperty('--vvt',t+'px')}vv();if(window.visualViewport){visualViewport.addEventListener('resize',()=>{vv();const b=$('msgs');if(b&&CUR)b.scrollTop=b.scrollHeight});visualViewport.addEventListener('scroll',()=>{vv();if(document.querySelector('.chat.has'))window.scrollTo(0,0)})}addEventListener('resize',vv)})();
 /* ---- التحميل والتحديث الدوري ---- */
 let _uSum=null;const uSum=()=>Object.keys(UNR).filter(k=>!PINS.has('m:'+k)&&(!CUR||k!=keyOf(CUR))).reduce((a,k)=>a+(+UNR[k]||0),0);
-async function refreshLists(){try{await refreshLists0()}finally{try{drawPinbar()}catch(_){}}}
+let RL_T=0;async function refreshLists(soft){if(!soft)RL_T=0;try{await refreshLists0()}finally{try{drawPinbar()}catch(_){}}}
 async function refreshLists0(){
- const [u,p,d,um]=await Promise.all([sb.rpc('chat_unread'),sb.rpc('chat_my_projects'),sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300),sb.rpc('chat_unread_muted')]);
+ /* أداء: كل الاستعلامات المستقلة تُطلق معًا؛ والقوائم بطيئة التغيّر (الطلبات المعلقة، المجموعات، الإدارة فقط) تُحدَّث كل 30 ثانية */
+ const go=q=>Promise.resolve(q).then(r=>r,e=>({error:e})),slow=!RL_T||Date.now()-RL_T>30000;
+ const [u,p,d,um,a,j,gq,g]=await Promise.all([go(sb.rpc('chat_unread')),go(sb.rpc('chat_my_projects')),go(sb.from('chat_messages').select('id,from_user,to_user,body,deleted,created_at').is('channel_id',null).order('created_at',{ascending:false}).limit(300)),go(sb.rpc('chat_unread_muted')),
+  slow?go(sb.rpc('chat_admin_only')):null,slow?go(sb.rpc('chat_join_pending',{p_pcode:null})):null,slow?go(sb.rpc('chat_group_pending')):null,slow?go(sb.rpc('chat_my_groups')):null]);
+ if(slow)RL_T=Date.now();
  UNR={};(um&&um.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});(u.data||[]).forEach(x=>{const k=x.channel_id?'ch:'+x.channel_id:'dm:'+x.from_user;UNR[k]=+x.n});
- if(!p.error)PROJ=p.data||[];{try{const a=await sb.rpc('chat_admin_only');if(!a.error){ADMONLY={p:new Set((a.data||[]).filter(x=>x.kind=='project').map(x=>x.pcode)),c:new Set((a.data||[]).filter(x=>x.channel_id).map(x=>String(x.channel_id)))}}}catch(_){}}try{const j=await sb.rpc('chat_join_pending',{p_pcode:null});JRP=j.error?[]:(j.data||[])}catch(_){JRP=[]}try{const gq=await sb.rpc('chat_group_pending');if(!gq.error)(gq.data||[]).forEach(q=>JRP.push({id:'g'+q.id,gid:q.id,grp:true,cid:q.channel_id,pcode:q.pcode,pname:'👥 '+(q.gname||'')+(q.pname?' — '+q.pname:''),user_id:q.user_id,source:'request',requested_by:q.requested_by,why:''}))}catch(_){}try{const g=await sb.rpc('chat_my_groups');GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}
+ if(!p.error)PROJ=p.data||[];
+ if(slow){try{if(!a.error){ADMONLY={p:new Set((a.data||[]).filter(x=>x.kind=='project').map(x=>x.pcode)),c:new Set((a.data||[]).filter(x=>x.channel_id).map(x=>String(x.channel_id)))}}}catch(_){}
+  try{JRP=j.error?[]:(j.data||[])}catch(_){JRP=[]}try{if(!gq.error)(gq.data||[]).forEach(q=>JRP.push({id:'g'+q.id,gid:q.id,grp:true,cid:q.channel_id,pcode:q.pcode,pname:'👥 '+(q.gname||'')+(q.pname?' — '+q.pname:''),user_id:q.user_id,source:'request',requested_by:q.requested_by,why:''}))}catch(_){}
+  try{GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}}
  try{const ids=PROJ.map(x=>x.channel_id).filter(Boolean).concat(GRPS.map(g=>g.id)).concat(GEN?[GEN.id]:[]);if(ids.length){const r=await sb.from('chat_messages').select('id,channel_id,from_user,body,deleted,created_at').in('channel_id',ids).order('created_at',{ascending:false}).limit(500);(r.data||[]).forEach(m=>{const k='ch:'+m.channel_id;if(!LAST[k]||new Date(LAST[k].created_at)<new Date(m.created_at))LAST[k]=m})}}catch(_){}
  DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o])DMS[o]=m});
  if(CUR){delete UNR[keyOf(CUR)]}{const u=uSum();if(_uSum!=null&&u>_uSum)ding();_uSum=u}drawRail()}
@@ -533,17 +540,19 @@ async function load(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('lb').textContent=lang=='ar'?'EN':'ع';
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();me=await capAs(me,['chat.all']);ME=me;
- const {data:us}=await sb.from('profiles').select('id,full_name,job_title,role');(us||[]).forEach(u=>UN[u.id]=u);
- const r=await sb.rpc('chat_on');ON=!!r.data;try{const a=await sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle();const v=a.data&&a.data.value?(JSON.parse(a.data.value).chat):null;if(v=='office'||v=='name')AIDC=v}catch(_){}
+ const go=q=>Promise.resolve(q).then(r=>r,e=>({error:e}));
+ const [m0,us0,r,a0,g0,gn0,p0]=await Promise.all([go(sb.from('profiles').select('*').eq('id',session.user.id).single()),go(sb.from('profiles').select('id,full_name,job_title,role')),go(sb.rpc('chat_on')),go(sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle()),go(sb.from('chat_channels').select('id').eq('kind','general').limit(1)),go(sb.rpc('chat_general_on')),go(sb.from('chat_pins').select('k'))]);
+ let me=m0.data;me=await capAs(me,['chat.all']);ME=me;
+ (us0.data||[]).forEach(u=>UN[u.id]=u);
+ ON=!!r.data;try{const v=a0.data&&a0.data.value?(JSON.parse(a0.data.value).chat):null;if(v=='office'||v=='name')AIDC=v}catch(_){}
  if(!ON){$('app').innerHTML=`<div class="card lock"><p>${t('off')}</p></div>`;return}
- try{const g=await sb.from('chat_channels').select('id').eq('kind','general').limit(1);GEN=(g.data||[])[0]||null}catch(_){}
- try{const r=await sb.rpc('chat_general_on');GENON=r.error?true:r.data!==false}catch(_){GENON=true}
- try{const p=await sb.from('chat_pins').select('k');PINS=new Set((p.data||[]).map(x=>x.k))}catch(_){}
+ try{GEN=(g0.data||[])[0]||null}catch(_){}
+ try{GENON=gn0.error?true:gn0.data!==false}catch(_){GENON=true}
+ try{PINS=new Set((p0.data||[]).map(x=>x.k))}catch(_){}
  shell();await refreshLists();rtStart();
  if(O0&&!P0){try{if(O0.indexOf('dm:')==0)await openItem('dm',O0.slice(3));else if(O0.indexOf('ch:')==0)await openItem('ch',O0.slice(3))}catch(_){}}
  if(P0){const p=PROJ.find(x=>x.pcode==P0);if(p)await openItem('ch',p.channel_id?String(p.channel_id):'p:'+P0);else toast(T2('لا تملك صلاحية محادثة هذا المشروع.','You do not have access to this project chat.'))}
- setInterval(async()=>{if(document.visibilityState!='visible')return;try{await refreshLists();if(CUR){await loadMsgs(false);if(CUR.t=='ch'&&CUR.pcode&&PANEL!='mem')loadMem();if(UNR[keyOf(CUR)]!==undefined||true)markRead2()}}catch(_){}},7000)}
+ setInterval(async()=>{if(document.visibilityState!='visible')return;try{await refreshLists(1);if(CUR){await loadMsgs(false);if(CUR.t=='ch'&&CUR.pcode&&PANEL!='mem')loadMem();if(UNR[keyOf(CUR)]!==undefined||true)markRead2()}}catch(_){}},7000)}
 let _mr=0;function markRead2(){if(!CUR||Date.now()-_mr<6000)return;_mr=Date.now();(CUR.t=='ch'?sb.rpc('chat_read_ch',{p_cid:CUR.id}):sb.rpc('chat_read',{p_from:CUR.id})).then(()=>{})}
 function draw(){document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));if(ME&&ON){const k=keyOf(CUR);shell();if(CUR){loadMsgs(true);drawSide()}}}
 load();
