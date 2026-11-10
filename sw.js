@@ -34,7 +34,7 @@ self.addEventListener('message', function (e) {
   var d = e.data || {};
   if (d.t !== 'ido-q' || !d.page || !e.source) return;
   var key = pageKey(d.page);
-  e.waitUntil(caches.open(HC).then(function (c) { return c.match(key + '?__upd'); }).then(function (m) { if (m) e.source.postMessage({ t: 'ido-upd', page: key }); }));
+  e.waitUntil(caches.open(HC).then(function (c) { return c.match(key + '?__upd'); }).then(function (m) { if (m) e.source.postMessage({ t: 'ido-new', page: key }); }));
 });
 // after a deploy, refresh the other saved pages too, so the next page opened is already the new version
 var lastAll = 0;
@@ -66,7 +66,7 @@ self.addEventListener('fetch', function (e) {
             var copy = res.clone();
             if (hit) {
               Promise.all([oldText, res.clone().text()]).then(function (t) {
-                c.put(key, copy).then(function () { if (t[0] !== t[1]) return cleared.then(function () { return c.put(key + '?__upd', new Response('1')); }).then(function () { tell({ t: 'ido-upd', page: key }); refreshAll(c, key); }); });
+                c.put(key, copy).then(function () { if (t[0] !== t[1]) return cleared.then(function () { return c.put(key + '?__upd', new Response('1')); }).then(function () { tell({ t: 'ido-new', page: key }); refreshAll(c, key); }); });
               }).catch(function () { c.put(key, copy); });
             } else c.put(key, copy);
           }
