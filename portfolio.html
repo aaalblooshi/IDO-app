@@ -215,7 +215,8 @@ async function start(){
   q('project_cfg','*'),
   q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
   q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector','opt_goals','goal_w'])),sb.rpc('my_grants').then(r=>r.error?q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)):(r.data||[]),()=>q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)))]);
- try{const gz=await q('charters','code,gl:data->>goal',r=>r.eq('archived',false));GL={};gz.forEach(x=>{if(x.gl)GL[x.code]=+x.gl})}catch(_){GL={}}
+ try{const gz=await q('charters','id,code,gl:data->>goal,ow:data->>owner,dsc:data->>pdesc,bud:data->>budget,pt:data->>ptype,pm:data->>pmname',r=>r.eq('archived',false));GL={};const CHI={};gz.sort((x,y)=>x.id-y.id).forEach(x=>{if(x.gl)GL[x.code]=+x.gl;CHI[x.code]=x});
+  /* plans don't carry the charter's owner, description, budget or type: take them from the project's charter */pl.forEach(p=>{const c=CHI[p.pc||p.code];if(!c)return;['ow','dsc','bud','pt','pm'].forEach(f=>{if(!p[f]&&c[f])p[f]=c[f]})})}catch(_){GL={}}
  try{const cz=await q('closure_reports','status,archived,pc:data->>pcode',r=>r.eq('archived',false).eq('status','Approved'));CLS={};cz.forEach(x=>{if(x.pc)CLS[x.pc]=1})}catch(_){CLS={}}
  GRP={};gr.forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRP[x.pcode]=1});
  CFG={};cf.forEach(x=>CFG[x.pcode]=x);CRS=cr;
@@ -613,7 +614,7 @@ async function buildDeck(L,A,tplBuf){
  const kids=(n,nm)=>[...n.childNodes].filter(c=>c.nodeName==nm);
  const secA=s=>{const x=SECS[(+s||0)-1];return x?x[0]:'قطاع '+s};
  const R0=v=>Math.round(v||0),num=v=>(+v>0)?(+v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'-';
- const fmt=n=>{if(n==null)return '--';const q=ds(n).split('-');return q[2]+'/'+q[1]+'/'+q[0]};
+ const fmt=n=>{if(n==null)return '-';const q=ds(n).split('-');return q[2]+'/'+q[1]+'/'+q[0]};
  /* ---------- helpers on XML ---------- */
  const shape=(d,id)=>{for(const e of d.getElementsByTagName('p:cNvPr'))if(e.getAttribute('id')==id)return e.parentNode.parentNode;return null};
  const txb=sp=>[...sp.childNodes].find(c=>/txBody$/.test(c.nodeName));
@@ -686,7 +687,9 @@ async function buildDeck(L,A,tplBuf){
   z.file('ppt/charts/_rels/'+cn+'.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.microsoft.com/office/2011/relationships/chartStyle" Target="'+st+'"/><Relationship Id="rId2" Type="http://schemas.microsoft.com/office/2011/relationships/chartColorStyle" Target="'+cl+'"/></Relationships>');
   added.push(['chart',cn],['style',st],['colors',cl]);return cn};
  const addSlide=(xml,rels)=>{const n='slide'+(sNo++);z.file('ppt/slides/'+n+'.xml',xml);z.file('ppt/slides/_rels/'+n+'.xml.rels',rels);added.push(['slide',n+'.xml']);return n};
- const stageOf=p=>p.a>=99.5?4:(p.lateN>0?3:(p.a>0?2:1));
+ /* current phase: closing when finished or closed, monitoring & control while stopped or a change request is under way, planning before work starts, execution otherwise */
+ const openCR=k=>CRS.some(c=>c.pc==k&&!['Approved','Rejected','Draft','Cancelled'].includes(c.status));
+ const stageOf=p=>(p.closed||p.a>=99.5)?4:((p.halt&&p.halt!='cancelled')||openCR(p.k))?3:(p.fromCh||(p.a<=0&&p.ex<=0))?1:2;
  for(const r of secs){
   const nm=secA(r.sc);
   /* divider */
@@ -704,7 +707,7 @@ async function buildDeck(L,A,tplBuf){
    const ss=ts.map(x=>dn(x.s)).filter(v=>v!=null),ee=ts.map(x=>dn(x.e)).filter(v=>v!=null),ae=ts.map(x=>dn(x.ae)).filter(v=>v!=null);
    const st0=ss.length?Math.min(...ss):null,en0=ee.length?Math.max(...ee):null;
    setT(dd,2,p.name);setT(dd,60,p.dsc||'—');
-   setT(dd,90,st0!=null?ds(st0).slice(0,4):'—');setT(dd,102,fmt(st0));setT(dd,106,fmt(en0));setT(dd,110,p.a>=99.5&&ae.length?fmt(Math.max(...ae)):'--');
+   setT(dd,90,st0!=null?ds(st0).slice(0,4):'—');setT(dd,102,fmt(st0));setT(dd,106,fmt(en0));setT(dd,110,p.a>=99.5&&ae.length?fmt(Math.max(...ae)):'-');
    setT(dd,45,num(p.bud));setT(dd,50,'-');setT(dd,54,'-');setT(dd,71,'-');
    setT(dd,84,'% '+R0(p.ex));setT(dd,88,'% '+R0(p.a));
    const late=leaf.filter(x=>{const e=dn(x.e);return e!=null&&e<TODAY&&(+x.pc||0)<100}).slice(0,4);
@@ -715,7 +718,7 @@ async function buildDeck(L,A,tplBuf){
    /* current phase highlight */
    const cur=stageOf(p),lbl=[20,21,26,30],nmb=[22,23,27,31];
    const rp=id=>kids(kids(txb(shape(dd,id)),'a:p')[0],'a:r')[0].getElementsByTagName('a:rPr')[0].cloneNode(true);
-   const L_on=rp(21),L_off=rp(20),N_on=rp(23),N_off=rp(22);
+   const L_on=rp(21),L_off=rp(26),N_on=rp(23),N_off=rp(27);
    const swap=(id,src)=>{const r=kids(kids(txb(shape(dd,id)),'a:p')[0],'a:r')[0],old=r.getElementsByTagName('a:rPr')[0];r.replaceChild(src.cloneNode(true),old)};
    lbl.forEach((id,i)=>swap(id,i+1==cur?L_on:L_off));nmb.forEach((id,i)=>swap(id,i+1==cur?N_on:N_off));
    const cn=await newChart(9,0,[p.name.length>40?p.name.slice(0,39)+'…':p.name],[{name:'% الإنجاز المخطط',vals:[p.ex/100]},{name:'% الإنجاز الفعلي',vals:[p.a/100]}]);
