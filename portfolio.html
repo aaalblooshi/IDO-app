@@ -431,11 +431,11 @@ function recCsv(){const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',L=r
  const b=new Blob(['\ufeff'+rows.map(a=>a.map(q).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='records-'+ds(TODAY)+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
 /* ---- reports ---- */
 function vRep(){const d1=ds(TODAY),d0=d1.slice(0,8)+'01';
- $('body').innerHTML=`<div class="card noprint"><label>${t('rPer')}</label><div class="row" style="margin:0 0 6px"><select id="rpk" style="flex:1"><option value="m">${t('rP_m')}</option><option value="q">${t('rP_q')}</option><option value="h">${t('rP_h')}</option><option value="y">${t('rP_y')}</option></select><select id="rpo" style="flex:1"><option value="0">${t('rP_c')}</option><option value="-1">${t('rP_p')}</option></select><button onclick="rPreset()">${t('rApply')}</button></div>
+ $('body').innerHTML=`<div class="card noprint"><label>${t('rPer')}</label><div class="row" style="margin:0 0 6px"><select id="rpk" style="flex:1" onchange="RPK=this.value;RPO=0;rpoFill()">${['m','q','h','y'].map(k=>`<option value="${k}" ${RPK==k?'selected':''}>${t('rP_'+k)}</option>`).join('')}</select><select id="rpo" style="flex:1" onchange="RPO=+this.value"></select><button onclick="rPreset()">${t('rApply')}</button></div>
  <div class="g2"><div><label>${t('rFrom')}</label><input type="date" id="rf" value="${RP?RP.f:d0}"></div><div><label>${t('rTo')}</label><input type="date" id="rt" value="${RP?RP.t:d1}"></div></div>
  <label class="ck"><span style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" id="rpl" ${RP&&RP.pl?'checked':''}> ${t('rPlan')}</span></label>
  <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${MSP?`<button onclick="mspExp()" title="${lang=='ar'?'ملف XML يفتحه Microsoft Project (ملف ← فتح)':'XML file for Microsoft Project (File → Open)'}">⬇ Microsoft Project</button>`:''}${RP?`<button onclick="repCsv()">${t('rCsv')}</button><button onclick="repPptx()">${t('rPpt')}</button><button onclick="repShare()">${t('rShare')}</button><button class="dsk" onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
- if(RP)showRep()}
+ rpoFill();if(RP)showRep()}
 function genRep(){RP={f:$('rf').value,t:$('rt').value,pl:$('rpl').checked};showRep()}
 function showRep(){const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t),scope=FP?t('rByP')+((L[0]||{}).name||''):FS?t('rBySec')+secN(FS):t('rAllS');
  const inP=(s)=>{const n=dn(s);return n!=null&&n>=f&&n<=e};
@@ -574,7 +574,17 @@ function mspExp(){const L=(typeof scoped=='function'?scoped():PL).filter(p=>!p.c
  const b=new Blob([xml],{type:'application/xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='portfolio-'+ds(TODAY)+'.xml';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
  toast(A()?'تم التصدير: افتح الملف من Microsoft Project ← ملف ← فتح':'Exported: open it in Microsoft Project → File → Open')}
 /* ---- فترات التقارير والتصدير ---- */
-function rPreset(){const k=$('rpk').value,o=+$('rpo').value,n=new Date(TODAY*DAY);let y=n.getUTCFullYear(),m=n.getUTCMonth(),a,b;
+/* every period back to the start of the year three years ago, newest first, named (October 2026, Q3 2026, H1 2026, 2025) */
+let RPK='m',RPO=0;
+function rpoFill(){const el=$('rpo');if(!el)return;const k=RPK,n=new Date(TODAY*DAY),y=n.getUTCFullYear(),m=n.getUTCMonth(),ar=lang=='ar',y0=y-3,out=[];
+ const MA=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],ME=['January','February','March','April','May','June','July','August','September','October','November','December'];
+ const cur=ar?' (الحالي)':' (current)';
+ if(k=='m'){for(let o=0;;o--){const d=new Date(Date.UTC(y,m+o,1));if(d.getUTCFullYear()<y0)break;out.push([o,(ar?MA:ME)[d.getUTCMonth()]+' '+d.getUTCFullYear()])}}
+ else if(k=='q'){const q0=Math.floor(m/3);for(let o=0;;o--){const d=new Date(Date.UTC(y,(q0+o)*3,1));if(d.getUTCFullYear()<y0)break;const q=Math.floor(d.getUTCMonth()/3)+1;out.push([o,(ar?'الربع '+['الأول','الثاني','الثالث','الرابع'][q-1]+' ':'Q'+q+' ')+d.getUTCFullYear()])}}
+ else if(k=='h'){const h0=Math.floor(m/6);for(let o=0;;o--){const d=new Date(Date.UTC(y,(h0+o)*6,1));if(d.getUTCFullYear()<y0)break;const h=d.getUTCMonth()<6?1:2;out.push([o,(ar?(h==1?'النصف الأول ':'النصف الثاني '):'H'+h+' ')+d.getUTCFullYear()])}}
+ else{for(let o=0;y+o>=y0;o--)out.push([o,String(y+o)])}
+ el.innerHTML=out.map(([o,l])=>`<option value="${o}" ${o==RPO?'selected':''}>${esc(l)}${o==0?cur:''}</option>`).join('')}
+function rPreset(){const k=$('rpk').value,o=+$('rpo').value;RPK=k;RPO=o;const n=new Date(TODAY*DAY);let y=n.getUTCFullYear(),m=n.getUTCMonth(),a,b;
  if(k=='m'){const d=new Date(Date.UTC(y,m+o,1));a=d;b=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0))}
  else if(k=='q'){const q=Math.floor(m/3)+o,d=new Date(Date.UTC(y,q*3,1));a=d;b=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+3,0))}
  else if(k=='h'){const h=Math.floor(m/6)+o,d=new Date(Date.UTC(y,h*6,1));a=d;b=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+6,0))}
