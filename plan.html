@@ -4821,4 +4821,14 @@ const s=document.createElement('style');s.textContent=`.pbar{background:#fff;bor
 .pbv{font-size:12px;color:#8a6a1f;border-top:1px dashed #eef2f6;padding-top:5px;margin-top:4px}
 @media(max-width:640px){.lvs{grid-template-columns:1fr 1fr!important;gap:7px!important}.lvc{padding:9px!important}.lvc b{font-size:13px}.lvc .tree{font-size:11px!important;line-height:1.55!important;margin-top:4px!important}.lvc .mut{font-size:11.5px}.pbl{flex-basis:100%}}`;document.head.appendChild(s);
 })();
-</script><script src="netdiag.js?v=5"></script><script src="docassign.js?v=1"></script><script src="ido-ui.js?v=25"></script></body></html>
+</script><script src="netdiag.js?v=5"></script><script src="docassign.js?v=1"></script><script src="ido-ui.js?v=25"></script><script>/*archmode: the document archive loads a record here (hidden) and receives its export instead of a download*/(function(){try{
+if(!/[?&]arch=1/.test(location.search)||window.parent===window)return;window.ARCH=1;
+var id=+((location.search.match(/[?&]aid=(\d+)/)||[])[1]||0),sent=0;
+function post(o){if(sent)return;sent=1;try{window.parent.postMessage(Object.assign({t:'ido-arch',id:id,svc:'plan'},o),location.origin)}catch(e){}}
+window.dl=function(blob,name){post({ok:true,name:name,blob:blob})};
+var m0=window.msg;window.msg=function(x){if(!sent&&/fail|تعذّر|تعذر/i.test(String(x)))post({ok:false,err:String(x)});else if(m0)try{m0.apply(this,arguments)}catch(e){}};
+window.alert=function(x){post({ok:false,err:String(x)})};window.confirm=function(){return false};
+var n=0;(function w(){try{if(typeof cr!=='undefined'&&cr&&+cr.id===id&&document.getElementById('app')&&document.getElementById('app').children.length&&!document.body.classList.contains('ld')){setTimeout(function(){try{xlExport()}catch(e){post({ok:false,err:String(e&&e.message||e)})}},400);return}}catch(e){}
+ if(++n<120)setTimeout(w,250);else post({ok:false,err:'timeout'})})();
+setTimeout(function(){post({ok:false,err:'timeout'})},45000);
+}catch(e){}})();</script></body></html>

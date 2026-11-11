@@ -321,7 +321,7 @@ window.drawLA=drawLA;function drawLA(){const el=$('labadm');if(!el)return;const 
 
 /* ---------- النسخة الاحتياطية الكاملة ---------- */
 const BK={busy:false,log:[],last:null};
-const BKFILES=['index.html','access.html','account.html','archive.html','audit.html','charter.html','chat.html','closure.html','control.html','cr.html','help.html','history.html','inbox.html','mail.html','myprojects.html','perf.html','perms.html','plan.html','portfolio.html','projects.html','ratings.html','roles.html','settings.html','tasks.html','unit.html','users.html','acts.js','docassign.js','ido-ui.js','jmap.js','netdiag.js','sw.js','manifest.json'];
+const BKFILES=['index.html','access.html','account.html','archive.html','docs.html','risks.html','budget.html','halt.js','prog.js','audit.html','charter.html','chat.html','closure.html','control.html','cr.html','help.html','history.html','inbox.html','mail.html','myprojects.html','perf.html','perms.html','plan.html','portfolio.html','projects.html','ratings.html','roles.html','settings.html','tasks.html','unit.html','users.html','acts.js','docassign.js','ido-ui.js','jmap.js','netdiag.js','sw.js','manifest.json'];
 window.drawBK=drawBK;function drawBK(){const el=$('bkbox');if(!el)return;const A=lang=='ar';
  el.innerHTML=`<div class="row"><button class="p" onclick="runBK()"${BK.busy?' disabled':''}>${BK.busy?'⏳ '+(A?'جارٍ التجهيز…':'Working…'):'⬇ '+(A?'تنزيل نسخة احتياطية كاملة':'Download full backup')}</button></div>
  ${BK.log.length?`<div style="font-size:13px;line-height:1.9;margin-top:8px">${BK.log.map(x=>esc(x)).join('<br>')}</div>`:''}
