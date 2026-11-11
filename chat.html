@@ -514,11 +514,39 @@ let _lt=0;function sendTyping(){const k=myKeyFor();if(!RTG||!k||Date.now()-_lt<2
 /* ---- إدارة المحادثات: الأسماء والأعضاء وطلبات الانضمام فقط، دون الاطلاع على الرسائل ---- */
 let DIR=null;
 async function dirLoad(){try{const r=await sb.rpc('chat_directory');DIR=(!r.error&&r.data&&r.data.length)?r.data:null}catch(_){DIR=null}}
-function dirOpen(){if(!DIR)return;let o=document.getElementById('gnw');if(o)o.remove();o=document.createElement('div');o.id='gnw';o.className='gnw';o.onclick=ev=>{if(ev.target==o)o.remove()};
- o.innerHTML=`<div class="gb"><b style="font-size:16px">🗂 ${T2('إدارة المحادثات','Manage chats')}</b><div class="mut">${T2('أسماء المحادثات وأعضاؤها وطلبات الانضمام. لا تظهر الرسائل هنا؛ لا يقرأ المحادثة إلا أعضاؤها.','Chat names, members and join requests. Messages are not shown here; only members can read a chat.')}</div><input id="dirq" placeholder="${T2('ابحث عن محادثة…','Find a chat…')}" style="font-size:16px;margin:4px 0"><div id="dirl"></div><div class="row"><button onclick="document.getElementById('gnw').remove()">${T2('إغلاق','Close')}</button></div></div>`;
- document.body.appendChild(o);const draw=()=>{const q=($('dirq').value||'').trim().toLowerCase();const L=DIR.filter(x=>!q||((x.name||'')+' '+(x.pcode||'')).toLowerCase().includes(q)).sort((a,b)=>(b.pending-a.pending)||String(a.name).localeCompare(String(b.name),'ar'));
-  $('dirl').innerHTML=L.map(x=>`<div class="jr" style="cursor:pointer" onclick="dirItem('${x.kind}','${esc(x.pcode||'')}','${x.id||''}')"><div class="av">${x.kind=='group'?'👥':'📁'}</div><div class="tx"><b>${esc(x.name||x.pcode)}</b><span>${esc(x.pcode||'')} · ${x.members} ${T2('عضو','members')}${x.mine?' · '+T2('أنت عضو','you are a member'):''}</span></div>${x.pending?`<span class="pill" style="background:#fdecee;color:#d1101d;border-radius:99px;padding:2px 9px;font-weight:700;font-size:12px">${x.pending} ${T2('طلب','req.')}</span>`:''}</div>`).join('')||`<div class="mut">${T2('لا نتائج','No results')}</div>`};
+let DIRT='chats',DIRK='all';
+function dirOpen(tab){if(!DIR)return;if(tab)DIRT=tab;let o=document.getElementById('gnw');if(o)o.remove();o=document.createElement('div');o.id='gnw';o.className='gnw';o.onclick=ev=>{if(ev.target==o)o.remove()};
+ const seg=(v,l,cur,fn)=>`<button class="${cur==v?'p':''}" style="flex:1;padding:6px 8px" onclick="${fn}('${v}')">${l}</button>`;
+ o.innerHTML=`<div class="gb"><b style="font-size:16px">🗂 ${T2('إدارة المحادثات','Manage chats')}</b><div class="mut">${T2('أسماء المحادثات وأعضاؤها وطلبات الانضمام. لا تظهر الرسائل هنا؛ لا يقرأ المحادثة إلا أعضاؤها.','Chat names, members and join requests. Messages are not shown here; only members can read a chat.')}</div>
+  <div class="row" style="gap:6px;margin:6px 0 2px">${seg('chats','💬 '+T2('المحادثات','Chats'),DIRT,'dirTab')}${seg('users','👤 '+T2('المستخدمون','Users'),DIRT,'dirTab')}</div>
+  ${DIRT=='chats'?`<div class="row" style="gap:6px;margin:2px 0">${seg('all',T2('الكل','All'),DIRK,'dirKind')}${seg('group','👥 '+T2('المجموعات','Groups'),DIRK,'dirKind')}${seg('project','📁 '+T2('المشاريع','Projects'),DIRK,'dirKind')}</div>`:''}
+  <input id="dirq" placeholder="${DIRT=='chats'?T2('ابحث عن محادثة…','Find a chat…'):T2('ابحث عن مستخدم…','Find a user…')}" style="font-size:16px;margin:4px 0"><div id="dirl"></div><div class="row"><button onclick="document.getElementById('gnw').remove()">${T2('إغلاق','Close')}</button></div></div>`;
+ document.body.appendChild(o);
+ const draw=()=>{const q=($('dirq').value||'').trim().toLowerCase();
+  if(DIRT=='users'){const L=Object.keys(UN).filter(u=>!q||nm(u).toLowerCase().includes(q)).sort((a,b)=>nm(a).localeCompare(nm(b),'ar'));
+   $('dirl').innerHTML=L.map(u=>`<div class="jr" style="cursor:pointer" onclick="dirUser('${u}')"><div class="av" style="${avC(nm(u))}">${esc(ini(nm(u)))}</div><div class="tx"><b>${esc(nm(u))}</b><span>${esc((UN[u]||{}).job_title||'')}</span></div><span class="mut">${document.dir=='rtl'?'‹':'›'}</span></div>`).join('')||`<div class="mut">${T2('لا نتائج','No results')}</div>`;return}
+  const L=DIR.filter(x=>(DIRK=='all'||x.kind==DIRK)&&(!q||((x.name||'')+' '+(x.pcode||'')).toLowerCase().includes(q))).sort((a,b)=>(b.pending-a.pending)||String(a.name).localeCompare(String(b.name),'ar'));
+  $('dirl').innerHTML=L.map(x=>`<div class="jr" style="cursor:pointer" onclick="dirItem('${x.kind}','${esc(x.pcode||'')}','${x.id||''}')"><div class="av">${x.kind=='group'?'👥':'📁'}</div><div class="tx"><b>${esc(x.name||x.pcode)}</b><span>${esc(x.pcode||'')}${x.pcode?' · ':''}${x.members} ${T2('عضو','members')}${x.mine?' · '+T2('أنت عضو','you are a member'):''}</span></div>${x.pending?`<span class="pill" style="background:#fdecee;color:#d1101d;border-radius:99px;padding:2px 9px;font-weight:700;font-size:12px">${x.pending} ${T2('طلب','req.')}</span>`:''}</div>`).join('')||`<div class="mut">${T2('لا نتائج','No results')}</div>`};
  $('dirq').oninput=draw;draw()}
+function dirTab(v){DIRT=v;dirOpen()}
+function dirKind(v){DIRK=v;dirOpen()}
+/* one user: every chat they are in, remove from any, add to any */
+async function dirUser(u){const w=document.getElementById('gnw');const box=w&&w.querySelector('.gb');if(!box)return;box.innerHTML=`<div class="mut" style="padding:20px;text-align:center">⏳</div>`;
+ try{const r=await sb.rpc('chat_user_chats',{p_user:u});if(r.error)throw r.error;const C=(r.data||[]).sort((a,b)=>(a.kind>b.kind?-1:a.kind<b.kind?1:0)||String(a.name).localeCompare(String(b.name),'ar'));
+  const inK=new Set(C.map(c=>c.kind+'|'+(c.kind=='group'?c.id:c.pcode)));
+  const cand=DIR.filter(x=>!inK.has(x.kind+'|'+(x.kind=='group'?x.id:x.pcode))).sort((a,b)=>(a.kind>b.kind?-1:a.kind<b.kind?1:0)||String(a.name).localeCompare(String(b.name),'ar'));
+  const row=c=>`<div class="jr"><div class="av">${c.kind=='group'?'👥':'📁'}</div><div class="tx"><b>${esc(c.name||c.pcode)}</b><span>${c.kind=='group'?T2('مجموعة','Group'):T2('محادثة مشروع','Project chat')}${c.pcode?' · '+esc(c.pcode):''}</span></div>${u!=ME.id?`<button onclick="dirUserRm('${u}','${c.kind}','${esc(c.pcode||'')}','${c.id||''}')" title="${T2('إزالة','Remove')}">✕</button>`:''}</div>`;
+  box.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><button onclick="dirOpen('users')" title="${T2('رجوع','Back')}">${document.dir=='rtl'?'›':'‹'}</button><div class="av" style="${avC(nm(u))}">${esc(ini(nm(u)))}</div><b style="font-size:16px">${esc(nm(u))}</b></div>
+   <div style="font-weight:700;margin-top:6px">💬 ${T2('محادثاته','Their chats')} (${C.length})</div>
+   ${C.map(row).join('')||`<div class="mut">${T2('ليس عضوًا في أي محادثة','Not in any chat')}</div>`}
+   <div class="row" style="gap:6px"><select id="diruc" style="flex:1;min-width:0"><option value="">${T2('＋ أضفه إلى محادثة…','＋ Add to a chat…')}</option>${cand.map(x=>`<option value="${x.kind}|${esc(x.pcode||'')}|${x.id||''}">${x.kind=='group'?'👥':'📁'} ${esc(x.name||x.pcode)}</option>`).join('')}</select><button class="p" onclick="dirUserAdd('${u}')">${T2('إضافة','Add')}</button></div>
+   <div class="row"><button onclick="document.getElementById('gnw').remove()">${T2('إغلاق','Close')}</button></div>`}
+ catch(e){box.innerHTML=`<div class="mut" style="padding:16px">${esc(String(e.message||e))}</div><div class="row"><button onclick="dirOpen('users')">${T2('رجوع','Back')}</button></div>`}}
+async function dirUserAdd(u){const v=$('diruc').value;if(!v)return;const [kind,pc,id]=v.split('|');
+ try{const r=kind=='group'?await sb.rpc('chat_group_add',{p_cid:+id,p_user:u}):await sb.rpc('chat_join_request',{p_pcode:pc,p_user:u,p_why:null});if(r.error)throw r.error;toast(T2('أُضيف','Added'));await dirLoad();dirUser(u)}catch(e){toast(String(e.message||e))}}
+async function dirUserRm(u,kind,pc,id){if(!confirm(T2('إزالة ','Remove ')+nm(u)+T2(' من المحادثة؟','from the chat?')))return;
+ try{let cid=id?+id:null;if(!cid&&kind=='project'){const o=await sb.rpc('chat_open_project',{p_pcode:pc});if(o.error)throw o.error;cid=o.data}
+  const r=await sb.rpc(kind=='group'?'chat_group_remove':'chat_remove_member',{p_cid:cid,p_user:u});if(r.error)throw r.error;toast(T2('أُزيل','Removed'));await dirLoad();dirUser(u)}catch(e){toast(String(e.message||e))}}
 async function dirItem(kind,pc,id){let cid=id?+id:null;const w=document.getElementById('gnw');const box=w&&w.querySelector('.gb');if(!box)return;box.innerHTML=`<div class="mut" style="padding:20px;text-align:center">⏳</div>`;
  try{if(!cid&&kind=='project'){const r=await sb.rpc('chat_open_project',{p_pcode:pc});if(r.error)throw r.error;cid=r.data}
   const x=DIR.find(d=>d.kind==kind&&(d.id==cid||(kind=='project'&&d.pcode==pc)))||{name:pc,pcode:pc};
