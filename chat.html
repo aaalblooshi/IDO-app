@@ -34,7 +34,11 @@ main{max-width:1100px;padding:10px 12px 0}
 .rail,.conv{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;min-height:0;position:relative}
 .rh{padding:10px;border-bottom:1px solid var(--line)}.rl{flex:1;overflow:auto;padding:4px 6px 10px}
 .sh{font-size:12px;font-weight:800;color:var(--mut);padding:10px 8px 4px}
-.pr{display:flex;gap:10px;align-items:center;padding:8px;border-radius:12px;cursor:pointer;position:relative}.pr:hover,.pr.on{background:var(--g2)}
+.pr{display:flex;gap:10px;align-items:center;padding:8px;border-radius:12px;cursor:pointer;position:relative}
+.swp{position:relative;overflow:hidden;border-radius:12px}.swp>.pr{background:#fff;will-change:transform}
+.swd{position:absolute;left:0;top:0;bottom:0;width:84px;border:0;border-radius:12px 0 0 12px;background:#d1101d;color:#fff;font-size:20px;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}.swd small{font-size:12px;font-weight:700}.swp.on .swd{display:flex}
+.swh{display:none;position:absolute;left:8px;top:50%;transform:translateY(-50%);border:0;background:#fff;border-radius:50%;width:30px;height:30px;box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer;font-size:14px}
+@media (hover:hover){.pr[data-dm]:hover .swh{display:block}}.pr:hover,.pr.on{background:var(--g2)}
 .av{width:38px;height:38px;border-radius:50%;background:var(--g2);color:var(--g);display:flex;align-items:center;justify-content:center;font-weight:800;flex:none}.av.sq{border-radius:11px;background:#eef3f8}.av.sm{width:28px;height:28px;font-size:12px;align-self:flex-end}
 .tx{flex:1;min-width:0}.tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tx span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pi{font-size:11px;font-style:normal;position:absolute;top:4px;inset-inline-end:6px;opacity:.6}
@@ -220,7 +224,7 @@ function items(){
  out.pin.sort(srt);out.proj.sort((a,b)=>(a.kind=='gen'?-1:0)-(b.kind=='gen'?-1:0)||srt(a,b));out.ppl.sort(srt);return out}
 function drawRail(){const el=$('rl');if(!el)return;const o=items();
  const row=(x,sub)=>{const on=CUR&&CUR.t==x.t&&String(CUR.id)==String(x.id),onl=x.kind=='dm'&&ONL.has(x.id);
-  return `<div class="pr ${on?'on':''} ${sub?'sub':''}" onclick="openItem('${x.t}','${String(x.id).replace(/'/g,'')}')"><div class="av ${x.kind=='dm'?'':'sq'}" style="${x.kind=='dm'?avC(x.name):''}">${x.icon}${onl?'<i class="on"></i>':''}</div><div class="tx"><b>${esc(x.name)}</b><span class="${x.typ?'typ':''}">${esc(x.sub||'')}</span></div><div class="re"><small class="${x.n&&!x.mu?'nw':''}">${tAgo(x.at)}</small><div>${x.mu?`<span class="mt" title="${T2('إلغاء الكتم','Unmute')}" onclick="event.stopPropagation();muteKey('${x.kind=='proj'&&!String(x.id).startsWith('p:')?'ch:'+x.id:keyOf(x)}')">🔕</span>`:''}${x.n?`<span class="bd ${x.mu?'mu':''}">${x.n}</span>`:''}${x.pin?'<i class="pi2">📌</i>':''}</div></div></div>`};
+  return `<div class="pr ${on?'on':''} ${sub?'sub':''}" ${x.kind=='dm'&&x.has?`data-dm="${x.id}"`:''} onclick="if(this._sw)return;openItem('${x.t}','${String(x.id).replace(/'/g,'')}')"><div class="av ${x.kind=='dm'?'':'sq'}" style="${x.kind=='dm'?avC(x.name):''}">${x.icon}${onl?'<i class="on"></i>':''}</div><div class="tx"><b>${esc(x.name)}</b><span class="${x.typ?'typ':''}">${esc(x.sub||'')}</span></div><div class="re"><small class="${x.n&&!x.mu?'nw':''}">${tAgo(x.at)}</small><div>${x.mu?`<span class="mt" title="${T2('إلغاء الكتم','Unmute')}" onclick="event.stopPropagation();muteKey('${x.kind=='proj'&&!String(x.id).startsWith('p:')?'ch:'+x.id:keyOf(x)}')">🔕</span>`:''}${x.n?`<span class="bd ${x.mu?'mu':''}">${x.n}</span>`:''}${x.pin?'<i class="pi2">📌</i>':''}</div></div></div>`};
  const nest=L=>{const used=new Set(),h=[];L.filter(x=>x.kind!='grp').forEach(x=>{h.push(row(x));if(x.kind=='proj'){const gs=L.filter(g=>g.kind=='grp'&&g.pcode==x.pcode);gs.forEach(g=>{used.add(g.id);h.push(row(Object.assign({},g,{sub:'↳ '+T2('فرعية من محادثة المشروع','Sub-group of project chat')+(g.sub&&!/^\s*$/.test(g.sub)&&g.typ?'':'')}),true))})}});
   L.filter(g=>g.kind=='grp'&&!used.has(g.id)).forEach(g=>{const p=PROJ.find(z=>z.pcode==g.pcode);h.push(row(Object.assign({},g,{sub:'↳ '+T2('فرعية من «','Sub-group of «')+(p?p.name:g.pcode)+'»'})))});return h.join('')};
  const sec=(h,L,n)=>L.length?`<div class="sh">${h}</div>${n?nest(L):L.map(x=>row(x)).join('')}`:'';
@@ -228,7 +232,25 @@ function drawRail(){const el=$('rl');if(!el)return;const o=items();
  const un=Object.keys(UNR).filter(k=>UNR[k]>0).length;
  el.innerHTML=`<div class="rf2"><button class="snt" title="${SND?T2('إسكات صوت الرسائل','Mute sound'):T2('تشغيل الصوت','Sound on')}" onclick="sndTog()">${SND?'🔈':'🔇'}</button><button onclick="grpNew(true)" title="${T2('مجموعة لفريق لا تتبع أي مشروع','A team group not tied to a project')}">👥＋ ${T2('مجموعة','Group')}</button>${DIR?`<button onclick="dirOpen()" title="${T2('أسماء المحادثات وأعضاؤها وطلبات الانضمام، دون الرسائل','Chat names, members and join requests, without messages')}">🗂 ${T2('إدارة المحادثات','Manage chats')}${DIR.some(x=>x.pending)?' 🔴':''}</button>`:''}${chip('all',T2('الكل','All'))}${chip('unread',T2('غير المقروءة','Unread')+(un?' '+un:''))}${chip('proj',T2('المشاريع','Projects'))}${chip('dm',T2('الأشخاص','People'))}</div>`+(JRP.length?`<div class="jrb" onclick="jrOpen()">🔔 ${JRP.length} ${T2('طلبات انضمام للمحادثات بانتظار قرارك','chat join requests await your decision')} ›</div>`:'')+sec('📌 '+T2('المثبّتة','Pinned'),o.pin)+sec('📁 '+T2('المشاريع والمجموعات','Projects & groups'),o.proj,true)+sec('👤 '+T2('الأشخاص','People'),o.ppl)+
   (!Q&&!SHOWALL&&CHF!='dm'?`<div class="more"><button onclick="SHOWALL=true;drawRail()">＋ ${T2('محادثة جديدة مع زميل','New chat with a colleague')}</button></div>`:'')+
-  (!o.pin.length&&!o.proj.length&&!o.ppl.length?`<div class="mut" style="padding:14px">${T2('لا نتائج','No results')}</div>`:'')}
+  (!o.pin.length&&!o.proj.length&&!o.ppl.length?`<div class="mut" style="padding:14px">${T2('لا نتائج','No results')}</div>`:'');swInit()}
+/* person-to-person chat cleared for me only: chat_pins key x:dm:<user>:<ms>; messages up to that moment are hidden for me */
+function CLR(u){let v=0;PINS.forEach(k=>{if(k.startsWith('x:dm:'+u+':'))v=Math.max(v,+k.split(':')[3]||0)});return v}
+async function dmClear(u){if(!confirm(T2('حذف المحادثة مع ','Delete the chat with ')+dmn(u)+T2('؟ تُحذف من قائمتك فقط، ويحتفظ بها الطرف الآخر. تعود إن وصلتك رسالة جديدة.','? It is removed from your list only; the other person keeps it. It comes back if a new message arrives.')))return;
+ const now=Date.now(),old=[...PINS].filter(k=>k.startsWith('x:dm:'+u+':'));
+ try{const r=await sb.rpc('chat_pin_conv',{p_k:'x:dm:'+u+':'+now,p_on:true});if(r.error)throw r.error;for(const k of old){await sb.rpc('chat_pin_conv',{p_k:k,p_on:false});PINS.delete(k)}PINS.add('x:dm:'+u+':'+now);
+  try{await sb.rpc('chat_read',{p_from:u})}catch(_){}delete UNR['dm:'+u];delete DMS[u];delete LAST['dm:'+u];
+  if(CUR&&CUR.t=='dm'&&String(CUR.id)==String(u)){MSGS=[];SIG="";try{await loadMsgs()}catch(_){}}
+  drawRail();toast(T2('حُذفت المحادثة من قائمتك','Chat removed from your list'))}catch(e){toast(String(e.message||e))}}
+function swInit(){const W=84;document.querySelectorAll('#rl .pr[data-dm]').forEach(el=>{if(el._swi)return;el._swi=1;
+ const u=el.dataset.dm,wrap=document.createElement('div');wrap.className='swp';el.parentNode.insertBefore(wrap,el);
+ const b=document.createElement('button');b.className='swd';b.innerHTML='🗑<small>'+T2('حذف','Delete')+'</small>';b.onclick=ev=>{ev.stopPropagation();close();dmClear(u)};wrap.appendChild(b);wrap.appendChild(el);
+ const hv=document.createElement('button');hv.className='swh';hv.title=T2('حذف المحادثة','Delete chat');hv.textContent='🗑';hv.onclick=ev=>{ev.stopPropagation();dmClear(u)};el.appendChild(hv);
+ let x0=0,y0=0,dx=0,drag=0,open=0;const set=v=>{el.style.transform=v?`translateX(${v}px)`:'';if(v)wrap.classList.add('on')};
+ function close(){open=0;el.style.transition='transform .2s';set(0);setTimeout(()=>{el._sw=0;if(!open)wrap.classList.remove('on')},250)}
+ el.addEventListener('touchstart',e=>{const t=e.touches[0];x0=t.clientX;y0=t.clientY;dx=0;drag=0;el.style.transition='none';document.querySelectorAll('#rl .pr[data-dm]').forEach(o=>{if(o!==el&&o._open)o._close()})},{passive:true});
+ el.addEventListener('touchmove',e=>{const t=e.touches[0],mx=t.clientX-x0,my=t.clientY-y0;if(!drag&&Math.abs(mx)>10&&Math.abs(mx)>Math.abs(my)*1.5)drag=1;if(!drag)return;dx=Math.max(0,Math.min(W*1.4,(open?W:0)+mx));set(dx)},{passive:true});
+ el.addEventListener('touchend',()=>{if(!drag)return;el._sw=1;el.style.transition='transform .2s';if(dx>W*.55){open=1;el._open=1;set(W)}else{el._open=0;close()}setTimeout(()=>{if(!open)el._sw=0},250)});
+ el._close=()=>{el._open=0;close()}})}
 let FROMCH=null,_KF=false;
 async function dmFrom(u){const f=CUR&&CUR.t!='dm'?{t:CUR.t,id:CUR.id,name:CUR.name,mid:SEL||null}:FROMCH;_KF=true;try{await openItem('dm',u)}finally{_KF=false}FROMCH=f;drawPinbar()}
 async function backFrom(){const f=FROMCH;if(!f)return;FROMCH=null;await openItem(f.t,String(f.id));if(f.mid)setTimeout(()=>{try{jump(f.mid)}catch(_){}},400)}
@@ -246,7 +268,7 @@ async function setCur(c){const k0=keyOf(CUR);if(k0){const ta=$('mt');if(ta)DR[k0
  $('chat').classList.add('has');drawRail();drawConv();await loadMsgs(true);if(c.t=='ch'&&c.pcode)loadMem();if(c.t=='ch'&&c.pcode&&!c.grp)sb.rpc('chat_sync',{p_pcode:c.pcode}).then(r=>{if(r&&!r.error&&r.data>0)refreshLists().then(()=>drawPinbar())},()=>{});
  const ta=$('mt');if(ta&&DR[keyOf(c)])ta.value=DR[keyOf(c)];if(ta&&innerWidth>899)ta.focus();markRead()}
 async function loadMsgs(scroll){if(!CUR)return;let q=sb.from('chat_messages').select('*').order('created_at',{ascending:false}).limit(150);
- q=CUR.t=='ch'?q.eq('channel_id',CUR.id):q.or(`and(from_user.eq.${ME.id},to_user.eq.${CUR.id}),and(from_user.eq.${CUR.id},to_user.eq.${ME.id})`);
+ q=CUR.t=='ch'?q.eq('channel_id',CUR.id):q.or(`and(from_user.eq.${ME.id},to_user.eq.${CUR.id}),and(from_user.eq.${CUR.id},to_user.eq.${ME.id})`);if(CUR.t=='dm'&&CLR(CUR.id))q=q.gt('created_at',new Date(CLR(CUR.id)).toISOString());
  const {data,error}=await q;if(error)return;const L=(data||[]).reverse(),sig=L.map(m=>m.id+(m.pinned?'p':'')+(m.deleted?'d':'')+(m.read_at?'r':'')).join(',');
  if(sig===SIG)return;loadReacts(L);const _old=new Set(MSGS.map(m=>m.id)),_new=SIG&&L.some(m=>!_old.has(m.id)&&m.from_user!=ME.id&&!m.deleted);SIG=sig;MSGS=L;if(_new&&!PINS.has('m:'+keyOf(CUR)))ding();drawMsgs(scroll);drawPinbar()}
 let CANM=false,EXC=[];
@@ -591,7 +613,7 @@ async function refreshLists0(){
   try{JRP=j.error?[]:(j.data||[])}catch(_){JRP=[]}try{if(!gq.error)(gq.data||[]).forEach(q=>JRP.push({id:'g'+q.id,gid:q.id,grp:true,cid:q.channel_id,pcode:q.pcode,pname:'👥 '+(q.gname||'')+(q.pname?' — '+q.pname:''),user_id:q.user_id,source:'request',requested_by:q.requested_by,why:''}))}catch(_){}
   try{GRPS=g.error?[]:(g.data||[])}catch(_){GRPS=[]}}
  try{const ids=PROJ.map(x=>x.channel_id).filter(Boolean).concat(GRPS.map(g=>g.id)).concat(GEN?[GEN.id]:[]);if(ids.length){const r=await sb.from('chat_messages').select('id,channel_id,from_user,body,deleted,created_at').in('channel_id',ids).order('created_at',{ascending:false}).limit(500);(r.data||[]).forEach(m=>{const k='ch:'+m.channel_id;if(!LAST[k]||new Date(LAST[k].created_at)<new Date(m.created_at))LAST[k]=m})}}catch(_){}
- DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o])DMS[o]=m});
+ DMS={};(d.data||[]).forEach(m=>{const o=m.from_user==ME.id?m.to_user:m.from_user;if(!DMS[o]&&!(CLR(o)&&+new Date(m.created_at)<=CLR(o)))DMS[o]=m});
  if(CUR){delete UNR[keyOf(CUR)]}{const u=uSum();if(_uSum!=null&&u>_uSum)ding();_uSum=u}drawRail()}
 async function load(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('lb').textContent=lang=='ar'?'EN':'ع';
