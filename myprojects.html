@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}
 .bk.crit{box-shadow:0 0 0 2px #d1101d,0 0 8px #d1101d88!important;background:#d1101d!important}
-</style><style>.wc{position:relative}.wdn{position:absolute;top:-9px;inset-inline-end:-9px;width:22px;height:22px;border-radius:50%;background:#1c9a55;color:#fff;font-size:13px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25);border:2px solid #fff;z-index:2}.wdi{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#1c9a55;color:#fff;font-size:11px;font-weight:900;flex:none;margin-inline:3px}</style>
+.rkb{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;padding:6px 14px;border-radius:99px;background:#fff;color:#7a1d1d;border:1.5px solid #e9c2c2;text-decoration:none}.rkb:hover{background:#fdf2f2}</style><style>.wc{position:relative}.wdn{position:absolute;top:-9px;inset-inline-end:-9px;width:22px;height:22px;border-radius:50%;background:#1c9a55;color:#fff;font-size:13px;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.25);border:2px solid #fff;z-index:2}.wdi{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#1c9a55;color:#fff;font-size:11px;font-weight:900;flex:none;margin-inline:3px}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1d5f8a">
@@ -142,7 +142,7 @@ h3.h{margin:0 0 8px;font-size:16px}
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-let me=null,PROGV={},PROGP={},PRG=null,PCAN=false,POFF=false;
+let me=null,RKSEE=false,RKOFF=false,PROGV={},PROGP={},PRG=null,PCAN=false,POFF=false;
 let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{lock:(function(){var L={};return function(n,t,fn){var p=(L[n]||Promise.resolve()).then(function(){return fn()},function(){return fn()});L[n]=p.catch(function(){});return p}})()}})}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -335,6 +335,7 @@ async function loadHub(){
  try{if(window.IDOHALT)await IDOHALT.load(sb,true)}catch(_){}
  M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id,window.IDOHALT?IDOHALT.day(PC||(PLR&&PLR.data&&PLR.data.pcode)||''):null,PLR&&PLR.data&&PLR.data.wmode);
  await prgLoad();
+ try{const rk=await sb.rpc('risk_can_see',{pc:PC});RKSEE=rk.data===true}catch(_){RKSEE=false}
  if(!CH&&!PLR){$('app').innerHTML='<div class="card lock"><p>'+P(['المشروع غير موجود أو لا تملك صلاحية عرضه.','Project not found or you have no access.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
 
  if(!tabsOn().some(t=>t[0]==TAB))TAB='ov';
@@ -360,7 +361,7 @@ function head(){const roles=myRoles(),ch=CH||{};
  const h=health(M,PC||(PLR&&PLR.data&&PLR.data.pcode)||(CH&&CH.code)||""),sit=situ({ch:CH,pl:PLR&&Object.assign({},PLR,{act:PLR.data&&PLR.data._active}),M,crs:CRS,cls:CLS,restricted:PLR&&PLR.restricted});
  const RS=(PLR&&PLR.restricted),BL=x=>RS&&((PLR.blur||['people','kpi','team','events']).includes(x));return '<div class="ban"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div style="min-width:0"><h1>'+esc(pName())+'</h1><p'+(BL('people')?' class="mk"':'')+'>'+esc(meta)+'</p>'+(unitL()?'<p style="margin-top:4px;font-weight:700">🏢 '+esc(unitL())+'</p>':'')+'</div><div class="row">'+(h&&!BL('kpi')?'<span class="chip" title="'+esc(HLP())+'" style="cursor:default;border-color:'+h.c+'"><span class="dot" style="background:'+h.c+'"></span>'+esc(P(['الأداء: ','Performance: ']))+esc(h.t)+'</span>':'')+roles.map(r=>r=='of'?'<span class="chip" title="'+esc(P(['تظهر لك هذه الصفحة لأنك من مكتب التطوير المؤسسي — المشروع لا يتبع المكتب','You see this because you are in the Corporate Development Office — the project does not belong to it']))+'" style="cursor:default;background:transparent;color:#fff;border:1.5px dashed rgba(255,255,255,.7);font-weight:600">'+esc(P(ROLEN[r]))+'</span>':'<span class="chip on" style="cursor:default">'+esc(P(ROLEN[r]))+'</span>').join('')+'</div></div><div style="margin-top:14px">'+journey()+'</div></div>'+
  '<div class="sit big" style="--k:'+SIT_C[sit.k]+'"><b>'+P(['الوضع الآن: ','Now: '])+esc(sit.t)+'</b>'+(sit.s?'<small>'+esc(sit.s)+'</small>':'')+'</div>'+
- '<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
+ (RKSEE?'<div class="row" style="margin:0 0 8px"><a class="rkb" href="risks.html?pc='+encodeURIComponent(PC||(CH&&CH.code)||'')+'">🛡️ '+P(['سجل المخاطر','Risk register'])+'</a></div>':'')+'<div class="tabs">'+tabsOn().map(t=>'<button class="'+(TAB==t[0]?'p':'')+'" onclick="goTab(\''+t[0]+'\')">'+esc(P(t[1]))+(t[0]=='tasks'&&M&&M.leaves.length?' ('+M.leaves.length+')':t[0]=='req'?' ('+(CRS.filter(x=>!x.archived).length+PLS.filter(x=>!x.archived).length+(CH?1:0)+CLS.filter(x=>!x.archived).length)+')':'')+'</button>').join('')+'</div>'}
 function goTab(t){TAB=t;history.replaceState(null,'','#'+t);draw()}
 /* ---------- ما يحتاج انتباهك ---------- */
 function attention(){const A=[],td=today();
@@ -539,7 +540,7 @@ async function load(){
   q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,wm:data->>wmode,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
   sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
- LK=lk;try{const r=await sb.rpc('prog_values');(r.data||[]).forEach(x=>{if(x.pct!=null)PROGV[x.pcode]=+x.pct;if(x.ppct!=null)PROGP[x.pcode]=+x.ppct})}catch(_){}
+ LK=lk;try{const o=await sb.rpc('risk_office');RKOFF=o.data===true}catch(_){}try{const r=await sb.rpc('prog_values');(r.data||[]).forEach(x=>{if(x.pct!=null)PROGV[x.pcode]=+x.pct;if(x.ppct!=null)PROGP[x.pcode]=+x.ppct})}catch(_){}
  await Promise.all(Object.keys(SVC).map(async k=>{const s=SVC[k];SG[k]=await sb.from(s.sg).select('cr_id,stage,status').eq('user_id',me.id).eq('status','pending').then(x=>x.data||[],()=>[])}));
  const by={},idc={};
  ch.filter(c=>!c.archived).forEach(c=>{by[c.code]={code:c.code,ch:c,pls:[],crs:[],cls:[]};idc[c.id]=c.code});
@@ -604,7 +605,7 @@ function drawList(){applyLang();document.title=P(['مشاريعي','My projects'
  const L=PJ.filter(match).sort((a,b)=>(b.att.length>0)-(a.att.length>0)||(isLate(b)-isLate(a))||String(a.name).localeCompare(String(b.name),'ar'));
  const body=!PJ.length?'<div class="card"><div class="none">'+P(['لا توجد مشاريع مرتبطة بك بعد.','No projects linked to you yet.'])+'</div></div>':!L.length?'<div class="card"><div class="none">'+P(['لا مشاريع مطابقة.','No matching projects.'])+'</div></div>':VW=='cards'?'<div class="grid">'+L.map(card).join('')+'</div>':VW=='list'?listV(L):timeV(L);
  const ac=PJ.filter(p=>p.att.length).length;
- $('app').innerHTML='<div class="ban"><h1>'+P(['مشاريعي','My projects'])+'</h1><p>'+P(['كل المشاريع التي لك فيها دور — في مكان واحد','Every project you have a role in — in one place'])+(ac?' · '+P([ac+' بانتظار إجرائك',ac+' need your action']):'')+'</p><div class="chips">'+CH.map(c=>'<button class="chip '+(FLT==c[0]?'on':'')+(c[0]!='all'&&!cnt(c[0])?' z':'')+'" onclick="FLT=\''+c[0]+'\';sv(\'myFlt\',FLT);draw()"><b>'+cnt(c[0])+'</b>'+esc(P(c[1]))+'</button>').join('')+'</div></div>'+
+ $('app').innerHTML='<div class="ban"><h1>'+P(['مشاريعي','My projects'])+'</h1><p>'+P(['كل المشاريع التي لك فيها دور — في مكان واحد','Every project you have a role in — in one place'])+(ac?' · '+P([ac+' بانتظار إجرائك',ac+' need your action']):'')+'</p>'+(RKOFF?'<p style="margin:6px 0 0"><a class="rkb" href="risks.html">🛡️ '+P(['مخاطر كل المشاريع','All project risks'])+'</a></p>':'')+'<div class="chips">'+CH.map(c=>'<button class="chip '+(FLT==c[0]?'on':'')+(c[0]!='all'&&!cnt(c[0])?' z':'')+'" onclick="FLT=\''+c[0]+'\';sv(\'myFlt\',FLT);draw()"><b>'+cnt(c[0])+'</b>'+esc(P(c[1]))+'</button>').join('')+'</div></div>'+
  '<div class="sb"><span class="tabs">'+[['cards','▦ '+P(['بطاقات','Cards'])],['list','☰ '+P(['قائمة','List'])],['time','🗺 '+P(['خارطة الطريق','Roadmap'])]].map(v=>'<button class="'+(VW==v[0]?'p':'')+'" onclick="VW=\''+v[0]+'\';sv(\'myVw\',VW);draw()">'+v[1]+'</button>').join('')+'</span>'+(VW=='time'?'<button class="p" style="background:#fff;color:var(--bd);border:1.5px solid var(--bd)" onclick="pickPj()">☑ '+P(['المشاريع المعروضة','Shown projects'])+(Object.keys(HID).filter(k=>HID[k]).length?' ('+(L.length-L.filter(p=>HID[p.code]).length)+'/'+L.length+')':'')+'</button>':'')+'<input id="sq" placeholder="'+P(['🔎 ابحث باسم المشروع أو رمزه…','🔎 Search project name or code…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._sq);window._sq=setTimeout(()=>{draw();const e=$(\'sq\');e.focus();e.setSelectionRange(9999,9999)},300)"></div>'+body}
 
 function pickPj(){const L=PJ.filter(p=>p.M.start!=null);let o=document.getElementById('pkm');if(o)o.remove();o=document.createElement('div');o.id='pkm';

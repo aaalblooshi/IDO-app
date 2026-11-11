@@ -4305,6 +4305,7 @@ function apply(mode){const tr=S.tree;if(!tr||!tr.length)return;S.mode=mode;const
  let nbI=0;if(S.agile&&S.src=='wiz')nbI=itemsToBacklog();
  if(S.agile&&window.agAfterLab)agAfterLab();
  PL.start=false;norm();rollup();close();renderPlan();pSave();
+ /* risks picked in the lab go straight into the project's risk register */try{const pc=cr.data.pcode||cr.code||'',rl=[];(S.items||[]).forEach(it=>{rkSel(it).forEach(j=>{const rk=(KRSK[it.k]||[])[j];if(rk)rl.push({title:rk[0],response:rk[1]})})});if(pc&&rl.length)sb.rpc('risk_add_lab',{p_pcode:pc,p_items:rl}).then(()=>{},()=>{})}catch(_){}
  const sp=planSpan();if(rs)return msg(L('تم تحديث مهام المختبر في الخطة: '+ad(rs.mt)+' مهمة حُدّثت في مكانها (احتفظت بالإنجاز والملاحظات)'+(rs.nw?'، و'+ad(rs.nw)+' جديدة':'')+(rs.rm.length?'، و'+ad(rs.rm.length)+' حُذفت':'')+'.'+(sp?'\nالخطة: '+fmtL(sp[0])+' ← '+fmtL(sp[1]):''),'Lab tasks updated: '+rs.mt+' updated, '+rs.nw+' new, '+rs.rm.length+' removed.'));
  msg(L('تمت إضافة '+ad(nt.length)+' مهمة إلى الخطة.'+(sp?'\nالخطة: '+fmtL(sp[0])+' ← '+fmtL(sp[1]):''),nt.length+' tasks added.')+(nbI?(A()?'\nوأُضيف '+ad(nbI)+' بند عمل من مساعد التخطيط إلى قائمة البنود.':'\n'+nbI+' work items added to the backlog.'):''))}
 function close(){const o=document.getElementById('labw');if(o)o.remove();const m=document.getElementById('mcw');if(m)m.remove();document.body.style.overflow=''}
