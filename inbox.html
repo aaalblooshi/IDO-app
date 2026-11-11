@@ -182,8 +182,8 @@ async function start(){
  const all=[];await loadEsc();
  await Promise.all(SRC.map(async([tb,dt,sv,pg])=>{
   const {data}=await sb.from(tb).select('*').order('at',{ascending:false}).limit(60);if(!data||!data.length)return;
-  const ids=[...new Set(data.map(x=>x.cr_id))],{data:cs}=await sb.from(dt).select('id,code,nm:data->>pname').in('id',ids),cm={},nmm={};(cs||[]).forEach(c=>{cm[c.id]=c.code;nmm[c.id]=c.nm});
-  data.forEach(x=>all.push({at:x.at,who:aid(x.user_name,'audit'),act:x.action||'',sv,pg,tk:/^(taskprog|taskrem|taskadd)/.test(x.action||''),id:x.cr_id,code:cm[x.cr_id]||'',nm:nmm[x.cr_id]||''}))}));
+  const ids=[...new Set(data.map(x=>x.cr_id))],{data:cs}=await sb.from(dt).select('id,code,archived,nm:data->>pname').in('id',ids),cm={},nmm={},arc={};(cs||[]).forEach(c=>{cm[c.id]=c.code;nmm[c.id]=c.nm;if(c.archived)arc[c.id]=1});
+  /* archived documents disappear from notifications */data.filter(x=>!arc[x.cr_id]).forEach(x=>all.push({at:x.at,who:aid(x.user_name,'audit'),act:x.action||'',sv,pg,tk:/^(taskprog|taskrem|taskadd)/.test(x.action||''),id:x.cr_id,code:cm[x.cr_id]||'',nm:nmm[x.cr_id]||''}))}));
  try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:aid(x.from_name,'notify'),act:'nudge|'+x.msg,sv:'nudge',kind:x.kind||'',pg:'inbox.html',tk:false,id:0,code:'',nm:aid(x.from_name,'notify')||''}))}catch(_){}
  let NC={all:'1',off:''};try{const {data:nc}=await sb.from('app_settings').select('key,value').in('key',['notif_all','notif_off']);(nc||[]).forEach(x=>{if(x.key=='notif_all')NC.all=x.value;else NC.off=x.value||''})}catch(_){}
  NTOFF=NC.all=='0';const OFFC=String(NC.off||'').split(',').filter(Boolean),catOf=e=>e.sv=='nudge'?(e.kind||'flow'):e.tk?'tasks':'flow';if(OFFC.includes('rem'))ESC=[];
