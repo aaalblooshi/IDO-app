@@ -1057,7 +1057,7 @@ const W=[
 ["pl_wLbl", "Weight %", "الوزن %"],
 ["pl_wEven", "Distribute equally", "وزّع بالتساوي"],
 ["pl_wTip", "Switch between equal weights and custom weights for activities", "التبديل بين الأوزان المتساوية والمخصصة للأنشطة"],
-["pl_ckW", "weights under «{p}» total {s}% (should be 100%)", "مجموع أوزان الأنشطة تحت «{p}» = {s}% (المطلوب 100%)"],
+["pl_ckW", "weights under «{p}» total {s}% (must be 100%; use ⚖ Fix totals)", "مجموع أوزان الأنشطة تحت «{p}» = {s}% (المطلوب 100%؛ اضغط ⚖ ضبط المجموع)"],
 ["pl_pin", "Fixed date", "مثبّت التاريخ"],
 ["pl_pinH", "The date is locked (e.g. an event day). Earlier activities are scheduled backward to finish before it, later ones follow it.", "التاريخ مقفل (مثل يوم الفعالية). الأنشطة السابقة تُجدوَل عكسيًا لتنتهي قبله، واللاحقة تأتي بعده."],
 ["pl_ckFx", "fixed-date activity conflicts with its predecessors", "نشاط مثبّت التاريخ يتعارض مع ما قبله"],
@@ -1498,6 +1498,7 @@ function norm(){const d=cr.data;if(!Array.isArray(d.tasks))d.tasks=[];const ts=d
  out.forEach(x=>{if(M[x.id].d>maxD){x.p=M[x.id].par&&M[M[x.id].par.id].par?M[M[x.id].par.id].par.id:''}});
  let again=false;out.forEach(x=>{if(M[x.id].d>maxD)again=true});
  d.tasks=out;if(again&&!norm.r){norm.r=1;norm();norm.r=0}
+ try{if(!norm.r&&typeof PL!='undefined'&&PL&&PL.canEdit)fillW()}catch(_){}
  // parents cannot have dependencies, and deps must point to existing leaf tasks
  out.forEach(x=>{x.dep=(x.dep||[]).filter(e=>M[e.t]&&e.t!=x.id&&!isDesc(M[e.t].x,x.id)&&!isDesc(x,e.t))})}
 const isLeaf=x=>!(M[x.id]&&M[x.id].kids.length);
@@ -2131,6 +2132,13 @@ function propagate(){backward();const lv=T().filter(isLeaf);let ch=true,pass=0,m
  return moved}
 function togFx(id){mut(()=>{const x=byId(id);x.fx=x.fx?0:1;if(x.fx)propagate()},true)}
 // ---- weights ui ----
+/* custom weights are required: an editable plan always uses them. A group with new activities gets them an equal share,
+   and the others keep their proportions; a plan still on equal weights is converted with the same numbers. */
+function fillW(){const d=cr.data;if(d.pmode=='agile')return;const conv=d.wmode!='cu';if(conv)d.wmode='cu';
+ const g={};d.tasks.forEach(x=>{if(conv)x.wt=null;(g[x.p||'']=g[x.p||'']||[]).push(x)});
+ Object.values(g).forEach(a=>{const miss=a.filter(x=>x.wt==null||x.wt===''||isNaN(+x.wt));if(!miss.length)return;const n=a.length,sh=100/n,set=a.filter(x=>!miss.includes(x)),S=set.reduce((q,x)=>q+(+x.wt||0),0);
+  if(S<=0)a.forEach(x=>x.wt=sh);else{const k=(100-sh*miss.length)/S;set.forEach(x=>x.wt=(+x.wt||0)*k);miss.forEach(x=>x.wt=sh)}
+  a.forEach(x=>x.wt=Math.round(x.wt*10)/10);const r=Math.round((100-a.reduce((q,x)=>q+x.wt,0))*10)/10;if(r){const big=a.reduce((m,x)=>x.wt>m.wt?x:m,a[0]);big.wt=Math.round((big.wt+r)*10)/10}})}
 function togW(){snap();const d=cr.data;if(d.wmode=='cu'){d.wmode='eq'}else{d.wmode='cu';T().forEach(x=>{x.wt=Math.round((M[x.id]&&M[x.id].pw||0)*10)/10})}norm();rollup();renderPlan();pSave()}
 function evenW(){snap();T().forEach(x=>{x.wt=0});const groups={};T().forEach(x=>{(groups[x.p||'']=groups[x.p||'']||[]).push(x)});Object.values(groups).forEach(g=>g.forEach(x=>x.wt=Math.round(1000/g.length)/10));norm();rollup();renderPlan();pSave()}
 // ---- defaults for new activities ----
@@ -2167,7 +2175,8 @@ function issues(){const ts=T(),out=[],d=cr.data,lo=dn(d.sdate),hi=dn(d.edate);
   if(!isNaN(a)&&!isNaN(lo)&&!isNaN(hi)&&(a<lo||(!isNaN(b)&&b>hi)))out.push({e:0,id:x.id,m:`${w}: ${t('pl_ckRange')}`})});
  ts.filter(x=>!isLeaf(x)&&!String(x.n||'').trim()).forEach(x=>out.push({e:1,id:x.id,m:`${M[x.id].w}: ${t('pl_ckName')}`}));
  if(d.wmode=='cu'&&d.pmode!='agile'){const groups={};ts.forEach(x=>{(groups[x.p||'']=groups[x.p||'']||[]).push(x)});
-  Object.keys(groups).forEach(p=>{const g=groups[p],s=g.reduce((a,x)=>a+(+x.wt||0),0);if(g.length>1&&Math.abs(s-100)>0.6)out.push({e:0,id:g[0].id,m:t('pl_ckW').replace('{p}',p?M[p].w+' '+(byId(p).n||''):t('planOf')).replace('{s}',ad(Math.round(s*10)/10))})})}
+  ts.filter(x=>(groups[x.p||'']||[]).length>1&&+x.wt===0).forEach(x=>out.push({e:0,id:x.id,m:`${M[x.id].w}: ${lang=='ar'?'وزن النشاط صفر، فلن يؤثر إنجازه في نسبة المشروع':'weight is 0, so its progress will not count'}`}));
+  Object.keys(groups).forEach(p=>{const g=groups[p],s=g.reduce((a,x)=>a+(+x.wt||0),0);if(g.length>1&&Math.abs(s-100)>0.6)out.push({e:1,id:g[0].id,m:t('pl_ckW').replace('{p}',p?M[p].w+' '+(byId(p).n||''):t('planOf')).replace('{s}',ad(Math.round(s*10)/10))})})}
  const anyDep=lv.some(x=>(x.dep||[]).length);if(d.pmode!='agile'&&lv.length>2&&!anyDep)out.push({e:0,m:t('pl_ckNoDeps')});
  return out}
 // ---- plan header: period by plan + progress ----
@@ -2262,7 +2271,7 @@ function toolbar(){const d=cr.data,n=d.tasks.length,ed=PL.canEdit,cu=d.wmode=='c
  ${ed?`<div class="seg"><button class="${d.pmode=='agile'?'on':''}" onclick="agToggle()" title="${lang=='ar'?'منهجية تنفيذ المشروع (تتغير قبل الاعتماد)':'Delivery method (changeable before approval)'}">${lang=='ar'?'المنهجية':'Method'}: ${d.pmode=='agile'?'🔄 Agile':(lang=='ar'?'تقليدية':'Traditional')}</button></div>`:(d.pmode=='agile'?`<div class="seg"><button class="on" disabled>🔄 Agile</button></div>`:'')}
  ${ed?`<div class="seg"><button onclick="redo()" ${SNAPS.r.length?'':'disabled'} title="${t('pl_redo')} (Ctrl+Y)">↷</button><button onclick="undo()" ${SNAPS.u.length?'':'disabled'} title="${t('pl_undo')} (Ctrl+Z)">↶ ${t('pl_undo')}${SNAPS.u.length?' ('+ad(SNAPS.u.length)+')':''}</button></div>`:''}
  <div class="seg"><button onclick="collAll(true)" title="${t('pl_collapse')}">⊟</button><button onclick="collAll(false)" title="${t('pl_expand')}">⊞</button></div>
- <div class="seg"><button class="${PL.adv?'on':''}" onclick="togAdv()" title="${t('pl_advH')}">${PL.adv?t('pl_advOn'):t('pl_advOff')}</button>${ed&&d.pmode!='agile'?`<button class="${cu?'on':''}" onclick="togW()" title="${t('pl_wTip')}">⚖ ${t('pl_wmode')}: ${cu?t('pl_wCu'):t('pl_wEq')}</button>${cu?`<button onclick="evenW()">${t('pl_wEven')}</button>`:''}`:''}</div>
+ <div class="seg"><button class="${PL.adv?'on':''}" onclick="togAdv()" title="${t('pl_advH')}">${PL.adv?t('pl_advOn'):t('pl_advOff')}</button>${ed&&d.pmode!='agile'?`<button class="on" onclick="normW()" title="${lang=='ar'?'أوزان الأنشطة مخصّصة ومطلوبة: مجموع أوزان كل مجموعة 100%. اضغط لضبط المجموع إلى 100% مع الحفاظ على النسب بينها.':'Custom activity weights are required: each group totals 100%. Click to scale each group back to 100%.'}">⚖ ${t('pl_wmode')}: ${t('pl_wCu')} · ${lang=='ar'?'ضبط المجموع':'Fix totals'}</button>${cu?`<button onclick="evenW()">${t('pl_wEven')}</button>`:''}`:''}</div>
  ${(ed||me.role=='admin')?`<div class="seg"><button onclick="labOpen()" style="font-weight:800;color:#0a6b3d">🧪 ${lang=='ar'?'مختبر الخطط':'Plan lab'}</button>${ed&&n?`<button onclick="evOpen()" style="font-weight:700;color:#8a6a1f">📌 ${lang=='ar'?'ربط بحدث':'Link to event'}</button>`:''}</div>`:''}${CP&&CP.on&&['list','gantt','wbs'].includes(PL.view)?`<div class="seg"><button class="${PL.cf?'on':''}" onclick="PL.cf=!PL.cf;renderPlan()" style="color:${PL.cf?'#fff':'#d1101d'};${PL.cf?'background:#d1101d;border-color:#d1101d':''}">🔴 ${lang=='ar'?'إبراز المسار الحرج':'Focus critical path'}</button></div>`:''}${me&&T().some(x=>x.w==me.id)&&['list','gantt'].includes(PL.view)?`<div class="seg"><button class="${PL.mine?'on':''}" onclick="PL.mine=!PL.mine;renderPlan()" style="${PL.mine?'background:#7a5a12;border-color:#7a5a12;color:#fff':'color:#7a5a12'}">⭐ ${lang=='ar'?'المكلّف بها أنا':'Assigned to me'} (${T().filter(x=>x.w==me.id&&!(M[x.id]&&M[x.id].kids.length)).length})</button></div>`:''}<div class="seg"><button onclick="xlExport()" title="Excel">📤 Excel</button><button onclick="printPlan()" title="${t('pl_print')}">🖨 PDF</button>${PL.nAtt?`<button onclick="goTab('flow')" title="${t('pl_attN')}">📎 ${ad(PL.nAtt)}</button>`:''}</div>${ed&&d.levels?`<div class="seg"><button class="on" onclick="lvlChange()" title="${t('pl_lvNote')}">🗂 ${t('pl_levels')}: ${ad(d.levels)} ▾</button></div>`:''}</div>`}
 // ---- WBS view ----
 function wbsH(){const rows=T();if(!rows.length)return `<div class="mut">${t('pl_empty')}</div>`;

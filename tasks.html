@@ -122,15 +122,15 @@ function analyze(tasks,wmode,now){
    a=clamp(+x.pc||0,0,100);n=1;done=a>=100?1:0;
    late=(e!=null&&now>e&&a<100)?now-e:0;
    out[x.id]={a,ex,s,e,late,n,done,leaf:1,lateN:late?1:0,as:x.as||'',ae:x.ae||''};return out[x.id]}
-  const rs=k.map(rec);let ws=k.map(c=>wmode=='cu'&&+c.wt>0?+c.wt:1);
-  if(wmode=='cu'&&!k.some(c=>+c.wt>0))ws=k.map(()=>1);
+  const rs=k.map(rec);let ws=k.map(c=>wmode=='cu'?Math.max(0,+c.wt||0):1);
+  if(!ws.some(v=>v>0))ws=k.map(()=>1);
   const W=ws.reduce((p,q)=>p+q,0)||1;
   rs.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;late+=r.lateN});
   const ss=rs.map(r=>r.s).filter(v=>v!=null),ee=rs.map(r=>r.e).filter(v=>v!=null);
   out[x.id]={a,ex,s:ss.length?Math.min(...ss):s,e:ee.length?Math.max(...ee):e,late:0,n,done,leaf:0,lateN:late};
   out[x.id].late=out[x.id].lateN?Math.max(0,...rs.map(r=>r.late)):0;return out[x.id]};
  const roots=(kids['']||[]).map(rec);
- const ws=(kids['']||[]).map(c=>wmode=='cu'&&+c.wt>0?+c.wt:1),W=ws.reduce((p,q)=>p+q,0)||1;
+ let ws=(kids['']||[]).map(c=>wmode=='cu'?Math.max(0,+c.wt||0):1);if(!ws.some(v=>v>0))ws=ws.map(()=>1);const W=ws.reduce((p,q)=>p+q,0)||1;
  let a=0,ex=0,n=0,done=0,lateN=0,s=null,e=null;
  roots.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;lateN+=r.lateN;if(r.s!=null)s=s==null?r.s:Math.min(s,r.s);if(r.e!=null)e=e==null?r.e:Math.max(e,r.e)});
  return {t:out,kids,a,ex,n,done,lateN,s,e,gap:ex-a}}
@@ -239,7 +239,7 @@ function calcEW(){if(!ADM||MODE!='team')return;
  const sw=s=>+(WSx[s]!=null?WSx[s]:1)||0,secs=[...new Set(PR.map(p=>p.sc))],SW=secs.reduce((q,s)=>q+sw(s),0)||1;
  PR.forEach(p=>{const L=PR.filter(q=>q.sc==p.sc),pw=q=>CFGW[q.pcode]!=null?CFGW[q.pcode]:(q.pt=='strategic'?WRx:1),PW=L.reduce((q,x)=>q+pw(x),0)||1;
   p.ew=(sw(p.sc)/SW)*(pw(p)/PW)*100;
-  const walk=(pid,f)=>{const k=p.kids[pid]||[];if(!k.length)return;let ws=k.map(c=>p.wm=='cu'&&+c.wt>0?+c.wt:1);if(p.wm=='cu'&&!k.some(c=>+c.wt>0))ws=k.map(()=>1);const W=ws.reduce((a,b)=>a+b,0)||1;
+  const walk=(pid,f)=>{const k=p.kids[pid]||[];if(!k.length)return;let ws=k.map(c=>p.wm=='cu'?Math.max(0,+c.wt||0):1);if(!ws.some(v=>v>0))ws=k.map(()=>1);const W=ws.reduce((a,b)=>a+b,0)||1;
    k.forEach((c,i)=>{const sh=f*ws[i]/W,r=p.byId[c.id];if(r)r.ew=sh;walk(c.id,sh)})};
   walk('',p.ew)})}
 /* ---- helpers ---- */

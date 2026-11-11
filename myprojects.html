@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1d5f8a">
-<title>مشاريعي</title><script src="halt.js?v=2"></script><link rel="manifest" href="manifest.json">
+<title>مشاريعي</title><script src="prog.js?v=1"></script><script src="halt.js?v=2"></script><link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -169,7 +169,7 @@ const stCol=s=>s=='Approved'?'var(--ok)':(s=='Rejected'||s=='Cancelled')?'var(--
 const SVC={charter:{p:'charter.html',t:['ميثاق المشروع','Charter'],tb:'charters',sg:'charter_signatories'},plan:{p:'plan.html',t:['خطة المشروع','Plan'],tb:'plans',sg:'plan_signatories'},cr:{p:'cr.html',t:['طلب تغيير','Change request'],tb:'change_requests',sg:'signatories'},closure:{p:'closure.html',t:['التقرير الختامي','Closure report'],tb:'closure_reports',sg:'closure_signatories'}};
 function gate(k){$('app').innerHTML='<div class="card lock"><p>'+P(['سجّل الدخول أولًا ثم ارجع لهذه الصفحة.','Sign in first, then return to this page.'])+'</p><button class="p" onclick="location.href=\'cr.html\'">'+P(['تسجيل الدخول','Sign in'])+'</button></div>'}
 /* ---- حساب إحصاءات الخطة من المهام ---- */
-function planModel(tasks,uid,tdx){
+function planModel(tasks,uid,tdx,wm){
  const T=(tasks||[]).map((x,i)=>Object.assign({},x,{_i:i}));const by={},kids={};
  T.forEach(x=>{by[x.id]=x});T.forEach(x=>{const p=x.p&&by[x.p]?x.p:'';(kids[p]=kids[p]||[]).push(x)});
  const td=tdx!=null?tdx:today(),out=[];let seq=0;
@@ -180,11 +180,14 @@ function planModel(tasks,uid,tdx){
  const rollup=x=>{if(!x._k)return x;const ch=out.filter(y=>y._par==x.id);ch.forEach(rollup);const ss=ch.map(y=>y._s).filter(v=>v!=null),ee=ch.map(y=>y._e).filter(v=>v!=null);
   x._s=ss.length?Math.min.apply(0,ss):x._s;x._e=ee.length?Math.max.apply(0,ee):x._e;const tw=ch.reduce((a,y)=>a+y._dur,0)||1;x._dur=tw;x._pc=ch.reduce((a,y)=>a+y._pc*y._dur,0)/tw;return x};
  out.filter(x=>!x._par).forEach(rollup);
+ /* progress uses the plan's weights (same rule as the plan page and the portfolio) */
+ const PR=window.IDOPROG?IDOPROG.roll(tasks,wm,td):null;if(PR)out.forEach(x=>{const r=PR.t[x.id];if(r&&x._k)x._pc=r.a});
  out.forEach(x=>{const done=x._pc>=100,late=!done&&x._e!=null&&x._e<td;x._st=done?'done':late?'late':(x._s!=null&&x._s<=td&&x._pc>0)||x._pc>0?'prog':x._s!=null&&x._s<=td?'due':'todo';
   x._me=!!uid&&x.w==uid;x._top=x._par?null:x.id});
  const top=x=>{let c=x;while(c._par&&by[c._par])c=by[c._par];return c};out.forEach(x=>x._top=top(x).id);
- const tw=leaves.reduce((a,x)=>a+x._dur,0)||1,pct=leaves.reduce((a,x)=>a+x._pc*x._dur,0)/tw;
- const exp=leaves.reduce((a,x)=>{const f=x._s==null||x._e==null?0:Math.max(0,Math.min(1,(td-x._s+1)/Math.max(1,x._e-x._s+1)));return a+f*100*x._dur},0)/tw;
+ const tw=leaves.reduce((a,x)=>a+x._dur,0)||1;let pct=leaves.reduce((a,x)=>a+x._pc*x._dur,0)/tw;
+ let exp=leaves.reduce((a,x)=>{const f=x._s==null||x._e==null?0:Math.max(0,Math.min(1,(td-x._s+1)/Math.max(1,x._e-x._s+1)));return a+f*100*x._dur},0)/tw;
+ if(PR&&leaves.length&&!leaves.some(x=>x._ch)){pct=PR.a;exp=PR.ex}
  const ss=leaves.map(x=>x._s).filter(v=>v!=null),ee=leaves.map(x=>x._e).filter(v=>v!=null);
  const M={tasks:out,by,leaves,pct,exp,late:leaves.filter(x=>x._st=='late').length,done:leaves.filter(x=>x._st=='done').length,
   start:ss.length?Math.min.apply(0,ss):null,end:ee.length?Math.max.apply(0,ee):null,mine:leaves.filter(x=>x._me).length,mineLate:leaves.filter(x=>x._me&&x._st=='late').length};
@@ -330,7 +333,7 @@ async function loadHub(){
   else{const row=pick&&await sb.from('plans').select('id,code,status,version,archived,charter_id,created_by,data').eq('id',pid).single().then(x=>x.data,()=>null);
    if(row)PLR=Object.assign({},row,{restricted:false});else{const m=mp.find(x=>x.id==pid);if(m)PLR={id:m.id,code:m.code,status:'Approved',created_by:m.created_by,restricted:true,data:{pcode:m.pcode,pname:m.pname,sector:m.sector,pmname:m.pm,tasks:m.tasks}}}}}
  try{if(window.IDOHALT)await IDOHALT.load(sb,true)}catch(_){}
- M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id,window.IDOHALT?IDOHALT.day(PC||(PLR&&PLR.data&&PLR.data.pcode)||''):null);
+ M=planModel(PLR&&PLR.data&&PLR.data.tasks||[],me.id,window.IDOHALT?IDOHALT.day(PC||(PLR&&PLR.data&&PLR.data.pcode)||''):null,PLR&&PLR.data&&PLR.data.wmode);
  await prgLoad();
  if(!CH&&!PLR){$('app').innerHTML='<div class="card lock"><p>'+P(['المشروع غير موجود أو لا تملك صلاحية عرضه.','Project not found or you have no access.'])+'</p><a class="btn p" href="myprojects.html">'+P(['مشاريعي','My projects'])+'</a></div>';return}
 
@@ -517,7 +520,7 @@ async function load(){
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
  const [ch,pl,cr,cl,mp,lk]=await Promise.all([
   q('charters','id,code,status,archived,created_by,created_at,stage_at,pn:data->>pname,pm:data->>pmname,sp:data->>owner,sc:data->>sector,sd:data->>sdate,ed:data->>edate'),
-  q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,tasks:data->tasks'),
+  q('plans','id,code,status,version,archived,charter_id,created_by,pc:data->>pcode,act:data->>_active,wm:data->>wmode,tasks:data->tasks'),
   q('change_requests','id,code,status,archived,pc:data->>pcode'),q('closure_reports','id,code,status,archived,pc:data->>pcode'),
   sb.rpc('my_plans').then(r=>ddp(r.data),()=>[]),sb.rpc('my_links').then(r=>r.data||[],()=>[])]);
  LK=lk;try{const r=await sb.rpc('prog_values');(r.data||[]).forEach(x=>{if(x.pct!=null)PROGV[x.pcode]=+x.pct})}catch(_){}
@@ -529,7 +532,7 @@ async function load(){
  cr.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].crs.push(x)});cl.filter(x=>!x.archived).forEach(x=>{if(by[x.pc])by[x.pc].cls.push(x)});
  PJ=Object.values(by).map(enrich);draw()}
 function enrich(p){const live=p.pls,act=live.filter(x=>x.status=='Approved').sort((a,b)=>b.id-a.id)[0]||live.filter(x=>x.act=='true').sort((a,b)=>b.id-a.id)[0]||live.sort((a,b)=>b.id-a.id)[0]||null;
- const c0=p.ch;p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;{let tk=act&&act.tasks||[];/* ميثاق معتمد بلا خطة: المخطط من تاريخي الميثاق */if(!tk.length&&c0&&c0.status=='Approved'&&dn(c0.sd)!=null&&dn(c0.ed)!=null)tk=[{id:'__ch',n:P(['مدة المشروع حسب الميثاق','Project duration per charter']),s:c0.sd,e:c0.ed,pc:PROGV[p.code]||0,_ch:1}];p.M=planModel(tk,me.id,window.IDOHALT?IDOHALT.day(p.code):null)}
+ const c0=p.ch;p.pl=act;p.name=(p.ch&&p.ch.pn)||(act&&act.pn)||p.code;{let tk=act&&act.tasks||[];/* ميثاق معتمد بلا خطة: المخطط من تاريخي الميثاق */if(!tk.length&&c0&&c0.status=='Approved'&&dn(c0.sd)!=null&&dn(c0.ed)!=null)tk=[{id:'__ch',n:P(['مدة المشروع حسب الميثاق','Project duration per charter']),s:c0.sd,e:c0.ed,pc:PROGV[p.code]||0,_ch:1}];p.M=planModel(tk,me.id,window.IDOHALT?IDOHALT.day(p.code):null,act&&act.wm)}
  const r=[];const c=p.ch;if((c&&(c.created_by==me.id||c.pm==me.full_name))||(act&&act.created_by==me.id))r.push('pm');if(c&&c.sp&&c.sp==me.full_name)r.push('ow');if(p.M.mine)r.push('tk');
  if(LK.some(l=>l.kind=='follower'&&((l.svc=='charter'&&c&&l.id==c.id)||(l.svc=='plan'&&p.pls.some(x=>x.id==l.id)))))r.push('fl');
  if(LK.some(l=>l.kind=='participant'&&p.pls.some(x=>x.id==l.id)))r.push('pt');
