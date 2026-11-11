@@ -30,17 +30,17 @@ button{font:inherit;color:inherit}
 #grid{position:absolute;inset:-50%;opacity:.9;pointer-events:none;will-change:transform;
  background-image:linear-gradient(rgba(29,95,138,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(29,95,138,.06) 1px,transparent 1px),linear-gradient(rgba(29,95,138,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(29,95,138,.03) 1px,transparent 1px);
  background-size:240px 240px,240px 240px,48px 48px,48px 48px}
-#world{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;direction:ltr}
-.pn{position:absolute;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 24px 60px rgba(22,58,92,.18),0 0 0 1px rgba(22,58,92,.08);transition:opacity .7s ease,filter .7s ease;opacity:.35;filter:grayscale(.5)}
+#world{position:absolute;inset:0;direction:ltr;overflow:hidden}
+.pn{position:absolute;left:0;top:0;border-radius:16px;overflow:hidden;background:#fff;box-shadow:0 24px 60px rgba(22,58,92,.18),0 0 0 1px rgba(22,58,92,.08);transition:opacity .7s ease,filter .7s ease;opacity:.35;filter:grayscale(.5)}
 .pn.on{opacity:1;filter:none}
 .pn.near{opacity:.75;filter:none}
 .pn img{display:block;width:100%;height:100%;user-select:none;-webkit-user-drag:none}
 .pn.phone{border-radius:46px;box-shadow:0 0 0 12px #1b1d1f,0 0 0 13px #3a3f45,0 34px 80px rgba(22,58,92,.3)}
-#path{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
-#path .base{fill:none;stroke:rgba(29,95,138,.22);stroke-width:2;vector-effect:non-scaling-stroke;stroke-dasharray:2 10;stroke-linecap:round}
-#path .done{fill:none;stroke:var(--gold);stroke-width:3;vector-effect:non-scaling-stroke;stroke-linecap:round}
-#path .stop{fill:#fff;stroke:var(--gold);stroke-width:2;vector-effect:non-scaling-stroke}
-.cnum{position:absolute;font-family:var(--fnt);font-weight:800;color:rgba(29,95,138,.06);line-height:1;pointer-events:none;white-space:nowrap}
+#path{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#path .base{fill:none;stroke:rgba(29,95,138,.22);stroke-linecap:round}
+#path .done{fill:none;stroke:var(--gold);stroke-linecap:round}
+#path .stop{fill:#fff;stroke:var(--gold)}
+.cnum{position:absolute;left:0;top:0;font-family:var(--fnt);font-weight:800;color:rgba(29,95,138,.06);line-height:1;pointer-events:none;white-space:nowrap}
 
 /* spotlight + arrow live in screen space */
 #fx{position:fixed;inset:0;pointer-events:none;width:100%;height:100%}
@@ -259,30 +259,34 @@ function chapterBox(cid){const ids=order.filter(id=>chOf[id]==cid);if(!ids.lengt
 const world=$('world'),grid=$('grid'),pathSvg=$('path');
 let PANEL={};
 function buildWorld(){
- [...world.querySelectorAll('.pn,.cnum')].forEach(e=>e.remove());PANEL={};
+ [...world.querySelectorAll('.pn,.cnum')].forEach(e=>e.remove());PANEL={};ITEMS=[];
  CHB=layout();
  order.forEach(id=>{const p=POS[id],g=SC[id][LANG];const d=document.createElement('div');d.className='pn'+(SC[id].m?' phone':'');
   d.style.cssText=`left:${p.x}px;top:${p.y}px;width:${p.w}px;height:${p.h}px`;
-  const im=new Image();im.alt='';im.decoding='async';im.src=g.img;d.appendChild(im);world.appendChild(d);PANEL[id]=d});
+  d.style.cssText='';const im=new Image();im.alt='';im.decoding='async';im.src=g.img;d.appendChild(im);world.appendChild(d);PANEL[id]=d;ITEMS.push({el:d,x:p.x,y:p.y,w:p.w,h:p.h})});
  CH.forEach((c,i)=>{const b=chapterBox(c.id);if(!b)return;const e=document.createElement('div');e.className='cnum';e.textContent=String(i).padStart(2,'0');
-  e.style.cssText=`left:${(b.x+b.x1)/2-700}px;top:${b.y-1350}px;font-size:1500px;width:1400px;text-align:center`;world.insertBefore(e,world.firstChild)});
+  e.style.textAlign='center';world.insertBefore(e,world.firstChild);ITEMS.push({el:e,x:(b.x+b.x1)/2-700,y:b.y-1350,w:1400,h:1500,fs:1500})});
  // the journey line through every screen in story order
  const pts=order.map(id=>{const p=POS[id];return [p.x+p.w/2,p.y+p.h/2]});
  let d='';pts.forEach((q,i)=>{if(!i){d+=`M${q[0]} ${q[1]}`;return}const a=pts[i-1],mx=(a[0]+q[0])/2;d+=` C${mx} ${a[1]} ${mx} ${q[1]} ${q[0]} ${q[1]}`});
- const pad=4000;pathSvg.setAttribute('viewBox',`${WB.x0-pad} ${WB.y0-pad} ${WB.x1-WB.x0+2*pad} ${WB.y1-WB.y0+2*pad}`);
- pathSvg.style.cssText=`left:${WB.x0-pad}px;top:${WB.y0-pad}px;width:${WB.x1-WB.x0+2*pad}px;height:${WB.y1-WB.y0+2*pad}px`;
- pathSvg.innerHTML=`<path class="base" d="${d}"/><path class="done" id="pd" d="${d}"/>`+pts.map(q=>`<circle class="stop" cx="${q[0]}" cy="${q[1]}" r="9"/>`).join('');
- world.insertBefore(pathSvg,world.firstChild);
+ pathSvg.innerHTML=`<g id="pgp"><path class="base" d="${d}"/><path class="done" id="pd" d="${d}"/>`+pts.map(q=>`<circle class="stop" cx="${q[0]}" cy="${q[1]}" r="9"/>`).join('')+'</g>';
+ world.insertBefore(pathSvg,world.firstChild);PGP=$('pgp');
  const pd=$('pd');PL=pd.getTotalLength();pd.style.strokeDasharray=PL;pd.style.strokeDashoffset=PL;
  // length along the line to each screen
  SEG={};let acc=0;const tmp=document.createElementNS('http://www.w3.org/2000/svg','path');
  pts.forEach((q,i)=>{if(i){tmp.setAttribute('d',`M${pts[i-1][0]} ${pts[i-1][1]} C${(pts[i-1][0]+q[0])/2} ${pts[i-1][1]} ${(pts[i-1][0]+q[0])/2} ${q[1]} ${q[0]} ${q[1]}`);acc+=tmp.getTotalLength()}SEG[order[i]]=acc});
 }
-let PL=1,SEG={};
+let PL=1,SEG={},ITEMS=[],PGP=null;
 
 /* ───────── camera ───────── */
 let cam={x:0,y:0,w:4000};const VW=()=>innerWidth,VH=()=>innerHeight;
-function apply(c){const s=VW()/c.w,tx=VW()/2-c.x*s,ty=VH()/2-c.y*s;world.style.transform=`translate3d(${tx}px,${ty}px,0) scale(${s})`;
+function apply(c){const vw=VW(),vh=VH(),s=vw/c.w,tx=vw/2-c.x*s,ty=vh/2-c.y*s;
+ for(const it of ITEMS){const X=tx+it.x*s,Y=ty+it.y*s,W=it.w*s,H=it.h*s;const off=X>vw+50||Y>vh+50||X+W<-50||Y+H<-50;
+  if(off){if(it.el.style.display!='none')it.el.style.display='none';continue}if(it.el.style.display=='none')it.el.style.display='';
+  it.el.style.transform=`translate3d(${X}px,${Y}px,0)`;it.el.style.width=W+'px';it.el.style.height=H+'px';if(it.fs)it.el.style.fontSize=(it.fs*s)+'px'}
+ if(PGP){PGP.setAttribute('transform',`matrix(${s},0,0,${s},${tx},${ty})`);const k=1/s;
+  PGP.querySelectorAll('.base').forEach(e=>{e.style.strokeWidth=2*k;e.style.strokeDasharray=`${2*k} ${10*k}`});
+  PGP.querySelectorAll('.done').forEach(e=>e.style.strokeWidth=3.5*k);PGP.querySelectorAll('.stop').forEach(e=>{e.setAttribute('r',7*k);e.style.strokeWidth=2*k})}
  grid.style.transform=`translate3d(${(-c.x*s*0.12)%240}px,${(-c.y*s*0.12)%240}px,0)`;cam=c}
 function w2s(r,c){c=c||cam;const s=VW()/c.w;return {x:VW()/2+(r.x-c.x)*s,y:VH()/2+(r.y-c.y)*s,w:r.w*s,h:r.h*s}}
 function frameBox(b,opt){opt=opt||{};const vw=VW(),vh=VH(),mob=vw<760;
@@ -290,7 +294,7 @@ function frameBox(b,opt){opt=opt||{};const vw=VW(),vh=VH(),mob=vw<760;
  let s=Math.min(fw/b.w,fh/b.h);s=Math.min(s,opt.max||1.8);
  const yo=opt.yo!=null?opt.yo:vh*(mob?-.1:-.07); // leave the lower part of the screen for the caption
  return {x:b.x+b.w/2,y:b.y+b.h/2-yo/s,w:vw/s}}
-function targetBox(st){const p=POS[st.s],g=SC[st.s][LANG];if(!st.t)return {x:p.x,y:p.y,w:p.w,h:p.h};const r=g.t[st.t];if(!r)return {x:p.x,y:p.y,w:p.w,h:p.h};
+function targetBox(st){const p=POS[st.s],g=SC[st.s][LANG];if(!st.t)return {x:p.x,y:p.y,w:p.w,h:p.h};let r=g.t[st.t];if(r){const x0=Math.max(0,r.x),y0=Math.max(0,r.y),x1=Math.min(g.w,r.x+r.w),y1=Math.min(g.h,r.y+r.h);r=x1-x0>4&&y1-y0>4?{x:x0,y:y0,w:x1-x0,h:y1-y0}:null}if(!r)return {x:p.x,y:p.y,w:p.w,h:p.h};
  const pad=12;return {x:p.x+(r.x-pad)*p.sc,y:p.y+(r.y-pad)*p.sc,w:(r.w+2*pad)*p.sc,h:(r.h+2*pad)*p.sc}}
 function viewFor(st){
  if(st.title){if(st.ch=='open'||st.end)return frameBox({x:WB.x0,y:WB.y0,w:WB.x1-WB.x0,h:WB.y1-WB.y0},{fw:1.05,fh:1.1,yo:0});
