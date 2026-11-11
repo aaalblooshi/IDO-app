@@ -1790,7 +1790,7 @@ function issues(){const ts=T(),out=[],d=cr.data,lo=dn(d.sdate),hi=dn(d.edate);le
  lv.forEach(x=>{const a=dn(x.s),b=dn(x.e),w=M[x.id].w;
   if(!String(x.n||'').trim())out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckName')}`});
   if(isNaN(a)||isNaN(b))out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckDates')}`});else if(b<a)out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckOrder')}`});
-  if(!x.w&&!String(x.wn||'').trim())out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckWho')}`});
+  if(!x.w)out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckWho')}`});
   if(violated(x))out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckDep')}`});
   if(!isNaN(a)&&!isNaN(lo)&&!isNaN(hi)&&(a<lo||(!isNaN(b)&&b>hi)))out.push({e:0,id:x.id,m:`${w}: ${t('pl_ckRange')}`})});
  ts.filter(x=>!isLeaf(x)&&!String(x.n||'').trim()).forEach(x=>out.push({e:1,id:x.id,m:`${M[x.id].w}: ${t('pl_ckName')}`}));
@@ -1812,7 +1812,7 @@ function tableH(){const ts=T();if(!ts.length&&!PL.canEdit)return `<div class="mu
  return `<div class="ptab ${trk?'trk':''}">${hd}${visible().map(x=>rowH2(x)).join('')}</div>`}
 function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,sel=PL.sel==x.id,dis=ed?'':'disabled',adv=PL.adv;
  const afterCtl=!leaf?'<span class="mut">—</span>':(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select class="srch" data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>isLeaf(z)&&z.id!=x.id).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
- const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select>`;
+ const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>⚠ ${esc(x.wn)} (${lang=='ar'?'اختر من القائمة':'pick from the list'})</option>`:''}</select>`;
  const crit=CP.crit.has(x.id);
  return `<div class="pr d${m.d} ${sel?'sel':''} ${leaf?'':'sum'} ${crit?'crit':''}" data-id="${x.id}" onclick="rowClick(event,'${x.id}')">
   <div class="c-w" data-l="#">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span></div>
@@ -1982,7 +1982,7 @@ function sheetH(){if(!PL.ed)return '';const x=byId(PL.ed);if(!x)return '';const 
  <label>${t('pl_name')}</label><input id="sh_n" value="${esc(x.n)}" ${dis}>
  ${leaf?`<div class="g2"><div><label>${t('pl_start')}</label><input id="sh_s" type="date" value="${esc(x.s)}" ${dis}></div><div><label>${t('pl_end')}</label><input id="sh_e" type="date" value="${esc(x.e)}" ${dis}></div></div><label>${t('pl_durD')}</label><input id="sh_du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${dis} style="max-width:140px"><div class="mut" id="sh_d" style="margin-top:4px"></div>
  <label>${t('pl_typ')}</label><select id="sh_ty" ${dis} onchange="shTy()"><option value="n" ${!x.ms&&!(x.s&&x.s==x.e)?'selected':''}>${t('pl_tyN')}</option><option value="d" ${!x.ms&&x.s&&x.s==x.e?'selected':''}>${t('pl_tyD')}</option><option value="m" ${x.ms?'selected':''}>${t('pl_tyM')}</option></select><div class="mut" style="margin-top:3px">${t('pl_tyH')}</div>`:`<div class="mut" style="margin-top:6px">${t('pl_sumAuto')}: <b dir="ltr">${esc(x.s)} → ${esc(x.e)}</b> · ${ad(x.pc||0)}%</div>`}
- <label style="display:flex;align-items:center;gap:8px">${t('pl_who')}${ed&&me?`<button type="button" class="mebtn" onclick="const s=document.getElementById('sh_w');s.value='${me.id}';s.dispatchEvent(new Event('change'));const n=document.getElementById('sh_wn');if(n)n.value=''">⭐ ${lang=='ar'?'أنا المكلّف':'Assign me'}</button>`:''}</label><select class="srch" id="sh_w" ${dis}>${userOpts(x.w)}</select><input id="sh_wn" placeholder="${t('pl_whoOther')}" value="${esc(x.w?'':x.wn||'')}" ${dis} style="margin-top:4px">
+ <label style="display:flex;align-items:center;gap:8px">${t('pl_who')}${ed&&me?`<button type="button" class="mebtn" onclick="const s=document.getElementById('sh_w');s.value='${me.id}';s.dispatchEvent(new Event('change'));void 0">⭐ ${lang=='ar'?'أنا المكلّف':'Assign me'}</button>`:''}</label><select class="srch" id="sh_w" ${dis}>${userOpts(x.w)}</select>
  <label>${t('pl_after')}</label><div class="mut" style="margin:-2px 0 4px">${t('pl_afterH')}</div>${preds}${ed&&(adv||!(PL.shDeps||[]).length)?`<button class="sm" onclick="shAdd()">+ ${t('pl_addPred')}</button>`:''}
  ${trk&&leaf?`<div class="sec" style="margin-top:12px">${t('pl_track')}</div><div class="g2"><div><label>${t('pl_astart')}</label><input id="sh_as" type="date" value="${esc(x.as)}"></div><div><label>${t('pl_aend')}</label><input id="sh_ae" type="date" value="${esc(x.ae)}"></div></div><label>${t('pl_pct')} (0-100)</label><input id="sh_pc" inputmode="numeric" value="${x.pc||0}">`:''}
  <label>${t('pl_note')}</label><textarea id="sh_nt" rows="2" ${dis}>${esc(x.nt||'')}</textarea>
@@ -1995,7 +1995,7 @@ function shRead(){(PL.shDeps||[]).forEach((e,i)=>{const a=$('sd_t'+i);if(a){e.t=
 function shSub(){const id=PL.ed;shSave(true);PL.ed=null;addTask(id)}
 function shSave(keep){norm();const x=byId(PL.ed);if(!x)return;const ed=PL.canEdit,trk=PL.trk,leaf=isLeaf(x);snap();
  if(PL.rev&&$('sh_rn'))x.rn=$('sh_rn').value.trim();
- if(ed){x.n=$('sh_n').value.trim();const w=$('sh_w').value,wn=$('sh_wn').value.trim();x.w=w;x.wn=w?'':wn;x.nt=$('sh_nt').value;
+ if(ed){x.n=$('sh_n').value.trim();const w=$('sh_w').value;if(w!=='__n'){x.w=w;x.wn=''}x.nt=$('sh_nt').value;
   if(leaf){const s=$('sh_s').value,e=$('sh_e').value;const ty=$('sh_ty').value;x.ms=ty=='m'?1:0;if(ty!='n'){x.s=s?ds(nextWork(dn(s))):'';x.e=x.s}else{x.s=s?ds(nextWork(dn(s))):'';x.e=e?ds(prevWork(dn(e))):x.e;if(x.s&&x.e&&dn(x.e)<dn(x.s))x.e=x.s}
   }
   shRead();{const deps=(PL.shDeps||[]).filter(e=>e.t);const ok=[];for(const e of deps){if(reaches(x.id,e.t,succMap())){msg(t('pl_cycle'));continue}if(!ok.some(q=>q.t==e.t))ok.push(e)}x.dep=ok}}
@@ -2039,7 +2039,7 @@ function parseRows(rows){const errs=[],warns=[],tasks=[],byW={};let start=0;
   if(parts.length>5){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDepth')}`);continue}
   const x=blankTask(par,'','');x.n=String(r[1]).trim();if(!x.n)warns.push(`${w}: ${t('pl_ckName')}`);
   const s=parseDate(r[2]),e=parseDate(r[3]);if(s===null||e===null){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDate')}`);continue}x.s=s;x.e=e;
-  const who=String(r[4]).trim();if(who){const k=who.toLowerCase();if(uByName[k])x.w=uByName[k];else{x.wn=who;warns.push(`${w}: ${t('pl_xWho')} «${who}»`)}}
+  const who=String(r[4]).trim();if(who){const k=who.toLowerCase();if(uByName[k])x.w=uByName[k];else{warns.push(`${w}: ${t('pl_xWho')} «${who}»`)}}
   x.nt=String(r[6]||'').trim();const as=parseDate(r[7]),ae=parseDate(r[8]);if(as)x.as=as;if(ae)x.ae=ae;if(r[9]!==''&&!isNaN(+A2E(r[9])))x.pc=Math.max(0,Math.min(100,Math.round(+A2E(r[9]))));
   x.__w=w;byW[w]=x;tasks.push(x);pend.push([x,String(r[5]||''),ln])}
  const kids={};tasks.forEach(x=>{if(x.p)kids[x.p]=1});
@@ -2162,7 +2162,7 @@ function issues(){const ts=T(),out=[],d=cr.data,lo=dn(d.sdate),hi=dn(d.edate);
  lv.forEach(x=>{if(d.pmode=='agile'&&x.spr)return;const a=dn(x.s),b=dn(x.e),w=M[x.id].w;
   if(!String(x.n||'').trim())out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckName')}`});
   if(isNaN(a)||isNaN(b))out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckDates')}`});else if(b<a)out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckOrder')}`});
-  {let q=x,ok=false,g=0;while(q&&g++<10){if(q.w||String(q.wn||'').trim()){ok=true;break}q=M[q.id].par}if(!ok)out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckWho')}`})}
+  {let q=x,ok=false,g=0;while(q&&g++<10){if(q.w){ok=true;break}q=M[q.id].par}if(!ok)out.push({e:1,id:x.id,m:`${w}: ${t('pl_ckWho')}`})}
   if(violated(x))out.push({e:1,id:x.id,m:`${w}: ${x.fx?t('pl_ckFx'):t('pl_ckDep')}`});
   if(!isNaN(a)&&!isNaN(lo)&&!isNaN(hi)&&(a<lo||(!isNaN(b)&&b>hi)))out.push({e:0,id:x.id,m:`${w}: ${t('pl_ckRange')}`})});
  ts.filter(x=>!isLeaf(x)&&!String(x.n||'').trim()).forEach(x=>out.push({e:1,id:x.id,m:`${M[x.id].w}: ${t('pl_ckName')}`}));
@@ -2213,7 +2213,7 @@ document.addEventListener('pointerdown',ev=>{const h=ev.target.closest&&ev.targe
  const up=()=>{document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);ccSave()};document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up)},true);
 function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,sel=PL.sel==x.id,dis=ed?'':'disabled',adv=PL.adv,cu=cr.data.wmode=='cu',wt=cu||adv;
  const afterCtl=(adv?`<input data-pk="pred" value="${esc(predText(x))}" ${dis} placeholder="1.1, 2.3SS+2" dir="ltr">`:`<select class="srch" data-pk="after1" ${dis}><option value=""></option>${T().filter(z=>linkOK(x,z)).map(z=>`<option value="${z.id}" ${(x.dep||[])[0]&&x.dep[0].t==z.id?'selected':''}>${esc(M[z.id].w+' '+(z.n||''))}</option>`).join('')}</select>`);
- const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select>`;
+ const whoCtl=`<select class="srch" data-pk="w" ${dis}>${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>⚠ ${esc(x.wn)} (${lang=='ar'?'اختر من القائمة':'pick from the list'})</option>`:''}</select>`;
  const crit=CP.crit.has(x.id),hint=leaf?wkHint(x):'';
  const sum=`${esc(x.s||'—')} → ${esc(x.e||'—')}${leaf&&!isNaN(dn(x.s))&&!isNaN(dn(x.e))?' · '+ad(durOf(x))+' '+t('pl_days'):''}${whoName(x)?' · '+esc(whoName(x)):''}`;
  return `<div class="pr d${lvc(m.d)} ${sel?'sel':''} ${leaf?'':'sum'} ${crit?'crit':''}" data-id="${x.id}" onclick="rowClick(event,'${x.id}')">
@@ -2347,7 +2347,7 @@ function gCell(k,x,m,leaf,ed,wide){const dis=ed?'':'disabled',ld=(!ed||!leaf)?'d
  if(k=='s')return ed&&wide?`<div><input type="date" data-pk="s" value="${esc(x.s)}" ${ld}></div>`:`<div class="gct">${esc(x.s)}</div>`;
  if(k=='e')return ed&&wide?`<div><input type="date" data-pk="e" value="${esc(x.e)}" ${ld}></div>`:`<div class="gct">${esc(x.e)}</div>`;
  if(k=='d')return `<div><input data-pk="du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${ld}></div>`;
- if(k=='a')return ed?`<div><select class="srch" data-pk="w">${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>${esc(x.wn)}</option>`:''}</select></div>`:`<div class="gct" title="${esc(whoName(x))}">${esc(whoName(x))}</div>`;
+ if(k=='a')return ed?`<div><select class="srch" data-pk="w">${userOpts(x.w)}${!x.w&&x.wn?`<option value="__n" selected>⚠ ${esc(x.wn)} (${lang=='ar'?'اختر من القائمة':'pick from the list'})</option>`:''}</select></div>`:`<div class="gct" title="${esc(whoName(x))}">${esc(whoName(x))}</div>`;
  if(k=='wt'){const cu=cr.data.wmode=='cu';return `<div><input data-pk="wt" inputmode="decimal" value="${cu?(x.wt==null?'':x.wt):Math.round((m.pw||0)*10)/10}" ${dis} title="${t('pl_wTip')}"></div>`}
  if(k=='p')return ed?`<div><input data-pk="pred" value="${esc(predText(x))}" placeholder="1.1, 2.3SS+2" dir="ltr"></div>`:`<div class="gct" dir="ltr">${esc(predText(x))}</div>`;
  if(k=='pc')return `<div><input data-pk="pc" inputmode="numeric" value="${x.pc||0}" ${leaf&&(PL.trk||ed)?'':'disabled'}></div>`;
@@ -4416,7 +4416,7 @@ const DU=[
  [['الدراسات والبحوث','Studies & research'],[[['مراجعة الأدبيات','Literature review'],15,'10–20'],[['تصميم أدوات جمع البيانات','Data instruments'],7,'5–10'],[['جمع البيانات الميدانية','Field data collection'],20,'15–30'],[['تحليل البيانات','Data analysis'],12,'10–15'],[['كتابة التقرير','Report writing'],20,'15–25']]],
  [['الموارد البشرية والتدريب','HR & training'],[[['استقطاب موظف جديد','Recruit a new hire'],45,'30–60'],[['انتداب داخلي','Internal secondment'],10,'5–15'],[['إعداد مادة تدريبية','Training material'],7,'5–10'],[['تنفيذ دورة تدريبية','Run a course'],3,'1–5']]]];
 function issues(){const ts=cr.data.tasks||[];const kids=id=>ts.filter(x=>x.p==id),lf=ts.filter(x=>!kids(x.id).length),tops=ts.filter(x=>!x.p&&kids(x.id).length);const out=[];
- const noW=lf.filter(x=>!x.w&&!x.wn&&!x.fx).length,noD=lf.filter(x=>!x.s||!x.e).length,long=lf.filter(x=>{try{return !x.fx&&wdays(dn(x.s),dn(x.e))>20}catch(_){return false}}).length,msN=lf.filter(x=>x.ms||x.fx||(x.s&&x.s==x.e)).length,dep=lf.filter(x=>(x.dep||[]).length).length,sp=planSpan(),en=dn(cr.data.edate),st=dn(cr.data.sdate);
+ const noW=lf.filter(x=>!x.w&&!x.fx).length,noD=lf.filter(x=>!x.s||!x.e).length,long=lf.filter(x=>{try{return !x.fx&&wdays(dn(x.s),dn(x.e))>20}catch(_){return false}}).length,msN=lf.filter(x=>x.ms||x.fx||(x.s&&x.s==x.e)).length,dep=lf.filter(x=>(x.dep||[]).length).length,sp=planSpan(),en=dn(cr.data.edate),st=dn(cr.data.sdate);
  if(!ts.length)out.push(['📭',L('الخطة فارغة. ابدأ من «النماذج» أو «مساعد التخطيط».','The plan is empty. Start from Templates or the Wizard.'),'']);
  if(sp&&!isNaN(en)&&sp[1]>en)out.push(['🏁',L('الخطة تنتهي ('+fmtL(sp[1])+') بعد نهاية الميثاق ('+fmtL(en)+').','The plan ends after the charter end.'),'']);
  if(sp&&!isNaN(st)&&sp[0]<st)out.push(['▶',L('الخطة تبدأ ('+fmtL(sp[0])+') قبل بداية الميثاق ('+fmtL(st)+').','The plan starts before the charter start.'),'fxstart']);
