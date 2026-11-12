@@ -64,7 +64,7 @@ textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);b
 label.btnl{display:inline-flex;align-items:center;gap:4px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 14px;cursor:pointer;margin:0;font-size:13.5px}
 .tw{overflow-x:auto;margin-top:8px}.ft{border-collapse:collapse;font-size:13px;min-width:1400px;width:100%}.ft th{position:sticky;top:0;background:#faf8f3;font-size:12px;color:var(--mut);text-align:start;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.ft td{padding:7px 8px;border-bottom:1px solid #f0ece2;vertical-align:top}.ft td.w{min-width:170px;max-width:260px}.ft td .mut{display:block;font-size:12px}.ft tbody tr{cursor:pointer}.ft tbody tr:hover{background:#fbfaf6}.sc.sm{width:30px;height:26px;font-size:13px;border-radius:7px}
 .tkl{display:flex;align-items:center;gap:8px;font-size:12.5px;margin-top:6px;background:#f4f8fc;border-radius:8px;padding:5px 8px;color:#1f4e8c}.tkl span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tkl .tb{display:block;width:70px;height:5px;background:#dfe7f0;border-radius:9px;overflow:hidden}.tkl .tb b{display:block;height:100%;background:#1f6fb2}.tkl em{font-style:normal;font-weight:800}
-.g2a{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;align-items:start}@media(max-width:820px){.g2a{grid-template-columns:1fr}}
+.g2a{display:grid;grid-template-columns:1.3fr 1fr;gap:14px;align-items:start}.g2a>*{min-width:0}@media(max-width:820px){.g2a{grid-template-columns:1fr}}
 .att{border-color:#eadfc4;background:#fffcf4}.att.ok{background:#f3faf5;border-color:#cfe6d6}
 .ai{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:9px 0;border-top:1px solid #eee3c9;cursor:pointer}.ai .rct{min-width:180px}.aib{display:flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}.aib button.p{padding:4px 10px}
 .tl{display:flex;gap:10px;padding:7px 0;border-top:1px solid #f0ede6;font-size:13.5px}.tld{width:9px;height:9px;border-radius:50%;background:#1d5f8a;margin-top:6px;flex:none}
@@ -295,7 +295,7 @@ async function quick(id,data,label){const r0=R.find(x=>x.id==id);if(!r0)return;c
  const r=await sb.rpc('risk_propose',{p_pcode:pc,p_risk:id,p_op:'update',p_data:data,p_note:label||null});if(r.error)return toast(t('err')+r.error.message);
  toast(r.data&&r.data.applied?t('saved'):P(['أُرسل لاعتماد مكتب التطوير','Sent to the office for approval']));if(PC)await loadP();else await loadOv();draw()}
 function vwBtns(){return '<span class="seg2"><button class="'+(VW=='cards'?'on':'')+'" onclick="setVw(\'cards\')">▦ '+P(['بطاقات','Cards'])+'</button><button class="'+(VW=='table'?'on':'')+'" onclick="setVw(\'table\')">📋 '+P(['السجل الكامل','Full register'])+'</button></span>'
- +'<button onclick="xlOut()" title="'+P(['تنزيل السجل في Excel','Download the register to Excel'])+'">⬇ Excel</button>'
+ +'<button onclick="IDOAUD.open(\'risk\',\''+(PC||'')+'\')">🧾 '+P(['سجل التدقيق','Audit trail'])+'</button>'+'<button onclick="xlOut()" title="'+P(['تنزيل السجل في Excel','Download the register to Excel'])+'">⬇ Excel</button>'
  +'<label class="btnl" title="'+P(['رفع ملف Excel محدّث (نفس أعمدة التنزيل)','Upload an updated Excel (same columns as the download)'])+'">⬆ '+P(['رفع Excel','Upload Excel'])+'<input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="xlIn(this)"></label>'}
 function setVw(v){VW=v;try{localStorage.setItem('rk_vw',v)}catch(_){}draw()}
 const PNM=pc=>{const o=(OV||[]).find(x=>x.pcode==pc);return o?o.pname:(pc==PC?PN:pc)};
@@ -561,4 +561,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=25"></script></body></html>
+<script src="hub.js?v=1"></script><script src="ovx.js?v=1"></script><script src="ido-ui.js?v=25"></script></body></html>

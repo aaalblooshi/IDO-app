@@ -1,0 +1,14 @@
+/* hub.js v1 — one navigation strip between My projects, KPIs, risks, budgets and the portfolio */
+(function(){if(window.top!==window.self||window.__hub)return;window.__hub=1;
+var f=(location.pathname.split('/').pop()||'').replace('.html',''),q=new URLSearchParams(location.search),pc=q.get('pc')||'';
+var ar=function(){return (document.documentElement.lang||'ar')=='ar'};
+var st=document.createElement('style');st.textContent='.hubn{max-width:1100px;margin:10px auto 0;width:calc(100% - 28px);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}.hubn::-webkit-scrollbar{display:none}.hubn a{flex:none;display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:99px;border:1px solid #dcd6c8;background:#fff;color:#23272b;font-weight:700;font-size:13.5px;text-decoration:none;white-space:nowrap}.hubn a.on{background:#1d5f8a;border-color:#1d5f8a;color:#fff}.hubn a:hover{border-color:#1d5f8a}.hubn .hp{background:#f3efe4;border-color:#e6dcc4;font-weight:800;color:#6b4e0f}.hubn i{width:1px;background:#dcd6c8;flex:none;margin:4px 2px}@media print{.hubn{display:none}}';document.head.appendChild(st);
+function L(){var A=ar();
+ if(pc){var e=encodeURIComponent(pc);return [['hp','📁 '+(A?'المشروع':'Project')+' · '+pc,'myprojects.html?pc='+e,'myprojects'],['','📈 '+(A?'المؤشرات':'KPIs'),'kpis.html?pc='+e,'kpis'],['','🛡️ '+(A?'المخاطر':'Risks'),'risks.html?pc='+e,'risks'],['','💰 '+(A?'الموازنة':'Budget'),'budget.html?pc='+e,'budget'],['','🗓 '+(A?'الخطة':'Plan'),'myprojects.html?pc='+e+'#plan','plan'],['sep'],['','↩ '+(A?'كل المشاريع':'All projects'),f=='myprojects'?'myprojects.html':f+'.html','all']]}
+ return [['','🗃 '+(A?'مشاريعي':'My projects'),'myprojects.html','myprojects'],['','📈 '+(A?'مؤشرات المشاريع':'Project KPIs'),'kpis.html','kpis'],['','🛡️ '+(A?'مخاطر المشاريع':'Project risks'),'risks.html','risks'],['','💰 '+(A?'الموازنات':'Budgets'),'budget.html','budget'],['','📊 '+(A?'المحفظة':'Portfolio'),'portfolio.html','portfolio']]}
+function build(){var m=document.querySelector('main');if(!m)return;var h=document.getElementById('hubn');if(!h){h=document.createElement('nav');h.id='hubn';h.className='hubn'}
+ h.innerHTML=L().map(function(x){if(x[0]=='sep')return '<i></i>';var on=x[3]==f&&!(x[3]=='myprojects'&&pc&&location.hash=='#plan');return '<a class="'+(x[0]=='hp'?'hp ':'')+(on?'on':'')+'" href="'+x[2]+'">'+x[1]+'</a>'}).join('');
+ if(h.nextSibling!==m)m.parentNode.insertBefore(h,m);var o=h.querySelector('.on');if(o&&o.scrollIntoView)try{o.scrollIntoView({inline:'nearest',block:'nearest'})}catch(_){}}
+document.addEventListener('DOMContentLoaded',function(){setTimeout(build,0)});window.addEventListener('load',build);if(document.readyState!='loading')setTimeout(build,0);
+new MutationObserver(function(){build()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+})();

@@ -297,7 +297,7 @@ async function ctlSave(key,mode){const v=id=>($(id)||{}).value||'';let patch={};
  await oaSave(key,patch);mclose();toast(P('تم الحفظ','Saved'));rebuild();draw()}catch(e){toast(String((e&&e.message)||e))}}
 
 /* ====== العرض ====== */
-const TABS=[['room','المطلوب الآن','Needs action'],['quick','إجراءات سريعة','Quick actions'],['tools','كل الأدوات','All tools'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['lad','التصعيد التلقائي','Auto-escalation'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
+const TABS=[['room','المطلوب الآن','Needs action'],['gov','📊 المؤشرات والموازنات والمخاطر','KPIs, budgets & risks'],['quick','إجراءات سريعة','Quick actions'],['tools','كل الأدوات','All tools'],['flow','دورة المشاريع','Project lifecycle'],['ovr','التجاوزات','Overrides'],['appr','المعتمِدون','Approvers'],['lad','التصعيد التلقائي','Auto-escalation'],['chk','فحوصات السلامة','Health checks'],['aud','التدقيق','Audit watch'],['acc','الصلاحيات','Access review'],['wk','ملخص أسبوعي','Weekly summary']];
 const bar=(n,mx,c)=>`<i class="bb"><u style="width:${mx?Math.max(3,Math.round(100*n/mx)):0}%;background:${c||'#2a6a90'}"></u></i>`;
 const ex=(arr,fx,n)=>{n=n||6;if(!arr.length)return '';return arr.slice(0,n).map(fx).join('<br>')+(arr.length>n?`<span class="dqm" hidden><br>${arr.slice(n).map(fx).join('<br>')}</span><div style="margin-top:4px"><a href="#" class="dqt" data-n="${arr.length}" data-a="${P('عرض الكل','Show all')}" data-b="${P('عرض أقل','Show less')}" onclick="return dqT(this)">${P('عرض الكل','Show all')} (${arr.length}) ▾</a></div>`:'')};
 function dqT(a){const m=a.parentNode.previousElementSibling;if(!m)return false;const o=m.hidden;m.hidden=!o;a.textContent=o?a.dataset.b+' ▴':a.dataset.a+' ('+a.dataset.n+') ▾';return false}
@@ -618,10 +618,11 @@ document.addEventListener('click',function(e){const a=e.target.closest&&e.target
  if(!h||h.charAt(0)=='#'||/^(javascript|mailto|tel):/i.test(h)||a.target=='_top')return;e.preventDefault();e.stopPropagation();
  const tt=(a.querySelector('b')||a).textContent.trim().slice(0,40);openPg(h,tt.length>2?tt:'')},true);
 let TABSL=0;
+function vGov(){setTimeout(()=>{const e=$('govb');if(e&&window.IDOOV&&!e.dataset.r){e.dataset.r=1;IDOOV.render(e,'control')}},0);return '<div id="govb"></div>'}
 function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));const lb=$('lb');if(lb)lb.textContent=A()?'EN':'ع';
  const tb0=a.querySelector('.tabs');if(tb0)TABSL=tb0.scrollLeft;
  const isPg=TAB.indexOf('pg:')==0,cur=isPg?PGS.find(x=>'pg:'+x.n==TAB):null;if(isPg&&!cur)TAB='room';
- const V={quick:vQuick,tools:vTools,room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
+ const V={gov:vGov,quick:vQuick,tools:vTools,room:vRoom,flow:vFlow,ovr:vOvr,appr:vAppr,lad:vLad,chk:vChk,aud:vAud,acc:vAcc,wk:vWk}[TAB]||vRoom;
  const op=ITEMS.filter(vis).length,bad=CHECKS.filter(c=>c.bad.length).length;
  let body='';if(!cur){try{body=V()}catch(e){body='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>';console.error(e)}}
  const pgT=PGS.map(x=>`<span class="ptb ${TAB=='pg:'+x.n?'on':''}"><button type="button" onclick="TAB='pg:${x.n}';draw()">📄 ${esc(x.title)}</button><button type="button" class="px" title="${P('إغلاق','Close')}" onclick="closePg(${x.n})">✕</button></span>`).join('');
@@ -895,4 +896,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=25"></script></body></html>
+<script src="ovx.js?v=1"></script><script src="ido-ui.js?v=25"></script></body></html>
