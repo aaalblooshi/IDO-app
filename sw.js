@@ -1,7 +1,6 @@
-// IDO service worker v3 — fast navigation:
-// pages open instantly from the device copy, then are refreshed from the network in the background.
-// If a newer version was downloaded, open pages get a message and show «تحديث جديد متاح».
-var HC = 'ido-html-v3', AC = 'ido-asset-v3' /* r2 */, KEEP = [HC, AC];
+// IDO service worker v4 — pages come from the network first (new versions show on the first open),
+// falling back to the saved copy when the network is slow or offline.
+var HC = 'ido-html-v4', AC = 'ido-asset-v3' /* r2 */, KEEP = [HC, AC];
 var PRE = ['index.html', 'tasks.html', 'inbox.html', 'myprojects.html', 'chat.html', 'charter.html', 'plan.html', 'cr.html', 'closure.html', 'account.html'];
 var OFF = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>غير متصل</title></head><body style="font-family:system-ui,sans-serif;background:#f5f3ee;color:#23272b;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;margin:0"><div style="padding:24px"><div style="font-size:48px">📡</div><h2>لا يوجد اتصال بالإنترنت</h2><p>تأكد من الاتصال ثم أعد المحاولة.</p><button onclick="location.reload()" style="background:#0a6b3d;color:#fff;border:0;border-radius:10px;padding:12px 24px;font-size:16px">إعادة المحاولة</button></div></body></html>';
 
@@ -54,26 +53,22 @@ self.addEventListener('fetch', function (e) {
   if (r.method !== 'GET') return;
   var url = new URL(r.url);
 
-  // 1) page navigations (same origin): stale-while-revalidate
+  // 1) page navigations (same origin): network first, so a new version shows on the first open;
+  //    if the network is slow (over 2.5 s) or offline, the saved copy opens instead and is refreshed in the background
   if (r.mode === 'navigate' && url.origin === self.location.origin) {
     var key = pageKey(r.url);
     e.respondWith(caches.open(HC).then(function (c) {
-      return c.match(key).then(function (hit) {
-        var oldText = hit ? hit.clone().text() : null;
-        var cleared = hit ? c.delete(key + '?__upd').catch(function () {}) : Promise.resolve();
-        var net = fresh(r.url).then(function (res) {
-          if (res && res.ok && res.type === 'basic' && !res.redirected) {
-            var copy = res.clone();
-            if (hit) {
-              Promise.all([oldText, res.clone().text()]).then(function (t) {
-                c.put(key, copy).then(function () { if (t[0] !== t[1]) return cleared.then(function () { return c.put(key + '?__upd', new Response('1')); }).then(function () { tell({ t: 'ido-new', page: key }); refreshAll(c, key); }); });
-              }).catch(function () { c.put(key, copy); });
-            } else c.put(key, copy);
-          }
-          return res;
+      var net = fresh(r.url).then(function (res) {
+        if (res && res.ok && res.type === 'basic' && !res.redirected) { var copy = res.clone(); c.put(key, copy).then(function () { refreshAll(c, key); }); }
+        return res;
+      });
+      var slow = new Promise(function (ok) { setTimeout(function () { ok(null); }, 2500); });
+      return Promise.race([net.catch(function () { return null; }), slow]).then(function (res) {
+        if (res) return res;
+        return c.match(key).then(function (hit) {
+          if (hit) { e.waitUntil(net.catch(function () {})); return hit; }
+          return net.catch(function () { return new Response(OFF, { headers: { 'Content-Type': 'text/html;charset=utf-8' } }); });
         });
-        if (hit) { e.waitUntil(net.catch(function () {})); return hit; }
-        return net.catch(function () { return new Response(OFF, { headers: { 'Content-Type': 'text/html;charset=utf-8' } }); });
       });
     }));
     return;
