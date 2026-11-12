@@ -183,6 +183,7 @@ async function boot(){
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['off.weights']);if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
+ try{const OFFR=p.role_key=='admin';let rk=[p.role_key||'user'];try{const ur=await sb.from('user_roles').select('role_key').eq('user_id',p.id);(ur.data||[]).forEach(x=>rk.push(x.role_key))}catch(_){}if(!ADM&&!OFFR&&!rk.includes('admin')){const {data:pf}=await sb.from('app_settings').select('value').eq('key','pf_tabs').maybeSingle();const C=pf&&pf.value?JSON.parse(pf.value):null;if(C){const L=rk.filter(r=>Array.isArray(C[r]));if(L.length){window.PFT=new Set(L.flatMap(r=>C[r]))}}}}catch(_){}
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
  try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
  try{await start()}catch(er){window.PFERR=(window.PFERR||[]).concat('start: '+String(er&&er.message||er));try{draw()}catch(_){}}}
@@ -264,7 +265,7 @@ function draw(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const secs=[...new Set(PL.map(p=>p.sc))].sort((a,b)=>a-b);
  const tab=(k)=>`<button class="${TAB==k?'on':''}" onclick="TAB='${k}';try{localStorage.setItem('pfTab','${k}')}catch(_){};draw()">${t('t'+k[0].toUpperCase()+k.slice(1))}</button>`;
- const TK=['exe','sum','tree','wbs','gantt','net'].concat(XPLC?['xpl']:[]).concat(['trd','fil']).concat(RECC?['rec']:[]).concat(['rep','kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);if(!TK.includes(TAB)&&TAB!='drill')TAB=TK[0];
+ const TK=['exe','sum','tree','wbs','gantt','net'].concat(XPLC?['xpl']:[]).concat(['trd','fil']).concat(RECC?['rec']:[]).concat(['rep','kan','pln','goal']).concat(ADM?['att','deg','lag','otd','rmap','dq','wts']:[]);if(window.PFT){const f=TK.filter(k=>window.PFT.has(k));TK.length=0;(f.length?f:['exe']).forEach(k=>TK.push(k))}if(!TK.includes(TAB)&&TAB!='drill')TAB=TK[0];const _tsx=(document.querySelector('.sb .tabs')||{}).scrollLeft;requestAnimationFrame(()=>{const tb=document.querySelector('.sb .tabs');if(!tb)return;if(_tsx!=null)tb.scrollLeft=_tsx;const o=tb.querySelector('.on');if(o){const r=o.getBoundingClientRect(),q=tb.getBoundingClientRect();if(r.left<q.left||r.right>q.right)o.scrollIntoView({block:'nearest',inline:'nearest'})}});
  const fAct=(FS?1:0)+(FP?1:0)+(FM?1:0);
  $('app').innerHTML=`<div class="sb noprint"><div class="tabs">${TK.map(tab).join('')}</div>
  <div class="vbar"><select class="vsel" id="vsel" aria-label="view">${TK.map(k=>`<option value="${k}" ${TAB==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select><button class="fbt ${fAct?'on':''}" id="fbt" type="button">⚙ ${lang=='ar'?'تصفية':'Filter'}${fAct?' ('+fAct+')':''}</button></div>
@@ -1460,4 +1461,4 @@ async function xpPlans(which){const AR_=lang=='ar';if(!XPLC)return;
  const d=new Date(),ds_=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
  XLSX.writeFile(wb,(sel.length>1?'plans_all_':'plan_'+sel[0].k+'_')+ds_+'.xlsx')}
 </script>
-<script src="netdiag.js?v=5"></script><script src="ido-ui.js?v=25"></script></body></html>
+<script src="netdiag.js?v=5"></script><script src="ido-ui.js?v=25"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style></body></html>
