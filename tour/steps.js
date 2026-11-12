@@ -88,7 +88,7 @@ window.STEPS=[
  // ── chapter 5: talk
  {ch:'talk',title:1,c:['التواصل والرأي','Talk and feedback'],d:['النقاش داخل المشروع نفسه','Conversations inside the project itself'],n:[]},
  {ch:'talk',s:'chat_open',c:['محادثة لكل مشروع','A chat per project'],d:['وفريق المشروع ينضم تلقائيًا','The project team joins automatically'],n:[]},
- {ch:'talk',s:'chat_open',t:'rail',c:['المشاريع والزملاء','Projects and colleagues'],d:['غير المقروءة أولًا','Unread first'],n:[]},
+ {ch:'talk',s:'chat_open',t:'rail',c:['المشاريع وشركاء النجاح','Projects and partners in success'],d:['غير المقروءة أولًا','Unread first'],n:[]},
  {ch:'talk',s:'chat_open',t:'mic',a:1,c:['رسالة صوتية','Voice message'],d:['اضغط مطولًا للتسجيل… واسحب للتثبيت','Hold to record… slide to lock'],n:['يمكن الاستماع للتسجيل قبل إرساله.','You can listen before sending.']},
  {ch:'talk',s:'ratings',c:['رأيك يصنع الفرق','Your feedback matters'],d:['تقييم بعد كل خدمة','A rating after each service'],n:[]},
  {ch:'talk',s:'ratings',t:'kpis',c:['مؤشر الرضا','Satisfaction index'],d:['كل نجمة = 20% · المحايد لا يُحتسب','Each star = 20% · neutral not counted'],n:[]},

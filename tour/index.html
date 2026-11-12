@@ -54,9 +54,9 @@ button{font:inherit;color:inherit}
 #cap{position:fixed;inset-inline-start:clamp(16px,5vw,72px);bottom:clamp(58px,9vh,96px);max-width:min(620px,calc(100vw - 32px));pointer-events:none;z-index:5;color:#fff}
 #cap.top{bottom:auto;top:clamp(24px,6vh,64px)}
 #cap .k{font-size:14px;color:#ffe7b0;font-weight:700;margin-bottom:2px;min-height:1.2em}
-#cap h2{margin:0;font-weight:800;font-size:clamp(24px,3.6vw,46px);line-height:1.2;text-wrap:balance}
-#cap p{margin:.35em 0 0;font-size:clamp(15px,1.5vw,19px);line-height:1.6;color:#eaf4fb;text-wrap:pretty}
-#cap .w{display:inline-block;opacity:0;transform:translateY(.45em);filter:blur(5px);transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1),filter .55s}
+#cap h2{margin:0;font-weight:800;font-size:clamp(24px,3.6vw,46px);line-height:1.2;text-wrap:wrap}
+#cap p{margin:.35em 0 0;font-size:clamp(15px,1.5vw,19px);line-height:1.6;color:#eaf4fb;text-wrap:wrap}
+#cap .w{display:inline-block;will-change:transform,opacity;opacity:0;transform:translateY(.45em);filter:blur(5px);transition:opacity .55s cubic-bezier(.2,.7,.2,1),transform .55s cubic-bezier(.2,.7,.2,1),filter .55s}
 #cap.in .w{opacity:1;transform:none;filter:none}
 #cap .plate{position:absolute;inset:-18px -26px;border-radius:22px;background:radial-gradient(circle at 0 0,rgba(255,255,255,.14) 0,rgba(255,255,255,.14) 120px,transparent 121px),var(--ban);box-shadow:0 14px 34px rgba(29,95,138,.32);z-index:-1;opacity:0;transform:scale(.96);transition:opacity .4s,transform .5s cubic-bezier(.2,.7,.2,1)}
 html[dir=ltr] #cap .plate{background:radial-gradient(circle at 100% 0,rgba(255,255,255,.14) 0,rgba(255,255,255,.14) 120px,transparent 121px),var(--ban)}
