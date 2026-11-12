@@ -17,7 +17,7 @@ window.STEPS=[
 
  // ── chapter 1: glance
  {ch:'glance',title:1,c:['النظام بنظرة','The system at a glance'],d:['على الهاتف وعلى جهازك المكتبي','On your phone and on your desktop'],n:['نبدأ بجولة سريعة في الواجهة الرئيسية.','We start with a quick tour of the main screen.']},
- {ch:'glance',s:'phone',c:['في جيبك','In your pocket'],d:['ثبّت البوابة على الهاتف كتطبيق','Install the portal on your phone as an app'],n:['من Safari: مشاركة ← إضافة إلى الشاشة الرئيسية. تفتح كتطبيق كامل الشاشة.','From Safari: Share → Add to Home Screen. It opens full screen like an app.']},
+ {ch:'glance',s:'phone',c:['دائمًا معك','Always with you'],d:['ثبّت البوابة على الهاتف كتطبيق','Install the portal on your phone as an app'],n:['من Safari: مشاركة ← إضافة إلى الشاشة الرئيسية. تفتح كتطبيق كامل الشاشة.','From Safari: Share → Add to Home Screen. It opens full screen like an app.']},
  {ch:'glance',s:'phone',t:'nav',a:1,c:['كل شيء على بُعد لمسة','Everything one tap away'],d:['الرئيسية · مهامي · الإشعارات · مشاريعي · المحفظة','Home · My tasks · Notifications · My projects · Portfolio'],n:['الشريط السفلي ثابت في كل الصفحات. الرقم الأحمر على «مهامي» = المهام المتأخرة.','The bottom bar stays on every page. The red number on “My tasks” counts late tasks.']},
  {ch:'glance',s:'phone',t:'create',a:1,c:['إنشاء جديد','Create new'],d:['ميثاق · خطة · طلب تغيير · تقرير ختامي','Charter · plan · change request · closure report'],n:['زر واحد لبدء أي خدمة.','One button to start any service.']},
  {ch:'glance',s:'phone',t:'chat',a:1,c:['التواصل','Chat'],d:['محادثة كل مشروع، والزملاء مباشرة','Every project’s chat, and colleagues directly'],n:['الرقم على الفقاعة = رسائل غير مقروءة.','The number on the bubble = unread messages.']},
