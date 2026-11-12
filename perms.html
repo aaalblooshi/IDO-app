@@ -411,7 +411,7 @@ function pvBody(u){const E=PVD.e,C=E.caps||{},adm=E.admin;const v=k=>adm?(KL[k].
 
 /* --- السجل --- */
 async function loadLog(){try{const r=await sb.from('perm_audit').select('*').order('id',{ascending:false}).limit(300);if(r.error)throw r.error;LOG=r.data||[]}catch(e){LOG=[];err(e)}if(TAB=='log')draw()}
-const KN={access:P('مشاريع وسرية','Projects & secrecy'),user:P('مستخدم','User'),scope:P('وحدة ونطاق','Unit & scope'),role:P('دور','Role'),role_del:P('حذف دور','Role deleted'),group:P('مجموعة','Group'),setting:P('إعداد','Setting'),revert:P('تراجع','Undo')};
+const KN={access:P('مشاريع وسرية','Projects & secrecy'),user:P('مستخدم','User'),scope:P('وحدة ونطاق','Unit & scope'),role:P('دور','Role'),role_del:P('حذف دور','Role deleted'),group:P('مجموعة','Group'),setting:P('إعداد','Setting'),revert:P('تراجع','Undo'),expire:P('انتهاء صلاحية','Expired')};
 const SF={org_sector:P('القطاع','Sector'),org_dept:P('الإدارة','Dept'),org_section:P('القسم','Section'),view_scope:P('نطاق المركز','Centre scope'),view_units:P('وحدات إضافية','Extra units'),head_units:P('مسؤول عن','Head of'),scope_perf:P('متابعة الأداء','Performance'),scope_complete:P('تحديث الإنجاز','Progress updates'),perf_scope:P('نطاق الأداء','Perf scope'),view_sectors:P('قطاعات','Sectors'),perf_sectors:P('قطاعات الأداء','Perf sectors'),perf_depts:P('إدارات الأداء','Perf depts')};
 const J=x=>JSON.stringify(x==null?null:x);
 function diff(e){const b=e.before||{},a=e.after||{},o=[];const add=(c,s)=>o.push(`<div class="${c}">${s}</div>`);
@@ -430,7 +430,7 @@ function diff(e){const b=e.before||{},a=e.after||{},o=[];const add=(c,s)=>o.push
 function vLog(){if(!LOG)return `<div class="mut">${P('جارٍ التحميل…','Loading…')}</div>`;
  return `<div class="card"><h2>${P('سجل تغييرات الصلاحيات','Permission change history')}<small>${P('كل تعديل على الأدوار والمستخدمين والمجموعات والإعدادات، مع إمكانية التراجع.','Every change, with undo.')}</small></h2>
  ${LOG.map(e=>`<div class="lg ${e.reverted_at?'rv':''}"><div class="ih2"><span class="ch2 ${e.kind=='revert'?'y':e.kind=='role_del'?'r':'b'}">${KN[e.kind]||e.kind}</span><b>${esc(e.target_name||e.target||'')}</b><span class="mut">${fdtm(e.at)} · ${esc(e.actor_name||'')}${e.summary&&!['edit','new','scope','bulk','delete'].includes(e.summary)?' · '+esc(e.summary):''}</span>
- ${e.reverted_at?`<span class="ch2">${P('تم التراجع','Undone')}</span>`:e.kind!='revert'?`<button style="margin-inline-start:auto;padding:3px 12px;font-size:12.5px" onclick="revert(${e.id})">↶ ${P('تراجع','Undo')}</button>`:''}</div><div class="df">${diff(e)}</div></div>`).join('')||`<div class="mut">${P('لا تغييرات بعد.','No changes yet.')}</div>`}</div>`}
+ ${e.reverted_at?`<span class="ch2">${P('تم التراجع','Undone')}</span>`:e.kind!='revert'&&e.kind!='expire'?`<button style="margin-inline-start:auto;padding:3px 12px;font-size:12.5px" onclick="revert(${e.id})">↶ ${P('تراجع','Undo')}</button>`:''}</div><div class="df">${diff(e)}</div></div>`).join('')||`<div class="mut">${P('لا تغييرات بعد.','No changes yet.')}</div>`}</div>`}
 async function revert(id){if(!confirm(P('التراجع عن هذا التغيير وإرجاع الحالة السابقة؟','Undo this change?')))return;try{const r=await sb.rpc('perm_revert',{p_id:id});if(r.error)throw r.error;toast(P('تم التراجع','Undone'));LOG=null;await reload();loadLog()}catch(e){err(e)}}
 
 /* --- الإعدادات --- */
