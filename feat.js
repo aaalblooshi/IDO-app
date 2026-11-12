@@ -1,0 +1,43 @@
+/* feat.js v1 — optional KPI / risk features: a centre-wide default plus a per-project override */
+(function(){
+const db=()=>{try{if(typeof sb!='undefined'&&sb&&sb.from)return sb}catch(_){}return window.sb||null};
+const AR=()=>(document.documentElement.lang||'ar')=='ar',P=a=>a[AR()?0:1];
+const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const LIST=[
+ ['k','k_interim','مستهدفات مرحلية تلقائية','Automatic interim targets','زر يولّد مستهدف كل فترة من خط الأساس إلى المستهدف النهائي.','A button that builds each period\'s target from the baseline to the final target.'],
+ ['k','k_agg','نوع تجميع المؤشر','KPI aggregation type','آخر قيمة أو مجموع تراكمي أو متوسط، فتُحسب السنة صحيحًا.','Last value, running total or average, so the year is calculated correctly.'],
+ ['k','k_thr','حدود ألوان خاصة بكل مؤشر','Per-KPI colour thresholds','بدل 95% و80% الثابتة.','Instead of the fixed 95% and 80%.'],
+ ['k','k_goal','ربط المؤشر بهدف استراتيجي','Link KPIs to strategic goals','ويظهر الأداء حسب الهدف في التحليل.','Performance by goal appears in the analysis.'],
+ ['k','k_comp','الدرجة المركّبة للمشروع','Composite project score','الخطة + المؤشرات + الموازنة + المخاطر في بطاقة واحدة.','Plan + KPIs + budget + risks in one card.'],
+ ['k','k_fc','توقّع نهاية السنة','Year-end forecast','من اتجاه القراءات مع تنبيه مبكر.','From the trend of readings, with an early warning.'],
+ ['k','k_corr','خطة تصحيحية إلزامية','Mandatory corrective plan','إذا بقي المؤشر أحمر فترتين متتاليتين.','When a KPI stays red for two periods in a row.'],
+ ['k','k_appr','اعتماد المكتب للقراءات','Office approval of readings','القراءة لا تدخل في الدرجة حتى يعتمدها المكتب.','A reading does not count until the office approves it.'],
+ ['k','k_remind','تذكير تلقائي بالقراءات','Automatic reading reminders','إشعار يومي للمسؤول عن قياس مؤشر فاتت قراءته.','A daily notice to whoever measures a KPI whose reading is missing.'],
+ ['k','k_lib','مكتبة مؤشرات جاهزة','Ready KPI library','مؤشرات شائعة تُضاف بضغطة.','Common KPIs added in one tap.'],
+ ['k','k_copy','نسخ مؤشرات من مشروع آخر','Copy KPIs from another project','','' ],
+ ['r','r_esc','تصعيد تلقائي للمكتب','Automatic escalation to the office','خطر مرتفع لم يُراجع شهرًا، أو خطر وقع ولم يُغلق.','A high risk not reviewed for a month, or an occurred risk still open.'],
+ ['r','r_issue','تحويل الخطر الواقع إلى مشكلة','Turn an occurred risk into an issue','خطة علاج وأثر فعلي بالتكلفة والأيام.','A remedy plan and the actual cost and days.'],
+ ['r','r_expo','الأثر المالي والزمني والتعرّض','Cost and time impact, exposure','تقدير لكل خطر وإجمالي متوقع للمشروع.','An estimate per risk and an expected total for the project.'],
+ ['r','r_acts','إجراءات استجابة متعددة','Several response actions','كل إجراء بمسؤول وموعد ونسبة إنجاز.','Each with an owner, a date and progress.'],
+ ['r','r_lib','مكتبة مخاطر جاهزة','Ready risk library','مخاطر شائعة تُضاف بضغطة.','Common risks added in one tap.'],
+ ['r','r_pdf','تقرير المخاطر الشهري','Monthly risk report','صفحة للطباعة أو PDF للإدارة العليا.','A page to print or save as PDF for senior management.'],
+ ['r','r_kpi','ربط الخطر بالمؤشر الذي يهدده','Link a risk to the KPI it threatens','ويظهر التنبيه على بطاقة المؤشر.','The warning shows on the KPI card.']];
+let G={},PJ={},loaded=null;
+async function load(force){if(loaded&&!force)return loaded;loaded=(async()=>{G={};PJ={};try{const s=db();const [a,b]=await Promise.all([s.from('app_settings').select('value').eq('key','feat').maybeSingle(),s.from('feat_project').select('pcode,key,on_')]);try{G=JSON.parse((a.data&&a.data.value)||'{}')||{}}catch(_){G={}}(b.data||[]).forEach(x=>{(PJ[x.pcode]=PJ[x.pcode]||{})[x.key]=x.on_})}catch(_){}return true})();return loaded}
+const on=(k,pc)=>{const o=pc&&PJ[pc]&&PJ[pc][k];return o===true?true:o===false?false:G[k]==='on'};
+const st=document.createElement('style');st.textContent='.fto{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:96;display:flex;align-items:flex-end;justify-content:center}@media(min-width:760px){.fto{align-items:center}}.ftb{background:#fff;width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 16px 20px}@media(min-width:760px){.ftb{border-radius:18px}}.fth{display:flex;justify-content:space-between;align-items:center;position:sticky;top:-14px;background:#fff;padding:4px 0 8px;z-index:2}.fth b{font-size:17px}.ftb button{font:inherit;font-weight:700;border:1px solid #dcd6c8;background:#fff;border-radius:99px;padding:5px 12px;cursor:pointer}.ftr{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #eee8dc}.ftr .n{flex:1;min-width:0}.ftr .n b{display:block}.ftr .n small{color:#6b6f76}.ftg{font-weight:800;margin:12px 0 2px;color:#1d5f8a}.fsg{display:inline-flex;border:1px solid #dcd6c8;border-radius:99px;overflow:hidden;flex:none}.fsg button{border:0;border-radius:0;padding:5px 11px;font-size:12.5px}.fsg button.on{background:#1d5f8a;color:#fff}.fsg button.on.off{background:#8a96a3}.fsw{position:relative;width:46px;height:26px;border-radius:99px;background:#c9d2db;border:0;flex:none;cursor:pointer;padding:0}.fsw i{position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:all .15s}.fsw.on{background:#0a6b3d}.fsw.on i{inset-inline-start:23px}';document.head.appendChild(st);
+let CUR=null;
+function draw(){const o=document.getElementById('ftw');if(!o)return;const pc=CUR;
+ const row=f=>{const k=f[1],nm=P([f[2],f[3]]),ds=P([f[4],f[5]]);if(!pc)return '<div class="ftr"><div class="n"><b>'+E(nm)+'</b><small>'+E(ds)+'</small></div><button class="fsw '+(G[k]==='on'?'on':'')+'" onclick="IDOFEAT._g(\''+k+'\')" title="'+P(['تشغيل/إيقاف لكل المشاريع','On/off for all projects'])+'"><i></i></button></div>';
+  const v=PJ[pc]&&PJ[pc][k],cur=v===true?'on':v===false?'off':'def';return '<div class="ftr"><div class="n"><b>'+E(nm)+'</b><small>'+E(ds)+'</small></div><span class="fsg">'+[['def',P(['الافتراضي','Default'])+' ('+(G[k]==='on'?P(['مفعّل','on']):P(['موقوف','off']))+')'],['on',P(['مفعّل','On'])],['off',P(['موقوف','Off'])]].map(x=>'<button class="'+(cur==x[0]?'on'+(x[0]=='off'?' off':''):'')+'" onclick="IDOFEAT._p(\''+k+'\',\''+x[0]+'\')">'+x[1]+'</button>').join('')+'</span></div>'};
+ o.innerHTML='<div class="ftb"><div class="fth"><b>🧩 '+(pc?P(['خصائص هذا المشروع','This project\'s features'])+' · '+E(pc):P(['الخصائص الاختيارية: الافتراضي لكل المشاريع','Optional features: default for all projects']))+'</b><button onclick="document.getElementById(\'ftw\').remove()">✕</button></div><div style="color:#6b6f76;font-size:13px">'+(pc?P(['«الافتراضي» يتبع إعداد المركز. اختر «مفعّل» أو «موقوف» لتخصيص هذا المشروع وحده.','“Default” follows the centre setting. Choose On or Off to override for this project only.']):P(['ما تفعّله هنا يُطبَّق على كل المشاريع. ويمكن تخصيص أي مشروع من صفحة مؤشراته أو مخاطره (زر «خصائص المشروع»).','What you switch on here applies to every project. Any project can be overridden from its KPI or risk page.']))+'</div>'
+  +(pc?'':'<div style="display:flex;gap:6px;margin-top:8px"><button onclick="IDOFEAT._all(1)">'+P(['تفعيل الكل','All on'])+'</button><button onclick="IDOFEAT._all(0)">'+P(['إيقاف الكل','All off'])+'</button></div>')
+  +'<div class="ftg">📈 '+P(['المؤشرات','KPIs'])+'</div>'+LIST.filter(f=>f[0]=='k').map(row).join('')+'<div class="ftg">🛡️ '+P(['المخاطر','Risks'])+'</div>'+LIST.filter(f=>f[0]=='r').map(row).join('')+'</div>'}
+function note(m){try{if(typeof toast=='function')return toast(m)}catch(_){}alert(m)}
+async function saveG(){const r=await db().rpc('admin_set_setting',{k:'feat',v:JSON.stringify(G)});if(r.error)note(P(['تعذّر الحفظ: ','Could not save: '])+r.error.message);draw();changed()}
+function changed(){try{if(typeof draw=='function'&&window.draw)window.draw()}catch(_){}try{window.dispatchEvent(new Event('featchange'))}catch(_){}}
+window.IDOFEAT={LIST,load,on,
+ manage:async pc=>{await load(true);CUR=pc||null;let o=document.getElementById('ftw');if(o)o.remove();o=document.createElement('div');o.id='ftw';o.className='fto';o.onclick=e=>{if(e.target==o)o.remove()};document.body.appendChild(o);draw()},
+ _g:k=>{G[k]=G[k]==='on'?'off':'on';saveG()},_all:v=>{LIST.forEach(f=>G[f[1]]=v?'on':'off');saveG()},
+ _p:async(k,v)=>{const s=db(),pc=CUR;let r;if(v=='def')r=await s.from('feat_project').delete().eq('pcode',pc).eq('key',k);else r=await s.from('feat_project').upsert({pcode:pc,key:k,on_:v=='on'});if(r.error)return note(P(['تعذّر الحفظ: ','Could not save: '])+r.error.message);PJ[pc]=PJ[pc]||{};if(v=='def')delete PJ[pc][k];else PJ[pc][k]=v=='on';draw();changed()}};
+})();
