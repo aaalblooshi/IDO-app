@@ -74,7 +74,7 @@ button.sm{padding:4px 12px;font-size:13px}
 @media(max-width:560px){.modes,.yrs{grid-template-columns:1fr 1fr}}
 .mg{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}@media(max-width:700px){.mg{grid-template-columns:repeat(3,1fr)}}.mc{border:1px solid var(--line);border-radius:10px;padding:6px 8px}.mc span{display:block;font-size:12px;color:var(--mut);font-weight:700}.mc input{padding:5px 7px;direction:ltr;text-align:end}.mc b{display:block;text-align:end}.mc.fu{opacity:.5}
 .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}@media(max-width:700px){.g3,.g4{grid-template-columns:1fr 1fr}}
-</style></head><body>
+label.btnl{display:inline-flex;align-items:center;gap:4px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 14px;cursor:pointer;margin:0;font-size:14px}</style></head><body>
 <div class="top"><button onclick="location.href='myprojects.html'">⬅ <span data-i="home"></span></button><b data-i="title"></b><span class="hgrp"><a class="hbtn" href="account.html" data-i="hacc"></a><button class="hbtn" id="lb" onclick="toggleLang()">EN</button><button class="hbtn" data-i="hso" onclick="sb.auth.signOut().then(()=>{location.href='./'})"></button></span></div>
 <main id="app"></main><div id="toast"></div>
 <script>
@@ -107,7 +107,7 @@ const P=a=>a[lang=='ar'?0:1];
 const MN=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'],MNE=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MODES=[['monthly','شهري','Monthly','مبلغ الصرف لكل شهر'],['totals','إجماليات','Running totals','الصرف هذا العام والتراكمي فقط'],['items','مصروفات مفصّلة','Individual expenses','كل مصروف بتاريخه وبنده']];
 const TD=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Dubai'}),CY=+TD.slice(0,4),CM=+TD.slice(5,7);
-let ME=null,US={},S=[],PC='',FY=CY,FM=CM,Q='',OPEN=null,SP=[],BG=null,DIRTY={},CAN=false;
+let ME=null,US={},S=[],PC='',FY=CY,FM=CM,Q='',OPEN=null,SP=[],BG=null,DIRTY={},CAN=false,FOFF=false,FS=[],OPTL=null,DLG=[],CHID=null,PMOK=false;
 const money=n=>n==null||n===''||isNaN(+n)?'—':Number(n).toLocaleString('en-US',{maximumFractionDigits:0});
 const pct=(a,b)=>b>0&&a!=null?Math.round(a/b*100):null;
 const fd=s=>s?String(s).slice(0,10).split('-').reverse().join('/'):'—';
@@ -115,11 +115,11 @@ const ym=(y,m)=>y+'-'+String(m).padStart(2,'0')+'-01';
 const numIn=v=>{const x=String(v||'').replace(/[,\s]/g,'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c));return x===''?null:(isNaN(+x)?NaN:+x)};
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const [m,us]=await Promise.all([sb.from('profiles').select('*').eq('id',session.user.id).single(),sb.from('profiles').select('id,full_name')]);ME=m.data;(us.data||[]).forEach(u=>US[u.id]=u);
- PC=new URLSearchParams(location.search).get('pc')||'';await loadS();if(PC){OPEN=PC;await loadP(PC)}draw()}
+ PC=new URLSearchParams(location.search).get('pc')||'';try{const o=await sb.rpc('fin_office');FOFF=o.data===true}catch(_){}try{const r=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();OPTL=r.data&&r.data.value?JSON.parse(r.data.value):null}catch(_){}if(FOFF)await loadFS();await loadS();if(PC){OPEN=PC;await loadP(PC)}draw()}
 async function loadS(){const r=await sb.rpc('fin_summary',{p_asof:null});S=(r.data||[]).sort((a,b)=>String(a.pname).localeCompare(String(b.pname),'ar'));CAN=S.some(x=>x.can_edit);
  const codes=S.map(x=>x.pcode);MS={};if(codes.length){const q=await sb.from('project_spend').select('pcode,d,amount').eq('kind','month').in('pcode',codes).eq('d',ym(FY,FM));(q.data||[]).forEach(x=>MS[x.pcode]=x.amount)}}
 let MS={};
-async function loadP(pc){const [b,s]=await Promise.all([sb.from('project_budget').select('*').eq('pcode',pc).maybeSingle(),sb.from('project_spend').select('*').eq('pcode',pc).order('d',{ascending:false}).order('id',{ascending:false})]);BG=b.data||null;SP=s.data||[]}
+async function loadP(pc){const [b,s,d,c,pm]=await Promise.all([sb.from('project_budget').select('*').eq('pcode',pc).maybeSingle(),sb.from('project_spend').select('*').eq('pcode',pc).order('d',{ascending:false}).order('id',{ascending:false}),sb.from('fin_delegates').select('*').eq('pcode',pc),sb.from('charters').select('id').eq('code',pc).eq('status','Approved').order('id',{ascending:false}).limit(1),sb.rpc('prog_pm',{pc:pc})]);BG=b.data||null;SP=s.data||[];DLG=d.data||[];CHID=c.data&&c.data[0]?c.data[0].id:null;PMOK=pm.data===true}
 function draw(){document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';const lb=$('lb');if(lb)lb.textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  if(!S.length){$('app').innerHTML='<div class="card lock"><p>'+P(['لا توجد مشاريع يمكنك متابعة موازنتها.','No projects whose budget you can follow.'])+'</p></div>';return}
@@ -129,7 +129,7 @@ function bar(a,b){const p=pct(a,b);if(p==null)return '<div class="bb"><i style="
 /* ---------- all projects: the easy place to update everything ---------- */
 function listView(){const q=Q.trim().toLowerCase(),L=S.filter(x=>!q||(x.pname+' '+x.pcode).toLowerCase().includes(q));
  const T={a:0,y:0,c:0,p:0};S.forEach(x=>{T.a+=+x.approved||0;T.y+=+x.year_spend||0;T.c+=+x.cum_spend||0;T.p+=+x.year_plan||0});
- let h='<div class="card"><h2>💰 '+P(['الموازنات والمصروفات','Budgets & spending'])+'</h2><div class="mut">'+P(['حدّث صرف الشهر لكل المشاريع من هنا، أو افتح مشروعًا لتفاصيله. الأرقام تُستخدم في التقرير الشهري.','Update this month\'s spending for every project here, or open a project for details. The figures feed the monthly report.'])+'</div></div>'
+ let h='<div class="card"><div class="ph"><h2>💰 '+P(['الموازنات والمصروفات','Budgets & spending'])+'</h2><div class="row" style="margin:0"><button onclick="bxOut()">⬇ Excel</button>'+(CAN?'<label class="btnl">⬆ '+P(['رفع Excel','Upload Excel'])+'<input type="file" accept=".xlsx,.xls" style="display:none" onchange="bxIn(this)"></label>':'')+(FOFF?'<button onclick="fsOpen()">👥 '+P(['صلاحيات المالية','Finance access'])+' ('+FS.length+')</button>':'')+'</div></div><div class="mut">'+P(['حدّث صرف الشهر لكل المشاريع من هنا، أو افتح مشروعًا لتفاصيله. الأرقام تُستخدم في التقرير الشهري.','Update this month\'s spending for every project here, or open a project for details. The figures feed the monthly report.'])+'</div></div>'
   +'<div class="kg">'+kp(P(['الميزانيات المعتمدة','Approved budgets']),money(T.a))+kp(P(['المخطط صرفه '+CY,'Planned spend '+CY]),money(T.p))+kp(P(['المصروف '+CY,'Spent '+CY]),money(T.y),'',T.p?pct(T.y,T.p)+'% '+P(['من المخطط','of plan']):'')+kp(P(['المصروف التراكمي','Cumulative spend']),money(T.c),'',T.a?pct(T.c,T.a)+'% '+P(['من المعتمد','of approved']):'')+'</div>'
   +'<div class="card"><div class="tb"><input placeholder="'+P(['ابحث عن مشروع…','Find a project…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{draw();const e=document.querySelector(\'.tb input\');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)">'
   +'<span class="mut">'+P(['شهر الإدخال:','Entry month:'])+'</span><select onchange="const v=this.value.split(\'-\');FY=+v[0];FM=+v[1];DIRTY={};loadS().then(draw)">'+monthOpts()+'</select>'
@@ -148,7 +148,7 @@ async function saveAll(){const rows=[],del=[];for(const [pc,v] of Object.entries
 async function openP(pc){OPEN=pc;await loadP(pc);draw();setTimeout(()=>{const e=$('pv');if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},50)}
 /* ---------- one project ---------- */
 function projView(x){if(!x)return '';const md=(BG&&BG.mode)||'monthly',ed=x.can_edit,plan=(BG&&BG.plan)||{},rem=x.approved!=null&&x.cum_spend!=null?x.approved-x.cum_spend:null;
- let h='<div id="pv" class="card pv"><div class="ph"><div><h2>'+esc(x.pname)+'</h2><div class="mut">'+esc(x.pcode)+'</div></div>'+(PC?'<a class="btn" href="budget.html">'+P(['كل المشاريع','All projects'])+'</a>':'<button onclick="OPEN=null;draw()">✕</button>')+'</div>'
+ let h='<div id="pv" class="card pv"><div class="ph"><div><h2>'+esc(x.pname)+'</h2><div class="mut">'+esc(x.pcode)+'</div></div>'+'<div class="row" style="margin:0">'+(CHID?'<a class="btn" href="charter.html#o='+CHID+'" target="_blank">📜 '+P(['الميثاق','Charter'])+'</a>':'')+(PC?'<a class="btn" href="budget.html">'+P(['كل المشاريع','All projects'])+'</a>':'<button onclick="OPEN=null;draw()">✕</button>')+'</div></div>'
   +'<div class="kg">'+kp(P(['الميزانية المعتمدة','Approved budget']),money(x.approved),'',BG&&BG.approved!=null?P(['معدّلة هنا','set here']):P(['من الميثاق','from charter']))+kp(P(['التدفق المالي '+CY,'Cash flow '+CY]),money(x.year_plan),'',P(['المخطط صرفه هذا العام','planned for this year']))
   +kp(P(['الصرف الفعلي '+CY,'Spent '+CY]),money(x.year_spend),'',x.year_plan?pct(x.year_spend,x.year_plan)+'% '+P(['من التدفق','of cash flow']):'')+kp(P(['الصرف التراكمي','Cumulative spend']),money(x.cum_spend),pct(x.cum_spend,x.approved)>100?'#d1101d':'',rem!=null?P(['المتبقي: ','Remaining: '])+money(rem):'')+'</div>';
  if(ed)h+='<details class="box"'+(BG?'':' open')+'><summary><b>⚙️ '+P(['إعدادات الموازنة','Budget settings'])+'</b></summary>'
@@ -158,6 +158,7 @@ function projView(x){if(!x)return '';const md=(BG&&BG.mode)||'monthly',ed=x.can_
   +'<label>'+P(['التدفق المالي المخطط لكل سنة','Planned cash flow per year'])+'</label><div class="yrs">'+[CY-1,CY,CY+1,CY+2].map(y=>'<div><span>'+y+'</span><input id="b_y'+y+'" inputmode="decimal" value="'+(plan[y]!=null?money(plan[y]):'')+'"></div>').join('')+'</div>'
   +'<div class="row"><button class="p" onclick="saveBg()">'+P(['حفظ الإعدادات','Save settings'])+'</button></div></details>';
  if(md=='monthly')h+=monthly(x,ed);else if(md=='totals')h+=totals(x,ed);else h+=items(x,ed);
+ h+=dlgBox();
  return h+'</div>'}
 let MY=CY;
 function monthly(x,ed){const M={};SP.filter(s=>s.kind=='month').forEach(s=>M[s.d.slice(0,7)]=s.amount);let tot=0;
@@ -189,6 +190,55 @@ async function setMode(m){await upBg({mode:m})}
 async function saveBg(){const ap=numIn($('b_ap').value);if(Number.isNaN(ap))return toast(P(['رقم الميزانية غير صحيح','Invalid budget']));const plan={};for(const y of [CY-1,CY,CY+1,CY+2]){const v=numIn($('b_y'+y).value);if(Number.isNaN(v))return toast(P(['رقم غير صحيح في ','Invalid number in '])+y);if(v!=null)plan[y]=v}
  const old=(BG&&BG.plan)||{};Object.keys(old).forEach(y=>{if(![CY-1,CY,CY+1,CY+2].includes(+y))plan[y]=old[y]});await upBg({approved:ap,plan,note:$('b_nt').value||null})}
 async function upBg(ch){await run(async()=>{const row=Object.assign({pcode:OPEN,mode:(BG&&BG.mode)||'monthly',approved:BG?BG.approved:null,plan:(BG&&BG.plan)||{},note:BG?BG.note:null},ch,{updated_by:ME.id,updated_at:new Date().toISOString()});const r=await sb.from('project_budget').upsert(row,{onConflict:'pcode'});if(r.error)throw r.error});await loadP(OPEN);await loadS();draw()}
+/* ---------- who enters a project's expenses (PM / owner / office choose) ---------- */
+function dlgBox(){const can=FOFF||PMOK;if(!can&&!DLG.length)return '';
+ return '<details class="box"><summary><b>👤 '+P(['من يُدخل مصروفات هذا المشروع','Who enters this project\'s expenses'])+'</b> <span class="mut">('+DLG.length+')</span></summary><div class="mut" style="margin:6px 0">'+P(['مدير المشروع ومالكه ومكتب التطوير وموظفو المالية للوحدة يدخلونها دائمًا. أضف هنا من يفوّضه مدير المشروع.','The PM, owner, office and the unit\'s finance staff can always enter them. Add people the PM delegates.'])+'</div>'
+  +DLG.map(d=>'<div class="lg" style="display:flex;gap:8px;align-items:center"><b style="flex:1">'+esc((US[d.user_id]||{}).full_name||'—')+'</b>'+(can?'<button class="sm r" onclick="dlgDel(\''+d.user_id+'\')">✕</button>':'')+'</div>').join('')
+  +(can?'<div class="row"><select class="srch" id="dl_u" style="flex:1"><option value="">'+P(['إضافة شخص…','Add a person…'])+'</option>'+Object.values(US).filter(u=>!DLG.some(d=>d.user_id==u.id)).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||'','ar')).map(u=>'<option value="'+u.id+'">'+esc(u.full_name)+'</option>').join('')+'</select><button class="p" onclick="dlgAdd()">'+P(['إضافة','Add'])+'</button></div>':'')+'</details>'}
+async function dlgAdd(){const u=$('dl_u').value;if(!u)return;await run(async()=>{const r=await sb.from('fin_delegates').insert({pcode:OPEN,user_id:u});if(r.error)throw r.error});await loadP(OPEN);draw()}
+async function dlgDel(u){await run(async()=>{const r=await sb.from('fin_delegates').delete().eq('pcode',OPEN).eq('user_id',u);if(r.error)throw r.error});await loadP(OPEN);draw()}
+/* ---------- finance access by unit (office) ---------- */
+async function loadFS(){const r=await sb.from('fin_scope').select('*').order('added_at');FS=r.data||[]}
+const secN=i=>{const L=(OPTL&&OPTL.sectors)||[];const x=L[(+i)-1];return x?x[lang=='ar'?0:1]:P(['قطاع ','Sector '])+i};
+const depN=(s,d)=>{const L=((OPTL&&OPTL.depts)||[])[(+s)-1]||[];const x=L[(+d)-1];return x?x[lang=='ar'?0:1]:P(['إدارة ','Dept '])+d};
+const fsLab=f=>!f.sector?P(['المركز (كل المشاريع)','The whole centre (all projects)']):!f.dept?secN(f.sector):secN(f.sector)+' › '+depN(f.sector,f.dept);
+function fsOpen(){let o=$('fsw');if(!o){o=document.createElement('div');o.id='fsw';o.className='ov';o.onclick=e=>{if(e.target==o)o.remove()};document.body.appendChild(o)}
+ const secs=(OPTL&&OPTL.sectors)||[],deps=(OPTL&&OPTL.depts)||[];
+ o.innerHTML='<div class="ed"><div class="edh"><b>👥 '+P(['صلاحيات المالية حسب الوحدة','Finance access by unit'])+'</b><button onclick="$(\'fsw\').remove()">✕</button></div><div class="mut">'+P(['من تضيفه هنا يرى صفحة الموازنات لمشاريع وحدته فقط ويحدّث موازناتها ومصروفاتها، ويطّلع على ميثاقها، ولا يرى الخطة أو بقية التفاصيل. المركز = كل المشاريع.','People added here see the budgets page for their unit\'s projects only, update budgets and spending and can read the charter; nothing else. Centre = all projects.'])+'</div>'
+  +(FS.map(f=>'<div class="lg" style="display:flex;gap:8px;align-items:center"><b style="flex:1">'+esc((US[f.user_id]||{}).full_name||'—')+'</b><span class="mut">'+esc(fsLab(f))+'</span><button class="sm r" onclick="fsDel('+f.id+')">✕</button></div>').join('')||'<div class="mut" style="padding:8px 0">'+P(['لا أحد بعد.','Nobody yet.'])+'</div>')
+  +'<label>'+P(['الموظف','Person'])+'</label><select class="srch" id="fs_u"><option value="">—</option>'+Object.values(US).sort((a,b)=>(a.full_name||'').localeCompare(b.full_name||'','ar')).map(u=>'<option value="'+u.id+'">'+esc(u.full_name)+'</option>').join('')+'</select>'
+  +'<label>'+P(['الوحدة','Unit'])+'</label><select id="fs_s"><option value="">'+P(['المركز (كل المشاريع)','The whole centre'])+'</option>'+secs.map((x,i)=>'<option value="'+(i+1)+'">'+esc(x[lang=='ar'?0:1])+'</option>'+((deps[i]||[]).map((d,j)=>'<option value="'+(i+1)+':'+(j+1)+'">  › '+esc(d[lang=='ar'?0:1])+'</option>').join(''))).join('')+'</select>'
+  +'<div class="row"><button class="p" onclick="fsAdd()">'+P(['إضافة','Add'])+'</button></div></div>';try{pkEnh()}catch(_){}}
+async function fsAdd(){const u=$('fs_u').value,v=$('fs_s').value;if(!u)return toast(P(['اختر الموظف','Pick a person']));const [sct,dp]=v?v.split(':'):[null,null];
+ await run(async()=>{const r=await sb.from('fin_scope').insert({user_id:u,sector:sct||null,dept:dp||null});if(r.error)throw r.error});await loadFS();fsOpen();draw()}
+async function fsDel(id){await run(async()=>{const r=await sb.from('fin_scope').delete().eq('id',id);if(r.error)throw r.error});await loadFS();fsOpen();draw()}
+/* ---------- Excel: download every visible project's budget, edit, upload ---------- */
+async function xlLib(){if(window.XLSX)return;await new Promise((ok,no)=>{const e=document.createElement('script');e.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';e.onload=ok;e.onerror=no;document.head.appendChild(e)})}
+const BH=()=>[['pcode','رمز المشروع'],['pname','اسم المشروع'],['approved','الميزانية المعتمدة'],['plan'+CY,'التدفق المالي '+CY],['plan'+(CY+1),'التدفق المالي '+(CY+1)]].concat(MN.map((m,i)=>['m'+(i+1),m+' '+FY]));
+async function bxOut(){try{await xlLib()}catch(_){return toast(P(['تعذّر تحميل أداة Excel','Could not load Excel']))}
+ const codes=S.map(x=>x.pcode),[b,m]=await Promise.all([sb.from('project_budget').select('*').in('pcode',codes),sb.from('project_spend').select('pcode,d,amount').eq('kind','month').in('pcode',codes).gte('d',FY+'-01-01').lte('d',FY+'-12-31')]);
+ const BB={};(b.data||[]).forEach(x=>BB[x.pcode]=x);const MM={};(m.data||[]).forEach(x=>{(MM[x.pcode]=MM[x.pcode]||{})[+x.d.slice(5,7)]=x.amount});
+ const H=BH(),rows=S.map(x=>{const o={},pl=(BB[x.pcode]&&BB[x.pcode].plan)||{};o[H[0][1]]=x.pcode;o[H[1][1]]=x.pname;o[H[2][1]]=x.approved??'';o[H[3][1]]=pl[CY]??'';o[H[4][1]]=pl[CY+1]??'';for(let i=1;i<=12;i++)o[H[4+i][1]]=(MM[x.pcode]||{})[i]??'';return o});
+ const ws=XLSX.utils.json_to_sheet(rows,{header:H.map(h=>h[1])});ws['!cols']=H.map((h,i)=>({wch:i==1?40:14}));
+ const help=XLSX.utils.aoa_to_sheet([['طريقة التحديث'],['عدّل الأرقام ثم ارفع الملف من «رفع Excel». الخانات الفارغة لا تغيّر شيئًا، والصفر يُسجَّل صفرًا.'],['أعمدة الأشهر تخص سنة '+FY+' (غيّر شهر الإدخال في الصفحة لتنزيل سنة أخرى). تُطبَّق على المشاريع التي طريقة إدخالها «شهري».'],['لا يُحدَّث إلا ما لديك صلاحية عليه.']]);help['!cols']=[{wch:100}];
+ const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,'الموازنات');XLSX.utils.book_append_sheet(wb,help,'التعليمات');XLSX.writeFile(wb,'budgets-'+FY+'.xlsx')}
+async function bxIn(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)return;try{await xlLib()}catch(_){return toast(P(['تعذّر تحميل أداة Excel','Could not load Excel']))}
+ const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}),H=BH(),K={};H.forEach(([k,h])=>K[h]=k);
+ const ed={};S.forEach(x=>{if(x.can_edit)ed[x.pcode]=x});let up=0,skip=0,bad=[];
+ const [b]=await Promise.all([sb.from('project_budget').select('*').in('pcode',Object.keys(ed))]);const BB={};(b.data||[]).forEach(x=>BB[x.pcode]=x);
+ if(!confirm(P(['سيُعالج '+raw.length+' صفًا. متابعة؟','Process '+raw.length+' rows?'])))return;
+ for(const o of raw){const x={};Object.keys(o).forEach(h=>{const k=K[String(h).trim()];if(k)x[k]=o[h]});const pc=String(x.pcode||'').trim();if(!pc)continue;if(!ed[pc]){skip++;continue}
+  try{const cur=BB[pc]||{pcode:pc,mode:'monthly',approved:null,plan:{}},pl=Object.assign({},cur.plan||{});let ch=false;
+   const ap=numIn(x.approved);if(x.approved!==''&&ap!=null&&!Number.isNaN(ap)&&ap!==+cur.approved){cur.approved=ap;ch=true}
+   [CY,CY+1].forEach(y=>{const v=numIn(x['plan'+y]);if(x['plan'+y]!==''&&v!=null&&!Number.isNaN(v)&&v!==+pl[y]){pl[y]=v;ch=true}});
+   if(ch){const r=await sb.from('project_budget').upsert({pcode:pc,mode:cur.mode||'monthly',approved:cur.approved,plan:pl,note:cur.note||null,updated_by:ME.id,updated_at:new Date().toISOString()},{onConflict:'pcode'});if(r.error)throw r.error;up++}
+   if((cur.mode||'monthly')=='monthly')for(let i=1;i<=12;i++){const raw=x['m'+i];if(raw===''||raw==null)continue;const v=numIn(raw);if(v==null||Number.isNaN(v))continue;const d=ym(FY,i);
+    const e=await sb.from('project_spend').select('id,amount').eq('pcode',pc).eq('kind','month').eq('d',d).maybeSingle();
+    if(e.data){if(+e.data.amount!==v){const r=await sb.from('project_spend').update({amount:v,by_user:ME.id,at:new Date().toISOString()}).eq('id',e.data.id);if(r.error)throw r.error;up++}}
+    else{const r=await sb.from('project_spend').insert({pcode:pc,kind:'month',d,amount:v});if(r.error)throw r.error;up++}}}
+  catch(e){bad.push(pc+': '+(e.message||e))}}
+ alert(P(['اكتمل الرفع: '+up+' تحديث'+(skip?' · '+skip+' مشروع بلا صلاحية':'')+(bad.length?'\n'+bad.join('\n'):''),'Done: '+up+' updates'+(skip?' · '+skip+' projects without access':'')+(bad.length?'\n'+bad.join('\n'):'')]));await loadS();if(OPEN)await loadP(OPEN);draw()}
+
 load();
 
 </script><script>/*pwareg*/
