@@ -1026,7 +1026,7 @@ const lvl=s=>s>=15?'high':s>=5?'med':'low';
 const score=r=>(+r.i&&+r.x)?(+r.i)*(+r.x):0;
 const riskHTML=(r,i)=>{const s=score(r);return `<span class="rk ${s?lvl(s):'none'}" id="rk_${i}">${s?ad(s)+' · '+t('lv_'+lvl(s)):'—'}</span>`};
 const fdate=v=>v?fdx(v).slice(0,10):'';
-const REQ={gen:['pname','pdesc','ptype','goal','purpose','sdate','edate','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs']};
+const REQ={gen:['pname','pdesc','ptype','goal','purpose','sdate','edate','owner','sector','pmname','budget'],ctx:['nrisk','alt','impact','outputs']};
 const TABKEYS={gen:['pname','pdesc','ptype','goal','gov','purpose','dur','owner','sector','dept','pmname','budget'],ctx:['nrisk','alt','impact','outputs'],stk:['stk_int','stk_ext','acts'],res:['reqs','team','agr'],rsk:['risks','assume','constr','appr']};
 const STAR=['pname','pdesc','ptype','goal','purpose','dur','owner','sector','dept','pmname','budget','nrisk','alt','impact','outputs'];
 const TABS=['gen','ctx','stk','res','rsk','fz','flow'];

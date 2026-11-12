@@ -62,7 +62,7 @@ textarea{width:100%;font:inherit;padding:9px 11px;border:1px solid var(--line);b
 .ovr{display:flex;gap:8px;align-items:center;padding:10px 6px;border-top:1px solid var(--line);color:inherit;text-decoration:none}.ovr:hover{background:#faf8f3}
 .nb{font-size:12.5px;font-weight:800;border-radius:99px;padding:2px 9px;background:#eef0f2;color:#3b3f45}.nb.r{background:#fdecee;color:#d1101d}.nb.a{background:#fff4dc;color:#a8761a}
 
-.sticky{position:sticky;top:52px;z-index:4}
+.fdl{position:fixed;inset-inline:0;bottom:calc(96px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:30;pointer-events:none}.fdl button{pointer-events:auto;box-shadow:0 6px 18px rgba(0,0,0,.18);padding:11px 22px;font-size:15px}@media(min-width:900px){.fdl{bottom:24px}}
 .tb{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tb input[type=text],.tb>input:not([type]){flex:1;min-width:200px}.ck{display:flex;align-items:center;gap:6px;margin:0;font-weight:600;font-size:13.5px}.ck input{width:auto}
 button:disabled{opacity:.5;cursor:default}
 .prg{margin-top:10px}.bb{height:7px;background:#eee;border-radius:9px;overflow:hidden;margin-bottom:4px}.bb i{display:block;height:100%;background:var(--g);transition:width .3s}
@@ -131,12 +131,13 @@ function draw(){document.documentElement.lang=lang;document.documentElement.dir=
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));if(!OK)return;
  const L=vis(),nd=SEL.size,nf=SELA.size;
  let h='<div class="card"><h2>🗄 '+P(['أرشيف الوثائق','Document archive'])+'</h2><div class="mut">'+P(['كل المشاريع ووثائقها. اختر ما تريد تنزيله: الميثاق وطلب التغيير والتقرير الختامي بصيغة Word، والخطة بصيغة Excel، والمرفقات بصيغها الأصلية، في ملف مضغوط واحد مرتب حسب المشروع.','Every project and its documents. Pick what to download: charters, change requests and closure reports as Word, plans as Excel and attachments in their own formats, in one zip arranged by project.'])+'</div></div>'
-  +'<div class="card sticky"><div class="tb"><input placeholder="'+P(['ابحث عن مشروع أو رقم وثيقة…','Find a project or document number…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{draw();const e=document.querySelector(\'.tb input\');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)">'
+  +'<div class="card"><div class="tb"><input placeholder="'+P(['ابحث عن مشروع أو رقم وثيقة…','Find a project or document number…'])+'" value="'+esc(Q)+'" oninput="Q=this.value;clearTimeout(window._q);window._q=setTimeout(()=>{draw();const e=document.querySelector(\'.tb input\');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)">'
   +'<label class="ck"><input type="checkbox" '+(ARC?'checked':'')+' onchange="ARC=this.checked;draw()"> '+P(['إظهار المؤرشف','Show archived'])+'</label>'
   +'<button onclick="selAll(true)">'+P(['تحديد الكل','Select all'])+'</button><button onclick="selAll(false)">'+P(['إلغاء التحديد','Clear'])+'</button>'
   +'<button class="p" '+(nd||nf?'':'disabled')+' onclick="go()">⬇ '+P(['تنزيل','Download'])+' ('+(nd+nf)+')</button></div>'
   +(RUN?'<div class="prg"><div class="bb"><i style="width:'+Math.round(RUN.i/Math.max(1,RUN.n)*100)+'%"></i></div><span class="mut">'+esc(RUN.t||'')+'</span></div>':'')+'</div>';
  h+=L.length?L.map(pRow).join(''):'<div class="card mut">'+P(['لا نتائج.','No results.'])+'</div>';
+ if((nd||nf)&&!RUN)h+='<div class="fdl"><button class="p" onclick="go()">⬇ '+P(['تنزيل','Download'])+' ('+(nd+nf)+')</button></div>';
  $('app').innerHTML=h}
 function pRow(p){const ds=docs(p),on=OPEN.has(p.pc),all=ds.length&&ds.every(d=>SEL.has(dk(d))&&d.files.every(f=>SELA.has(d.svc+':'+f.id))),some=ds.some(d=>SEL.has(dk(d))||d.files.some(f=>SELA.has(d.svc+':'+f.id)));
  const cnt={};ds.forEach(d=>cnt[d.svc]=(cnt[d.svc]||0)+1);const nf=ds.reduce((a,d)=>a+d.files.length,0);
