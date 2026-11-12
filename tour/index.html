@@ -390,7 +390,7 @@ function buildHud(){
  $('prog').innerHTML=CH.map(c=>{const n=STEPS.filter(s=>s.ch==c.id).length;return `<div class="sg" style="flex:${n}" data-ch="${c.id}"><i></i><b>${esc(tt(c.t))}</b></div>`}).join('');
  document.title=LANG=='ar'?'جولة في بوابة التطوير المؤسسي':'IDO portal tour'}
 $('prog').addEventListener('click',e=>{const s=e.target.closest('.sg');if(s){e.stopPropagation();go(STEPS.findIndex(x=>x.ch==s.dataset.ch))}});
-$('bPrev').onclick=e=>{e.stopPropagation();prev()};$('bNext').onclick=e=>{e.stopPropagation();next()};
+$('bPrev').onclick=e=>{e.stopPropagation();if(Date.now()-TNAV<700)return;prev()};$('bNext').onclick=e=>{e.stopPropagation();if(Date.now()-TNAV<700)return;next()};
 $('bTop').onclick=e=>{e.stopPropagation();openOv('tops')};$('bOvw').onclick=e=>{e.stopPropagation();openOv('ovw')};$('bHelp').onclick=e=>{e.stopPropagation();openOv('help')};
 $('bLang').onclick=e=>{e.stopPropagation();switchLang()};$('bExit').onclick=e=>{e.stopPropagation();location.href='../help.html'};
 $('bPres').onclick=e=>{e.stopPropagation();openPresenter()};$('bSnap').onclick=e=>{e.stopPropagation();snapshot()};$('bFs').onclick=e=>{e.stopPropagation();fullscreen()};
@@ -475,7 +475,12 @@ addEventListener('keydown',e=>{if(PRES)return;wake();
  if(open){if(e.key=='Escape'){closeOv();e.preventDefault()}return}
  if(e.metaKey||e.ctrlKey||e.altKey)return;
  if(handle(e))e.preventDefault()});
-$('stage').parentNode.addEventListener('click',e=>{if(PRES)return;if(e.target.closest('#hud button,#prog,#ttl a,.ov,#jump'))return;if(document.querySelector('.ov.on'))return;next()});
+/* on phones act on the finger lift itself, so a tap after a pause never needs a second tap */
+let TNAV=0,PD=null;addEventListener('pointerdown',e=>{if(e.pointerType=='touch')PD={x:e.clientX,y:e.clientY,t:Date.now()}},true);
+addEventListener('pointerup',e=>{if(e.pointerType!='touch'||PRES||!PD)return;const mv=Math.hypot(e.clientX-PD.x,e.clientY-PD.y),lg=Date.now()-PD.t;PD=null;if(mv>12||lg>800)return;
+ const t=e.target;if(t.closest('#bNext')){TNAV=Date.now();next()}else if(t.closest('#bPrev')){TNAV=Date.now();prev()}
+ else if(!t.closest('#hud button,#prog,#ttl a,.ov,#jump,a,input')&&!document.querySelector('.ov.on')&&!$('jump').classList.contains('on')){TNAV=Date.now();next()}},true);
+$('stage').parentNode.addEventListener('click',e=>{if(PRES)return;if(Date.now()-TNAV<700)return;if(e.target.closest('#hud button,#prog,#ttl a,.ov,#jump'))return;if(document.querySelector('.ov.on'))return;next()});
 addEventListener('contextmenu',e=>{if(PRES||e.target.closest('.ov'))return;e.preventDefault();prev()});
 let tx0=null,ty0=null;addEventListener('touchstart',e=>{const t=e.touches[0];tx0=t.clientX;ty0=t.clientY},{passive:true});
 addEventListener('touchend',e=>{if(tx0==null||PRES)return;const t=e.changedTouches[0],dx=t.clientX-tx0,dy=t.clientY-ty0;tx0=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy)*1.3){if(document.querySelector('.ov.on'))return;const fwd=LANG=='ar'?dx>0:dx<0;fwd?next():prev();e.preventDefault()}});
