@@ -535,7 +535,7 @@
   } catch (e) {}
 })();
 /* smart KPI / risk updates in My tasks (feature u_tasks) */
-(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=2';s.defer=true;document.head.appendChild(s)})();
+(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=3';s.defer=true;document.head.appendChild(s)})();
 /* keep horizontal tab and chip rows where the user left them when a page redraws */
 (function(){if(window.__hsk)return;window.__hsk=1;var M={};
 function key(e){var p=[],n=e;for(var i=0;i<3&&n&&n!==document.body;i++){p.push(n.tagName+'.'+(typeof n.className=='string'?n.className.replace(/\s*\b(on|p|active|sel)\b/g,''):'')+(n.id?'#'+n.id:''));n=n.parentElement}return p.join('<')}
