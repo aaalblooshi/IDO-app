@@ -1,4 +1,4 @@
-/* hub.js v1 — one navigation strip between My projects, KPIs, risks, budgets and the portfolio */
+/* hub.js v2 — one navigation strip between My projects, KPIs, risks, budgets and the portfolio */
 (function(){if(window.top!==window.self||window.__hub)return;window.__hub=1;
 var f=(location.pathname.split('/').pop()||'').replace('.html',''),q=new URLSearchParams(location.search),pc=q.get('pc')||'';
 var ar=function(){return (document.documentElement.lang||'ar')=='ar'};
@@ -8,7 +8,7 @@ function L(){var A=ar();
  return [['','🗃 '+(A?'مشاريعي':'My projects'),'myprojects.html','myprojects'],['','📈 '+(A?'مؤشرات المشاريع':'Project KPIs'),'kpis.html','kpis'],['','🛡️ '+(A?'مخاطر المشاريع':'Project risks'),'risks.html','risks'],['','💰 '+(A?'الموازنات':'Budgets'),'budget.html','budget'],['','📊 '+(A?'المحفظة':'Portfolio'),'portfolio.html','portfolio']]}
 function build(){var m=document.querySelector('main');if(!m)return;var h=document.getElementById('hubn');if(!h){h=document.createElement('nav');h.id='hubn';h.className='hubn'}
  h.innerHTML=L().map(function(x){if(x[0]=='sep')return '<i></i>';var on=x[3]==f&&!(x[3]=='myprojects'&&pc&&location.hash=='#plan');return '<a class="'+(x[0]=='hp'?'hp ':'')+(on?'on':'')+'" href="'+x[2]+'">'+x[1]+'</a>'}).join('');
- if(h.nextSibling!==m)m.parentNode.insertBefore(h,m);var o=h.querySelector('.on');if(o&&o.scrollIntoView)try{o.scrollIntoView({inline:'nearest',block:'nearest'})}catch(_){}}
+ if(h.nextSibling!==m)m.parentNode.insertBefore(h,m);var o=h.querySelector('.on');if(o&&!h.__sc){h.__sc=1;try{var hr=h.getBoundingClientRect(),or=o.getBoundingClientRect();if(or.left<hr.left||or.right>hr.right)h.scrollLeft+=(or.left+or.width/2)-(hr.left+hr.width/2)}catch(_){}}}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(build,0)});window.addEventListener('load',build);if(document.readyState!='loading')setTimeout(build,0);
-new MutationObserver(function(){build()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+var LG=document.documentElement.lang;new MutationObserver(function(){var l=document.documentElement.lang;if(l===LG)return;LG=l;build()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
 })();
