@@ -998,12 +998,12 @@ const W=[
 ["pl_xEmpty", "No rows found.", "لم يتم العثور على صفوف."],
 ["pl_xFail", "Could not read the file. Try pasting the cells instead.", "تعذّرت قراءة الملف. جرّب لصق الخلايا بدلًا من ذلك."],
 ["pl_xTitle", "Import activities from Excel", "استيراد الأنشطة من Excel"],
-["pl_xIntro", "Prepare your sheet like the example: one activity per row. Download the template, fill it, then upload it or paste the cells.", "جهّز الملف مثل المثال: نشاط واحد في كل صف. نزّل القالب واملأه ثم ارفعه أو الصق الخلايا."],
-["pl_xR1", "Column A: WBS number. 1, 2 are main; 1.1, 1.2 are sub; 1.1.1 is the third level.", "العمود A: رقم WBS. ‏1 و2 رئيسي، و1.1 و1.2 فرعي، و1.1.1 فرعي ثانوي."],
+["pl_xIntro", "One activity per row. Any sheet works: the system finds the columns by their titles (name, start, end, assignee…). Only the activity names are required; the template below is the easiest.", "نشاط واحد في كل صف. يقبل النظام أي ملف ويتعرّف على الأعمدة من عناوينها (الاسم، البداية، النهاية، المكلّف…). المطلوب فقط أسماء الأنشطة، والقالب أدناه هو الأسهل."],
+["pl_xR1", "WBS (optional): 1, 2 are main; 1.1, 1.2 are sub. Without it, every row becomes a main activity in order.", "رقم WBS (اختياري): ‏1 و2 رئيسي، و1.1 و1.2 فرعي. بدونه يصبح كل صف نشاطًا رئيسيًا بالترتيب."],
 ["pl_xR2", "Columns C and D: dates only for activities with no sub-activities; leave main rows empty.", "العمودان C وD: التواريخ للأنشطة التي ليس تحتها أنشطة فقط، واتركها فارغة للصفوف الرئيسية."],
 ["pl_xR3", "Column E: the user's name as in the system.", "العمود E: اسم المكلّف كما في النظام."],
 ["pl_xR4", "Column F: WBS number of the previous activity (e.g. 1.1, or 2.1SS+3 for type and lag).", "العمود F: رقم WBS للنشاط السابق (مثل 1.1 أو 2.1SS+3 للنوع والتأخير)."],
-["pl_xR5", "Dates: 2026-03-15 or 15/03/2026 or a normal Excel date.", "التاريخ: 2026-03-15 أو 15/03/2026 أو تاريخ إكسل عادي."],
+["pl_xR5", "Dates (optional): 15/03/2026, 15-3-26, 2026-03-15 or a normal Excel date. Rows with problems are imported with a warning, not rejected.", "التواريخ (اختيارية): 15/03/2026 أو 15-3-26 أو 2026-03-15 أو تاريخ إكسل عادي. الصفوف التي فيها ملاحظة تُرفع مع تنبيه ولا تُرفض."],
 ["pl_xTpl", "Download the Excel template", "تنزيل قالب Excel"],
 ["pl_xFile", "Upload the Excel file", "رفع ملف Excel"],
 ["pl_xPaste", "Or paste the cells here", "أو الصق الخلايا هنا"],
@@ -2026,40 +2026,63 @@ const A2E=s=>String(s).replace(/[0-9]/g,c=>'0123456789'.indexOf(c)).replace(/[0-
 function parseDate(v){if(v==null||v==='')return'';if(v instanceof Date&&!isNaN(v))return ds(Math.round(v.getTime()/864e5));if(typeof v=='number'&&v>20000&&v<80000)return ds(Math.round(v)-25569);
  const s=A2E(String(v)).trim();let m=/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/.exec(s);if(m)return m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
  m=/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/.exec(s);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
- if(/^\d{5}$/.test(s))return ds(+s-25569);return null}
-function parseRows(rows){const errs=[],warns=[],tasks=[],byW={};let start=0;
- const wre=/^\d+(\.\d+)*$/;
- rows=rows.map(r=>(r||[]).map(c=>c==null?'':c));
- if(rows.length&&!wre.test(A2E(String(rows[0][0]||'')).trim()))start=1;
+ m=/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2})$/.exec(s);if(m)return '20'+m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');
+ if(/^\d{5}(\.\d+)?$/.test(s))return ds(Math.floor(+s)-25569);
+ {const d=new Date(s);if(!isNaN(d)&&/[a-z]/i.test(s))return ds(Math.round(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5))}return null}
+/* Excel/paste import, forgiving: columns are found by their header (Arabic or English, any order); without a header the
+   template order is used. WBS is optional (rows become main activities in order); bad dates, unknown names or a missing
+   parent only give warnings; a file with just activity names is enough. */
+function parseRows(rows){const errs=[],warns=[],tasks=[],byW={};
+ const wre=/^\d+(\.\d+)*$/,cl=v=>A2E(String(v==null?'':v)).trim();
+ rows=(rows||[]).map(r=>(r||[]).map(c=>c==null?'':c)).filter(r=>r.some(c=>String(c).trim()!==''));
+ if(!rows.length){errs.push(t('pl_xEmpty'));return{tasks,errs,warns,levels:1}}
+ const HD={w:/^(wbs|رقم|الرقم|م|#|no\.?|id|التسلسل|تسلسل|المستوى|level)$/i,n:/(name|task|activity|title|الاسم|اسم|النشاط|المهمة|البند|الأنشطة|المهام|الوصف)/i,s:/(start|بداية|البدء|من)/i,e:/(end|finish|due|نهاية|الانتهاء|إلى|الى|التسليم)/i,
+  who:/(owner|assign|resource|responsible|المكلف|المكلّف|المسؤول|المسئول|المنفذ)/i,dep:/(pred|depend|السابق|سابقة|الاعتماد على|يعتمد)/i,nt:/(note|comment|ملاحظ)/i,as:/(actual start|بداية فعلية|البداية الفعلية)/i,ae:/(actual (end|finish)|نهاية فعلية|النهاية الفعلية)/i,pc:/(progress|complete|%|إنجاز|الإنجاز|نسبة)/i,du:/(duration|المدة|مدة|days|أيام)/i};
+ // find a header row among the first 5 rows
+ let hi=-1,col=null;
+ for(let r=0;r<Math.min(5,rows.length)&&hi<0;r++){const m={};rows[r].forEach((c,ci)=>{const h=cl(c);if(!h||h.length>40)return;
+   if(HD.as.test(h)&&m.as==null)m.as=ci;else if(HD.ae.test(h)&&m.ae==null)m.ae=ci;else if(HD.w.test(h)&&m.w==null)m.w=ci;else if(HD.s.test(h)&&m.s==null)m.s=ci;else if(HD.e.test(h)&&m.e==null)m.e=ci;
+   else if(HD.who.test(h)&&m.who==null)m.who=ci;else if(HD.dep.test(h)&&m.dep==null)m.dep=ci;else if(HD.nt.test(h)&&m.nt==null)m.nt=ci;else if(HD.pc.test(h)&&m.pc==null)m.pc=ci;else if(HD.du.test(h)&&m.du==null)m.du=ci;else if(HD.n.test(h)&&m.n==null)m.n=ci});
+  if(m.n!=null||(m.s!=null&&m.e!=null)){hi=r;col=m}}
+ if(!col){// no header: template order if column A looks like WBS, otherwise the first text column is the name
+  const a0=cl(rows[0][0]);col=wre.test(a0)||wre.test(cl((rows[1]||[])[0]))?{w:0,n:1,s:2,e:3,who:4,dep:5,nt:6,as:7,ae:8,pc:9}:{n:0,s:1,e:2,who:3,dep:4,nt:5};
+  if(col.w==null&&!rows.slice(0,3).some(r=>parseDate(r[1]))){col={n:0}}}
+ if(col.n==null){// guess the name column: the column with the most long text
+  const sc=[];rows.slice(hi+1,hi+30).forEach(r=>r.forEach((c,ci)=>{const v=cl(c);if(v&&!wre.test(v)&&parseDate(c)==null&&isNaN(+v))sc[ci]=(sc[ci]||0)+v.length}));let b=-1,bv=0;sc.forEach((v,ci)=>{if(v>bv){bv=v;b=ci}});if(b>=0)col.n=b}
+ if(col.n==null){errs.push(t('pl_xEmpty'));return{tasks,errs,warns,levels:1}}
+ const g=(r,k)=>col[k]==null?'':r[col[k]];
  const uByName={};Object.values(users).forEach(u=>{uByName[(u.full_name||'').trim().toLowerCase()]=u.id;if(u.email)uByName[u.email.toLowerCase()]=u.id});
- const pend=[];
- for(let i=start;i<rows.length;i++){const r=rows[i],ln=i+1;if(r.every(c=>String(c).trim()===''))continue;
-  const w=A2E(String(r[0])).trim().replace(/\.$/,'');
-  if(!wre.test(w)){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xWbs')} («${String(r[0]).slice(0,20)}»)`);continue}
-  if(byW[w]){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDup')} ${w}`);continue}
-  const parts=w.split('.');let par='';if(parts.length>1){const pw=parts.slice(0,-1).join('.');if(!byW[pw]){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xNoPar')} ${pw}`);continue}par=byW[pw].id}
-  if(parts.length>5){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDepth')}`);continue}
-  const x=blankTask(par,'','');x.n=String(r[1]).trim();if(!x.n)warns.push(`${w}: ${t('pl_ckName')}`);
-  const s=parseDate(r[2]),e=parseDate(r[3]);if(s===null||e===null){errs.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDate')}`);continue}x.s=s;x.e=e;
-  const who=String(r[4]).trim();if(who){const k=who.toLowerCase();if(uByName[k])x.w=uByName[k];else{warns.push(`${w}: ${t('pl_xWho')} «${who}»`)}}
-  x.nt=String(r[6]||'').trim();const as=parseDate(r[7]),ae=parseDate(r[8]);if(as)x.as=as;if(ae)x.ae=ae;if(r[9]!==''&&!isNaN(+A2E(r[9])))x.pc=Math.max(0,Math.min(100,Math.round(+A2E(r[9]))));
-  x.__w=w;byW[w]=x;tasks.push(x);pend.push([x,String(r[5]||''),ln])}
+ const pend=[];let auto=0;
+ for(let i=hi+1;i<rows.length;i++){const r=rows[i],ln=i+1,nm=String(g(r,'n')).trim();let w=cl(g(r,'w')).replace(/\.$/,'');
+  if(!nm&&!w)continue;
+  let par='';
+  if(w&&wre.test(w)&&!byW[w]){const parts=w.split('.');if(parts.length>1){let pw=parts.slice(0,-1);while(pw.length&&!byW[pw.join('.')])pw.pop();if(pw.length){if(pw.length<parts.length-1)warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xNoPar')} ${parts.slice(0,-1).join('.')}`);let pr=byW[pw.join('.')];
+     let dep=pw.length;while(dep>=5&&pr){pr=tasks.find(z=>z.id==pr.p)||null;dep--}par=pr?pr.id:''}else warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xNoPar')} ${parts.slice(0,-1).join('.')}`)}}
+  else{if(w)warns.push(`${t('pl_row')} ${ad(ln)}: ${byW[w]?t('pl_xDup')+' '+w:t('pl_xWbs')}`);w='~'+(++auto)}
+  const x=blankTask(par,'','');x.n=nm||'—';if(!nm)warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_ckName')}`);
+  const sv=g(r,'s'),ev=g(r,'e');let s0=parseDate(sv),e0=parseDate(ev);
+  if(s0===null){warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDate')} («${String(sv).slice(0,20)}»)`);s0=''}if(e0===null){warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xDate')} («${String(ev).slice(0,20)}»)`);e0=''}
+  if(s0&&!e0&&col.du!=null){const du=parseInt(cl(g(r,'du')));if(du>0)e0=ds(dn(s0)+du-1)}
+  x.s=s0;x.e=e0;
+  const who=String(g(r,'who')).trim();if(who){const k=who.toLowerCase();if(uByName[k])x.w=uByName[k];else{const hit=Object.keys(uByName).find(n=>n&&(n.includes(k)||k.includes(n)));if(hit&&k.length>3)x.w=uByName[hit];else warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xWho')} «${who}»`)}}
+  x.nt=String(g(r,'nt')||'').trim();const as=parseDate(g(r,'as')),ae=parseDate(g(r,'ae'));if(as)x.as=as;if(ae)x.ae=ae;
+  const pcv=cl(g(r,'pc')).replace('%','');if(pcv!==''&&!isNaN(+pcv)){let v=+pcv;if(v>0&&v<=1&&/\./.test(pcv))v=v*100;x.pc=Math.max(0,Math.min(100,Math.round(v)))}
+  x.__w=w;byW[w]=x;tasks.push(x);pend.push([x,String(g(r,'dep')||''),ln])}
  const kids={};tasks.forEach(x=>{if(x.p)kids[x.p]=1});
- // leaf checks and dates
- tasks.forEach(x=>{if(kids[x.id]){x.s='';x.e='';return}if(!x.s||!x.e){warns.push(`${x.__w}: ${t('pl_ckDates')}`)}else{if(dn(x.e)<dn(x.s)){warns.push(`${x.__w}: ${t('pl_ckOrder')}`);x.e=x.s}
-   const ns=nextWork(dn(x.s)),du=Math.max(1,wdays(dn(x.s),dn(x.e)));if(ds(ns)!=x.s||!isWork(dn(x.e))){x.s=ds(ns);x.e=ds(isWork(dn(x.e))?dn(x.e):prevWork(dn(x.e)));if(dn(x.e)<dn(x.s))x.e=x.s}}});
- // predecessors
+ tasks.forEach(x=>{if(kids[x.id]){x.s='';x.e='';return}if(!x.s||!x.e){if(x.s&&!x.e)x.e=x.s;else if(!x.s&&x.e)x.s=x.e;else{warns.push(`${String(x.__w).replace('~','#')}: ${t('pl_ckDates')}`);return}}
+   if(dn(x.e)<dn(x.s)){warns.push(`${String(x.__w).replace('~','#')}: ${t('pl_ckOrder')}`);x.e=x.s}
+   const ns=nextWork(dn(x.s));if(ds(ns)!=x.s||!isWork(dn(x.e))){x.s=ds(ns);x.e=ds(isWork(dn(x.e))?dn(x.e):prevWork(dn(x.e)));if(dn(x.e)<dn(x.s))x.e=x.s}});
  const mp={};
- pend.forEach(([x,txt,ln])=>{if(!txt.trim())return;if(kids[x.id]){warns.push(`${x.__w}: ${t('pl_xParDep')}`);return}
+ pend.forEach(([x,txt,ln])=>{if(!txt.trim())return;if(kids[x.id]){warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_xParDep')}`);return}
   txt.split(/[,;،]+/).map(s=>s.trim()).filter(Boolean).forEach(tok=>{const m=/^(\d+(?:\.\d+)*)\s*(FS|SS|FF|SF)?\s*([+-]\s*\d+)?$/i.exec(A2E(tok));
-   const tg=m&&byW[m[1]];if(!m||!tg||kids[tg.id]||tg===x){warns.push(`${x.__w}: ${t('pl_predBad')}${tok}`);return}
+   const tg=m&&byW[m[1]];if(!m||!tg||kids[tg.id]||tg===x){warns.push(`${t('pl_row')} ${ad(ln)}: ${t('pl_predBad')}${tok}`);return}
    x.dep.push({t:tg.id,y:(m[2]||'FS').toUpperCase(),l:m[3]?+m[3].replace(/\s/g,''):0});(mp[tg.id]=mp[tg.id]||[]).push({to:x.id})})});
- // cycle removal
- tasks.forEach(x=>{const keep=[];x.dep.forEach(e=>{const saved=x.dep;let cyc=false;{const st=[x.id],seen={};while(st.length&&!cyc){const c=st.pop();if(c==e.t){cyc=true;break}if(seen[c])continue;seen[c]=1;(mp[c]||[]).forEach(q=>st.push(q.to))}}
-   if(cyc){warns.push(`${x.__w}: ${t('pl_cycle')}`);mp[e.t]=(mp[e.t]||[]).filter(q=>q.to!=x.id)}else keep.push(e)});x.dep=keep});
- const lv=tasks.reduce((m,x)=>Math.max(m,x.__w.split('.').length),0);
+ tasks.forEach(x=>{const keep=[];x.dep.forEach(e=>{let cyc=false;{const st=[x.id],seen={};while(st.length&&!cyc){const c=st.pop();if(c==e.t){cyc=true;break}if(seen[c])continue;seen[c]=1;(mp[c]||[]).forEach(q=>st.push(q.to))}}
+   if(cyc){warns.push(`${String(x.__w).replace('~','#')}: ${t('pl_cycle')}`);mp[e.t]=(mp[e.t]||[]).filter(q=>q.to!=x.id)}else keep.push(e)});x.dep=keep});
+ const depth=x=>{let d=1,c=x;while(c.p){c=tasks.find(z=>z.id==c.p);if(!c)break;d++}return d};
+ const lv=tasks.reduce((m,x)=>Math.max(m,depth(x)),1);
  tasks.forEach(x=>delete x.__w);
- if(!tasks.length&&!errs.length)errs.push(t('pl_xEmpty'));
+ if(!tasks.length)errs.push(t('pl_xEmpty'));
  return{tasks,errs,warns,levels:Math.max(lv,1)}}
 function loadXLSX(){return window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=ok;s.onerror=()=>no(new Error('xlsx'));document.head.appendChild(s)})}
 function csvRows(txt){const rows=[];let row=[],cur='',q=false;const sep=txt.indexOf('\t')>-1&&txt.indexOf('\t')<(txt.indexOf(',')<0?1e9:txt.indexOf(','))?'\t':(txt.split(';').length>txt.split(',').length?';':',');
