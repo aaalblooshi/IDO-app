@@ -613,8 +613,8 @@ function chipGo(k){if(k=='tk'){TF='mine';FLT='all';return wsGo('tasks')}if(k=='l
 function wkCnt(){const myT=PJ.reduce((s,p)=>s+p.M.leaves.filter(x=>x._me&&x._st!='done').length,0),late=PJ.reduce((s,p)=>s+p.M.leaves.filter(x=>x._me&&x._st=='late').length,0),ac=PJ.reduce((s,p)=>s+p.att.length,0);
  const rn=window.MR?MR.filter(r=>r._need).length:null,kd=window.MK?MK.filter(k=>k._due).length:null,bo=window.MB?MB.filter(b=>b._over).length:null,up=window.IDOUPD?IDOUPD.count():0;
  return {myT,late,ac,rn,kd,bo,up,need:late+ac+(rn||0)+(kd||0)+(bo||0)}}
-function wkTabs(){const c=wkCnt();return '<button class="'+(VW=='work'?'p':'')+'" onclick="VW=\'work\';sv(\'myVw\',VW);draw()">🧰 '+P(['مساحة عملي','My workspace'])+(c.need?' <i class="bdg">'+c.need+'</i>':'')+'</button>'}
-let WS={};const WSH=(location.hash.match(/ws=(\w+)/)||[])[1];if(WSH)VW='work';try{WS=JSON.parse(sessionStorage.getItem('myWs2')||'{}')||{}}catch(_){}if(WSH)WS[WSH]=1;
+function wkTabs(){const c=wkCnt();return '<button class="'+(VW=='work'?'p':'')+'" onclick="if(VW!==\'work\')WS={};VW=\'work\';draw()">🧰 '+P(['مساحة عملي','My workspace'])+(c.need?' <i class="bdg">'+c.need+'</i>':'')+'</button>'}
+let WS={};const WSH=(location.hash.match(/ws=(\w+)/)||[])[1];if(WSH)VW='work';if(WSH)WS[WSH]=1;
 function wsSave(){try{sessionStorage.setItem('myWs2',JSON.stringify(WS))}catch(_){}}
 function wsTog(k){keepAt('ws_'+k,()=>{WS[k]=WS[k]?0:1;wsSave();draw()})}
 function wsAll(v){['tasks','acts','risks','kpis','bud'].forEach(k=>WS[k]=v);wsSave();draw()}
@@ -647,7 +647,7 @@ function workV(){if(WSH&&!window.__wsj&&PJ.length){window.__wsj=1;setTimeout(()=
  const anyOpen=S.some(x=>WS[x[0]]);
  return '<div id="updslot"></div><div class="wst"><span class="mut">'+P(['اضغط أي قسم لفتحه أو إغلاقه','Tap any section to open or close it'])+'</span><button class="btn sm" onclick="wsAll('+(anyOpen?0:1)+')">'+(anyOpen?P(['إغلاق الكل','Close all']):P(['فتح الكل','Open all']))+'</button></div>'
   +S.map(([k,ic,t,sum,n,fn])=>'<section class="wsc'+(WS[k]?' on':'')+'" id="ws_'+k+'"><button class="wsh" onclick="wsTog(\''+k+'\')"><span class="wsi">'+ic+'</span><span class="wst2"><b>'+t+'</b><small>'+sum+'</small></span>'+(n?'<i class="bdg r">'+n+'</i>':'')+'<span class="wsv">'+(WS[k]?'▴':'▾')+'</span></button>'+(WS[k]?'<div class="wsb">'+fn()+'</div>':'')+'</section>').join('')}
-const WKV={work:workV};if(['tasks','acts','myrisks','mykpis'].includes(VW))VW='work';
+const WKV={work:workV};if(['tasks','acts','myrisks','mykpis','work'].includes(VW)&&!WSH)VW='cards';
 function actsV(){const L=PJ.filter(p=>p.att.length);if(!L.length)return '<div class="none">'+P(['لا إجراءات بانتظارك 👏','Nothing waiting for you 👏'])+'</div>';return L.map(acItem).join('')}
 function acGo(a,p){return a.href?'frOpen(\''+a.href+'\',\''+esc(P(a.l)).replace(/'/g,'')+'\',\''+esc(p.name).replace(/'/g,'')+'\')':a.dr?'shClose();drOpen(\''+p.code+'\',\''+a.dr+'\')':'location.href=\'myprojects.html?pc='+encodeURIComponent(p.code)+'#req\''}
 /* open the request itself inside this page, like «My journey» on the home page */
