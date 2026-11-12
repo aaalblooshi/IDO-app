@@ -536,3 +536,10 @@
 })();
 /* smart KPI / risk updates in My tasks (feature u_tasks) */
 (function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=2';s.defer=true;document.head.appendChild(s)})();
+/* keep horizontal tab and chip rows where the user left them when a page redraws */
+(function(){if(window.__hsk)return;window.__hsk=1;var M={};
+function key(e){var p=[],n=e;for(var i=0;i<3&&n&&n!==document.body;i++){p.push(n.tagName+'.'+(typeof n.className=='string'?n.className.replace(/\s*\b(on|p|active|sel)\b/g,''):'')+(n.id?'#'+n.id:''));n=n.parentElement}return p.join('<')}
+document.addEventListener('scroll',function(e){var t=e.target;if(t&&t.nodeType===1&&t.scrollWidth>t.clientWidth+2&&!t.__hr)M[key(t)]=t.scrollLeft},true);
+var q=0;function fix(){q=0;var ks=Object.keys(M);if(!ks.length)return;var els=document.querySelectorAll('.tabs,.chips,.seg,.sb,.wk,.hubn,#pftabs,[class*="tab"],[style*="overflow-x"],[style*="overflow:auto"]');
+ for(var i=0;i<els.length;i++){var e=els[i];if(e.scrollWidth<=e.clientWidth+2)continue;var k=key(e);if(!(k in M)||e.__hk)continue;e.__hk=1;if(Math.abs(e.scrollLeft-M[k])>1){e.__hr=1;e.scrollLeft=M[k];(function(x){setTimeout(function(){x.__hr=0},60)})(e)}}}
+new MutationObserver(function(){if(!q){q=1;requestAnimationFrame(fix)}}).observe(document.documentElement,{childList:true,subtree:true})})();
