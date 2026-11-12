@@ -12,16 +12,16 @@ window.CHAPTERS=[
 ];
 window.STEPS=[
  // ── opening
- {ch:'open',title:1,c:['مكان واحد لكل مشروع','One place for every project'],d:['من الفكرة… إلى الإغلاق','From the first idea… to closure'],
+ {ch:'open',title:1,c:['من ميثاقٍ يوحّد رؤيتنا، إلى مشروعٍ يحمل بصمتنا','From a charter that unites our vision, to a project that bears our mark'],d:['رحلة الإنجاز… تبدأ بلمسة','The journey to achievement… begins with a touch'],
   n:['رحّب بالحضور. البوابة تجمع خدمات مكتب التطوير المؤسسي: الميثاق، الخطة، طلبات التغيير، التقرير الختامي، المهام والمتابعة. اضغط للمتابعة؛ كل نقرة تنقلنا إلى شاشة حقيقية من النظام.','Welcome everyone. The portal brings together the Institutional Development Office services: charter, plan, change requests, closure report, tasks and tracking. Each click takes us to a real screen of the system.']},
 
  // ── chapter 1: glance
- {ch:'glance',title:1,c:['النظام بنظرة','The system at a glance'],d:['على الهاتف وعلى الكمبيوتر','On your phone and on your computer'],n:['نبدأ بجولة سريعة في الواجهة الرئيسية.','We start with a quick tour of the main screen.']},
+ {ch:'glance',title:1,c:['النظام بنظرة','The system at a glance'],d:['على الهاتف وعلى جهازك المكتبي','On your phone and on your desktop'],n:['نبدأ بجولة سريعة في الواجهة الرئيسية.','We start with a quick tour of the main screen.']},
  {ch:'glance',s:'phone',c:['في جيبك','In your pocket'],d:['ثبّت البوابة على الهاتف كتطبيق','Install the portal on your phone as an app'],n:['من Safari: مشاركة ← إضافة إلى الشاشة الرئيسية. تفتح كتطبيق كامل الشاشة.','From Safari: Share → Add to Home Screen. It opens full screen like an app.']},
  {ch:'glance',s:'phone',t:'nav',a:1,c:['كل شيء على بُعد لمسة','Everything one tap away'],d:['الرئيسية · مهامي · الإشعارات · مشاريعي · المحفظة','Home · My tasks · Notifications · My projects · Portfolio'],n:['الشريط السفلي ثابت في كل الصفحات. الرقم الأحمر على «مهامي» = المهام المتأخرة.','The bottom bar stays on every page. The red number on “My tasks” counts late tasks.']},
  {ch:'glance',s:'phone',t:'create',a:1,c:['إنشاء جديد','Create new'],d:['ميثاق · خطة · طلب تغيير · تقرير ختامي','Charter · plan · change request · closure report'],n:['زر واحد لبدء أي خدمة.','One button to start any service.']},
  {ch:'glance',s:'phone',t:'chat',a:1,c:['التواصل','Chat'],d:['محادثة كل مشروع، والزملاء مباشرة','Every project’s chat, and colleagues directly'],n:['الرقم على الفقاعة = رسائل غير مقروءة.','The number on the bubble = unread messages.']},
- {ch:'glance',s:'home',c:['الصفحة الرئيسية','The home page'],d:['كل ما يخصك في شاشة واحدة','Everything about you on one screen'],n:['نفس الصفحة على الكمبيوتر.','The same page on a computer.']},
+ {ch:'glance',s:'home',c:['الصفحة الرئيسية','The home page'],d:['كل ما يخصك في شاشة واحدة','Everything about you on one screen'],n:['نفس الصفحة على جهازك المكتبي.','The same page on your desktop.']},
  {ch:'glance',s:'home',t:'summary',c:['ملخصك اليومي','Your daily summary'],d:['كم ينتظر إجراءك… وكم منها متأخر','What waits for you… and what is late'],n:['جملة واحدة تلخص ما المطلوب منك اليوم.','One sentence summarises what you need to do today.']},
  {ch:'glance',s:'home',t:'search',a:1,c:['ابحث أو اكتب أمرًا','Search or type a command'],d:['«ميثاق جديد» · رمز مشروع · اسم طلب','“new charter” · a project code · a request name'],n:['البحث يفهم الأوامر: اكتب «ميثاق جديد» وتنتقل مباشرة. اختصار: مفتاح /','Search understands commands: type “new charter” to jump straight there. Shortcut: the / key.']},
  {ch:'glance',s:'menu',t:'drawer',a:1,c:['القائمة','The menu'],d:['كل الصفحات والإعدادات','Every page and setting'],n:['تظهر العناصر حسب صلاحياتك.','Items appear according to your permissions.']},
