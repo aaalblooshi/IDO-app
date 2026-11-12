@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.p:disabled{background:#eceae4!important;color:#8b8678!important;border-color:#d9d4c4!important;cursor:default;box-shadow:none}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.p:disabled{background:#eceae4!important;color:#8b8678!important;border-color:#d9d4c4!important;cursor:default;box-shadow:none}.seg{display:flex;background:#e6ecf2;border-radius:99px;padding:3px;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px}.seg::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}.seg button{flex:1 0 auto;border:0!important;background:transparent!important;border-radius:99px!important;padding:7px 12px!important;font-size:14px!important;white-space:nowrap;color:#3a4652!important;box-shadow:none!important;min-height:0!important}.seg button.on{background:#fff!important;color:#1d5f8a!important;box-shadow:0 1px 4px rgba(0,0,0,.12)!important}.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px;padding:1px 0 3px}.chips button{flex:none;padding:5px 11px!important;font-size:13px!important;white-space:nowrap;min-height:0!important}.chips button.on{background:#1d5f8a!important;border-color:#1d5f8a!important;color:#fff!important}.chips .num{opacity:.75;font-size:12px}button.more{flex:none;width:46px;padding:0!important;font-size:20px!important;font-weight:800}.mi{display:flex!important;gap:10px;align-items:center;width:100%;text-align:start;padding:12px 10px!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;background:#fff!important;font-weight:700}.mi span{width:24px;text-align:center}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -293,14 +294,14 @@ function draw(){
  const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
  const tabs=MODE=='me'&&VIEW=='list'?TABS.map(([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
  $('app').innerHTML=`${isoH()}<div id="calbar"></div><div class="sb noprint">
-  ${TEAM()?`<div class="tabs">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}</div>`:''}
-  <input id="q" placeholder="${t('search')}" value="${esc(Q)}">
-  <div class="tabs" style="margin-top:8px">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
-  ${tabs?`<div class="tabs">${tabs}</div>`:''}
-  <div class="row" style="margin-top:0"><select id="fp" style="flex:2"><option value="">${t('allP')}</option>${ps.map(([c,n])=>`<option value="${esc(c)}" ${FP==c?'selected':''}>${esc(n)}</option>`).join('')}</select>
+  ${TEAM()?`<div class="seg">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}</div>`:''}
+  <div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><input id="q" placeholder="${t('search')}" value="${esc(Q)}" style="flex:1;min-width:0"><button class="more" onclick="moreOpen()" title="${lang=='ar'?'المزيد':'More'}">⋯</button></div>
+  <div class="seg">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
+  ${tabs?`<div class="chips">${tabs}</div>`:''}
+  <div class="row" style="margin-top:0"><button class="p" onclick="addOpen()" style="flex:none">＋ ${t('addT')}</button><select id="fp" style="flex:2;min-width:140px"><option value="">${t('allP')}</option>${ps.map(([c,n])=>`<option value="${esc(c)}" ${FP==c?'selected':''}>${esc(n)}</option>`).join('')}</select>
   ${MODE=='team'?`<select id="fs" style="flex:1"><option value="">${t('allS')}</option>${secs.map(s=>`<option value="${s}" ${FS==s?'selected':''}>${esc(secN(s))}</option>`).join('')}</select><select id="fu" style="flex:1"><option value="">${t('allU')}</option><option value="-" ${FU=='-'?'selected':''}>${t('unas')}</option>${us.map(u=>`<option value="${esc(u)}" ${FU==u?'selected':''}>${esc(UN[u]||u)}</option>`).join('')}</select>
   <select id="fst" style="flex:1"><option value="">${t('stAll')}</option>${['open','late','prog','fut','done'].map(k=>`<option value="${k}" ${FST==k?'selected':''}>${t('t'+k[0].toUpperCase()+k.slice(1))}</option>`).join('')}</select>`:''}</div>
-  <div class="row" style="margin-top:6px"><button class="p" onclick="addOpen()">＋ ${t('addT')}</button>${MODE=='me'?`<button onclick="icsOpen()">${t('ics')}</button>`:''}<button onclick="csvOut()">${t('csv')}</button><button onclick="CUST=!CUST;draw()">${t('cust')}</button><button onclick="info('prioT','prioTxt')">❔ ${t('prioT')}</button></div>
+  
   ${CUST?`<div class="card" style="margin-top:8px">${['sum','pts','prio','deps','wkd','wbs','cmp'].map(k=>`<label class="tg" style="display:flex;gap:8px;align-items:center;font-weight:600"><input type="checkbox" style="width:auto" ${CFG[k]?'checked':''} onchange="CFG.${k}=this.checked?1:0;saveCfg();draw()"> ${t('c_'+k)}</label>`).join('')}</div>`:''}
   ${legend()}
  </div><div id="body"></div>`;
@@ -327,6 +328,9 @@ function isoDone(m){const r=findR(ISO);if(!r)return;const x=r.x,tdy=ds(TODAY),as
  const old={pc:r.pcr,as:x.as||'',ae:x.ae||''};
  run(async()=>{await rpcProg(r,100,as,ae);await reload();draw();utoast(t('saved2'),()=>run(async()=>{await rpcProg(r,old.pc,old.as,old.ae);await reload();draw()},t('upd')))},false)}
 function info(tk,bk){closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};o.innerHTML=`<div class="sbx"><h3>${t(tk)}</h3><p>${t(bk)}</p><div class="row"><button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;document.body.appendChild(o)}
+function moreOpen(){closeSheet();const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};
+ const it=(f,ic,l)=>`<button class="mi" onclick="closeSheet();${f}"><span>${ic}</span>${l}</button>`;
+ o.innerHTML=`<div class="sbx"><h3>${lang=='ar'?'المزيد':'More'}</h3>${MODE=='me'?it('icsOpen()','📅',t('ics')):''}${it('csvOut()','⬇',t('csv'))}${it('CUST=!CUST;draw()','⚙',t('cust'))}${it("info('prioT','prioTxt')",'❔',t('prioT'))}<div class="row"><button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;document.body.appendChild(o)}
 function setMode(m){ALLM=m=='all';if(m=='all')m='team';MODE=m;FP=FS=FU=FST='';SHOWN=40;reload()}
 function paint(){const el=$('body');if(!el)return;
  const rs=scope(),lv=leaves(rs);
@@ -981,4 +985,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="ido-ui.js?v=26"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="ido-ui.js?v=27"></script></body></html>
