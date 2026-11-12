@@ -310,7 +310,7 @@ function draw(){
  if(MODE=='me'&&!ALLR.some(r=>r.mine)){$('body').innerHTML=`<div class="card mut">${t('noany')}</div>`;return}
  paint()}
 function depOpen(k){const r=findR(k);if(!r)return;closeSheet();const AR_=lang=='ar',T=(a,e)=>AR_?a:e;
- const row=(z,q,extra)=>{const ok=q&&q.a.a>=100;return `<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)"><span>${ok?'✅':'⏳'}</span><div style="flex:1"><b>${esc(z.x.n)}</b><div class="mut num" style="font-size:12px">${pct(q?q.a.a:0)}${z.s!=null?' · '+fd(ds(z.s))+' '+(lang=='ar'?'←':'→')+' '+fd(ds(z.e)):''}${extra||''}</div></div><button onclick="closeSheet();ISO='${esc(z.pr.pid+'|'+z.id)}';draw();scrollTo(0,0)">${T('عرض','Show')}</button></div>`};
+ const row=(z,q,extra)=>{const ok=q&&q.a.a>=99.999;return `<div style="display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-top:1px solid var(--line)"><span>${ok?'✅':'⏳'}</span><div style="flex:1"><b>${esc(z.x.n)}</b><div class="mut num" style="font-size:12px">${pct(q?q.a.a:0)}${z.s!=null?' · '+fd(ds(z.s))+' '+(lang=='ar'?'←':'→')+' '+fd(ds(z.e)):''}${extra||''}</div></div><button onclick="closeSheet();ISO='${esc(z.pr.pid+'|'+z.id)}';draw();scrollTo(0,0)">${T('عرض','Show')}</button></div>`};
  const preds=r.preds.map(d=>{const q=r.pr.byId[d.x.id];return q?row(q,q,' · '+d.y+(d.l?(d.l>0?' +':' ')+d.l:'')):''}).join(''),sc=r.pr.rs.filter(z=>z.preds.some(d=>d.x.id==r.id)).map(z=>row(z,z)).join('');
  const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
  o.innerHTML=`<div class="sbx"><h3>⛓ ${T('ترابط المهمة','Task links')}</h3><div style="margin-bottom:6px"><b>${esc(r.x.n)}</b></div>
@@ -463,9 +463,9 @@ const sxh=(n,tx)=>'<div class="sxh">'+(window.IDOI?IDOI.svg(n):'')+'<span>'+tx+'
 async function openSheet(k){const r=findR(k);if(!r)return;SH={k,r};closeSheet();SH={k,r};
  const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
  const x=r.x,ro=!r.edit||!r.leaf&&!ADM&&!r.mine,done=isDone(r),dis=ro?'disabled':'';
- const dep=r.preds.map(d=>{const q=r.pr.byId[d.x.id],ok=q&&q.a.a>=100;return `<div class="dpr">${ic(ok?'tasks':'clock',ok?'ok':'')} ${esc(d.x.n)} <span class="mut num">${pct(q?q.a.a:0)} · ${d.y}${d.l?(d.l>0?' +':' ')+d.l:''}</span></div>`}).join('')||'<span class="mut">—</span>';
+ const dep=r.preds.map(d=>{const q=r.pr.byId[d.x.id],ok=q&&q.a.a>=99.999;return `<div class="dpr">${ic(ok?'tasks':'clock',ok?'ok':'')} ${esc(d.x.n)} <span class="mut num">${pct(q?q.a.a:0)} · ${d.y}${d.l?(d.l>0?' +':' ')+d.l:''}</span></div>`}).join('')||'<span class="mut">—</span>';
  const sc=r.pr.rs.filter(z=>z.preds.some(d=>d.x.id==r.id));
- const su=sc.map(z=>`<div class="dpr">${ic(z.a.a>=100?'tasks':'clock',z.a.a>=100?'ok':'')} ${esc(z.x.n)}</div>`).join('')||'<span class="mut">—</span>';
+ const su=sc.map(z=>`<div class="dpr">${ic(z.a.a>=99.999?'tasks':'clock',z.a.a>=99.999?'ok':'')} ${esc(z.x.n)}</div>`).join('')||'<span class="mut">—</span>';
  o.innerHTML=`<div class="sbx"><div class="shh"><h3>${x.ms?'◆ ':''}${esc(x.n)}</h3><div style="margin:4px 0 6px">${whoH(r)} ${stChip(r)}${prChip(r)}</div><div class="mut">${pLink(r)}${pathS(r)?' · '+pathS(r):''}</div>
  <div class="mut" style="margin:6px 0 0">${t('plan')}: ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)} · ${relT(r)}${r.own?' · '+esc(UN[r.own]||''):''}</div>
  ${ADM&&r.ew!=null?`<div class="mut">${t('ew')}: <b class="num">${(r.ew<0.01?r.ew.toFixed(3):r.ew.toFixed(2))}%</b></div>`:''}

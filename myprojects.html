@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#1d5f8a">
-<title>مشاريعي</title><script src="prog.js?v=1"></script><script src="halt.js?v=2"></script><link rel="manifest" href="manifest.json">
+<title>مشاريعي</title><script src="prog.js?v=2"></script><script src="halt.js?v=2"></script><link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -182,7 +182,7 @@ function planModel(tasks,uid,tdx,wm){
  out.filter(x=>!x._par).forEach(rollup);
  /* progress uses the plan's weights (same rule as the plan page and the portfolio) */
  const PR=window.IDOPROG?IDOPROG.roll(tasks,wm,td):null;if(PR)out.forEach(x=>{const r=PR.t[x.id];if(r&&x._k)x._pc=r.a});
- out.forEach(x=>{const done=x._pc>=100,late=!done&&x._e!=null&&x._e<td;x._st=done?'done':late?'late':(x._s!=null&&x._s<=td&&x._pc>0)||x._pc>0?'prog':x._s!=null&&x._s<=td?'due':'todo';
+ out.forEach(x=>{if(x._pc>99.999)x._pc=100;const done=x._pc>=100,late=!done&&x._e!=null&&x._e<td;x._st=done?'done':late?'late':(x._s!=null&&x._s<=td&&x._pc>0)||x._pc>0?'prog':x._s!=null&&x._s<=td?'due':'todo';
   x._me=!!uid&&x.w==uid;x._top=x._par?null:x.id});
  const top=x=>{let c=x;while(c._par&&by[c._par])c=by[c._par];return c};out.forEach(x=>x._top=top(x).id);
  const tw=leaves.reduce((a,x)=>a+x._dur,0)||1;let pct=leaves.reduce((a,x)=>a+x._pc*x._dur,0)/tw;
