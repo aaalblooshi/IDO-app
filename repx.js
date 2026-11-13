@@ -60,7 +60,7 @@
  var W={L:[],RP:null,f:'all',q:'',dirty:{},t:{}};
  var FRAME_CSS='#hd,#gnav,#hubn,.hubn,#bnav,.bnav,header.top,.top,#tabbar{display:none!important}body{padding-top:0!important;padding-bottom:20px!important}';
  function wsOpen(L,RP){W.L=L;W.RP=RP;W.f='all';W.q='';var o=document.getElementById('rxws');if(o)o.remove();o=document.createElement('div');o.id='rxws';o.className='rxov rxfull';
-  o.innerHTML='<div class="rxws"><div class="rxh"><b>📝 '+P('ملاحظات المكتب قبل إصدار التقرير','Office notes before issuing the report')+' <small dir="ltr">'+esc(RP.f)+' → '+esc(RP.t)+'</small></b><span id="rxst" class="mut"></span><button onclick="REPX._closeWs()">✕ '+P('إغلاق','Close')+'</button></div><div class="rxsplit"><div class="rxl" id="rxl"><div class="mut" style="padding:20px">'+P('جارٍ التحميل…','Loading…')+'</div></div><div class="rxfr" id="rxfr"></div></div></div>';
+  o.innerHTML='<div class="rxws"><div class="rxh"><b>📝 '+P('ملاحظات المكتب قبل إصدار التقرير','Office notes before issuing the report')+' <small dir="ltr">'+esc(RP.f)+' → '+esc(RP.t)+'</small></b><span id="rxst" class="mut"></span>'+(window.IDOXL2&&IDOXL.on('office')?'<button onclick="REPX._xlDl()" title="'+P('اكتب ملاحظات كل المشاريع في Excel','Write all notes in Excel')+'">📥 Excel</button><button onclick="REPX._xlUp()">⬆ '+P('رفع','Upload')+'</button>':'')+'<button onclick="REPX._closeWs()">✕ '+P('إغلاق','Close')+'</button></div><div class="rxsplit"><div class="rxl" id="rxl"><div class="mut" style="padding:20px">'+P('جارٍ التحميل…','Loading…')+'</div></div><div class="rxfr" id="rxfr"></div></div></div>';
   document.body.appendChild(o);document.body.style.overflow='hidden';load(L,RP).then(wsDraw)}
  function needs(p){var r=(D.risks[p.k]||[]).some(function(x){return rsc(x)>=15}),k=(D.kpis[p.k]||[]).some(function(x){var s=kst(x);return s=='bad'||s=='wa'}),f=finOf(p);return p.lateN>0||(p.gap||0)>=10||r||k||(f.pc!=null&&f.pc>100)}
  function wsDraw(){var el=document.getElementById('rxl');if(!el)return;var y=el.scrollTop;var L=W.L,q=W.q.trim().toLowerCase();
@@ -120,6 +120,8 @@
   _closeCfg:function(){var o=document.getElementById('rxcfg');if(o)o.remove()},
   _closeWs:async function(){await flush();TABS=[];TON=-1;var o=document.getElementById('rxws');if(o)o.remove();document.body.style.overflow='';if(REPX.onWsClose)REPX.onWsClose()},
   _f:function(f){W.f=f;wsDraw()},_q:function(v){W.q=v;clearTimeout(W.qt);W.qt=setTimeout(function(){wsDraw();var i=document.querySelector('#rxws .rxf input');if(i){i.focus();i.setSelectionRange(v.length,v.length)}},250)},
+  _xlDl:function(){IDOXL2.officeDownload(W.L,W.RP,D.notes)},
+  _xlUp:function(){IDOXL2.officeUpload(W.RP,function(){load(W.L,W.RP,true).then(wsDraw)})},
   _in:function(t){var k=t.dataset.k;D.notes[k]=Object.assign({},D.notes[k]||{},(function(){var o={};o[t.dataset.f]=t.value;return o})());sched(k)},
   _inc:function(t){sched(t.dataset.k)},
   _copyPrev:function(k){var pv=D.prev[k];if(!pv)return;['note','challenges','recs'].forEach(function(f){var t=document.querySelector('#rxws textarea[data-k="'+k+'"][data-f="'+f+'"]');if(t&&!t.value.trim()&&pv[f]){t.value=pv[f]}});sched(k)},

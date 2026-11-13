@@ -235,6 +235,7 @@
     try { if (Q.onDone) Q.onDone(); } catch (e) { }
   }
 
-  window.IDOXL = { cfg: cfg, on: on, download: download, upload: upload, quick: quick, close: close, _apply: apply, _q: qset, _qsave: qsave, _parse: parse, _preview: preview };
+  window.IDOXL = { cfg: cfg, on: on, download: download, upload: upload, quick: quick, close: close, _apply: apply, _q: qset, _qsave: qsave, _parse: parse, _preview: preview,
+    _h: { cfg: cfg, me: me, box: box, busy: busy, fail: fail, done: done, close: close, errMsg: errMsg, esc: esc, T: T, A: A, SB: SB, loadExcelJS: loadExcelJS, loadXLSX: loadXLSX, save: save, cellDate: cellDate, cellText: cellText, today: today, d2x: d2x, rowVals: rowVals, pick: pick, KEYS: KEYS, HEAD: HEAD, HIDDEN: HIDDEN, EDIT: EDIT, MARK: MARK, VER: VER, on: on } };
   setTimeout(function () { if (SB()) cfg(); }, 400);
 })();
