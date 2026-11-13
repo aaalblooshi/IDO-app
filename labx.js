@@ -32,7 +32,7 @@ var OCC={ramadan:{2026:'2026-02-18',2027:'2027-02-08',2028:'2028-01-28',2029:'20
 /* أفعال اللهجة والمضارع ← المصدر */
 var STEM={'وظف':'توظيف','عين':'تعيين','رسل':'إرسال','جهز':'تجهيز','شتري':'شراء','شتر':'شراء','طرح':'طرح','ركب':'تركيب','خلص':'إنجاز','صمم':'تصميم','طبع':'طباعة','وزع':'توزيع','حدد':'تحديد','ختار':'اختيار','نفذ':'تنفيذ','جيب':'التعاقد مع','طلق':'إطلاق','بدا':'بدء','بدأ':'بدء','سلم':'تسليم','ستلم':'استلام','راجع':'مراجعة','عتمد':'اعتماد','جمع':'جمع','حلل':'تحليل','كتب':'كتابة','نشر':'نشر','قيم':'تقييم','نظم':'تنظيم','عقد':'عقد','رفع':'رفع','قدم':'تقديم','عرض':'عرض','زور':'زيارة','ستقبل':'استقبال','حجز':'حجز','طلب':'طلب','وقع':'توقيع','تعاقد':'التعاقد','ستقطب':'استقطاب','درب':'تدريب','طور':'تطوير','بني':'بناء','ختبر':'اختبار','حط':'وضع','حضر':'تحضير','ترجم':'ترجمة','ستعين':'الاستعانة','فتح':'فتح','رحل':'ترحيل','دعو':'دعوة','برمج':'برمجة','نقل':'نقل','وفر':'توفير','جدد':'تجديد','صرف':'صرف','شكل':'تشكيل','حدث':'تحديث','عد':'إعداد','اعد':'إعداد','جهّز':'تجهيز','صلح':'إصلاح','نسق':'التنسيق','تواصل':'التواصل','شارك':'المشاركة','ستضيف':'استضافة','سافر':'السفر','قيس':'قياس','تابع':'متابعة','صدر':'إصدار','عمم':'تعميم','دشن':'تدشين','وثق':'توثيق','رتب':'ترتيب','سوق':'تسويق','عد ':'إعداد','بلغ':'إبلاغ','خطط':'تخطيط','ستورد':'استيراد','ورد':'توريد','حسن':'تحسين','وحد':'توحيد','لغي':'إلغاء','وقف':'إيقاف','هيئ':'تهيئة','ركز':'التركيز على','سجل':'تسجيل','حدد ':'تحديد'};
 var IMP={'صمم':'تصميم','اطبع':'طباعة','وزع':'توزيع','جهز':'تجهيز','اعد':'إعداد','نفذ':'تنفيذ','راجع':'مراجعة','ارسل':'إرسال','حدد':'تحديد','اختر':'اختيار','نظم':'تنظيم','اعتمد':'اعتماد','وقع':'توقيع','درب':'تدريب'};
-var SAWI={'اجتماع':'عقد','اجتماعات':'عقد','لقاء':'عقد','ورشه':'تنظيم','ورش':'تنظيم','حفل':'تنظيم','مؤتمر':'تنظيم','موتمر':'تنظيم','فعاليه':'تنظيم','معرض':'تنظيم','حمله':'تنظيم','ملتقي':'تنظيم','دوره':'تنظيم','دورات':'تنظيم','دراسه':'إعداد','تقرير':'إعداد','خطه':'إعداد','دليل':'إعداد','عرض':'تقديم','اختبار':'','تحليل':'','زياره':'','مسح':'إجراء','استبيان':'إعداد','مقابلات':'إجراء','مسابقه':'تنظيم','حجز':'','تقييم':'','صيانه':'تنفيذ'};
+var SAWI={'اجتماع':'عقد','اجتماعات':'عقد','لقاء':'عقد','ورشه':'تنظيم','ورش':'تنظيم','حفل':'تنظيم','مؤتمر':'تنظيم','موتمر':'تنظيم','فعاليه':'تنظيم','معرض':'تنظيم','حمله':'تنظيم','ملتقي':'تنظيم','دوره':'تنظيم','دورات':'تنظيم','دراسه':'إعداد','تقرير':'إعداد','خطه':'إعداد','دليل':'إعداد','عرض':'تقديم','اختبار':'','تحليل':'','زياره':'','مسح':'إجراء','استبيان':'إعداد','مقابلات':'إجراء','مسابقه':'تنظيم','حجز':'','تقييم':'','صيانه':'تنفيذ','بروفه':'إجراء','تجربه':'إجراء'};
 /* مصادر شائعة (تبدأ بها المهمة) */
 var MASD=('توظيف تعيين استقطاب شراء توريد تركيب تنظيم إقامة اقامة إعداد اعداد تحديث صياغة تدريب تأهيل تاهيل توقيع تطوير إطلاق اطلاق تشغيل تجهيز تصميم تنفيذ اختبار تحليل جمع مراجعة اعتماد نشر طباعة توزيع تقديم عرض رفع تشكيل عقد زيارة استضافة إرسال ارسال تسليم استلام صرف نقل إيقاف ايقاف إنشاء انشاء بناء دراسة تقييم قياس متابعة التعاقد التواصل التنسيق حجز طلب توفير تجديد ترجمة كتابة تحديد اختيار بدء افتتاح تدشين تأسيس تاسيس إعادة اعادة توثيق ترتيب تسويق إبلاغ تخطيط تحسين توحيد إلغاء الغاء تهيئة تسجيل إصدار اصدار تعميم استقبال تحضير برمجة ترحيل دعوة وضع إجراء اجراء فحص تفعيل ربط رصد حصر مسح مخاطبة التعاون المشاركة الاستعانة السفر استكمال إنهاء انهاء إغلاق اغلاق تنفيذ تأمين تامين صيانة تركيب تقدير تجميع تصنيف مقارنة تدقيق قراءة إدخال ادخال إضافة اضافة إزالة ازالة هيكلة دمج توسيع تمديد التخطيط الإعداد الاعداد التطوير التصميم التنفيذ التقييم الاختبار التحليل التدريب التشغيل التسليم الاستلام الإطلاق الاطلاق الافتتاح التجهيز التوظيف الشراء التوريد الاعتماد المراجعة النشر الطباعة التوزيع البرمجة البدء الانتهاء الإغلاق الاغلاق القياس المتابعة الصيانة إقرار اقرار موافقة الموافقة انتهاء اكتمال صدور وصول تعديل التعديل إعلان اعلان استقبال اختتام ختام توقيع').split(' ');
 var MASDN=new Set(MASD.map(NA));
@@ -159,7 +159,7 @@ var isAct=function(w){var r=NA(w);if(!r)return false;if(isMasd(r))return true;va
 var isVerbish=function(w){var r=NA(w);if(isMasd(r))return false;var vm=r.match(/^(?:ب)?(?:سن|سي|ست|ن|ي|ت)(\S+?)(?:ون|ين|وا)?(?:ه|ها|هم)?$/);return !!vm&&(Object.keys(STEM).some(function(k){return NA(k)==vm[1]})||/^(?:سوي|سو)$/.test(vm[1]))};
 var ANDV=function(w){var n=NA(w);if(!/^و\S/.test(n))return false;return isAct(n.slice(1))};
 var SPLITC=null;function splitAnd(c){var w=c.split(/\s+/),parts=[],cur=[];
- for(var i=0;i<w.length;i++){var restT=w.slice(i).join(' ');if(i>0&&cur.length>=2&&/^و/.test(w[i])&&(R('^'+rx('و')+'(?:'+rx('قبل')+'|'+rx('بعد')+')(?:'+rx('ه')+'|'+rx('ها')+'|'+rx('هم')+')?$').test(w[i])||(isAct(cur[0])&&findDates(restT,SPLITC).length&&findDates(cur.join(' '),SPLITC).length==0&&!R('^'+rx('و')+'(?:'+rx('حتى')+'|'+MALT+')').test(w[i])&&w[i].length>2))){parts.push(cur.join(' '));cur=[w[i].replace(/^و/,'')];continue}if(i>0&&cur.length&&ANDV(w[i])&&(cur.length>=2||isMasd(cur[0])))parts.push(cur.join(' ')),cur=[w[i].replace(/^و/,'')];else if(i>0&&cur.length&&w[i]=='و'&&w[i+1]&&ANDV('و'+w[i+1])){parts.push(cur.join(' '));cur=[];}else cur.push(w[i])}
+ for(var i=0;i<w.length;i++){var restT=w.slice(i).join(' ');if(i>0&&cur.length>=2&&/^و/.test(w[i])&&(R('^'+rx('و')+'(?:'+rx('قبل')+'|'+rx('بعد')+')(?:'+rx('ه')+'|'+rx('ها')+'|'+rx('هم')+')?$').test(w[i])||(isAct(cur[0])&&findDates(restT,SPLITC).length&&findDates(cur.join(' '),SPLITC).length==0&&!R('^'+rx('و')+'(?:'+rx('حتى')+'|'+MALT+')').test(w[i])&&w[i].length>2))){parts.push(cur.join(' '));cur=[w[i].replace(/^و/,'')];continue}if(i>0&&cur.length&&ANDV(w[i])&&(cur.length>=2||isAct(cur[0])))parts.push(cur.join(' ')),cur=[w[i].replace(/^و/,'')];else if(i>0&&cur.length&&w[i]=='و'&&w[i+1]&&ANDV('و'+w[i+1])){parts.push(cur.join(' '));cur=[];}else cur.push(w[i])}
  if(cur.length)parts.push(cur.join(' '));
  /* «توظيف وتدريب وتأهيل الموظفين» → توزيع المفعول على الأفعال المفردة */
  var out=[];var objOf=function(p){var x=p.split(/\s+/);return x.slice(1).join(' ')};
@@ -171,6 +171,7 @@ function commas(s){/* لا نقسم الفاصلة داخل تاريخ مثل «
 function analyse(raw,c,st){var t=' '+raw+' ',info={raw:raw.trim()};
  if(NEG.test(t)){info.neg=1;t=t.replace(NEG,' ')}
  if(COND.test(raw.trim())){info.cond=1;var cm=raw.trim().match(R('^(?:'+rx('إذا')+'|'+rx('اذا')+'|'+rx('في حال')+'|'+rx('في حالة')+'|'+rx('لو')+')\\s+(.+?)\\s+((?:'+rx('نبدأ')+'|'+rx('نبدا')+'|'+rx('يتم')+'|'+rx('سيتم')+'|'+rx('ن')+'\\S{2,}|'+rx('ي')+'\\S{2,}).*)$','i'));if(cm){info.condTxt=cm[1];t=' '+cm[2]+' '}}
+ var nb=t.match(R('^\\s*(.+?)\\s+(?:'+rx('لا')+'|'+rx('ما')+'|'+rx('لن')+')\\s+(?:'+rx('يبدأ')+'|'+rx('تبدأ')+'|'+rx('يبدا')+'|'+rx('تبدا')+'|'+rx('يكون')+')\\s+'+rx('قبل')+'\\s+(.+)$'));if(nb){t=' بدء '+nb[1].replace(/^[\s،,]*و(?=ال)/,'')+' بعد '+nb[2]+' ';info.neg=0}
  var rec=findRec(t),recSp=[];if(rec){info.rec=rec.u;var tt=t,r2;while((r2=findRec(tt))){recSp.push([r2.i,r2.j]);tt=tt.slice(0,r2.i)+' '.repeat(r2.j-r2.i)+tt.slice(r2.j)}}
  var rel=findRel(t);if(rel){info.rel=rel;t=t.slice(0,rel.i)+' '.repeat(rel.j-rel.i)+t.slice(rel.j)}
  var du=findDur(t);if(du){info.du=du.du;t=t.slice(0,du.i)+' '.repeat(du.j-du.i)+t.slice(du.j)}
@@ -206,7 +207,9 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
  /* عناوين، قوائم، مراحل */
  var phase=null,phases=[];var PH=R('^(?:'+rx('ال')+')?(?:'+rx('مرحلة')+'|'+rx('المرحلة')+'|'+rx('المحور')+'|'+rx('محور')+'|phase|stage)\\s*(?:'+rx('رقم')+'\\s*)?((?:'+rx('ال')+')?(?:'+rx('أولى')+'|'+rx('اولى')+'|'+rx('أول')+'|'+rx('ثانية')+'|'+rx('ثاني')+'|'+rx('ثالثة')+'|'+rx('ثالث')+'|'+rx('رابعة')+'|'+rx('رابع')+'|'+rx('خامسة')+'|'+rx('خامس')+'|'+rx('سادسة')+'|'+rx('أخيرة')+'|'+rx('اخيرة')+'|'+rx('نهائية')+')|\\d+)\\s*(?:[:：\\-–—]|'+rx('تشمل')+'|'+rx('تتضمن')+'|'+rx('فيها')+'|'+rx('هي')+')?\\s*','i');
  var blocks=[];/* {phaseName, text, list, deliv} */
- units.forEach(function(u){var l=u.t.trim();if(!l)return;
+ var CTXP=null;units.forEach(function(u,ui){var l=u.t.trim();if(!l){phase=null;CTXP=null;return}
+  if(ui==0&&R('^'+rx('مشروع')+'\\s').test(l)&&!findDates(l,c).length&&l.split(/\s+/).length<=12&&!/[،,]/.test(l)){skipped.push(l.replace(/[.:]\s*$/,''));return}
+  var cp=l.match(R('^('+rx('قبل')+'|'+rx('بعد')+')\\s+((?:'+rx('ال')+')?[^\\s:：،,]{3,}(?:\\s+[^\\s:：،,]{3,})?)\\s*[:：]\\s*'));if(cp){CTXP={side:/قبل/.test(cp[1])?-1:1,anc:cp[2]};l=l.slice(cp[0].length);u.ctx=CTXP}else if(CTXP)u.ctx=CTXP;
   if(GENH.test(l)){phase=null;return}
   var dv=l.match(DELIV);if(dv){blocks.push({ph:phase,text:l.slice(dv[0].length),deliv:1,u:u});return}
   /* عنوان محور/مرحلة في سطر مستقل أو مع مهامه */
@@ -216,7 +219,7 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
     /* اسم المرحلة: نص قصير بعد النقطتين قبل مهام؟ */var nm='',bd=body;body=body.replace(/[.\s]+$/,'');var mm=body.match(/^([^:：،,.]{2,40})\s*[:：]\s*(.+)$/);if(mm&&!isMasd(mm[1].split(/\s+/)[0])){nm=mm[1].trim().replace(/^[(（]\s*|\s*[)）]$/g,'');bd=mm[2]}
     var hd=l.slice(h.i,h.j).replace(/[:：\-–—]\s*$/,'').replace(R('\\s*(?:'+rx('تشمل')+'|'+rx('تتضمن')+'|'+rx('فيها')+'|'+rx('هي')+')\\s*$','i'),'').trim();
     phase={name:hd,title:nm,idx:phases.length};phases.push(phase);
-    if(!nm&&bd&&bd.split(/\s+/).length<=4&&!/[،,]/.test(bd)&&!R(rx('و')+'\\S').test(bd.replace(/^\S+/,''))&&!isMasd(bd.split(/\s+/)[0])&&!findDates(bd,c).length){phase.title=bd;bd=''}
+    if(!nm&&bd&&bd.split(/\s+/).length<=(k+1==hits.length&&body.length<30?3:4)&&!/[،,]/.test(bd)&&!R(rx('و')+'\\S').test(bd.replace(/^\S+/,''))&&(!isMasd(bd.split(/\s+/)[0])||(bd.split(/\s+/).length==1&&k+1==hits.length&&l.trim().slice(-bd.length)==bd))&&!findDates(bd,c).length){phase.title=bd;bd=''}
     if(bd)blocks.push({ph:phase,text:bd,u:u})});return}
   /* سطر عنوان ينتهي بنقطتين */
   if(/[:：]\s*$/.test(l)&&l.split(/\s+/).length<=6){var hn=l.replace(/[:：]\s*$/,'').trim();if(GENH.test(hn+':')||GENH.test(hn)){phase=null;return}var mh=hn.match(R('^(?:'+rx('ال')+')?(?:'+rx('محور')+'|'+rx('المحور')+')\\s+\\S+\\s*[:：\\-–—]?\\s*(.*)$'));phase={name:mh&&mh[1]?mh[1]:hn,title:'',idx:phases.length};phases.push(phase);return}
@@ -227,7 +230,7 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
   acc.push(b);return acc},[]);
  /* ---------- العبارات ---------- */
  var clauses=[],GID=0;
- blocks.forEach(function(b){var ss=b.list?[b.text]:sentences(b.text);ss.forEach(function(s){
+ var FIRST=true;blocks.forEach(function(b){var ss=b.list?[b.text]:sentences(b.text);ss.forEach(function(s){if(FIRST){FIRST=false;if(R('^'+rx('مشروع')+'\\s').test(s.trim())&&!findDates(s,c).length&&!/[،,]/.test(s)&&s.split(/\s+/).length<=12){skipped.push(s);return}}
    if(NOISE.test(s.trim())){var rest=s.replace(R('^.*?(?:'+rx('سيتم')+'|'+rx('يتم')+'|'+rx('ويتضمن ذلك')+'|'+rx('يشمل ذلك')+'|'+rx('ويشمل ذلك')+'|'+rx('ويتضمن')+')\\s+','i'),'');
      if(rest!=s&&rest.length>3&&!NOISE.test(rest)){skipped.push(s.slice(0,s.length-rest.length).trim());s=rest}else{
        /* «المشروع عبارة عن تطوير …» → خلفية */skipped.push(s);return}}
@@ -237,12 +240,12 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
    var out2=[];out.forEach(function(q){commas(q).forEach(function(r){out2.push(r)})});
    /* دمج قطع لا فعل فيها ولا اسم كافٍ مع ما قبلها (مثل «الثلاثاء») */
    var out3=[];out2.forEach(function(r){var w=r.split(/\s+/);if(out3.length&&w.length==1&&!isAct(w[0])&&!findDates(r,c).length&&!R('^(?:'+rx('ال')+')').test(r)){out3[out3.length-1]+='، '+r}else out3.push(r)});
-   out3.forEach(function(r){GID++;splitAnd(r).forEach(function(x){clauses.push({t:x,ph:b.ph,row:b.u&&b.u.row,ownerTxt:b.u&&b.u.ownerTxt,deliv:b.deliv,gid:GID})})});
+   out3.forEach(function(r){GID++;splitAnd(r).forEach(function(x){clauses.push({t:x,ph:b.ph,row:b.u&&b.u.row,ownerTxt:b.u&&b.u.ownerTxt,deliv:b.deliv,gid:GID,ctx:b.u&&b.u.ctx})})});
    /* نشر التاريخ/النسبي الختامي على الإخوة بلا تاريخ ضمن نفس الجملة المنسقة */
  })});
  /* ---------- تحليل كل عبارة ---------- */
  clauses=clauses.filter(function(cl){var tt=cl.t.trim();if(SKIPV.test(tt)){skipped.push(cl.t);return false}if(R('^(?:'+rx('و')+')?(?:'+['فيه','فيها','يتضمن','تتضمن','يشمل','تشمل','بحضور','بمشاركة','يحضره','ويحضره','يتولاها','يتولاه','يتولى','تتولى','تتولاها'].map(rx).join('|')+')\\s','i').test(tt)&&!findDates(tt,c).length&&!isAct((tt.replace(/^\S+\s+/,'').split(/\s+/)[0])||'')){skipped.push(cl.t);return false}return true});
- var A2=clauses.map(function(cl){var info=analyse(cl.t,c,st);info.ph=cl.ph;info.row=cl.row;info.deliv=cl.deliv;if(cl.ownerTxt&&ctx.ownerIn){var ow=ctx.ownerIn(cl.ownerTxt);if(ow)info.o=ow}
+ var A2=clauses.map(function(cl){var info=analyse(cl.t,c,st);info.ph=cl.ph;info.ctx=cl.ctx;info.row=cl.row;info.deliv=cl.deliv;if(cl.ownerTxt&&ctx.ownerIn){var ow=ctx.ownerIn(cl.ownerTxt);if(ow)info.o=ow}
    var nn=info.n||'';var w=nn.split(/\s+/);var li=-1;w.forEach(function(x,q){if(q>0&&/^[لب]/.test(NA(x))&&isMasd(NA(x).slice(1)))li=q});if(li>0&&li<w.length-1)st.lastObj=w.slice(li+1).join(' ');else if(w.length>=2&&isMasd(w[0]))st.lastObj=w.slice(1).join(' ').replace(/…$/,'');else if(w.length>=1&&!isMasd(w[0])&&nn)st.lastObj=nn;return info});
  /* إخوة العبارة المنسقة (و + مصدر) يرثون الموعد/النسبي من آخرهم إن لم يكن لهم موعد */
  for(var i=A2.length-1;i>0;i--){var a=A2[i],p=A2[i-1];if(clauses[i].gid===clauses[i-1].gid&&p.d==null&&!p.rel&&(a.d!=null||a.rel)&&!a.ownD){p.d=a.d;p.s=a.s;if(a.rel)p.rel=Object.assign({},a.rel)}}
@@ -255,12 +258,12 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
   if(x.rel&&x.rel.anc=='@prev'){var pv=null;for(var q=items.length-1;q>=0;q--){if(!items[q].neg&&items[q].k!='_phs'){pv=items[q];break}}if(pv&&pv._prevRel&&x.rel.n)pv={n:pv._prevRel};if(pv){x.rel.anc=pv.n;x._prevRel=pv.n}else{warn.push('موعد نسبي بلا مرجع واضح');delete x.rel}}
   var base={n:n,src:x.raw,z:'m',_lx:1};if(x._prevRel)base._prevRel=x._prevRel;if(x.c)base.c=x.c;if(x.o)base.o=x.o;if(x.du)base.du=x.du;if(warn.length)base.warn=warn;
   if(x.d!=null)base.d=fromN(x.d);if(x.s!=null&&x.s!==x.d)base.s=fromN(x.s);
-  if(x.rel&&!base.d){base.rel={side:x.rel.side,anc:x.rel.anc,n:x.rel.n,u:x.rel.u}}
+  if(x.rel&&!base.d){base.rel={side:x.rel.side,anc:x.rel.anc,n:x.rel.n,u:x.rel.u}}if(!x.rel&&base.d==null&&x.ctx&&!x.rec){base.rel={side:x.ctx.side,anc:x.ctx.anc,n:0,u:''}}
   if(x.neg){base.neg=1;delete base.d;delete base.rel}
   /* تكرار → مهمة لكل فترة */
-  if(x.rec=='y'&&x.d!=null)x.rec=null;if(x.rec&&!x.neg){var step={m:1,q:3,h:6,y:12,w:0}[x.rec],prevD=null;for(var q2=items.length-1;q2>=0;q2--){if(items[q2].d&&!items[q2].rec){var pa=items[q2].d.split('-');prevD=dnum(+pa[0],+pa[1]-1,+pa[2]);break}}var from=x.d!=null?x.d:(x.pron&&prevD!=null?prevD+(x.rec=='y'?365:x.rec=='h'?182:x.rec=='q'?91:x.rec=='m'?30:7):Math.max(c.today,c.ps||c.today)),to=c.pe&&c.pe>from?c.pe:from+365;var occ=[];
+  if(x.rec=='y'&&x.d!=null)x.rec=null;if(x.rec&&!x.neg){var step={m:1,q:3,h:6,y:12,w:0}[x.rec],prevD=null,ctxD=null;if(x.ctx){var ak=NA(x.ctx.anc).replace(/^ال/,'').slice(0,5);for(var q4=0;q4<items.length;q4++){if(items[q4].d&&NA(items[q4].n).indexOf(ak)>=0){var pb=items[q4].d.split('-');ctxD=dnum(+pb[0],+pb[1]-1,+pb[2])+(x.ctx.side>0?7:-60);break}}}for(var q2=items.length-1;q2>=0;q2--){if(items[q2].d&&!items[q2].rec){var pa=items[q2].d.split('-');prevD=dnum(+pa[0],+pa[1]-1,+pa[2]);break}}var from=x.d!=null?x.d:ctxD!=null?ctxD:(x.pron&&prevD!=null?prevD+(x.rec=='y'?365:x.rec=='h'?182:x.rec=='q'?91:x.rec=='m'?30:7):Math.max(c.today,c.ps||c.today)),to=c.pe&&c.pe>from?c.pe:from+365;var occ=[];
    if(x.rec=='w'){for(var dd=from;dd<=to&&occ.length<12;dd+=7)occ.push(dd);if((to-from)/7>12)warn.push('نشاط أسبوعي: أُنشئت أول 12 مرة فقط')}
-   else{var f=new Date(from*864e5),y0=f.getUTCFullYear(),m0=f.getUTCMonth(),d0=x.d!=null?f.getUTCDate():15;for(var kk=0;kk<24;kk++){var mm2=m0+kk*step,yy2=y0+Math.floor(mm2/12);mm2%=12;var dn2=dnum(yy2,mm2,Math.min(d0,dim(yy2,mm2)));if(dn2>to)break;occ.push(dn2)}}
+   else{var f=new Date(from*864e5),y0=f.getUTCFullYear(),m0=f.getUTCMonth(),d0=x.d!=null?f.getUTCDate():15;for(var kk=0;kk<24;kk++){var mm2=m0+kk*step,yy2=y0+Math.floor(mm2/12);mm2%=12;var dn2=dnum(yy2,mm2,Math.min(d0,dim(yy2,mm2)));if(dn2>to)break;if(dn2<from-3)continue;occ.push(dn2)}}
    if(x.dates&&x.dates.length>1&&x.rec=='h'){occ=x.dates.map(function(z){return z.due})}
    var ML=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
    occ.forEach(function(o,oi){var dt=new Date(o*864e5),lab=x.rec=='w'?fromN(o):ML[dt.getUTCMonth()]+' '+dt.getUTCFullYear();items.push(Object.assign({},base,{k:k&&KN[k]?k:'_ev',n:n+' — '+lab,d:fromN(o),rec:x.rec,recN:occ.length,recI:oi,src:x.raw}))});return}
