@@ -80,7 +80,7 @@ label.btnl{display:inline-flex;align-items:center;gap:4px;font-weight:700;border
 <script>
 const SUPABASE_URL="https://nbrunwkcncgwvzynhzjo.supabase.co";
 const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5icnVud2tjbmNnd3Z6eW5oempvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzOTA1MjksImV4cCI6MjEwNzk2NjUyOX0.Pp4gqszu_98Lnt_ZnLKl1IG7048l_LiyQI-bQM7bwA8";
-let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{lock:(function(){var L={};return function(n,t,fn){var p=(L[n]||Promise.resolve()).then(function(){return fn()},function(){return fn()});L[n]=p.catch(function(){});return p}})()}})}catch(e){}
+let sb=null;try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{lock:(function(){var L={};return function(n,t,fn){var prev=L[n]||Promise.resolve();var w=new Promise(function(r){var d=0,go=function(){if(!d){d=1;r()}};prev.then(go,go);setTimeout(go,8000)});var p=w.then(function(){return fn()});L[n]=p.catch(function(){});return p}})()},global:{fetch:function(u,o){o=o||{};if(o.signal||typeof AbortController=='undefined'||/\/storage\//.test(String(u&&u.url||u)))return fetch(u,o);var c=new AbortController(),tm=setTimeout(function(){c.abort()},30000);return fetch(u,Object.assign({},o,{signal:c.signal})).finally(function(){clearTimeout(tm)})}}})}catch(e){}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 let lang='ar';try{lang=localStorage.getItem('lang')||'ar'}catch(_){}
@@ -471,4 +471,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="hub.js?v=2"></script><script src="ovx.js?v=7"></script><script src="pbar.js?v=2"></script><script src="ido-ui.js?v=36"></script></body></html>
+<script src="hub.js?v=2"></script><script src="ovx.js?v=7"></script><script src="ido-ui.js?v=36"></script></body></html>

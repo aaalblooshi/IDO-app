@@ -37,12 +37,12 @@ H.bar=async function(pc,ctx){const sb=client();const app=document.getElementById
    if(h.reason)txt+=` <span style="opacity:.8">${T('السبب: ','Reason: ')}${esc(h.reason)}</span>`;
    document.body.classList.toggle('haltfz',!!(ctx&&ctx.svc&&H.blocks(pc,ctx.svc)&&!mgr));
    if(ctx&&ctx.svc&&H.blocks(pc,ctx.svc))txt+=`<br><b>${T('هذا الطلب مجمّد مع المشروع حتى يُستأنف.','This request is frozen with the project until it resumes.')}</b>`}
- else txt=T('🛠 مكتب التطوير المؤسسي: يمكنك إيقاف خطة هذا المشروع ومهامها مؤقتًا.','🛠 Development Office: you can suspend this project’s plan and tasks.');
+ else{txt='';el.style.cssText='margin:8px 0;display:flex;justify-content:flex-start'}
  const btn=(k,l,p)=>`<button type="button" data-h="${k}" style="border:0;border-radius:99px;padding:7px 14px;font:inherit;font-weight:700;cursor:pointer;${p?'background:#1d5f8a;color:#fff':'background:#fff;color:#1d5f8a;border:1px solid #cfd9e3'}">${l}</button>`;
  let b='';
  if(mgr){if(!h)b=btn('stop',T('⏸ إيقاف الخطة ومهامها','⏸ Suspend plan and tasks'),1);
   else{if(h.state!='cancelled'||true)b+=btn('resume',T('▶ استئناف','▶ Resume'),1);b+=btn('date',h.state=='cancelled'?T('تاريخ الإلغاء','Cancellation date'):T('تعديل التاريخ','Change date'));if(h.state!='cancelled')b+=btn('cancel',T('⛔ إلغاء المشروع','⛔ Cancel project'))}}
- el.innerHTML=`<div style="flex:1;min-width:220px;line-height:1.7">${txt}</div>${b?`<div style="display:flex;gap:6px;flex-wrap:wrap">${b}</div>`:''}`;
+ el.innerHTML=`${txt?`<div style="flex:1;min-width:220px;line-height:1.7">${txt}</div>`:''}${b?`<div style="display:flex;gap:6px;flex-wrap:wrap">${b}</div>`:''}`;
  app.insertBefore(el,app.firstChild);
  el.querySelectorAll('[data-h]').forEach(x=>x.onclick=()=>H.dialog(pc,x.dataset.h,ctx));
 };
