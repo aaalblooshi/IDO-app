@@ -3,7 +3,7 @@
   var A = function () { try { return (localStorage.getItem('lang') || 'ar') != 'en'; } catch (e) { return true; } };
   var G = function (n) { try { return Function('try{return typeof ' + n + '!="undefined"?' + n + ':null}catch(e){return null}')(); } catch (e) { return null; } };
   var HERE = (location.pathname.split('/').pop() || '').replace('.html', '');
-  var ST = { pc: '', name: '', mode: '' };
+  var ST = { pc: '', name: '', mode: '', off: false };
   var IT = [
     ['charter', '📜', 'الميثاق', 'Charter'],
     ['plan', '🗓', 'الخطة', 'Plan'],
@@ -24,6 +24,7 @@
     (document.head || document.documentElement).appendChild(s);
   }
   function active() {
+    if (ST.off) return false;
     if (ST.mode == 'rec') { var r = G('cr'); return !!(r && r.id); }
     return !!ST.pc;
   }
@@ -72,15 +73,25 @@
   }
   window.IDOPB = {
     set: function (pc, name, mode) { pc = String(pc || '').trim(); var ch = pc != ST.pc; ST.pc = pc; ST.mode = mode || ''; if (name) ST.name = name; else if (ch) ST.name = ''; draw(); if (pc && !ST.name) nameOf(pc).then(function (n) { if (n && ST.pc == pc) { ST.name = n; draw(); } }); },
-    fromRec: function (r) { if (!r) return; var d = r.data || {}; this.set(d.pcode || r.code || '', d.pname || d.name || r.title || '', 'rec'); }
+    fromRec: function (r) { if (!r) return; ST.off = false; var d = r.data || {}; this.set(d.pcode || r.code || '', d.pname || d.name || r.title || '', 'rec'); }
   };
   function auto() {
-    if (TBL[HERE]) { var r = G('cr'); if (r && r.id) { var d = r.data || {}, rp = d.pcode || r.code || ''; if (rp && (rp != ST.pc || ST.mode != 'rec')) window.IDOPB.fromRec(r); } }
+    if (TBL[HERE] && !ST.off) { var r = G('cr'); if (r && r.id) { var d = r.data || {}, rp = d.pcode || r.code || ''; if (rp && (rp != ST.pc || ST.mode != 'rec')) window.IDOPB.fromRec(r); } }
     var pc = '';
     try { pc = new URLSearchParams(location.search).get('pc') || ''; } catch (e) { }
     var live = G('PC'); if (typeof live == 'string' && live) pc = live;
     if (!TBL[HERE] && pc && pc != ST.pc && ST.mode != 'rec') window.IDOPB.set(pc, '', '');
     var b = document.getElementById('idopb'); if (b && ST.pc) { var on = active(); if ((b.style.display == 'none') == on) b.style.display = on ? '' : 'none'; if (on && !b.isConnected) draw(); }
   }
+  /* إخفاء الشريط عند الخروج من الوثيقة إلى القوائم أو الإدارة */
+  function wrapViews() {
+    if (!TBL[HERE]) return;
+    ['homeView', 'listView', 'adminView', 'pickView', 'loginView'].forEach(function (n) {
+      var f = window[n]; if (typeof f != 'function' || f._pb) return;
+      var w = function () { ST.off = true; var b = document.getElementById('idopb'); if (b) b.style.display = 'none'; return f.apply(this, arguments); };
+      w._pb = 1; try { window[n] = w; } catch (e) { }
+    });
+  }
+  wrapViews(); setTimeout(wrapViews, 0);
   setInterval(auto, 900); setTimeout(auto, 300);
 })();
