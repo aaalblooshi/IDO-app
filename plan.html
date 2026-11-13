@@ -1671,7 +1671,7 @@ document.addEventListener('input',e=>{const x=e.target;if(!cr||!x.dataset)return
 document.addEventListener('change',e=>{const x=e.target;if(!cr||!x.dataset)return;onPlanChange(x)});
 window.addEventListener('resize',()=>{if(cr&&PL.view=='gantt'&&$('gx')){}});
 
-function pdOpen(){const pc=cr.data.pcode||cr.code,go=()=>IDOPD.open(pc,{name:cr.data.pname||pc});if(window.IDOPD)go();else{const s=document.createElement('script');s.src='pdiff.js?v=1';s.onload=go;document.head.appendChild(s)}}
+function pdOpen(){const pc=cr.data.pcode||cr.code,go=()=>IDOPD.open(pc,{name:cr.data.pname||pc});if(window.IDOPD)go();else{const s=document.createElement('script');s.src='pdiff.js?v=2';s.onload=go;document.head.appendChild(s)}}
 /* علامة للأدمن: مهمة سُجّلت منجزة بتاريخ أقدم من يوم الإجراء */
 let BKD=null,BKP=0;
 function bkBadge(id){if(!me||me.role!='admin'||!cr)return '';if(BKP!==cr.id){BKP=cr.id;BKD={};sb.rpc('audit_backdated',{p_from:null,p_to:null,p_pcode:null,p_plan:cr.id}).then(r=>{const m={};((r&&r.data)||[]).forEach(x=>{if(x.still&&!m[x.tid])m[x.tid]=x});BKD=m;Object.keys(m).forEach(k=>{const e=document.querySelector('.pr[data-id="'+k+'"] .c-sum');if(e&&!e.querySelector('.bkd'))e.insertAdjacentHTML('beforeend',bkBadge(k))})}).catch(()=>{})}

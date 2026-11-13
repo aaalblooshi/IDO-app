@@ -203,8 +203,8 @@ body.pres #pv{display:grid;position:fixed;inset:0;grid-template-columns:1.4fr 1f
 <div id="jump"><form><label id="jl"></label><input id="ji" type="number" min="1" inputmode="numeric"><button id="jb"></button></form></div>
 <div id="flash"></div><div id="toast"></div><div id="digits"></div>
 <div id="pv"></div>
-<script src="scenes.js?v=9"></script>
-<script src="steps.js?v=6"></script>
+<script src="scenes.js?v=10"></script>
+<script src="steps.js?v=7"></script>
 <script>
 (function(){
 'use strict';
@@ -379,7 +379,9 @@ function go(i,opt){opt=opt||{};i=Math.max(0,Math.min(N-1,i));const prev=STEPS[cu
 const next=()=>go(cur+1),prev=()=>go(cur-1);
 /* ▶ تشغيل تلقائي اختياري: مدة كل شريحة حسب طول نصها */
 let AUTO=false,AT0=0,ACUR=-1,ADUR=0;
-function autoDur(st){if(!st)return 4000;const w=((tt(st.c)||'')+' '+(st.d?tt(st.d):'')).trim().split(/\s+/).length;if(st.title)return st.end?6000:Math.max(3000,Math.min(5500,2000+w*220));return Math.max(3000,Math.min(9000,1800+w*230))}
+function autoDur(st){if(!st)return 4000;const w=((tt(st.c)||'')+' '+(st.d?tt(st.d):'')).trim().split(/\s+/).length,nw=(st.n&&st.n.length?String(tt(st.n)||''):'').trim().split(/\s+/).filter(Boolean).length;
+ const ix=STEPS.indexOf(st),pv=ix>0?STEPS[ix-1]:null,first=!!st.title||!pv||pv.s!==st.s;const heavy=first||w>=9||nw>=12;const add=heavy?400:300;
+ if(st.title)return (st.end?6000:Math.max(3000,Math.min(5500,2000+w*220)))+add;return Math.max(3000,Math.min(9000,1800+w*230))+add}
 function autoLbl(){const b=$('bAuto');if(!b)return;b.classList.toggle('on',AUTO);b.setAttribute('aria-pressed',AUTO);b.title=tt(AUTO?UI.autoOff:UI.auto);b.querySelector('span').textContent=AUTO?'⏸':'▶';document.body.classList.toggle('auto',AUTO)}
 function autoTog(){AUTO=!AUTO;ACUR=-1;autoLbl();if(AUTO)autoTick()}
 function autoTick(){if(!AUTO)return;const b=$('bAuto'),rg=b&&b.querySelector('.rg');

@@ -231,7 +231,7 @@ function pvView(){const el=$('cust');if(!el)return;const pjv=BK.pc?(PJ.find(x=>x
  <label>🔎 ${t('f_pj')}</label><input id="pv_pj" list="pjl3" placeholder="${t('pj_ph')}" value="${esc(pjv)}" autocomplete="off" onchange="pvGo(this.value)"><datalist id="pjl3">${PJ.map(x=>`<option value="${esc(x.code+' — '+(x.pn||''))}"></option>`).join('')}</datalist>
  <div class="row"><button class="p" onclick="pvGo($('pv_pj').value)">🔀 ${P('عرض التغييرات','Show changes')}</button></div></div>`;
  if(BK.pc&&location.hash.indexOf('tab=pv')>=0){pvGo(pjv);try{history.replaceState(null,'',location.pathname)}catch(_){}}}
-function pvGo(v){const pc=pcOf(v);if(!pc)return toast(t('pj_ph'));BK.pc=pc;const go=()=>IDOPD.open(pc,{name:(PJ.find(x=>x.code==pc)||{}).pn||pc});if(window.IDOPD)go();else{const s=document.createElement('script');s.src='pdiff.js?v=1';s.onload=go;document.head.appendChild(s)}}
+function pvGo(v){const pc=pcOf(v);if(!pc)return toast(t('pj_ph'));BK.pc=pc;const go=()=>IDOPD.open(pc,{name:(PJ.find(x=>x.code==pc)||{}).pn||pc});if(window.IDOPD)go();else{const s=document.createElement('script');s.src='pdiff.js?v=2';s.onload=go;document.head.appendChild(s)}}
 
 load();
 </script>
