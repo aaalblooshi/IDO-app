@@ -101,6 +101,16 @@ function perfFtH(){const ar=lang=='ar';return `<div class="card" id="perfft"><h2
 async function perfFtLoad(){const b=$('perfftb');if(!b||b.dataset.ok)return;b.dataset.ok=1;try{const r=await sb.from('app_settings').select('value').eq('key','perf_feat').maybeSingle();PFV=JSON.parse((r.data&&r.data.value)||'{}')||{}}catch(_){PFV={}}perfFtDraw()}
 function perfFtDraw(){const b=$('perfftb');if(!b)return;const ar=lang=='ar';b.className='';b.innerHTML=PFT.map(x=>{const on=PFV[x[0]]!==false;const dis=x[0]!='ach'&&PFV.ach===false;return `<label class="lg ck" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;${dis?'opacity:.5':''}"><input type="checkbox" ${on?'checked':''} ${dis?'disabled':''} onchange="perfFtSet('${x[0]}',this.checked)" style="width:auto;margin-top:3px"><span><b>${ar?x[1][0]:x[1][1]}</b><br><span class="mut" style="font-weight:400">${ar?x[2][0]:x[2][1]}</span></span></label>`}).join('')}
 async function perfFtSet(k,v){PFV[k]=!!v;if(k=='ach'&&!v)PFT.forEach(x=>{});try{await setS('perf_feat',JSON.stringify(PFV));toast(lang=='ar'?'تم الحفظ':'Saved')}catch(e){toast((lang=='ar'?'تعذّر: ':'Failed: ')+(e.message||e))}perfFtDraw()}
+
+/* التحديث عبر Excel والتحديث السريع */
+const XFT=[['mytasks',['ملف تحديث «مهامي» (Excel)','My tasks update file'],['كل موظف ينزّل مهامه في كل المشاريع، يحدّث الإنجاز من قائمة منسدلة، ثم يرفع الملف.','Each employee downloads, updates and uploads their tasks.']],
+ ['projtasks',['ملف متابعة خطة المشروع (Excel)','Project follow-up file'],['من صفحة الخطة المعتمدة: مدير المشروع ومن له صلاحية تعديل الخطة يحدّث إنجاز كل المهام دفعة واحدة.','From the approved plan page, editors update all tasks at once.']],
+ ['quick',['التحديث السريع (للجوال)','Quick update (mobile)'],['قائمة بمهامي الجارية مع نسبة الإنجاز، تُحفظ بضغطة — بلا Excel.','A list of my open tasks with progress, saved in one tap.']]];
+let XFV={};
+function xlFtH(){const ar=lang=='ar';return `<div class="card" id="xlft"><h2>📥 ${ar?'التحديث عبر Excel والتحديث السريع':'Excel updates & quick update'}<small>${ar?'كل خاصية تُفعّل أو تُوقف وحدها، ولا يؤثر إيقافها على بقية النظام. الحماية مفعّلة دائمًا: معاينة قبل التطبيق، فحص الصلاحية والتعارض لكل صف، الملف يقبله النظام من صاحبه فقط، ولا تتغير التواريخ المخططة.':'Each can be turned on/off. Protections always apply.'}</small></h2><div id="xlftb" class="mut">…</div></div>`}
+async function xlFtLoad(){const b=$('xlftb');if(!b||b.dataset.ok)return;b.dataset.ok=1;try{const r=await sb.from('app_settings').select('value').eq('key','xl_feat').maybeSingle();XFV=JSON.parse((r.data&&r.data.value)||'{}')||{}}catch(_){XFV={}}xlFtDraw()}
+function xlFtDraw(){const b=$('xlftb');if(!b)return;const ar=lang=='ar';b.className='';b.innerHTML=XFT.map(x=>`<label class="lg ck" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0"><input type="checkbox" ${XFV[x[0]]!==false?'checked':''} onchange="xlFtSet('${x[0]}',this.checked)" style="width:auto;margin-top:3px"><span><b>${ar?x[1][0]:x[1][1]}</b><br><span class="mut" style="font-weight:400">${ar?x[2][0]:x[2][1]}</span></span></label>`).join('')+`<label style="display:block;margin-top:8px"><b>${ar?'صلاحية الملف (أيام)':'File validity (days)'}</b><br><span class="mut" style="font-weight:400">${ar?'الملف الأقدم من هذه المدة يُرفض، حتى لا يكتب فوق تحديثات أحدث.':'Older files are rejected.'}</span><br><input type="number" min="1" max="60" value="${+XFV.maxage>0?XFV.maxage:7}" style="width:110px" onchange="xlFtSet('maxage',Math.max(1,Math.min(60,+this.value||7)))"></label>`}
+async function xlFtSet(k,v){XFV[k]=v;try{await setS('xl_feat',JSON.stringify(XFV));toast(lang=='ar'?'تم الحفظ':'Saved')}catch(e){toast((lang=='ar'?'تعذّر: ':'Failed: ')+(e.message||e))}xlFtDraw()}
 async function setS(k,v){const {error}=await sb.rpc('admin_set_setting',{k,v:String(v)});if(error)throw error}
 async function load(){
  if(!sb)return gate('needLogin');
@@ -487,7 +497,7 @@ const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=n
 /* ===== تنظيم صفحة الإعدادات: أقسام ثابتة + بحث + اختصار رؤية المشاريع السرية ===== */
 const SECS=[
  ['gen','⚙️',['عام','General'],/صفحات الإعدادات|Settings pages|الصفحة الرئيسية|Home layout|القوائم المنسدلة|Drop-down|أيام العمل|Working days|المرفقات|Attachments|الأوزان|Weights|قائمة المحفظة|Portfolio menu/i],
- ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
+ ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/التحديث عبر Excel|Excel updates|^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
  ['eval','📊',['التقييم والتقارير','Evaluation & reports'],/سجل الإنجاز|Achievement record|نموذج تقييم|Evaluation model|نتائج التقييم|rating|الملخص الأسبوعي|Weekly digest|التقرير الشهري|Monthly report|الخصائص الاختيارية|Optional features/i],
  ['note','🔔',['التنبيهات والبريد','Notifications & email'],/تنبيهات البريد|Email alerts|إعدادات البريد|Mail &|Mail and|التنبيهات|Notifications/i],
  ['perm','🔐',['الصلاحيات والخصوصية','Access & privacy'],/المستخدمون والصلاحيات|Users|ظهور الأدمن|Admin visib|سجل التدقيق|Audit|المشاريع السرية|Secret projects/i],
@@ -500,6 +510,7 @@ function secOf(card){const h=card.querySelector('h2');if(!h)return '';const tt=(
 function setOrg(){const app=$('app');if(!app||app.querySelector('.lock'))return;
  if(!$('secvis'))app.insertAdjacentHTML('beforeend',secVisH());
  if(!$('perfft'))app.insertAdjacentHTML('beforeend',perfFtH());perfFtLoad();
+ if(!$('xlft'))app.insertAdjacentHTML('beforeend',xlFtH());xlFtLoad();
  if(!$('mailfr')&&!CARDQ)app.insertAdjacentHTML('beforeend',`<div class="card" id="mailfr"><h2>✉️ ${lang=='ar'?'البريد الإلكتروني':'Email'}<small>${lang=='ar'?'الرسائل والمستلمون والجدولة والتوقيع وسجل الإرسال. (هي نفسها صفحة «البريد الإلكتروني»)':'Messages, recipients, schedule, signature and log. (Same as the Email page)'}</small></h2><iframe class="sfr" data-src="mail.html" title="mail"></iframe><div class="row" style="margin-top:6px"><a href="mail.html" target="_blank"><button>↗ ${lang=='ar'?'فتح في صفحة مستقلة':'Open in its own page'}</button></a></div></div>`);
  const cards=[...app.children].filter(e=>e.classList&&e.classList.contains('card'));let prev='gen';const by={};
  cards.forEach(c=>{let k=secOf(c);if(!k)k=prev;if(c.id=='wdc')k=prev;prev=k;c.dataset.sec=k;(by[k]=by[k]||[]).push(c)});
