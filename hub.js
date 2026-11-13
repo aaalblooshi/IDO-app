@@ -33,7 +33,6 @@
         ['', '💰 ' + (A ? 'الموازنة' : 'Budget'), 'budget.html?pc=' + e, 'budget'],
         ['', '🔁 ' + (A ? 'طلبات التغيير' : 'Change requests'), '#', 'cr', 'doc'],
         ['', '🏁 ' + (A ? 'التقرير الختامي' : 'Closure'), '#', 'closure', 'doc'],
-        ['', '💬 ' + (A ? 'التواصل' : 'Chat'), 'chat.html?p=' + e, 'chat'],
         ['sep'],
         ['', '↩ ' + (A ? 'كل المشاريع' : 'All projects'), isDoc ? f + '.html' : (f == 'myprojects' ? 'myprojects.html' : f + '.html'), 'all']
       ];
