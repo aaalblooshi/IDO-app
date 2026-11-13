@@ -64,7 +64,7 @@ html[dir=ltr] #cap .plate{background:radial-gradient(circle at 100% 0,rgba(255,2
 
 /* chapter title moments */
 #ttl{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:24px;pointer-events:none;z-index:4}
-#ttl .bk{position:absolute;inset:0;background:radial-gradient(closest-side,rgba(238,243,247,.92),rgba(238,243,247,.55) 70%,rgba(238,243,247,0));opacity:0;transition:opacity .8s}
+#ttl .bk{position:absolute;inset:0;background:radial-gradient(ellipse 78% 62% at 50% 50%,rgba(238,243,247,.97) 0,rgba(238,243,247,.94) 55%,rgba(238,243,247,.6) 80%,rgba(238,243,247,0) 100%);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);opacity:0;transition:opacity .8s}
 #ttl.in .bk{opacity:1}
 #ttl>*:not(.bk){position:relative}
 #ttl .n{font-weight:800;font-size:clamp(90px,19vw,250px);line-height:.9;color:transparent;-webkit-text-stroke:2px rgba(29,95,138,.35);opacity:0;transform:scale(1.08);transition:opacity 1s,transform 1.4s cubic-bezier(.2,.7,.2,1)}
@@ -170,6 +170,7 @@ body.pres #pv{display:grid;position:fixed;inset:0;grid-template-columns:1.4fr 1f
  #cap.top{top:64px}
 }
 @media (prefers-reduced-motion:reduce){#cap .w,#ttl .w,#ttl .n,.pn{transition-duration:.01s!important}}
+#bar #bAuto{position:relative;padding:0 12px 0 14px;display:inline-flex;align-items:center;gap:6px}#bAuto svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}#bAuto .rg{fill:none;stroke:var(--sky,#3b9ad9);stroke-width:2.5;stroke-dasharray:94.3;stroke-dashoffset:94.3;transform:rotate(-90deg);transform-origin:50% 50%}#bAuto.on{background:var(--ban);color:#fff;border-color:transparent}#bAuto.on svg{opacity:1}#bAuto.on .rg{stroke:#ffe7b0}body.auto.idle #hud #bar{opacity:1}
 </style>
 </head>
 <body>
@@ -190,7 +191,7 @@ body.pres #pv{display:grid;position:fixed;inset:0;grid-template-columns:1.4fr 1f
   <button id="bTop" title=""></button><button id="bOvw" title=""></button><button id="bLang"></button><button id="bHelp" title="">?</button><button id="bExit" title="">✕</button>
  </div>
  <div id="bar" class="fade">
-  <button id="bPrev" aria-label=""></button><button id="pg"></button><button id="bNext" aria-label=""></button>
+  <button id="bAuto" aria-pressed="false"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="rg" cx="18" cy="18" r="15"/></svg><span></span></button><button id="bPrev" aria-label=""></button><button id="pg"></button><button id="bNext" aria-label=""></button>
   <button id="bPres" class="opt" title=""></button><button id="bSnap" class="opt" title=""></button><button id="bFs" class="opt" title="">⛶</button>
  </div>
  <div id="prog"></div>
@@ -217,7 +218,7 @@ const STEPS=window.STEPS,CH=window.CHAPTERS,SC=window.SCENES;
 const N=STEPS.length;
 const UI={
  prev:['السابق','Previous'],next:['التالي','Next'],topics:['المواضيع','Topics'],overview:['كل اللقطات','All clicks'],help:['المساعدة','Help'],exit:['خروج إلى البوابة','Back to the portal'],
- pres:['عرض المقدّم','Presenter view'],snap:['حفظ لقطة','Save snapshot'],fs:['ملء الشاشة','Full screen'],
+ auto:['تشغيل تلقائي','Autoplay'],autoOff:['إيقاف التشغيل التلقائي','Stop autoplay'],pres:['عرض المقدّم','Presenter view'],snap:['حفظ لقطة','Save snapshot'],fs:['ملء الشاشة','Full screen'],
  jumpL:['انتقل إلى','Go to'],jumpB:['انتقال','Go'],search:['ابحث عن موضوع…','Find a topic…'],
  now:['الآن','Now'],nextS:['التالي','Next'],notes:['ملاحظات','Notes'],start:['ابدأ','Start'],pause:['إيقاف','Pause'],reset:['تصفير','Reset'],
  noNotes:['لا ملاحظات لهذه اللقطة.','No notes for this click.'],end:['نهاية الجولة','End of the tour'],
@@ -376,6 +377,20 @@ function go(i,opt){opt=opt||{};i=Math.max(0,Math.min(N-1,i));const prev=STEPS[cu
   if(t<1)anim.id=requestAnimationFrame(tick);else{FLY=false;spot={r:toR,o:toR?1:0};drawSpot();drawArrow(true)}};
  anim.id=requestAnimationFrame(tick)}
 const next=()=>go(cur+1),prev=()=>go(cur-1);
+/* ▶ تشغيل تلقائي اختياري: مدة كل شريحة حسب طول نصها */
+let AUTO=false,AT0=0,ACUR=-1,ADUR=0;
+function autoDur(st){if(!st)return 6000;const w=((tt(st.c)||'')+' '+(st.d?tt(st.d):'')).trim().split(/\s+/).length;if(st.title)return st.end?9000:Math.min(9000,4500+w*300);return Math.max(5500,Math.min(14000,3500+w*330))}
+function autoLbl(){const b=$('bAuto');if(!b)return;b.classList.toggle('on',AUTO);b.setAttribute('aria-pressed',AUTO);b.title=tt(AUTO?UI.autoOff:UI.auto);b.querySelector('span').textContent=AUTO?'⏸':'▶';document.body.classList.toggle('auto',AUTO)}
+function autoTog(){AUTO=!AUTO;ACUR=-1;autoLbl();if(AUTO)autoTick()}
+function autoTick(){if(!AUTO)return;const b=$('bAuto'),rg=b&&b.querySelector('.rg');
+ if(ACUR!==cur){ACUR=cur;AT0=performance.now();ADUR=autoDur(STEPS[cur])}
+ const paused=document.hidden||document.querySelector('.ov.on')||($('jump')&&$('jump').classList.contains('on'));
+ if(paused){AT0=performance.now()-(rg?(1-(+rg.dataset.f||0))*ADUR:0)}
+ const f=Math.min(1,(performance.now()-AT0)/ADUR);if(rg){rg.style.strokeDashoffset=String(94.3*(1-f));rg.dataset.f=String(1-f)}
+ if(f>=1&&!paused){if(cur>=N-1){AUTO=false;autoLbl();return}next()}
+ requestAnimationFrame(autoTick)}
+$('bAuto').onclick=e=>{e.stopPropagation();autoTog()};
+
 
 /* ───────── HUD ───────── */
 function hud(){const st=STEPS[cur];$('pg').textContent=(cur+1)+' / '+N;
@@ -385,7 +400,7 @@ function buildHud(){
  document.documentElement.lang=LANG;document.documentElement.dir=LANG=='ar'?'rtl':'ltr';document.body.dir=document.documentElement.dir;
  $('bPrev').textContent=LANG=='ar'?'›':'‹';$('bNext').textContent=LANG=='ar'?'‹':'›';$('bPrev').setAttribute('aria-label',tt(UI.prev));$('bNext').setAttribute('aria-label',tt(UI.next));
  $('bTop').textContent=tt(UI.topics);$('bOvw').textContent=tt(UI.overview);$('bLang').textContent=LANG=='ar'?'EN':'ع';$('bHelp').title=tt(UI.help);$('bExit').title=tt(UI.exit);
- $('bPres').textContent=tt(UI.pres);$('bSnap').textContent=tt(UI.snap);$('bFs').title=tt(UI.fs);$('pg').title=tt(ACT.jump);
+ try{autoLbl()}catch(_){}$('bPres').textContent=tt(UI.pres);$('bSnap').textContent=tt(UI.snap);$('bFs').title=tt(UI.fs);$('pg').title=tt(ACT.jump);
  $('jl').textContent=tt(UI.jumpL);$('jb').textContent=tt(UI.jumpB);
  $('prog').innerHTML=CH.map(c=>{const n=STEPS.filter(s=>s.ch==c.id).length;return `<div class="sg" style="flex:${n}" data-ch="${c.id}"><i></i><b>${esc(tt(c.t))}</b></div>`}).join('');
  document.title=LANG=='ar'?'جولة في بوابة التطوير المؤسسي':'IDO portal tour'}
