@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.bks{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}.bks div{background:#faf8f3;border-radius:10px;padding:8px;text-align:center;font-size:12.5px;color:var(--mut)}.bks b{display:block;font-size:21px;color:var(--ink)}.bkg{display:grid;grid-template-columns:minmax(0,1.6fr) 1fr auto auto;gap:8px;align-items:center;padding:5px 0;border-top:1px solid #efebe2;font-size:13.5px}.bkl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bkb{height:8px;background:#efebe2;border-radius:99px;overflow:hidden}.bkb i{display:block;height:100%;background:#c0661e;border-radius:99px}@media(max-width:600px){.bkg{grid-template-columns:1fr auto;}.bkg .bkb{grid-column:1/-1;order:3}}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -64,8 +65,8 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  go:['بحث','Search'],csv:['تصدير Excel (CSV)','Export CSV'],more:['عرض المزيد','Show more'],none:['لا توجد سجلات مطابقة.','No matching records.'],tot:['الإجمالي','Total'],shown:['المعروض','Shown'],
  dup:['إخفاء التكرار (تعديلات تقنية يغطّيها سجل الخدمة)','Hide duplicates (technical edits already in the service log)'],
  INSERT:['إضافة','Added'],UPDATE:['تعديل','Edited'],DELETE:['حذف','Deleted'],det:['التفاصيل','Details'],sysu:['النظام (تلقائي)','System (automatic)'],err:['تعذّر التحميل: ','Failed to load: '],open:['فتح','Open'],
- tb_all:['الكل','All'],f_pj:['تتبّع مشروع معيّن','Track a specific project'],pj_ph:['اكتب اسم المشروع أو رمزه ثم اخترْه','Type a project name or code, then pick it'],pj_t:['خط زمني لمشروع','Project timeline'],pj_clr:['إلغاء التتبّع','Stop tracking'],pj_file:['ملف المشروع','Project file'],ord_n:['الأحدث أولًا','Newest first'],ord_o:['الأقدم أولًا','Oldest first'],tb_tasks:['المهام','Tasks'],f_tbl:['النوع','Type'],tb_work:['المشاريع والخدمات','Projects & services'],tb_users:['المستخدمون والصلاحيات','Users & access'],tb_set:['الإعدادات','Settings'],tb_chat:['المحادثات','Chat'],tb_oth:['أخرى','Other']};
-const TABS={all:'',tasks:'',work:'charter,plan,cr,closure,plans,charters,change_requests,closure_reports,signatories,plan_signatories,charter_signatories,closure_signatories,del_requests,escalations,plan_versions,plan_consult,plan_comments,project_transfer,project_handover,project_links,followers',users:'profiles,app_roles,project_grants,project_blocks,user_groups,user_group_members',set:'app_settings,project_cfg,eval_model,request_sla',chat:'chat_channels,chat_members,chat_excl',oth:'user_nudges,service_ratings,project_evals'};
+ tb_all:['الكل','All'],tb_bk:['⏱ إغلاق بأثر رجعي','⏱ Backdated closures'],tb_pv:['🔀 تغييرات الخطط','🔀 Plan changes'],f_pj:['تتبّع مشروع معيّن','Track a specific project'],pj_ph:['اكتب اسم المشروع أو رمزه ثم اخترْه','Type a project name or code, then pick it'],pj_t:['خط زمني لمشروع','Project timeline'],pj_clr:['إلغاء التتبّع','Stop tracking'],pj_file:['ملف المشروع','Project file'],ord_n:['الأحدث أولًا','Newest first'],ord_o:['الأقدم أولًا','Oldest first'],tb_tasks:['المهام','Tasks'],f_tbl:['النوع','Type'],tb_work:['المشاريع والخدمات','Projects & services'],tb_users:['المستخدمون والصلاحيات','Users & access'],tb_set:['الإعدادات','Settings'],tb_chat:['المحادثات','Chat'],tb_oth:['أخرى','Other']};
+const TABS={all:'',tasks:'',work:'charter,plan,cr,closure,plans,charters,change_requests,closure_reports,signatories,plan_signatories,charter_signatories,closure_signatories,del_requests,escalations,plan_versions,plan_consult,plan_comments,project_transfer,project_handover,project_links,followers',users:'profiles,app_roles,project_grants,project_blocks,user_groups,user_group_members',set:'app_settings,project_cfg,eval_model,request_sla',chat:'chat_channels,chat_members,chat_excl',oth:'user_nudges,service_ratings,project_evals',bk:'',pv:''};const CUST={bk:1,pv:1};
 const SUBS={
  work:[['charter','الميثاق','Charter','charter,charters,charter_signatories'],['plan','الخطة','Plan','plan,plans,plan_signatories,plan_versions,plan_consult,plan_comments'],['cr','طلب التغيير','Change request','cr,change_requests,signatories'],['closure','الإقفال','Closure','closure,closure_reports,closure_signatories'],['del','الإلغاء والتصعيد','Cancel & escalation','del_requests,escalations'],['pm','النقل والتسليم والروابط','Transfer, handover, links','project_transfer,project_handover,project_links,followers']],
  users:[['u','بيانات المستخدمين','User data','profiles'],['r','الأدوار','Roles','app_roles'],['g','صلاحيات المشاريع','Project grants','project_grants'],['b','حجب المشاريع','Project blocks','project_blocks'],['gr','المجموعات','Groups','user_groups,user_group_members']],
@@ -161,7 +162,8 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
  let {data:p}=await sb.from('profiles').select('role').eq('id',session.user.id).single();p=await capAs(p,['audit.view']);if(!p||p.role!='admin')return gate('adminOnly');
  try{const c=await sb.from('charters').select('code,pn:data->>pname').order('code',{ascending:false}).limit(1000);PJ=c.data||[]}catch(_){}
  try{const u=await sb.from('profiles').select('id,full_name');(u.data||[]).forEach(x=>US[x.id]=x.full_name)}catch(_){}
- draw();await fetchRows(true)}
+ const hq=new URLSearchParams(location.hash.slice(1));if(CUST[hq.get('tab')]){F.tab=hq.get('tab');if(hq.get('pc'))BK.pc=hq.get('pc')}
+ draw();if(!CUST[F.tab])await fetchRows(true)}
 async function fetchRows(reset){if(LOADING)return;LOADING=true;if(reset){ROWS=[];TOTAL=0}
  const r=await sb.rpc('admin_audit',args(ROWS.length,PG()));LOADING=false;
  if(r.error){toast(t('err')+r.error.message);return}
@@ -172,7 +174,7 @@ function go(){const prev=F.pc;readF();if(prev!=F.pc)draw();fetchRows(true)}
 function setOrd(){ORD=ORD=='o'?'n':'o';list();draw2()}
 function draw2(){const b=document.querySelector('.pjb button');if(b)b.textContent=ORD=='o'?t('ord_n'):t('ord_o')}
 function clrPj(){$('f_pj').value='';F.pc='';go();draw()}
-function setTab(k){readF();F.tab=k;F.sub='';draw();fetchRows(true)}
+function setTab(k){if(!CUST[F.tab])readF();F.tab=k;F.sub='';draw();if(!CUST[k])fetchRows(true)}
 function setSub(k){readF();F.sub=F.sub==k?'':k;draw();fetchRows(true)}
 const csvC=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
 async function exportCsv(){readF();const out=[];let off=0;
@@ -182,6 +184,7 @@ async function exportCsv(){readF();const out=[];let off=0;
  const rows=[H].concat(out.map(r=>[dayK(r.at),tmS(r.at),r.actor||'',r.pname||'',r.pcode||'',r.src=='sys'?tn(r.tbl):(SVN[r.src]?SVN[r.src][A()?0:1]:''),act(r),r.details?JSON.stringify(r.details):'']));
  const blob=new Blob(['﻿'+rows.map(x=>x.map(csvC).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='audit-log.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 function draw(){document.documentElement.lang=lang;document.documentElement.dir=A()?'rtl':'ltr';$('lb').textContent=A()?'EN':'ع';document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
+ if(CUST[F.tab]){$('app').innerHTML=`<div class="tbs">${Object.keys(TABS).map(k=>`<button class="${F.tab==k?'on':''}" onclick="setTab('${k}')">${t('tb_'+k)}</button>`).join('')}</div><div id="cust"></div>`;F.tab=='bk'?bkView():pvView();return}
  const keep=$('f_q')?{pj:$('f_pj').value,from:$('f_from').value,to:$('f_to').value,actor:$('f_actor').value,q:$('f_q').value,dup:$('f_dup').checked}:F;
  const pjv=keep.pj!=null?keep.pj:(F.pc?(PJ.find(x=>x.code==F.pc)?F.pc+' — '+(PJ.find(x=>x.code==F.pc).pn||''):F.pc):'');
  $('app').innerHTML=`<div class="tbs">${Object.keys(TABS).map(k=>`<button class="${F.tab==k?'on':''}" onclick="setTab('${k}')">${t('tb_'+k)}</button>`).join('')}</div>${SUBS[F.tab]?`<div class="tbs sb">${SUBS[F.tab].map(x=>`<button class="${F.sub==x[0]?'on':''}" onclick="setSub('${x[0]}')">${A()?x[1]:x[2]}</button>`).join('')}</div>`:''}
@@ -194,6 +197,42 @@ function draw(){document.documentElement.lang=lang;document.documentElement.dir=
  <label class="tg2"><input type="checkbox" id="f_dup" ${keep.dup?'checked':''} onchange="go()"> ${t('dup')}</label>
  <div class="row"><button class="p" onclick="go()">${t('go')}</button><button onclick="exportCsv()">${t('csv')}</button><span class="mut" id="cnt"></span></div></div>
  <div class="card" id="lst"></div>`;list()}
+/* ===== ⏱ إغلاق بأثر رجعي: مهام سُجّلت منجزة بتاريخ أقدم من تاريخ الإجراء ===== */
+const BK={rows:null,from:'',to:'',pc:'',only:'sched',still:true,grp:'pj'};
+async function bkLoad(){BK.rows=null;bkDraw();const r=await sb.rpc('audit_backdated',{p_from:BK.from||null,p_to:BK.to||null,p_pcode:BK.pc||null,p_plan:null});if(r.error){toast(t('err')+r.error.message);BK.rows=[]}else BK.rows=r.data||[];bkDraw()}
+function bkView(){if(BK.rows==null)bkLoad();else bkDraw()}
+function bkF(){return (BK.rows||[]).filter(x=>(BK.only!='sched'||x.on_sched)&&(!BK.still||x.still))}
+function bkSet(k,v){BK[k]=v;if(k=='from'||k=='to'||k=='pc')bkLoad();else bkDraw()}
+function bkDraw(){const el=$('cust');if(!el)return;const R=bkF(),n=R.length;
+ const avg=n?Math.round(R.reduce((a,x)=>a+(+x.after_due>0?+x.after_due:+x.late_act||0),0)/n):0,mx=n?Math.max(...R.map(x=>+x.after_due||+x.late_act||0)):0;
+ const by=k=>{const m={};R.forEach(x=>{const kk=k(x)||'—';(m[kk]=m[kk]||{n:0,d:0,lab:kk}).n++;m[kk].d+=(+x.after_due>0?+x.after_due:+x.late_act||0)});return Object.values(m).sort((a,b)=>b.n-a.n)};
+ const G=BK.grp=='pj'?by(x=>(x.pname||'')+' · '+x.pcode):BK.grp=='who'?by(x=>x.actor):BK.grp=='own'?by(x=>x.owner):by(x=>String(x.act).slice(0,7));
+ const mxn=Math.max(1,...G.map(g=>g.n));
+ const pjv=BK.pc?(PJ.find(x=>x.code==BK.pc)?BK.pc+' — '+(PJ.find(x=>x.code==BK.pc).pn||''):BK.pc):'';
+ el.innerHTML=`<div class="card"><div class="mut" style="margin-bottom:8px">${P('مهام سُجّلت «منجزة» بتاريخ إنجاز أقدم من يوم الضغط الفعلي على الزر، ومنها ما أُغلق بخاصية «أنجزتها في موعدها» بعد فوات الموعد. يُحسب التأخير من موعد النهاية المخطط إلى يوم الإجراء.','Tasks recorded as done with a completion date earlier than the day the action was taken, including “done on schedule” after the due date.')}</div>
+ <label>🔎 ${t('f_pj')}</label><input id="bk_pj" list="pjl2" placeholder="${t('pj_ph')}" value="${esc(pjv)}" onchange="bkSet('pc',pcOf(this.value))" autocomplete="off"><datalist id="pjl2">${PJ.map(x=>`<option value="${esc(x.code+' — '+(x.pn||''))}"></option>`).join('')}</datalist>
+ <div class="fg"><div><label>${P('الإجراء من','Action from')}</label><input type="date" value="${esc(BK.from)}" onchange="bkSet('from',this.value)"></div><div><label>${P('إلى','To')}</label><input type="date" value="${esc(BK.to)}" onchange="bkSet('to',this.value)"></div>
+ <div><label>${P('النوع','Type')}</label><select onchange="bkSet('only',this.value)"><option value="sched" ${BK.only=='sched'?'selected':''}>${P('«في موعدها» بعد فوات الموعد','“On schedule” after due')}</option><option value="all" ${BK.only=='all'?'selected':''}>${P('كل الإغلاق بأثر رجعي','All backdated')}</option></select></div></div>
+ <label class="tg2"><input type="checkbox" ${BK.still?'checked':''} onchange="bkSet('still',this.checked)"> ${P('ما زالت مسجّلة كذلك الآن فقط','Only those still recorded this way')}</label></div>
+ ${BK.rows==null?`<div class="card mut">${P('جارٍ التحميل…','Loading…')}</div>`:`
+ <div class="card"><div class="bks"><div><b>${num(n)}</b>${P('مهمة','tasks')}</div><div><b>${num(new Set(R.map(x=>x.pcode)).size)}</b>${P('مشروع','projects')}</div><div><b>${num(new Set(R.map(x=>x.actor)).size)}</b>${P('شخص نفّذ','people')}</div><div><b>${num(avg)}</b>${P('متوسط أيام التأخير','avg days late')}</div><div><b>${num(mx)}</b>${P('أكبر تأخير (يوم)','max days late')}</div></div>
+ <div class="tbs sb" style="margin-top:10px">${[['pj',P('حسب المشروع','By project')],['who',P('حسب المنفّذ','By actor')],['own',P('حسب المسؤول','By owner')],['mo',P('حسب الشهر','By month')]].map(g=>`<button class="${BK.grp==g[0]?'on':''}" onclick="bkSet('grp','${g[0]}')">${g[1]}</button>`).join('')}</div>
+ ${G.length?G.map(g=>`<div class="bkg"><span class="bkl">${esc(g.lab)}</span><span class="bkb"><i style="width:${Math.round(g.n/mxn*100)}%"></i></span><b>${num(g.n)}</b><span class="mut">${P('متوسط','avg')} ${num(Math.round(g.d/g.n))} ${P('يوم','d')}</span></div>`).join(''):`<div class="mut">${t('none')}</div>`}
+ <div class="row"><button onclick="bkCsv()">${t('csv')}</button></div></div>
+ <div class="card">${R.length?R.map(x=>`<div class="ar"><div class="ah"><span class="fu">⏱ ${num(+x.after_due>0?x.after_due:x.late_act)} ${P('يوم بعد','days after')} ${+x.after_due>0?P('الموعد','due'):P('تاريخ الإنجاز','completion date')}</span><span class="ac">${esc(x.actor||'')}</span><a class="lk" href="plan.html#o=${x.plan}" onclick="return ov(this.getAttribute('href'))">${P('فتح الخطة','Open plan')} ↗</a></div>
+ <div class="pj"><b>${esc(x.pname||'')}</b> <span class="pc" dir="ltr">${esc(x.pcode||'')}</span></div>
+ <div class="ab"><b>${esc(x.task||'')}</b>${x.owner?` · ${P('المسؤول','Owner')}: ${esc(x.owner)}`:''}<br><span class="mut">${P('الموعد المخطط','Planned end')}: <span dir="ltr">${esc(x.pe||'—')}</span> · ${P('سُجّل منجزًا بتاريخ','Recorded done on')}: <span dir="ltr">${esc(x.ae)}</span> · ${P('يوم الإجراء','Action day')}: <span dir="ltr">${esc(x.act)}</span>${x.still?'':' · '+P('عُدّلت لاحقًا','changed later')}</span></div></div>`).join(''):`<div class="mut">${t('none')}</div>`}</div>`}`}
+function bkCsv(){const R=bkF(),H=[P('المشروع','Project'),P('الرمز','Code'),P('المهمة','Task'),P('المسؤول','Owner'),P('المنفّذ','Actor'),P('الموعد المخطط','Planned end'),P('تاريخ الإنجاز المسجّل','Recorded done'),P('يوم الإجراء','Action day'),P('أيام بعد الموعد','Days after due')];
+ const rows=[H].concat(R.map(x=>[x.pname,x.pcode,x.task,x.owner||'',x.actor,x.pe||'',x.ae,x.act,x.after_due==null?'':x.after_due]));
+ const blob=new Blob(['﻿'+rows.map(r=>r.map(csvC).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backdated-closures.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+/* ===== 🔀 تغييرات الخطط ===== */
+function pvView(){const el=$('cust');if(!el)return;const pjv=BK.pc?(PJ.find(x=>x.code==BK.pc)?BK.pc+' — '+(PJ.find(x=>x.code==BK.pc).pn||''):BK.pc):'';
+ el.innerHTML=`<div class="card"><div class="mut" style="margin-bottom:8px">${P('اختر مشروعًا لترى كل ما تغيّر في خطته بين أي نسختين: مهام مضافة ومحذوفة، مواعيد تغيّرت، مسؤول تغيّر، الوزن والاعتماديات، مع سجل كامل بكل تعديل ومن قام به.','Pick a project to see everything that changed in its plan between any two versions, plus a full edit log.')}</div>
+ <label>🔎 ${t('f_pj')}</label><input id="pv_pj" list="pjl3" placeholder="${t('pj_ph')}" value="${esc(pjv)}" autocomplete="off" onchange="pvGo(this.value)"><datalist id="pjl3">${PJ.map(x=>`<option value="${esc(x.code+' — '+(x.pn||''))}"></option>`).join('')}</datalist>
+ <div class="row"><button class="p" onclick="pvGo($('pv_pj').value)">🔀 ${P('عرض التغييرات','Show changes')}</button></div></div>`;
+ if(BK.pc&&location.hash.indexOf('tab=pv')>=0){pvGo(pjv);try{history.replaceState(null,'',location.pathname)}catch(_){}}}
+function pvGo(v){const pc=pcOf(v);if(!pc)return toast(t('pj_ph'));BK.pc=pc;const go=()=>IDOPD.open(pc,{name:(PJ.find(x=>x.code==pc)||{}).pn||pc});if(window.IDOPD)go();else{const s=document.createElement('script');s.src='pdiff.js?v=1';s.onload=go;document.head.appendChild(s)}}
+
 load();
 </script>
 <script>/*pwareg*/
