@@ -282,7 +282,7 @@ function LABXdetect(text,ctx){var c=new Ctx(ctx);SPLITC=c;c.costIn=ctx.costIn;c.
 var BADW=R('(?:^|\\s)(?:'+['ثم','بعدين','وبعدها','بعدها','قبله','بعده','قبلها','بعدها','عشان','علشان','لازم','نحتاج','نبي','نبغى','يتوظف','فيها','فيه','عندي','عندنا','مرحلتين','ينحط','يكون','تكون','لين','وبعد ما','بعد ما','سيتم','يتم','ذلك','اللي','والا','وإلا','بحضور'].map(rx).join('|')+')(?=\\s|$)','i');
 function score(text,items){var c=new Ctx({today:Date.now()/864e5|0});var sc=0,names=[];
  (items||[]).forEach(function(x){if(x.k=='_phs'||x.k=='_rep'){if(/…/.test(String(x.n||''))||String(x.n||'').split(/\s+/).length>9)sc-=1;(x.tasks||[]).forEach(function(t){names.push({n:t.n,task:1})});sc+=(x.tasks&&x.tasks.length)?1:-2}else names.push({n:x.n,d:x.d,rel:x.rel,neg:x.neg,k:x.k})});
- names.forEach(function(z){var n=String(z.n||''),w=n.split(/\s+/).filter(Boolean);var v=1;
+ names.forEach(function(z){var n=String(z.n||'').replace(/\s—\s.*$/,''),w=n.split(/\s+/).filter(Boolean);var v=1;
   if(BADW.test(n))v-=3;if(NOISE.test(n.trim()))v-=4;if(w.length==1&&isMasd(w[0])&&!/^ال/.test(NA(w[0])))v-=2;if(w.length>=2&&isMasd(w[0])&&isMasd(w[1])&&!/^ال/.test(NA(w[1])))v-=2;if(/^(?:رش[ةه]|رشه)/.test(NA(w[0]||'')))v-=3;if(R('^(?:'+rx('في البداية')+'|'+rx('أولا')+'|'+rx('اولا')+')').test(n))v-=2;if(w.length>9)v-=2;else if(w.length>6)v-=1;if(/…$/.test(n))v-=1;
   if(w[0]&&(isVerbish(w[0])||/^و\S{3,}/.test(NA(w[0]))&&isAct(w[0].slice(1))))v-=2;
   if(z.task&&R(rx('المرحلة')+'|'+rx('المرحله')).test(n))v-=3;
