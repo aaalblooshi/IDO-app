@@ -436,7 +436,7 @@ function vRep(){const d1=ds(TODAY),d0=d1.slice(0,8)+'01';
  $('body').innerHTML=`<div class="card noprint"><label>${t('rPer')}</label><div class="row" style="margin:0 0 6px"><select id="rpk" style="flex:1" onchange="RPK=this.value;RPO=0;rpoFill()">${['m','q','h','y'].map(k=>`<option value="${k}" ${RPK==k?'selected':''}>${t('rP_'+k)}</option>`).join('')}</select><select id="rpo" style="flex:1" onchange="RPO=+this.value"></select><button onclick="rPreset()">${t('rApply')}</button></div>
  <div class="g2"><div><label>${t('rFrom')}</label><input type="date" id="rf" value="${RP?RP.f:d0}"></div><div><label>${t('rTo')}</label><input type="date" id="rt" value="${RP?RP.t:d1}"></div></div>
  <label class="ck"><span style="display:flex;gap:6px;align-items:center;font-weight:700"><input type="checkbox" id="rpl" ${RP&&RP.pl?'checked':''}> ${t('rPlan')}</span></label>
- <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${MSP?`<button onclick="mspExp()" title="${lang=='ar'?'ملف XML يفتحه Microsoft Project (ملف ← فتح)':'XML file for Microsoft Project (File → Open)'}">⬇ Microsoft Project</button>`:''}${RP?`<button onclick="repCsv()">${t('rCsv')}</button><button onclick="repPptx()">${t('rPpt')}</button><button onclick="repShare()">${t('rShare')}</button><button class="dsk" onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
+ <div class="row"><button class="p" onclick="genRep()">${t('rGen')}</button>${MSP?`<button onclick="mspExp()" title="${lang=='ar'?'ملف XML يفتحه Microsoft Project (ملف ← فتح)':'XML file for Microsoft Project (File → Open)'}">⬇ Microsoft Project</button>`:''}${RP?`<button onclick="repCsv()">${t('rCsv')}</button>${ADM?`<button onclick="REPX.wsOpen(scoped(),RP)" style="font-weight:800;color:#0a6b3d">📝 ${lang=='ar'?'ملاحظات المكتب':'Office notes'}</button>`:''}<button onclick="REPX.cfgOpen(showRep)">⚙️ ${lang=='ar'?'محتوى التقرير':'Report content'}</button><button onclick="repPptx()">${t('rPpt')}</button><button onclick="repShare()">${t('rShare')}</button><button class="dsk" onclick="window.print()">${t('rPrint')}</button>`:''}</div></div><div id="rep"></div>`;
  rpoFill();if(RP)showRep()}
 function genRep(){RP={f:$('rf').value,t:$('rt').value,pl:$('rpl').checked};showRep()}
 function showRep(){const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t),scope=FP?t('rByP')+((L[0]||{}).name||''):FS?t('rBySec')+secN(FS):t('rAllS');
@@ -450,11 +450,12 @@ function showRep(){const L=scoped(),A=agg(L),f=dn(RP.f),e=dn(RP.t),scope=FP?t('r
  if(RP.pl)det=L.map(p=>{const walk=(pid,lv)=>(p.an.kids[pid]||[]).map(x=>{const a=p.an.t[x.id]||{};return `<tr><td style="padding-inline-start:${6+(lv-1)*14}px">${x.ms?'◆ ':''}${(p.an.kids[x.id]||[]).length?'<b>'+esc(x.n)+'</b>':esc(x.n)}</td><td>${esc(UN[x.w]||'')}</td><td class="n">${fd(x.s)}</td><td class="n">${fd(x.e)}</td><td class="n">${pct(a.a||0)}</td><td class="n">${a.late?a.late:''}</td></tr>`+walk(x.id,lv+1)}).join('');
   return `<h3>${esc(p.name)} <small dir="ltr">${esc(p.k)}</small></h3><table class="rt"><tr><th>${t('task')}</th><th>${t('who')}</th><th>${lang=='ar'?'البداية':'Start'}</th><th>${lang=='ar'?'النهاية':'End'}</th><th>${t('prog')}</th><th>${t('lateD')}</th></tr>${walk('',1)}</table>`}).join('');
  $('rep').innerHTML=`<div class="card rp"><h2 style="font-size:20px">${t('rTitle')}<small>${esc(scope)} · <span class="num">${fd(RP.f)}</span> → <span class="num">${fd(RP.t)}</span> · ${t('rGen2')} <span class="num">${fd(ds(TODAY))}</span></small></h2>
- <div class="kpg" style="margin:10px 0"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b>${pct(A.a)}</b><span>${t('kA')}</span></div><div><b>${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}
- ${sec}<h3>${t('pj')}</h3><div style="overflow-x:auto"><table class="rt"><tr><th>${t('pj')}</th><th>${t('sec')}</th><th>${t('pm')}</th><th>${t('exp')}</th><th>${t('act')}</th><th>${t('gap')}</th><th>${t('rDone')}</th><th>${t('late')}</th><th>${t('st')}</th></tr>${rowsP}</table></div>
- <h3>${t('rCR')}</h3>${crs.length?`<p>${Object.entries(crBy).map(([k,v])=>esc(k)+': <b class="num">'+v+'</b>').join(' · ')}</p><ul>${crs.map(c=>`<li><span dir="ltr">${esc(c.code)}</span> — ${esc(c.ti||'')}</li>`).join('')}</ul>`:`<p class="mut">${t('rNoCR')}</p>`}
+ ${REPX.cfg.sum?`<div class="kpg" style="margin:10px 0"><div><b>${A.n}</b><span>${t('kP')}</span></div><div><b>${pct(A.ex)}</b><span>${t('kE')}</span></div><div><b>${pct(A.a)}</b><span>${t('kA')}</span></div><div><b>${A.late}</b><span>${t('kL')}</span></div></div>${pbar(A.a,A.ex)}`:''}
+ ${REPX.cfg.sec?sec:''}${REPX.cfg.pj?`<h3>${t('pj')}</h3><div style="overflow-x:auto"><table class="rt"><tr><th>${t('pj')}</th><th>${t('sec')}</th><th>${t('pm')}</th><th>${t('exp')}</th><th>${t('act')}</th><th>${t('gap')}</th><th>${t('rDone')}</th><th>${t('late')}</th><th>${t('st')}</th></tr>${rowsP}</table></div>`:''}
+ ${REPX.cfg.cr?`<h3>${t('rCR')}</h3>${crs.length?`<p>${Object.entries(crBy).map(([k,v])=>esc(k)+': <b class="num">'+v+'</b>').join(' · ')}</p><ul>${crs.map(c=>`<li><span dir="ltr">${esc(c.code)}</span> — ${esc(c.ti||'')}</li>`).join('')}</ul>`:`<p class="mut">${t('rNoCR')}</p>`}`:''}<div id="repx">${REPX.sectionsH(L)}</div>
  ${RP.pl?`<div class="pgb"><h2>${t('rDet')}</h2>${det}</div>`:''}</div>
- <style>.rt{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 14px}.rt th,.rt td{border:1px solid #ddd5c3;padding:4px 7px;text-align:start;vertical-align:top}.rt th{background:#f3ecdc}.rt td.n{direction:ltr;text-align:center;white-space:nowrap}.rp h3{margin:16px 0 4px;font-size:15px}</style>`}
+ <style>.rt{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0 14px}.rt th,.rt td{border:1px solid #ddd5c3;padding:4px 7px;text-align:start;vertical-align:top}.rt th{background:#f3ecdc}.rt td.n{direction:ltr;text-align:center;white-space:nowrap}.rp h3{margin:16px 0 4px;font-size:15px}</style>`;
+ REPX.load(L,RP).then(()=>{const x=$('repx');if(x)x.innerHTML=REPX.sectionsH(L)});REPX.onWsClose=()=>{if(RP&&TAB=='rep')REPX.load(scoped(),RP,true).then(showRep)}}
 
 /* ---- الإدارة التنفيذية ---- */
 const XE_CSS=`<style>.xh{background:#fff;border-bottom:3px solid #B39A6B;border-radius:14px 14px 0 0;padding:12px 14px;margin:-2px 0 12px}.xh small{font-size:11px;color:#8a8478}.xh h1{font-size:18px;line-height:1.6;margin-top:4px}.xh em{font-style:normal;color:#9a7f48}
@@ -659,7 +660,7 @@ async function buildDeck(L,A,tplBuf){
  /* chart1-7 rels: drop the embedded workbook link */
  for(let i=1;i<=7;i++){const f='ppt/charts/_rels/chart'+i+'.xml.rels',d=await rd(f);[...d.getElementsByTagName('Relationship')].forEach(r=>{if(/\/package$/.test(r.getAttribute('Type')))r.parentNode.removeChild(r)});z.file(f,S(d))}
  /* ---------- numbers ---------- */
- const done=L.filter(p=>p.a>=99.5).length,run=L.length-done,delay=Math.max(0,R0(A.ex-A.a));
+ const done=L.filter(p=>p.a>=99.5).length,run=L.length-done,delay=Math.max(0,R0(A.ex-A.a));try{await REPX.load(L,RP)}catch(_){}
  /* budget and spending as of the report's end date (budget page) */let FIN={};try{const r=await sb.rpc('fin_summary',{p_asof:(RP&&RP.t)||null});(r.data||[]).forEach(x=>FIN[x.pcode]=x)}catch(_){}
  const fk=p=>FIN[p.k||p.code||p.pc]||{},nn=v=>v==null||v===''?'-':num(Math.round(+v));
  const bud=L.reduce((s,p)=>s+(+(fk(p).approved!=null?fk(p).approved:p.bud)||0),0),spent=L.reduce((s,p)=>s+(+fk(p).cum_spend||0),0),strat=L.filter(p=>p.pt=='strategic').length,oper=L.length-strat,secs=A.rows;
@@ -698,14 +699,14 @@ async function buildDeck(L,A,tplBuf){
   /* divider */
   let ds5=P(tplSlide[5]);setT(ds5,4,nm);addSlide(S(ds5),mkRel(5));
   /* performance (chunks of 7) */
-  const CH=7,parts=Math.max(1,Math.ceil(r.L.length/CH));
+  const CH=7,parts=REPX.cfg.dPerf?Math.max(1,Math.ceil(r.L.length/CH)):0;
   for(let c=0;c<parts;c++){const sub=r.L.slice(c*CH,c*CH+CH),dd=P(tplSlide[6]);
    setT(dd,3,'ملخص الأداء العام لمشاريع '+nm+(parts>1?' ('+(c+1)+'/'+parts+')':''));
    setTable(dd,sub.map(p=>[p.name,R0(p.ex)+'%',R0(p.a)+'%',p.lateN?p.lateN+' مهمة متأخرة':'منتظم']),7);
    const cn=await newChart(8,0,sub.map(p=>p.name.length>28?p.name.slice(0,27)+'…':p.name),[{name:'% الإنجاز المخطط',vals:sub.map(p=>p.ex/100)},{name:'% الإنجاز الفعلي',vals:sub.map(p=>p.a/100)},{name:'% التأخير',vals:sub.map(p=>Math.max(0,p.ex-p.a)/100)}]);
    addSlide(S(dd),mkRel(6,cn))}
   /* project detail */
-  for(const p of r.L){
+  for(const p of (REPX.cfg.dProj?r.L:[])){
    const dd=P(tplSlide[7]),ts=p.tasks||[],has=new Set(ts.map(x=>x.p).filter(Boolean)),leaf=ts.filter(x=>!has.has(x.id));
    const ss=ts.map(x=>dn(x.s)).filter(v=>v!=null),ee=ts.map(x=>dn(x.e)).filter(v=>v!=null),ae=ts.map(x=>dn(x.ae)).filter(v=>v!=null);
    const st0=ss.length?Math.min(...ss):null,en0=ee.length?Math.max(...ee):null;
@@ -715,7 +716,7 @@ async function buildDeck(L,A,tplBuf){
    setT(dd,84,'% '+R0(p.ex));setT(dd,88,'% '+R0(p.a));
    const late=leaf.filter(x=>{const e=dn(x.e);return e!=null&&e<TODAY&&(+x.pc||0)<100}).slice(0,4);
    const notes=[];if(p.lateN>0)notes.push('عدد المهام المتأخرة: '+p.lateN);if(p.gap>=1)notes.push('الفجوة بين المخطط والفعلي: '+R0(p.gap)+'%');late.forEach(x=>notes.push('متأخرة: '+x.n));
-   setLines(shape(dd,43),notes.length?notes:['لا توجد ملاحظات']);
+   {const nl=REPX.deckLines(p,notes);setLines(shape(dd,43),nl.length?nl:['لا توجد ملاحظات'])}
    setT(dd,94,p.pt=='strategic'?'إستراتيجي':'تشغيلي');setT(dd,96,secA(p.sc));setT(dd,97,'المركز');
    setT(dd,103,p.ow||'—');setT(dd,111,p.pm||'—');
    /* current phase highlight */
@@ -1462,7 +1463,7 @@ async function xpPlans(which){const AR_=lang=='ar';if(!XPLC)return;
  const d=new Date(),ds_=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
  XLSX.writeFile(wb,(sel.length>1?'plans_all_':'plan_'+sel[0].k+'_')+ds_+'.xlsx')}
 </script>
-<script src="netdiag.js?v=6"></script><script src="ovx.js?v=7"></script><script src="ido-ui.js?v=33"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
+<script src="netdiag.js?v=6"></script><script src="ovx.js?v=7"></script><script src="repx.js?v=1"></script><script src="ido-ui.js?v=33"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
 (function(){const _v=window.vXpl;if(!_v)return;window.vXpl=function(){_v();if(!ADM)return;const AR_=lang=='ar',b=document.getElementById('body');if(!b)return;const d=document.createElement('div');d.className='card';
  d.innerHTML='<h3 style="margin:0 0 6px">🗂 '+(AR_?'ملفات Excel للأدمن':'Admin Excel files')+'</h3><div class="mut" style="line-height:1.8">'+(AR_?'كل مجال له ملفه الخاص: المؤشرات من صفحة المؤشرات، المخاطر من سجل المخاطر، الموازنة من صفحة الموازنات، والخطة من صفحة كل خطة (رفع Excel). هنا: التفاصيل الأساسية للمشاريع (تنزيل وتحديث ورفع) والملف الشامل.':'Each area has its own file: KPIs, risks, budgets and each plan on their pages. Here: project basic details (download, edit, upload) and the all-in-one file.')+'</div>'
   +'<div class="row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="pfBasicOut()">⬇ '+(AR_?'التفاصيل الأساسية':'Basic details')+'</button><label class="btn" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;cursor:pointer">⬆ '+(AR_?'رفع التفاصيل الأساسية':'Upload basic details')+'<input type="file" accept=".xlsx,.xls" style="display:none" onchange="pfBasicIn(this)"></label><button class="p" onclick="pfAllOut()">📦 '+(AR_?'الملف الشامل لكل المشاريع':'All-in-one file')+'</button></div>'
