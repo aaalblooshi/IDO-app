@@ -76,6 +76,15 @@
      1) الملف الشامل للمشروع: المهام + قراءات المؤشرات + المخاطر
      ===================================================================== */
   function perOf(freq) { var t = H().today(), y = t.slice(0, 4), m = +t.slice(5, 7); if (freq == 'monthly') return t.slice(0, 7); if (freq == 'quarterly') return y + '-Q' + (Math.floor((m - 1) / 3) + 1); if (freq == 'semiannual') return y + '-H' + (m <= 6 ? 1 : 2); if (freq == 'annual') return y; if (freq == 'once') return 'final'; return t.slice(0, 7); }
+  function prevPer(f, p) { if (!p || p == 'final') return null; var y = +p.slice(0, 4), m;
+    if (f == 'monthly') { m = +p.slice(5, 7) - 1; if (!m) { m = 12; y--; } return y + '-' + String(m).padStart(2, '0'); }
+    if (f == 'quarterly') { m = +p.slice(6) - 1; if (!m) { m = 4; y--; } return y + '-Q' + m; }
+    if (f == 'semiannual') { m = +p.slice(6) - 1; if (!m) { m = 2; y--; } return y + '-H' + m; }
+    if (f == 'annual') return String(y - 1); return null; }
+  async function feats() { if (!window.IDOFEAT) { await new Promise(function (ok) { var sc = document.createElement('script'); sc.src = 'feat.js?v=2'; sc.onload = ok; sc.onerror = ok; document.head.appendChild(sc); }); } try { if (window.IDOFEAT) await IDOFEAT.load(); } catch (e) { } return function (k, pc) { return window.IDOFEAT ? !!IDOFEAT.on(k, pc) : true; }; }
+  /* نفس قاعدة صفحة المؤشرات: الإنجاز والحالة */
+  function kAch(FO, k, v) { if (!v || v.actual == null) return null; if (v.appr === false && FO('k_appr', k.pcode)) return null; var t = v.target != null ? +v.target : (k.target != null ? +k.target : null), a = +v.actual; if (t == null) return null; if (k.direction == 'down') { if (a <= 0) return t >= 0 ? 100 : null; return Math.max(0, Math.min(200, t / a * 100)); } if (t == 0) return a >= 0 ? 100 : 0; return Math.max(0, Math.min(200, a / t * 100)); }
+  function kOff(FO, k, a) { if (a == null) return false; if (k.thr_g != null && FO('k_thr', k.pcode)) { var g = +k.thr_g, y = k.thr_a != null ? +k.thr_a : g - 15; return a < y; } return a < 80; }
   var RST = { open: ['مفتوح', 'Open'], closed: ['مغلق', 'Closed'] };
   X.fullDownload = async function (pc) {
     var h = H(), T = h.T; var M = await gate('full'); if (!M) return; h.busy(T('جارٍ تجهيز الملف الشامل…', 'Preparing the full file…'));
@@ -124,7 +133,7 @@
       res.tasks.forEach(function (z) { var L = pr.local[z.pid + '|' + z.tid]; if (L) { z.row = L.row; z.n = z.n || L.n; } });
     }
     /* المؤشرات */
-    if (B.sheets.kid) { var a = B.sheets.kid, I = idx(a); var ids = [], rows = [];
+    if (B.sheets.kid) { var FO = await feats(); var a = B.sheets.kid, I = idx(a); var ids = [], rows = [];
       for (var i = 2; i < a.length; i++) { var r0 = a[i]; if (!r0 || !r0[I.kid]) continue; rows.push({ i: i + 1, r: r0 }); ids.push(+r0[I.kid]); }
       var KS = ids.length ? (await sb.from('project_kpis').select('*').in('id', ids)).data || [] : [];
       var VS = ids.length ? (await sb.from('kpi_values').select('*').in('kpi_id', ids)).data || [] : [];
@@ -140,6 +149,8 @@
         if (String((v && v.at) || '') != String(r0[I.kst] || '') && !(v == null && !r0[I.kst])) return res.kpis.push({ st: 'conflict', row: o.i, n: nm, why: T('حُدِّثت القراءة في النظام بعد تنزيل الملف', 'Reading changed in the system after download') });
         var A2 = ratio ? (nu != null && de ? Math.round(nu / de * (+k.factor || 100) * 10000) / 10000 : null) : act;
         if (k.ev_req && A2 != null && !(v && (v.evidence || v.ev_path))) return res.kpis.push({ st: 'error', row: o.i, n: nm, why: T('هذا المؤشر يتطلب دليلًا؛ أدخل القراءة من صفحة المؤشرات لإرفاقه', 'Evidence required; enter it from the KPIs page') });
+        if (A2 != null && FO('k_corr', k.pcode) && !(v && v.corr)) { var pp = prevPer(k.freq, per), v0 = pp && VS.find(function (z) { return z.kpi_id == k.id && z.period == pp; }), a1 = kAch(FO, k, { actual: A2, target: v ? v.target : null }), a0 = v0 ? kAch(FO, k, v0) : null;
+          if (kOff(FO, k, a1) && kOff(FO, k, a0)) return res.kpis.push({ st: 'error', row: o.i, n: nm, why: T('المؤشر سيكون متأخرًا لفترتين متتاليتين، والخطة التصحيحية إلزامية؛ أدخل هذه القراءة من صفحة المؤشرات لكتابتها', 'Red for two periods in a row; a corrective plan is required — enter this reading from the KPIs page') }); }
         if (A2 == null && !note && !v) return res.kpis.push({ st: 'same', row: o.i, n: nm });
         res.kpis.push({ st: 'change', row: o.i, n: nm, d: (per == 'final' ? T('نهائي', 'Final') : per) + ': ' + (v && v.actual != null ? v.actual : '—') + ' ← ' + (A2 == null ? '—' : A2) });
         payload.kpis.push({ id: v && v.id, row: { kpi_id: k.id, period: per, actual: A2, num: ratio ? nu : null, den: ratio ? de : null, note: note || null, by_user: M.id, at: new Date().toISOString() } });
