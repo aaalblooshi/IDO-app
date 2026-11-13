@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}#secnav{position:sticky;top:58px;z-index:20;background:var(--bg,#f4f2ec);padding:6px 0 8px;margin:0 0 6px}#secnav input{width:100%;font-size:16px;margin:0 0 6px}.secch{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.secch::-webkit-scrollbar{display:none}.secch button{flex:none;border:1px solid #e4dfd4;background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:#3b3f44}.secch button i{font-style:normal;color:#8a8f96;font-weight:400;margin-inline-start:3px}.secch button.on{background:#0a6b3d;border-color:#0a6b3d;color:#fff}.secch button.on i{color:#d5efe0}.sech{margin:18px 4px 8px;font-size:15px;color:#3b3f44}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -96,7 +97,8 @@ async function load(){
  SET={};(a.data||[]).forEach(x=>SET[x.key]=x.value);MAIL={};(b.data||[]).forEach(x=>MAIL[x.key]=x.value);USERS=c.data||[];draw()}
 function gate(k){document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('app').innerHTML='<div class="card lock"><p>'+t(k)+'</p><button class="p" onclick="location.href=\'cr.html\'">'+(lang=='ar'?'تسجيل الدخول':'Sign in')+'</button></div>'}
 function on(k,def){return (SET[k]==null?def:SET[k])!='0'}
-function draw(){
+function draw(){draw0();try{setOrg()}catch(e){console.error(e)}}
+function draw0(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));
  let goals=DEFGOALS;try{const g=JSON.parse(SET.opt_goals||'null');if(Array.isArray(g)&&g.length)goals=g}catch(_){}
@@ -468,6 +470,41 @@ function drawHome(){const el=$('home');if(!el)return;if(!HC)initHome();
 const saveHome=()=>run(async()=>{const on=l=>l.filter(x=>x.on).map(x=>x.k),off=l=>l.filter(x=>!x.on).map(x=>x.k);const svc={},svcOff={};AXI.forEach(a=>{svc[a.id]=on(HC.svc[a.id]);svcOff[a.id]=off(HC.svc[a.id])});
  const c={mine:HC.mine?1:0,order:HC.first?'mine':'axes',axes:on(HC.axes),axesOff:off(HC.axes),tiles:on(HC.tiles),tilesOff:off(HC.tiles),svc,svcOff};const j=JSON.stringify(c);await setS('home_cfg',j);SET.home_cfg=j});
 const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=null;drawHome()});
+/* ===== تنظيم صفحة الإعدادات: أقسام ثابتة + بحث + اختصار رؤية المشاريع السرية ===== */
+const SECS=[
+ ['gen','⚙️',['عام','General'],/صفحات الإعدادات|Settings pages|الصفحة الرئيسية|Home layout|القوائم المنسدلة|Drop-down|أيام العمل|Working days|المرفقات|Attachments|الأوزان|Weights|قائمة المحفظة|Portfolio menu/i],
+ ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
+ ['eval','📊',['التقييم والتقارير','Evaluation & reports'],/نموذج تقييم|Evaluation model|نتائج التقييم|rating|الملخص الأسبوعي|Weekly digest|التقرير الشهري|Monthly report|الخصائص الاختيارية|Optional features/i],
+ ['note','🔔',['التنبيهات والبريد','Notifications & email'],/تنبيهات البريد|Email alerts|إعدادات البريد|Mail &|Mail and|التنبيهات|Notifications/i],
+ ['perm','🔐',['الصلاحيات والخصوصية','Access & privacy'],/المستخدمون والصلاحيات|Users|ظهور الأدمن|Admin visib|سجل التدقيق|Audit|المشاريع السرية|Secret projects/i],
+ ['lab','🧪',['مختبر الخطط والذكاء الاصطناعي','Plan lab & AI'],/مختبر الخطط|Plan lab|الذكاء الاصطناعي|Internal AI/i],
+ ['chat','💬',['التواصل','Communication'],/^التواصل|^Chat|Communication/i],
+ ['bk','📦',['النسخ الاحتياطي','Backup'],/النسخة الاحتياطية|Backup/i]];
+let SECF=(()=>{try{return localStorage.getItem('setSec')||''}catch(_){return ''}})(),SECQ='';
+function secOf(card){const h=card.querySelector('h2');if(!h)return '';const tt=(h.childNodes[0]&&h.childNodes[0].textContent||h.textContent).trim();for(const x of SECS)if(x[3].test(tt))return x[0];return 'oth'}
+function setOrg(){const app=$('app');if(!app||app.querySelector('.lock'))return;
+ if(!$('secvis'))app.insertAdjacentHTML('beforeend',secVisH());
+ const cards=[...app.children].filter(e=>e.classList&&e.classList.contains('card'));let prev='gen';const by={};
+ cards.forEach(c=>{let k=secOf(c);if(!k)k=prev;if(c.id=='wdc')k=prev;prev=k;c.dataset.sec=k;(by[k]=by[k]||[]).push(c)});
+ const order=SECS.map(x=>x[0]).concat(['oth']);const L2=(a)=>lang=='ar'?a[0]:a[1];
+ const nav=document.createElement('div');nav.id='secnav';nav.innerHTML=`<input id="secq" placeholder="${lang=='ar'?'🔎 ابحث في الإعدادات…':'🔎 Search settings…'}" value="${esc(SECQ)}" oninput="secQ(this.value)"><div class="secch"><button class="${SECF?'':'on'}" onclick="secF('')">${lang=='ar'?'الكل':'All'}</button>${order.filter(k=>by[k]).map(k=>{const x=SECS.find(z=>z[0]==k);return `<button class="${SECF==k?'on':''}" onclick="secF('${k}')">${x?x[1]+' '+L2(x[2]):(lang=='ar'?'أخرى':'Other')} <i>${by[k].length}</i></button>`}).join('')}</div>`;
+ const frag=document.createDocumentFragment();frag.appendChild(nav);
+ order.forEach(k=>{if(!by[k])return;const x=SECS.find(z=>z[0]==k);const w=document.createElement('section');w.className='secw';w.dataset.sec=k;w.innerHTML=`<h3 class="sech">${x?x[1]+' '+L2(x[2]):(lang=='ar'?'أخرى':'Other')}</h3>`;by[k].forEach(c=>w.appendChild(c));frag.appendChild(w)});
+ app.innerHTML='';app.appendChild(frag);secApply();secVisLoad();setTimeout(secChipShow,0);setTimeout(secApply,1500)}
+function secF(k){SECF=k;try{localStorage.setItem('setSec',k)}catch(_){}document.querySelectorAll('#secnav .secch button').forEach(b=>b.classList.toggle('on',(b.getAttribute('onclick')||'').indexOf("'"+k+"'")>=0));secApply();window.scrollTo(0,0);secChipShow()}
+function secChipShow(){const r=document.querySelector('#secnav .secch'),b=r&&r.querySelector('.on');if(!b)return;const R=r.getBoundingClientRect(),B=b.getBoundingClientRect();if(B.left<R.left||B.right>R.right)r.scrollLeft+=(B.left+B.width/2)-(R.left+R.width/2)}
+function secQ(v){SECQ=v;secApply()}
+function secApply(){const q=SECQ.trim().toLowerCase();document.querySelectorAll('#secnav .secch button').forEach(b=>{const m=/secF\('(\w*)'\)/.exec(b.getAttribute('onclick')||''),i=b.querySelector('i');if(m&&m[1]&&i){const w=document.querySelector('#app .secw[data-sec="'+m[1]+'"]');if(w)i.textContent=w.querySelectorAll(':scope > .card').length}});document.querySelectorAll('#app .secw').forEach(w=>{let any=false;w.querySelectorAll(':scope > .card').forEach(c=>{const ok=(!SECF||w.dataset.sec==SECF)&&(!q||c.textContent.toLowerCase().indexOf(q)>=0);c.style.display=ok?'':'none';if(ok)any=true});w.style.display=any?'':'none'})}
+/* 🔒 رؤية المشاريع السرية حسب الدور */
+let SVR=null;
+function secVisH(){return `<div class="card" id="secvis"><h2>${lang=='ar'?'🔒 رؤية المشاريع السرية حسب الدور':'🔒 Secret projects visibility by role'}<small>${lang=='ar'?'فعّلها لدور ليرى أصحابه كل المشاريع السرية. الأدمن يراها دائمًا. لمنح شخص بعينه أو مشروع بعينه استخدم صفحة الصلاحيات.':'Turn on for a role so its holders see all secret projects. Admins always see them. For a single person or project use the permissions page.'}</small></h2><div id="svbox" class="mut">…</div><div class="row" style="margin-top:8px"><button onclick="location.href='perms.html'">🔐 ${lang=='ar'?'صفحة الصلاحيات':'Permissions page'}</button></div></div>`}
+async function secVisLoad(){const b=$('svbox');if(!b)return;if(!SVR){try{const r=await sb.from('app_roles').select('*').order('sort');SVR=r.data||[]}catch(_){SVR=[]}}
+ b.className='';b.innerHTML=SVR.map(r=>{const adm=r.base=='admin',on=adm||String((r.caps||{})['sec.view'])=='true';return `<label class="tg"><input type="checkbox" ${on?'checked':''} ${adm?'disabled':''} onchange="secVisSet('${esc(r.key)}',this.checked,this)"><span><b>${esc(lang=='ar'?r.name_ar:(r.name_en||r.name_ar))}</b>${adm?` <span class="mut">(${lang=='ar'?'يرى كل شيء':'sees everything'})</span>`:''}</span></label>`}).join('')||`<div class="mut">—</div>`}
+async function secVisSet(k,on,el){const r=SVR.find(x=>x.key==k);if(!r)return;const caps=Object.assign({},r.caps||{});caps['sec.view']=on?'true':'false';
+ if(on&&!confirm(lang=='ar'?'أصحاب هذا الدور سيرون كل المشاريع السرية. متابعة؟':'Holders of this role will see every secret project. Continue?')){el.checked=false;return}
+ const x=await sb.rpc('perm_role_save',{p_key:r.key,p_ar:r.name_ar,p_en:r.name_en||r.name_ar,p_descr:r.descr||null,p_base:r.base,p_caps:caps,p_notif_off:r.notif_off||[],p_color:r.color||null,p_new:false});
+ if(x.error){el.checked=!on;return toast(t('err')+x.error.message)}r.caps=caps;toast(t('saved'))}
+
 load();
 </script><script>/*pwareg*/
 (function(){
