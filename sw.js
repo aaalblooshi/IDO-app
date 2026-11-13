@@ -99,3 +99,20 @@ self.addEventListener('fetch', function (e) {
   }
   // everything else (Supabase API, uploads, …) goes straight to the network, untouched
 });
+
+// إشعارات الهاتف (Push)
+self.addEventListener('push', function (e) {
+  var d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
+  var base = self.registration.scope;
+  var u = String(d.url || 'inbox.html'); if (!/^https?:/.test(u)) u = base + u.replace(/^\.?\//, '');
+  e.waitUntil(self.registration.showNotification(d.title || 'منصة مكتب التطوير المؤسسي', { body: d.body || '', data: { url: u }, tag: d.tag || undefined, dir: 'rtl', lang: 'ar' }));
+});
+self.addEventListener('notificationclick', function (e) {
+  e.notification.close();
+  var u = (e.notification.data && e.notification.data.url) || self.registration.scope;
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (cs) {
+    for (var i = 0; i < cs.length; i++) { var c = cs[i]; if (c.url.indexOf(self.registration.scope) === 0 && 'focus' in c) { return c.focus().then(function (w) { return w && w.navigate ? w.navigate(u) : null; }).catch(function () { return self.clients.openWindow(u); }); } }
+    return self.clients.openWindow(u);
+  }));
+});

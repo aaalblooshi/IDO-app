@@ -80,7 +80,8 @@
     return LDP;
   }
   function cfg(k) {
-    var d = (DEF || {})[k] || {}, m = (MX || {})[k] || {}, o = { in: d.in == null ? null : d.in, ml: d.ml == null ? null : d.ml, md: d.md || 'now', dy: d.dy };
+    var d = (DEF || {})[k] || {}, m = (MX || {})[k] || {}, o = { in: d.in == null ? null : d.in, ml: d.ml == null ? null : d.ml, ph: 'ph' in d ? d.ph : (d.in == null ? null : d.in == 'off' ? 'off' : 'user'), md: d.md || 'now', dy: d.dy };
+    if (o.ph != null && /^(on|user|off)$/.test(m.ph || '')) o.ph = m.ph;
     if (o.in != null && /^(on|user|off)$/.test(m.in || '')) o.in = m.in;
     if (o.ml != null && /^(on|user|off)$/.test(m.ml || '')) o.ml = m.ml;
     if (m.md == 'now' || (m.md == 'day' && d.dy == 1)) o.md = m.md;
