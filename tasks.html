@@ -284,7 +284,7 @@ const sortP=(a,b)=>prio(b)-prio(a)||(a.e==null)-(b.e==null)||a.e-b.e;
 const TABS=[['open','tOpen'],['late','tLate'],['prog','tProg'],['fut','tFut'],['today','tToday'],['week','tWeek'],['done','tDone'],['stale','tStale'],['all','tAll']];
 const legend=()=>`<div class="stp">${['fut','prog','late','done'].map(k=>`<span style="--c:${SCOL[k]}">${t('st_'+k)}</span>`).join('')}</div>`;
 /* ---- shell ---- */
-function draw(){
+function draw(){try{if(ADM&&window.IDOBKD)IDOBKD.load(sb,true,()=>draw())}catch(_){}
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
  if(!ME)return;
@@ -354,7 +354,7 @@ function pLink(r){return `<a href="plan.html#o=${r.pr.pid}" style="color:#2a6a90
 function card(r,nopath){const done=isDone(r),x=r.x,k=r.pr.pid+'|'+x.id,st=stOf(r),cmp=CFG.cmp;
  const canRem=MODE=='team'&&r.own&&!done&&(ADM||r.pr.cb==ME.id);
  return `<div class="tk ${done?'dn':''}" style="--sc:${SCOL[st]};${st=='late'?'background:#fff8f8':''}"><div class="mut">${pLink(r)}${!nopath&&pathS(r)?' · '+pathS(r):''}</div>
- <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${esc(x.n)}</b></div>
+ <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${esc(x.n)}</b>${window.IDOBKD?IDOBKD.badge(k):''}</div>
  <div style="margin:3px 0">${stChip(r)}${prChip(r)}${depChips(r)}${r.own?`<span class="chp">${esc(UN[r.own]||'')}</span>`:''}${MODE=='team'&&!r.own?`<span class="chp o">${t('unas')}</span>`:''}</div>
  <div class="mut">${relT(r)} · ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}</div>
  ${cmp?'':pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}
@@ -400,7 +400,7 @@ function vProj(rs){
   ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a>${ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRPL[p.pcode]?`<a href="plan.html#o=${p.pid}&e=1"><button>${t('pEdit')}</button></a>`:''}<button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
   ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}${tree}`:`<div class="row" style="margin-top:6px"><button onclick="PEXP.add(${p.pid});paint()">${t('pDet')}</button></div>`}</div>`}).join('')}
 function rowH(p,r,vis){const x=r.x,done=isDone(r),k=p.pid+'|'+x.id,st=stOf(r);
- return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${esc(x.n)}</b>${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
+ return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${esc(x.n)}</b>${window.IDOBKD?IDOBKD.badge(k):''}${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
  <div class="mut">${r.leaf?relT(r)+' · ':''}${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}${r.leaf?' · '+whoH(r):''}</div>${pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}`}
 function nodeH(p,x,vis,lv){const r=p.byId[x.id];if(!r||!vis.includes(r))return '';const ch=(p.kids[x.id]||[]).map(c=>nodeH(p,c,vis,lv+1)).join('');
  return `<div class="nd" style="margin-inline-start:${lv*16}px;${lv?'border-inline-start:3px solid #d9d4c7;padding-inline-start:8px':''}">${rowH(p,r,vis)}</div>${ch}`}
@@ -986,4 +986,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="ido-ui.js?v=33"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="ido-ui.js?v=33"></script></body></html>

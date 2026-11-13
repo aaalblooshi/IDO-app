@@ -698,7 +698,7 @@ function tasksV(){const td=today(),rows=[];PJ.forEach(p=>{const lead=p.roles.inc
    +(TG[k]?L.slice(0,n).map(({p,x})=>tkItem(p,x,td)).join('')+(L.length>n?'<button class="mwmore" onclick="tgMore(\''+k+'\')">'+P(['عرض المزيد','Show more'])+' (+'+(L.length-n)+') ▾</button>':''):'')+'</div>'}).join('')}
 function tkItem(p,x,td){const k='t'+sid((p.pl&&p.pl.id||p.code)+'_'+x.id),o=SHF===k;REG[k]=()=>tkItem(p,x,today());const _o=0,dl=x._e!=null?x._e-td:null,c=clr[x._st]||'#7a8a99',u=p.pl&&p.pl.id?'tasks.html#k='+encodeURIComponent(p.pl.id+'|'+x.id):'myprojects.html?pc='+encodeURIComponent(p.code)+'#tasks';
  const when=x._st=='done'?P(['منجزة','done']):dl==null?'':dl<0?P(['متأخرة '+(-dl)+' يوم','late '+(-dl)+'d']):dl==0?P(['تنتهي اليوم','due today']):P(['بعد '+dl+' يوم','in '+dl+'d']);
- let h='<div class="mwi'+(o?' on':'')+'" id="xi_'+k+'" style="--c:'+c+'"><button class="mwh" onclick="xTog(\''+k+'\')"><span class="mwn"><b>'+esc(x.n||'—')+'</b><small>'+esc(p.name)+(x._me?'':' · 👤 '+esc(x.wn||'—'))+'</small></span><span class="mwm"><b style="color:'+c+'">'+Math.round(x._pc)+'%</b><small>'+when+'</small></span><span class="wsv">'+(o?'▴':'▾')+'</span></button>';
+ let h='<div class="mwi'+(o?' on':'')+'" id="xi_'+k+'" style="--c:'+c+'"><button class="mwh" onclick="xTog(\''+k+'\')"><span class="mwn"><b>'+esc(x.n||'—')+'</b>'+(window.IDOBKD&&p.pl&&p.pl.id?IDOBKD.badge(p.pl.id+'|'+x.id):'')+'<small>'+esc(p.name)+(x._me?'':' · 👤 '+esc(x.wn||'—'))+'</small></span><span class="mwm"><b style="color:'+c+'">'+Math.round(x._pc)+'%</b><small>'+when+'</small></span><span class="wsv">'+(o?'▴':'▾')+'</span></button>';
  if(o){const can=x._me&&p.pl&&p.pl.id&&x._st!='done';
   h+='<div class="mwb"><div class="mwg"><div><span>'+P(['البداية المخططة','Planned start'])+'</span><b>'+fd(x._s)+'</b></div><div><span>'+P(['النهاية المخططة','Planned end'])+'</span><b>'+fd(x._e)+'</b></div><div><span>'+P(['البدء الفعلي','Actual start'])+'</span><b>'+(x.as?fd(dayN(x.as)):'—')+'</b></div><div><span>'+P(['المكلّف','Assignee'])+'</span><b>'+(x._me?P(['أنت','You']):esc(x.wn||'—'))+'</b></div></div>'
    +'<div class="mwbar"><i style="width:'+Math.min(100,x._pc)+'%;background:'+c+'"></i></div>'
@@ -832,7 +832,7 @@ function pickPj(){const L=PJ.filter(p=>p.M.start!=null);let o=document.getElemen
 function pkAll(m){PJ.forEach(p=>{HID[p.code]=m==0?true:m==2?!isLate(p):false});hidSave();pickPj()}
 
 const HUB=(()=>{const u=new URL(location.href);return u.searchParams.get('pc')||u.searchParams.get('plan')||''})();
-function draw(){const y=window.scrollY;HUB?drawHub():drawList();if(!HUB&&Math.abs(window.scrollY-y)>1)window.scrollTo(0,y);if(typeof SHK!='undefined'&&SHK)shRender()}
+function draw(){try{if(me&&me.role=='admin'&&window.IDOBKD)IDOBKD.load(sb,true,()=>draw())}catch(_){}const y=window.scrollY;HUB?drawHub():drawList();if(!HUB&&Math.abs(window.scrollY-y)>1)window.scrollTo(0,y);if(typeof SHK!='undefined'&&SHK)shRender()}
 HUB?loadHub():load();
 
 </script>
@@ -993,4 +993,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="hub.js?v=2"></script><script src="ovx.js?v=7"></script><script src="ido-ui.js?v=33"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="hub.js?v=2"></script><script src="ovx.js?v=7"></script><script src="bkd.js?v=1"></script><script src="ido-ui.js?v=33"></script></body></html>
