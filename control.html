@@ -107,7 +107,8 @@ const SVN={charter:['ميثاق','Charter'],plan:['خطة','Plan'],cr:['طلب �
 const DAYS=(n)=>A()?(n==1?'يوم':n==2?'يومان':n>=3&&n<=10?n+' أيام':n+' يومًا'):(n+(n==1?' day':' days'));
 
 /* ====== حالة ====== */
-let SF='',CF='',TAB='room',KF='all',SHOWQ=false,ONLYNEW=false,LOADED=false,LOADERR=[];
+const ONLYC=(()=>{try{return new URLSearchParams(location.search).get('only')||''}catch(_){return ''}})();
+let SF='',CF='',TAB=ONLYC||'room',KF='all',SHOWQ=false,ONLYNEW=false,LOADED=false,LOADERR=[];
 let US={},PRF=[],CH=[],PLN=[],CRS=[],CLR=[],SGP=[],ESC=[],PERF=[],SNP=[],CFG={},WM={},AUD=[],OA={},OAMODE='db';
 let PJ={},ITEMS=[],CHECKS=[],PREV=null,RULES=[],ELOG=[],LEAVE=[],SIGNED=[],SEEN={},CHKSRC='local',LADRES=null;
 const Q=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){LOADERR.push(tb);return []}};
@@ -687,6 +688,7 @@ function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll
  const pgT=PGS.map(x=>`<span class="ptb ${TAB=='pg:'+x.n?'on':''}"><button type="button" onclick="TAB='pg:${x.n}';draw()">📄 ${esc(x.title)}</button><button type="button" class="px" title="${P('إغلاق','Close')}" onclick="closePg(${x.n})">✕</button></span>`).join('');
  a.innerHTML=`<div class="tabs">${pgT}${pgT?'<i class="tsep"></i>':''}${TABS.map(x=>`<button class="${TAB==x[0]?'on':''}" onclick="TAB='${x[0]}';draw();window.scrollTo(0,0)">${P(x[1],x[2])}${x[0]=='room'&&op?` <i class="bd">${op}</i>`:''}${x[0]=='chk'&&bad?` <i class="bd">${bad}</i>`:''}${x[0]=='quick'&&(ESC.length+DELR.length+EVP.length)?` <i class="bd">${ESC.length+DELR.length+EVP.length}</i>`:''}</button>`).join('')}</div>${cur?`<div class="pvh"><b>📄 ${esc(cur.title)}</b><span class="ab" style="margin:0"><button type="button" onclick="reloadPg(${cur.n})">↻ ${P('تحديث','Reload')}</button><a href="${esc(cur.base)}" target="_top" onclick="event.stopPropagation()"><button type="button">↗ ${P('فتح كصفحة كاملة','Open full page')}</button></a><button type="button" onclick="closePg(${cur.n})">✕ ${P('إغلاق','Close')}</button></span></div>`:''}${body}`;
  document.querySelectorAll('#pvs .pvf').forEach(f=>f.style.display=cur&&f.id=='fr_'+cur.n?'block':'none');$('pvs').style.display=cur?'block':'none';document.body.classList.toggle('pgon',!!cur);
+ if(ONLYC){const t0=a.querySelector('.tabs');if(t0)t0.style.display='none';const h0=document.querySelector('.ttl,h1');if(h0&&window.self!==window.top)h0.style.display='none'}
  const tb=a.querySelector('.tabs');if(tb){tb.scrollLeft=TABSL;const on=tb.querySelector('.on');if(on){const r=on.getBoundingClientRect(),R=tb.getBoundingClientRect();if(r.left<R.left||r.right>R.right)on.scrollIntoView({inline:'center',block:'nearest'})}}}
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.from('profiles').select('id,full_name,role').eq('id',session.user.id).single();p=await capAs(p,['adm.control']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
@@ -955,4 +957,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ovx.js?v=7"></script><script src="feat.js?v=2"></script><script src="ido-ui.js?v=33"></script></body></html>
+<script src="ovx.js?v=7"></script><script src="feat.js?v=2"></script><script src="ido-ui.js?v=34"></script></body></html>

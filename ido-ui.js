@@ -319,7 +319,8 @@
     var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
     var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
-      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles'), 'الصلاحيات', 'Permissions'], ['users.html', hc('adm.users'), 'إدارة المستخدمين', 'User management'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view') && !hc('adm.settings'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo') && !hc('adm.settings'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
+      try { box.querySelectorAll('a[href="users.html"],a[href="access.html"],a[href="roles.html"]').forEach(function (u) { if (box.querySelector('a[href="perms.html"]')) u.remove(); else { u.setAttribute('href', 'perms.html'); } }); box.querySelectorAll('a[href="perms.html"]').forEach(function (u) { var ar = (document.documentElement.lang || 'ar') === 'ar', sp = u.querySelector('span'), lab = ar ? 'المستخدمون والصلاحيات' : 'Users & access'; if (sp) sp.textContent = lab; else if (!u.querySelector('*')) u.textContent = lab; }); } catch (e) {}
+      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view') && !hc('adm.settings'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo') && !hc('adm.settings'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
@@ -339,8 +340,10 @@
   if (EMB) {
     document.documentElement.classList.add('embed');
     var es = document.createElement('style'); es.id = 'idoemb';
-    es.textContent = 'html.embed #hd2,html.embed .top,html.embed #gnav,html.embed .hm,html.embed .hmp,html.embed #pgban,html.embed .pgban,html.embed .ttl,html.embed #fdbar+x{display:none!important}html.embed body{padding-bottom:12px!important;--gnh:0px}html.embed main{padding-top:8px!important}';
+    es.textContent = 'html.embed #hd2,html.embed .top,html.embed #gnav,html.embed .hm,html.embed .hmp,html.embed #pgban,html.embed .pgban,html.embed .ttl,html.embed #fdbar+x{display:none!important}html.embed body{padding-bottom:12px!important;--gnh:0px}html.embed,html.embed body{background:transparent!important}html.embed .tbn,html.embed #tbnav,html.embed .bnav{display:none!important}html.embed main{padding-top:8px!important}';
     (document.head || document.documentElement).appendChild(es);
+    /* روابط الصفحات الأخرى من داخل الإطار تفتح في الصفحة الأم */
+    document.addEventListener('click', function (ev) { try { if (!/perms\.html$/.test(window.top.location.pathname)) return; var a = ev.target.closest && ev.target.closest('a[href]'); if (!a || a.target) return; var h = a.getAttribute('href') || ''; if (!/\.html(\?|#|$)/.test(h) || /^javascript:/.test(h)) return; var here = location.pathname.split('/').pop(); if (h.split(/[?#]/)[0] === here) return; ev.preventDefault(); window.top.location.href = new URL(h, location.href).href; } catch (e) {} }, true);
   }
   function start() {
     addCss(); try { menuX(); } catch (e) {} navIcons(); emoji(); rngAll(); fsBars();
