@@ -50,7 +50,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock'
+    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock', 'logs.html': 'clock'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { svg: function (n) { return svg(n); }, i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
@@ -317,10 +317,10 @@
     var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
     var caps = []; try { caps = JSON.parse(ls('hdrCaps') || '[]') || []; } catch (e) {}
     var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
-    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
+    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'logs.html': '🗄', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
       try { box.querySelectorAll('a[href="users.html"],a[href="access.html"],a[href="roles.html"]').forEach(function (u) { if (box.querySelector('a[href="perms.html"]')) u.remove(); else { u.setAttribute('href', 'perms.html'); } }); box.querySelectorAll('a[href="perms.html"]').forEach(function (u) { var ar = (document.documentElement.lang || 'ar') === 'ar', sp = u.querySelector('span'), lab = ar ? 'المستخدمون والصلاحيات' : 'Users & access'; if (sp) sp.textContent = lab; else if (!u.querySelector('*')) u.textContent = lab; }); } catch (e) {}
-      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['audit.html', hc('audit.view') && !hc('adm.settings'), 'سجل التدقيق', 'Audit log'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email'], ['history.html', hc('off.undo') && !hc('adm.settings'), 'سجل الخطوات', 'Steps & undo']].forEach(function (x) {
+      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['logs.html', adm || hc('audit.view') || hc('off.undo'), 'السجلات والأرشيف', 'Logs & archive'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
@@ -549,3 +549,35 @@ new MutationObserver(function(){if(!q){q=1;requestAnimationFrame(fix)}}).observe
 /* iPhone zooms the whole page in when a field under 16px gets focus and stays zoomed, which pushes the page sideways and hides the bottom bar: keep fields at 16px on phones and stop that zoom */
 (function(){var st=document.createElement('style');st.textContent='@media (max-width:820px){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}';(document.head||document.documentElement).appendChild(st);
  try{var m=document.querySelector('meta[name=viewport]');if(m&&!/maximum-scale/.test(m.content))m.content=m.content+',maximum-scale=1'}catch(_){}})();
+
+/* ===== IDOTabs: تحويل أقسام صفحة طويلة إلى تبويبات ===== */
+(function(){
+  var css=document.createElement('style');css.textContent='.idotabs{position:sticky;top:var(--itop,58px);z-index:19;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:6px 2px 8px;margin:0 0 8px;background:var(--bg,#f4f2ec)}.idotabs::-webkit-scrollbar{display:none}.idotabs button{flex:none;border:1px solid #dcd6c8;background:#fff;border-radius:99px;padding:6px 14px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;color:#3b3f44}.idotabs button.on{background:#0a6b3d;border-color:#0a6b3d;color:#fff}.idotabs button i{font-style:normal;font-weight:400;opacity:.7;margin-inline-start:4px}.itab-off{display:none!important}html.embed .idotabs{top:0}';
+  (document.head||document.documentElement).appendChild(css);
+  function txt(el){var h=el.querySelector&&el.querySelector('h2,h3,h4,summary');return ((h||el).textContent||'').replace(/\s+/g,' ').trim()}
+  function T(o){
+    var host=typeof o.host=='string'?document.querySelector(o.host):o.host;if(!host)return null;
+    var cur=null;try{cur=localStorage.getItem('itab_'+o.key)}catch(e){}
+    var hk=(location.hash.match(/(?:^#|&)tab=([\w-]+)/)||[])[1];if(hk)cur=hk;
+    if(!o.tabs.some(function(t){return t[0]==cur}))cur=o.tabs[0][0];
+    var bar=document.createElement('div');bar.className='idotabs';bar.setAttribute('role','tablist');
+    bar.innerHTML=o.tabs.map(function(t){return '<button type="button" role="tab" data-k="'+t[0]+'">'+t[1]+'<i></i></button>'}).join('');
+    var busy=false;
+    function items(){return [].slice.call(host.querySelectorAll(o.items)).filter(function(e){return e!==bar&&!bar.contains(e)})}
+    function apply(){if(busy)return;busy=true;try{
+      if(!bar.isConnected){if(o.mount)o.mount(bar,host);else host.insertBefore(bar,host.firstChild)}
+      var q=o.query?o.query():'';var prev=o.tabs[0][0],cnt={};
+      items().forEach(function(el){var k=el.getAttribute('data-itab');
+        if(!k){k='';if(o.always&&o.always(el))k='*';else{var t=txt(el);for(var i=0;i<o.tabs.length;i++){var r=o.tabs[i][2];if(r&&(typeof r=='function'?r(el,t):r.test(t))){k=o.tabs[i][0];break}}if(!k)k=prev}el.setAttribute('data-itab',k)}
+        if(k!='*'){prev=k;if(el.style.display!='none')cnt[k]=(cnt[k]||0)+1}
+        el.classList.toggle('itab-off',!q&&k!='*'&&k!=cur)});
+      [].forEach.call(bar.children,function(b){b.classList.toggle('on',!q&&b.getAttribute('data-k')==cur);var i=b.querySelector('i');if(i&&o.count)i.textContent=cnt[b.getAttribute('data-k')]||''});
+      bar.style.display=o.hide&&o.hide()?'none':'';
+    }finally{setTimeout(function(){busy=false},0)}}
+    bar.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;cur=b.getAttribute('data-k');try{localStorage.setItem('itab_'+o.key,cur)}catch(x){}apply();if(o.onTab)o.onTab(cur);var y=bar.getBoundingClientRect().top+window.scrollY-70;if(window.scrollY>y)window.scrollTo(0,Math.max(0,y));try{var B=b.getBoundingClientRect(),R=bar.getBoundingClientRect();if(B.left<R.left||B.right>R.right)bar.scrollLeft+=(B.left+B.width/2)-(R.left+R.width/2)}catch(x){}});
+    var tm=null;new MutationObserver(function(){if(busy)return;clearTimeout(tm);tm=setTimeout(apply,30)}).observe(o.watch?document.querySelector(o.watch)||host:host,{childList:true,subtree:!!o.deep});
+    apply();
+    return {go:function(k){cur=k;try{localStorage.setItem('itab_'+o.key,k)}catch(x){}apply()},apply:apply,cur:function(){return cur},of:function(el){return el.getAttribute('data-itab')}};
+  }
+  window.IDOTabs=T;
+})();
