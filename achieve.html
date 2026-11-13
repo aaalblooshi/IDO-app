@@ -178,4 +178,4 @@ async function pmView(pc){const r=await sb.rpc('pm_team',{p_pcode:pc});if(r.erro
 async function tmSave(i,pc){const m=TEAM[i];const r=await sb.rpc('pm_feedback_save',{p_pcode:pc,p_uid:m.user_id,p_rating:m.rating||null,p_note:$('tn'+i).value});if(r.error)return toast(P('تعذّر: ','Failed: ')+r.error.message);toast(P('تم الحفظ','Saved'))}
 init();
 </script>
-<script src="ido-ui.js?v=36"></script></body></html>
+<script src="ido-ui.js?v=37"></script></body></html>

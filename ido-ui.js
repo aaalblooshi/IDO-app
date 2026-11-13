@@ -581,3 +581,6 @@ new MutationObserver(function(){if(!q){q=1;requestAnimationFrame(fix)}}).observe
   }
   window.IDOTabs=T;
 })();
+
+/* ثبات الصفحة على الجوال: منع التكبير التلقائي عند لمس الحقول وأي تمدد أفقي */
+(function(){var s=document.createElement('style');s.id='idofit';s.textContent='html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{overflow-x:clip;max-width:100%}@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea{font-size:16px!important}}img,video{max-width:100%}';(document.head||document.documentElement).appendChild(s)})();
