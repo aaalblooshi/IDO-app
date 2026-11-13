@@ -88,6 +88,19 @@ async function pfOpen(){const w=document.getElementById('pfw');const ar=lang=='a
  const on=(r,k)=>!C[r]||C[r].includes(k);
  w.innerHTML='<div style="overflow-x:auto;margin-top:10px"><table style="border-collapse:collapse;font-size:13.5px;width:100%"><thead><tr><th style="text-align:start;padding:6px">'+(ar?'الخيار':'Item')+'</th>'+R.map(r=>'<th style="padding:6px;font-size:12.5px">'+(ar?r.name_ar:r.name_en)+'</th>').join('')+'</tr></thead><tbody>'+PFI.map(i=>'<tr style="border-top:1px solid var(--line)"><td style="padding:6px">'+(ar?i[1]:i[2])+'</td>'+R.map(r=>'<td style="text-align:center"><input type="checkbox" class="pfc" data-r="'+r.key+'" data-k="'+i[0]+'" '+(on(r.key,i[0])?'checked':'')+' style="width:auto"></td>').join('')+'</tr>').join('')+'</tbody></table></div><div class="row"><button class="p" type="button" onclick="pfSave()">'+(ar?'حفظ':'Save')+'</button></div>'}
 async function pfSave(){const C={};document.querySelectorAll('.pfc').forEach(e=>{(C[e.dataset.r]=C[e.dataset.r]||[]);if(e.checked)C[e.dataset.r].push(e.dataset.k)});try{await setS('pf_tabs',JSON.stringify(C));toast(lang=='ar'?'تم الحفظ':'Saved')}catch(e){toast((lang=='ar'?'تعذّر: ':'Failed: ')+(e.message||e))}}
+
+/* سجل الإنجاز وشركاء النجاح — تفعيل/إيقاف كل خاصية */
+const PFT=[['ach',['سجل الإنجاز (صفحة «إنجازي» والفترات)','Achievement record'],['الأساس: إذا أُوقف تتوقف كل الخصائص أدناه. صفحة «أداء المستخدمين» لا تتأثر.','Base feature. Users performance page is not affected.']],
+ ['pin',['أبرز الإنجازات','Highlights'],['يثبّت الموظف أهم إنجازاته ويكتب أثرها.','Employees pin key achievements.']],
+ ['annual',['ملف الإنجاز (PDF)','Achievement file (PDF)'],['زر طباعة ملف الإنجاز للفترة لإرفاقه في التقييم.','Print the file for appraisals.']],
+ ['kudos',['شكر وتقدير','Thanks & recognition'],['يرسل الزملاء ومديرو المشاريع رسائل شكر تظهر في السجل.','Colleagues send thanks.']],
+ ['pmfb',['تقييم مدير المشروع لفريقه','PM feedback on team'],['مدير المشروع يقيّم مساهمة أعضاء فريقه.','Project managers rate their team.']],
+ ['mgr',['تقدير المدير','Manager assessment'],['المدير المباشر (أو من يُمنح «يكتب تقدير المدير») يضع درجة وملاحظة لكل سنة.','Line manager adds a yearly rating and note.']]];
+let PFV={};
+function perfFtH(){const ar=lang=='ar';return `<div class="card" id="perfft"><h2>🏆 ${ar?'سجل الإنجاز وشركاء النجاح':'Achievement record'}<small>${ar?'كل خاصية تُفعّل أو تُوقف وحدها، ولا يؤثر إيقافها على بقية النظام. من يرى سجلات الآخرين وتقديراتهم يُضبط من «المستخدمون والصلاحيات»: «أداء المستخدمين» للسجل، و«يطّلع على التقديرات» و«يكتب تقدير المدير» للتقديرات — للدور أو لموظف بعينه.':'Each feature can be turned on or off. Visibility is set in Users & access.'}</small></h2><div id="perfftb" class="mut">…</div><div class="row" style="margin-top:8px"><a href="perms.html#ov"><button>🔐 ${ar?'ضبط من يرى ومن يكتب':'Set who sees / writes'}</button></a><a href="achieve.html"><button>🏆 ${ar?'فتح «إنجازي»':'Open'}</button></a></div></div>`}
+async function perfFtLoad(){const b=$('perfftb');if(!b||b.dataset.ok)return;b.dataset.ok=1;try{const r=await sb.from('app_settings').select('value').eq('key','perf_feat').maybeSingle();PFV=JSON.parse((r.data&&r.data.value)||'{}')||{}}catch(_){PFV={}}perfFtDraw()}
+function perfFtDraw(){const b=$('perfftb');if(!b)return;const ar=lang=='ar';b.className='';b.innerHTML=PFT.map(x=>{const on=PFV[x[0]]!==false;const dis=x[0]!='ach'&&PFV.ach===false;return `<label class="lg ck" style="display:flex;gap:8px;align-items:flex-start;margin:6px 0;${dis?'opacity:.5':''}"><input type="checkbox" ${on?'checked':''} ${dis?'disabled':''} onchange="perfFtSet('${x[0]}',this.checked)" style="width:auto;margin-top:3px"><span><b>${ar?x[1][0]:x[1][1]}</b><br><span class="mut" style="font-weight:400">${ar?x[2][0]:x[2][1]}</span></span></label>`}).join('')}
+async function perfFtSet(k,v){PFV[k]=!!v;if(k=='ach'&&!v)PFT.forEach(x=>{});try{await setS('perf_feat',JSON.stringify(PFV));toast(lang=='ar'?'تم الحفظ':'Saved')}catch(e){toast((lang=='ar'?'تعذّر: ':'Failed: ')+(e.message||e))}perfFtDraw()}
 async function setS(k,v){const {error}=await sb.rpc('admin_set_setting',{k,v:String(v)});if(error)throw error}
 async function load(){
  if(!sb)return gate('needLogin');
@@ -475,7 +488,7 @@ const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=n
 const SECS=[
  ['gen','⚙️',['عام','General'],/صفحات الإعدادات|Settings pages|الصفحة الرئيسية|Home layout|القوائم المنسدلة|Drop-down|أيام العمل|Working days|المرفقات|Attachments|الأوزان|Weights|قائمة المحفظة|Portfolio menu/i],
  ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
- ['eval','📊',['التقييم والتقارير','Evaluation & reports'],/نموذج تقييم|Evaluation model|نتائج التقييم|rating|الملخص الأسبوعي|Weekly digest|التقرير الشهري|Monthly report|الخصائص الاختيارية|Optional features/i],
+ ['eval','📊',['التقييم والتقارير','Evaluation & reports'],/سجل الإنجاز|Achievement record|نموذج تقييم|Evaluation model|نتائج التقييم|rating|الملخص الأسبوعي|Weekly digest|التقرير الشهري|Monthly report|الخصائص الاختيارية|Optional features/i],
  ['note','🔔',['التنبيهات والبريد','Notifications & email'],/تنبيهات البريد|Email alerts|إعدادات البريد|Mail &|Mail and|التنبيهات|Notifications/i],
  ['perm','🔐',['الصلاحيات والخصوصية','Access & privacy'],/المستخدمون والصلاحيات|Users|ظهور الأدمن|Admin visib|سجل التدقيق|Audit|المشاريع السرية|Secret projects/i],
  ['lab','🧪',['مختبر الخطط والذكاء الاصطناعي','Plan lab & AI'],/مختبر الخطط|Plan lab|الذكاء الاصطناعي|Internal AI/i],
@@ -486,6 +499,7 @@ let SECF=(()=>{try{return localStorage.getItem('setSec')||'gen'}catch(_){return 
 function secOf(card){const h=card.querySelector('h2');if(!h)return '';const tt=(h.childNodes[0]&&h.childNodes[0].textContent||h.textContent).trim();for(const x of SECS)if(x[3].test(tt))return x[0];return 'oth'}
 function setOrg(){const app=$('app');if(!app||app.querySelector('.lock'))return;
  if(!$('secvis'))app.insertAdjacentHTML('beforeend',secVisH());
+ if(!$('perfft'))app.insertAdjacentHTML('beforeend',perfFtH());perfFtLoad();
  if(!$('mailfr')&&!CARDQ)app.insertAdjacentHTML('beforeend',`<div class="card" id="mailfr"><h2>✉️ ${lang=='ar'?'البريد الإلكتروني':'Email'}<small>${lang=='ar'?'الرسائل والمستلمون والجدولة والتوقيع وسجل الإرسال. (هي نفسها صفحة «البريد الإلكتروني»)':'Messages, recipients, schedule, signature and log. (Same as the Email page)'}</small></h2><iframe class="sfr" data-src="mail.html" title="mail"></iframe><div class="row" style="margin-top:6px"><a href="mail.html" target="_blank"><button>↗ ${lang=='ar'?'فتح في صفحة مستقلة':'Open in its own page'}</button></a></div></div>`);
  const cards=[...app.children].filter(e=>e.classList&&e.classList.contains('card'));let prev='gen';const by={};
  cards.forEach(c=>{let k=secOf(c);if(!k)k=prev;if(c.id=='wdc')k=prev;prev=k;c.dataset.sec=k;(by[k]=by[k]||[]).push(c)});
@@ -751,4 +765,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="feat.js?v=2"></script><script src="ido-ui.js?v=35"></script></body></html>
+<script src="feat.js?v=2"></script><script src="ido-ui.js?v=36"></script></body></html>

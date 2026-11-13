@@ -100,4 +100,4 @@ function go(k){CUR=k;try{localStorage.setItem('logsTab',k)}catch(_){}try{history
 setInterval(()=>{document.querySelectorAll('iframe.lfr').forEach(f=>{if(f.style.display=='none')return;try{const d=f.contentDocument;if(d&&d.body){const h=Math.max(d.body.scrollHeight,d.documentElement.scrollHeight);if(h>200&&Math.abs(h-f.offsetHeight)>4)f.style.height=(h+8)+'px'}}catch(_){}})},700);
 draw();
 </script>
-<script src="ido-ui.js?v=35"></script></body></html>
+<script src="ido-ui.js?v=36"></script></body></html>

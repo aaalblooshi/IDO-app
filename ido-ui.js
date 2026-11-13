@@ -50,7 +50,7 @@
     'index.html': 'home', './': 'home', '': 'home', 'tasks.html': 'tasks', 'inbox.html': 'inbox', 'myprojects.html': 'folder',
     'projects.html': 'sliders', 'chat.html': 'chat', 'portfolio.html': 'chart', 'perf.html': 'trend', 'account.html': 'user',
     'settings.html': 'gear', 'users.html': 'users', 'archive.html': 'archive', 'help.html': 'help', 'roles.html': 'shield',
-    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock', 'logs.html': 'clock'
+    'audit.html': 'audit', 'control.html': 'compass', 'unit.html': 'users', 'ratings.html': 'star', 'access.html': 'key', 'perms.html': 'shield', 'mail.html': 'note', 'history.html': 'clock', 'logs.html': 'clock', 'achieve.html': 'star'
   };
   function svg(n) { return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || P.dot) + '</svg>'; }
   window.IDOI = { svg: function (n) { return svg(n); }, i: function (k) { return ihBtn(k); }, svg: svg, names: Object.keys(P) };
@@ -317,10 +317,10 @@
     var adm = ls('hdrRole') === 'admin', head = ls('hdrHead') === '1', cur = location.pathname.split('/').pop();
     var caps = []; try { caps = JSON.parse(ls('hdrCaps') || '[]') || []; } catch (e) {}
     var hc = function (k) { return adm || caps.indexOf(k) >= 0; };
-    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'logs.html': '🗄', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
+    var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'logs.html': '🗄', 'achieve.html': '🏆', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
       try { box.querySelectorAll('a[href="users.html"],a[href="access.html"],a[href="roles.html"]').forEach(function (u) { if (box.querySelector('a[href="perms.html"]')) u.remove(); else { u.setAttribute('href', 'perms.html'); } }); box.querySelectorAll('a[href="perms.html"]').forEach(function (u) { var ar = (document.documentElement.lang || 'ar') === 'ar', sp = u.querySelector('span'), lab = ar ? 'المستخدمون والصلاحيات' : 'Users & access'; if (sp) sp.textContent = lab; else if (!u.querySelector('*')) u.textContent = lab; }); } catch (e) {}
-      [['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['logs.html', adm || hc('audit.view') || hc('off.undo'), 'السجلات والأرشيف', 'Logs & archive'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email']].forEach(function (x) {
+      [['achieve.html', true, 'إنجازي', 'My achievements'], ['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['logs.html', adm || hc('audit.view') || hc('off.undo'), 'السجلات والأرشيف', 'Logs & archive'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
