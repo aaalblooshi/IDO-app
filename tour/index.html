@@ -68,8 +68,8 @@ html[dir=ltr] #cap .plate{background:radial-gradient(circle at 100% 0,rgba(255,2
 #ttl.in .bk{opacity:1}
 #ttl>*:not(.bk){position:relative}
 #ttl .n{font-weight:800;font-size:clamp(90px,19vw,250px);line-height:.9;color:transparent;-webkit-text-stroke:2px rgba(29,95,138,.35);opacity:0;transform:scale(1.08);transition:opacity 1s,transform 1.4s cubic-bezier(.2,.7,.2,1)}
-#ttl h1{margin:.05em 0 0;font-weight:800;font-size:clamp(30px,6vw,86px);line-height:1.2;color:var(--navy);max-width:16em;text-wrap:wrap}
-#ttl p{margin:.4em 0 0;font-size:clamp(17px,2vw,26px);color:var(--blue);max-width:30em;font-weight:600}
+#ttl h1{margin:.05em 0 0;font-weight:800;font-size:clamp(30px,6vw,86px);line-height:1.4;color:var(--navy);max-width:16em;text-wrap:wrap}
+#ttl p{margin:.9em 0 0;font-size:clamp(17px,2vw,26px);color:var(--blue);max-width:30em;font-weight:600}
 #ttl .w{display:inline-block;opacity:0;transform:translateY(.6em);filter:blur(8px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1),filter .7s}
 #ttl.in .w{opacity:1;transform:none;filter:none}
 #ttl.in .n{opacity:1;transform:none}
@@ -204,7 +204,7 @@ body.pres #pv{display:grid;position:fixed;inset:0;grid-template-columns:1.4fr 1f
 <div id="flash"></div><div id="toast"></div><div id="digits"></div>
 <div id="pv"></div>
 <script src="scenes.js?v=9"></script>
-<script src="steps.js?v=5"></script>
+<script src="steps.js?v=6"></script>
 <script>
 (function(){
 'use strict';
@@ -379,7 +379,7 @@ function go(i,opt){opt=opt||{};i=Math.max(0,Math.min(N-1,i));const prev=STEPS[cu
 const next=()=>go(cur+1),prev=()=>go(cur-1);
 /* ▶ تشغيل تلقائي اختياري: مدة كل شريحة حسب طول نصها */
 let AUTO=false,AT0=0,ACUR=-1,ADUR=0;
-function autoDur(st){if(!st)return 6000;const w=((tt(st.c)||'')+' '+(st.d?tt(st.d):'')).trim().split(/\s+/).length;if(st.title)return st.end?9000:Math.min(9000,4500+w*300);return Math.max(5500,Math.min(14000,3500+w*330))}
+function autoDur(st){if(!st)return 4000;const w=((tt(st.c)||'')+' '+(st.d?tt(st.d):'')).trim().split(/\s+/).length;if(st.title)return st.end?6000:Math.max(3000,Math.min(5500,2000+w*220));return Math.max(3000,Math.min(9000,1800+w*230))}
 function autoLbl(){const b=$('bAuto');if(!b)return;b.classList.toggle('on',AUTO);b.setAttribute('aria-pressed',AUTO);b.title=tt(AUTO?UI.autoOff:UI.auto);b.querySelector('span').textContent=AUTO?'⏸':'▶';document.body.classList.toggle('auto',AUTO)}
 function autoTog(){AUTO=!AUTO;ACUR=-1;autoLbl();if(AUTO)autoTick()}
 function autoTick(){if(!AUTO)return;const b=$('bAuto'),rg=b&&b.querySelector('.rg');

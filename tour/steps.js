@@ -12,7 +12,7 @@ window.CHAPTERS=[
 ];
 window.STEPS=[
  // ── opening
- {ch:'open',title:1,c:['من ميثاقٍ يوحّد رؤيتنا، إلى مشروعٍ يحمل بصمتنا','From a charter that unites our vision, to a project that bears our mark'],d:['رحلة الإنجاز… تبدأ بلمسة','The journey to achievement… begins with a touch'],
+ {ch:'open',title:1,c:['من ميثاق يوحّد رؤيتنا، إلى مشروع يحمل بصمتنا','From a charter that unites our vision, to a project that bears our mark'],d:['رحلة الإنجاز… تبدأ بلمسة','The journey to achievement… begins with a touch'],
   n:['رحّب بالحضور. البوابة تجمع خدمات مكتب التطوير المؤسسي: الميثاق، الخطة، طلبات التغيير، التقرير الختامي، المهام والمتابعة. اضغط للمتابعة؛ كل نقرة تنقلنا إلى شاشة حقيقية من النظام.','Welcome everyone. The portal brings together the Institutional Development Office services: charter, plan, change requests, closure report, tasks and tracking. Each click takes us to a real screen of the system.']},
 
  // ── chapter 1: glance
