@@ -411,8 +411,8 @@ function card(r,nopath){const done=isDone(r),x=r.x,k=r.pr.pid+'|'+x.id,st=stOf(r
  return `<div class="tk ${done?'dn':''}" style="--sc:${SCOL[st]};${st=='late'?'background:#fff8f8':''}"><div class="mut">${pLink(r)}${!nopath&&pathS(r)?' · '+pathS(r):''}</div>
  <div onclick="openSheet('${k}')" style="cursor:pointer"><b>${esc(x.n)}</b>${window.IDOBKD?IDOBKD.badge(k):''}</div>
  <div style="margin:3px 0">${stChip(r)}${prChip(r)}${depChips(r)}${r.own?`<span class="chp">${esc(UN[r.own]||'')}</span>`:''}${MODE=='team'&&!r.own?`<span class="chp o">${t('unas')}</span>`:''}</div>
- <div class="mut">${relT(r)} · ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}</div>
- ${cmp?'':pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}
+ <div class="rwm no-dr">${stT(r)}${rngH(r)}</div>
+ ${cmp||done?'':sbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}
  <div class="pb">${r.edit?(done?`<button onclick="setP('${k}',0)">${t('undo')}</button>`:`<button class="p" onclick="quick('${k}')">${t('done')}</button>`):''}<button onclick="openSheet('${k}')">${t('open')}</button>${canRem?`<button onclick="remindT('${k}')">${t('remindB')}</button>`:''}</div></div>`}
 /* group leaves under their parent task so the hierarchy is visible */
 function grouped(lv){const gs=[],idx={};
@@ -441,23 +441,29 @@ function teamView(lv){
   ${open?grouped(x.L.slice().sort(sortP).slice(0,60)):''}</div>`}).join('');
  return sel+(rows||`<div class="card mut">${t('none')}</div>`)}
 /* ---- project view (collapsed by default) ---- */
+const PSF={};function psf(pid,k){PSF[pid]=PSF[pid]==k?'':k;if(PSF[pid])PEXP.add(pid);paint()}
 function vProj(rs){
  const ids=new Set();rs.forEach(r=>{ids.add(r.id);let c=r,g=0;while(c&&c.x.p&&g++<10){c=c.pr.byId[c.x.p];if(c)ids.add(c.id)}});
  const prs=PR.filter(p=>rs.some(r=>r.pr==p));
  if(!prs.length)return `<div class="card mut">${t('none')}</div>`;
- return prs.map(p=>{const vis=p.rs.filter(r=>ids.has(r.id)&&(MODE=='team'?(!FST||tabFs(r,FST)||(!r.leaf)):1)),
+ return prs.map(p=>{let vis=p.rs.filter(r=>ids.has(r.id)&&(MODE=='team'?(!FST||tabFs(r,FST)||(!r.leaf)):1)),
   a=p.an,h=health(a.gap,a.lateN,a.n),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone),open=PEXP.has(p.pid);
   const my=lv.filter(r=>MODE=='me'?r.mine:1),cnt=k=>my.filter(r=>stOf(r)==k).length;
   const concerned=ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||!!ME.view_scope;
-  const tree=CFG.wbs?wbsH(p,vis,''):(p.kids['']||[]).map(x=>nodeH(p,x,vis,0)).join('');
+  if(PSF[p.pid]){const kp=new Set();p.rs.filter(r=>r.leaf&&vis.includes(r)&&stOf(r)==PSF[p.pid]).forEach(r=>{kp.add(r);let c=r,g=0;while(c&&c.x.p&&g++<12){c=p.byId[c.x.p];if(c)kp.add(c)}});vis=vis.filter(r=>kp.has(r))}
+  const tree=(CFG.wbs?wbsH(p,vis,''):(p.kids['']||[]).map(x=>nodeH(p,x,vis,0)).join(''))||(PSF[p.pid]?`<div class="mut" style="padding:8px 0">${t('none')}</div>`:'');
   return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="PEXP.has(${p.pid})?PEXP.delete(${p.pid}):PEXP.add(${p.pid});paint()"><b>${open?'▾':'▸'} ${esc(p.pname)}</b><span style="color:${hCol[h]}">● <span class="mut">${t('h_'+h)}</span></span></div>
   <div class="mut"><span dir="ltr">${esc(p.pcode)}</span>${p.pm?' · '+esc(p.pm):''}${p.sc?' · '+esc(secN(p.sc)):''} · <a href="#" onclick="event.preventDefault();event.stopPropagation();const r=(window.TRAW||{})[${p.pid}];if(r&&window.NetDiag)NetDiag.open(r,{title:'${esc(p.pname).replace(/'/g,'')}'})">🕸 ${lang=='ar'?'مخطط الشبكة':'Network'}</a></div>${pbar(a.a,a.ex,hCol[h])}
-  <div class="stp" style="margin:2px 0">${['done','prog','fut','late'].map(k=>`<span style="--c:${SCOL[k]}"><b class="num">${cnt(k)}</b> ${t('st_'+k)}</span>`).join('')}</div>
+  <div class="stp stf" style="margin:4px 0">${['late','prog','fut','done'].map(k=>`<button class="${PSF[p.pid]==k?'on':''}" style="--c:${SCOL[k]}" onclick="psf(${p.pid},'${k}')" aria-pressed="${PSF[p.pid]==k}" title="${lang=='ar'?'اعرض هذه الحالة فقط':'Show only this status'}"><b class="num">${cnt(k)}</b> ${t('st_'+k)}</button>`).join('')}${PSF[p.pid]?`<button class="lnk" onclick="psf(${p.pid},'')">${lang=='ar'?'إظهار الكل':'Show all'}</button>`:''}</div>
   ${open?`<div class="row" style="margin:6px 0"><a href="plan.html#o=${p.pid}"><button>${t('viewPlan')}</button></a>${ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||GRPL[p.pcode]?`<a href="plan.html#o=${p.pid}&e=1"><button>${t('pEdit')}</button></a>`:''}<button onclick="VIEW='gantt';FP='${esc(p.pcode)}';draw()">${t('viewGantt')}</button></div>
   ${all100&&concerned?`<div class="card" style="background:#e5f2ea;border-color:#b7dcc6;margin:8px 0"><b>✅ ${t('closeAll')}</b><div class="row"><a href="closure.html#${cl?'o='+cl.id:'start='+encodeURIComponent(p.pcode)}"><button class="p">${cl?t('openCl'):t('startCl')}</button></a></div></div>`:''}${tree}`:`<div class="row" style="margin-top:6px"><button onclick="PEXP.add(${p.pid});paint()">${t('pDet')}</button></div>`}</div>`}).join('')}
-function rowH(p,r,vis){const x=r.x,done=isDone(r),k=p.pid+'|'+x.id,st=stOf(r);
- return `<div class="h"><span onclick="openSheet('${k}')" style="cursor:pointer;flex:1;min-width:0"><b>${esc(x.n)}</b>${window.IDOBKD?IDOBKD.badge(k):''}${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="p" style="padding:2px 12px" onclick="quick('${k}')">✓</button>`:''}</div>
- <div class="mut">${r.leaf?relT(r)+' · ':''}${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)}${r.leaf?' · '+whoH(r):''}</div>${pbar(r.a.a,r.a.ex,SCOL[st=='fut'?'prog':st])}`}
+function rngH(r){const ar=lang=='ar';return r.s==null&&r.e==null?'':`<span class="rng" title="${ar?'الفترة المخططة':'Planned period'}"><span class="num">${fd(ds(r.s))||'—'}</span><i>${ar?'←':'→'}</i><span class="num">${fd(ds(r.e))||'—'}</span></span>`}
+function stT(r){const ar=lang=='ar';if(isDone(r))return `<span class="stx ok">✓ ${ar?'اكتملت':'Done'}${r.x.ae?` <span class="num">${fd(r.x.ae)}</span>`:''}</span>`;return `<span class="stx">${relT(r)}</span>`}
+function sbar(a,ex,col){const ar=lang=='ar';a=clamp(+a||0,0,100);const e=ex==null?null:clamp(ex,0,100),gap=e!=null&&Math.round(e)>Math.round(a);
+ return `<div class="sbar"><div class="sbt"><i style="width:${a}%;background:${col}"></i>${e!=null&&e>0&&e<100?`<em style="inset-inline-start:${e}%" title="${ar?'المتوقع حتى اليوم':'Expected by today'}"></em>`:''}</div><b class="num">${Math.round(a)}%</b>${gap?`<small>${ar?'المتوقع':'Exp.'} <span class="num">${Math.round(e)}%</span></small>`:''}</div>`}
+function rowH(p,r,vis){const x=r.x,done=isDone(r),k=p.pid+'|'+x.id,st=r.leaf?stOf(r):'grp',col=r.leaf?SCOL[st]:'#1d5f8a',ar=lang=='ar';
+ return `<div class="rw2 s-${st}${done?' dn':''}" style="--sc:${col}"><div class="rwt"><span class="rwn" onclick="openSheet('${k}')"><b>${x.ms?'◆ ':''}${esc(x.n)}</b>${window.IDOBKD?IDOBKD.badge(k):''}${r.leaf?'':` <span class="chp">${t('grp')}</span>`} ${r.leaf?stChip(r)+prChip(r)+depChips(r)+fileChips(r):''}</span>${r.leaf&&r.edit&&!done?`<button class="rok" onclick="quick('${k}')" title="${t('done')}" aria-label="${t('done')}">✓</button>`:''}</div>
+ <div class="rwm no-dr">${r.leaf?stT(r):''}${rngH(r)}${r.leaf?whoH(r):''}</div>${done&&r.leaf?'':sbar(r.a.a,r.a.ex,r.leaf?SCOL[st=='fut'?'prog':st]:'#1d5f8a')}</div>`}
 function nodeH(p,x,vis,lv){const r=p.byId[x.id];if(!r||!vis.includes(r))return '';const ch=(p.kids[x.id]||[]).map(c=>nodeH(p,c,vis,lv+1)).join('');
  return `<div class="nd" style="margin-inline-start:${lv*16}px;${lv?'border-inline-start:3px solid #d9d4c7;padding-inline-start:8px':''}">${rowH(p,r,vis)}</div>${ch}`}
 function wbsH(p,vis,pid){const L=(p.kids[pid]||[]).map(x=>p.byId[x.id]).filter(r=>r&&vis.includes(r));
@@ -1141,6 +1147,26 @@ html[dir=rtl] .pch button{padding:4px 5px 4px 12px!important}
 .acc summary{list-style:none;display:flex;gap:8px;align-items:center;padding:11px 14px;cursor:pointer}.acc summary::-webkit-details-marker{display:none}
 .acc summary svg{width:18px;height:18px;color:#1d5f8a;flex:none}.acc summary b{flex:1;font-size:14.5px}.acc summary .cv{font-style:normal;color:#8a96a3;transition:transform .2s}.acc:not([open]) summary .cv{transform:rotate(90deg)}
 .accb{padding:0 14px 12px}.accb .card{border:0!important;padding:0!important;margin:0!important;background:none!important;box-shadow:none!important}
+
+/* project tree rows */
+.rw2{position:relative;border-radius:12px;padding:9px 12px 9px;margin:6px 0;background:#fff;border:1px solid #e6ecf1;border-inline-start:4px solid var(--sc)}
+.rw2.s-late{background:#fff6f6;border-color:#f5d5d7;border-inline-start-color:var(--sc)}.rw2.s-prog{background:#f6fafd}.rw2.s-fut{background:#fafafa}
+.rw2.dn{background:#f4faf6;border-color:#d6eadc;padding:6px 12px}.rw2.dn .rwn b{color:#4b5a52;font-weight:600}
+.rw2.s-grp{background:#eef4f9;border-color:#d4e2ee}.rw2.s-grp .rwn b{font-size:15.5px}
+.rwt{display:flex;gap:8px;align-items:flex-start}.rwn{flex:1;min-width:0;cursor:pointer;line-height:1.6}.rwn b{font-size:15px;overflow-wrap:anywhere}
+.rok{width:34px;height:34px;padding:0!important;border-radius:50%!important;flex:none;background:#1d5f8a!important;border-color:#1d5f8a!important;color:#fff!important;font-size:15px!important;display:inline-grid;place-items:center}
+.rwm{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;font-size:13px;color:#5b6570;margin-top:3px}
+.stx{font-weight:700}.stx.ok{color:#1c7a45}
+.rng{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;color:#3d4955}.rng::before{content:'';width:13px;height:13px;flex:none;background:currentColor;opacity:.55;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E") center/contain no-repeat}
+.rng i{font-style:normal;opacity:.55}
+.sbar{display:flex;align-items:center;gap:8px;margin-top:6px}.sbt{position:relative;flex:1;height:7px;border-radius:9px;background:#e8edf1;overflow:visible}
+.sbt i{display:block;height:100%;border-radius:9px;max-width:100%}.sbt em{position:absolute;top:-4px;bottom:-4px;width:2px;background:#1d5f8a;border-radius:2px;opacity:.75;transform:translateX(50%)}html[dir=ltr] .sbt em{transform:translateX(-50%)}
+.sbar b{font-size:12.5px;min-width:36px}.sbar small{font-size:11.5px;color:#7a8590;white-space:nowrap}
+.stf{display:flex;flex-wrap:wrap;gap:6px}.stf button{display:inline-flex;align-items:center;gap:5px;padding:3px 11px!important;border-radius:99px!important;font-size:12.5px!important;min-height:0!important;background:#fff!important;border:1px solid #dfe6ec!important;color:#2d3742!important}
+.stf button::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c)}
+.stf button.on{background:var(--c)!important;border-color:var(--c)!important;color:#fff!important}.stf button.on::before{background:#fff}
+.nd{position:relative;border-top:0!important;padding:0!important}
+.wb{border:0!important;padding:0!important;background:none!important;margin:0!important}.wb .wk{margin-inline-start:12px;padding-inline-start:8px;border-inline-start:2px solid #dbe4ec}
 @media(min-width:900px){
  .sov.sovd{justify-content:flex-end;align-items:stretch;background:rgba(15,30,45,.28)}
  .sbx.drw{max-width:480px;height:100%;max-height:100vh;border-radius:0;border-start-start-radius:22px;border-end-start-radius:22px;box-shadow:0 0 40px rgba(0,0,0,.18);animation:drwIn .22s ease-out}
