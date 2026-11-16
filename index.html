@@ -562,7 +562,7 @@ async function load0(){
   /* مهام موجهة لوحداتي: لمسؤول الوحدة أن يحدد المكلّف أو يغلقها بنفسه */
   try{if((me.head_units||[]).length){const ub=await sb.rpc('unit_inbox');const td=today();(ub.data||[]).forEach(z=>{const s0=dn(z.s),e0=dn(z.e),pc=+z.pc||0;let stg;if(e0!=null&&e0<td)stg=4;else if(s0!=null&&s0>td)stg=1;else if(pc>0)stg=3;else stg=2;
    E.items=E.items.filter(i=>!(i.k=='tasks'&&i.id==z.pid&&i.tid==z.tid));
-   E.items.push({k:'tasks',p:'tasks.html?unit=1',id:z.pid,tid:z.tid,tpath:[{n:z.n||'—',w:'🏢'}],tpn:z.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:'',tpc:pc,code:'',pc:z.pcode||'',name:'🏢 '+(z.n||'—')+' — '+(z.pname||'')+(z.w?'':' · '+P(['بانتظار تحديد المكلّف','awaiting assignee'])),st:'',stage:stg,act:true,roles:new Set(['uh','tk']),own:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0,unit:true})})}}catch(_){}
+   E.items.push({k:'tasks',p:'tasks.html?unit=1',id:z.pid,tid:z.tid,tpath:[{n:z.n||'—',w:'🏢'}],tpn:z.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:'',tpc:pc,code:'',pc:z.pcode||'',name:'🏢 '+(z.n||'—')+' — '+(z.pname||'')+(z.w?'':' · '+P(['بانتظار تحديد المكلّف','awaiting assignee'])),st:'',stage:stg,act:!z.w,roles:new Set(['uh','tk']),own:!z.w,oth:!!z.w,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0,unit:true})})}}catch(_){}
   {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
    /* المشاريع الموقوفة أو الملغاة: مهامها لا تظهر، وطلباتها مجمّدة بلا إجراء مطلوب (عدا التقرير الختامي) */
    try{if(window.IDOHALT){await pHalt;E.items=E.items.filter(i=>!(i.k=='tasks'&&IDOHALT.frozen(i.pc)));E.items.forEach(i=>{if(i.k!='tasks'&&IDOHALT.blocks(i.pc,i.k)){i.halt=true;i.act=false;i.why=null}})}}catch(_){}
@@ -577,7 +577,7 @@ const slaOf=it=>{const stage=it.st=='PMO Review'?'reviewed':it.st=='Awaiting App
 const escMe=x=>!!(E.me&&window.IDOACT&&window.IDOACT.escOk(E.me)&&window.ESCP&&window.ESCP[x.k+'|'+x.id]);
 window.jnActCount=k=>E.ok?E.items.filter(x=>x.k==k&&(x.act||escMe(x))).length:null;
 const tkOk=x=>{if(x.k!='tasks')return true;if(x.stage>=2&&x.stage<=4)return true;return x.stage==1?!!E.tu:x.stage==5?!!E.td:true};
-const vis=k=>E.items.filter(x=>(k=='all'||x.k==k)&&(E.role=='of'||E.role=='all'?x.roles.size>0:x.roles.has(E.role))&&(E.scope=='all'||(E.scope=='team'?(!x.own&&(!E.tpc||E.tpc.has(x.pc))):(x.own||escMe(x))))&&tkOk(x));
+const vis=k=>E.items.filter(x=>(k=='all'||x.k==k)&&(E.role=='of'||E.role=='all'?x.roles.size>0:x.roles.has(E.role))&&(E.scope=='all'||(E.scope=='team'?(!x.own&&(x.unit||!E.tpc||E.tpc.has(x.pc))):(x.own||escMe(x))))&&tkOk(x));
 /* ======== العرض ======== */
 function render(){const el=document.getElementById('jny');if(!el)return;
  if(!E.sess&&!E.ok){el.innerHTML=`<div class="jn-c">${P(['سجّل الدخول لعرض رحلتك وطلباتك.','Sign in to see your journey and requests.'])} <a class="jn-btn" href="cr.html">${P(['تسجيل الدخول','Sign in'])}</a></div>`;return}
@@ -1107,7 +1107,7 @@ function upd(force){if(!S.built)return;var D=data(),E=D.E,M=D.meta;
  document.getElementById('cmmain').classList.toggle('sc',!S.side);var tg=document.getElementById('cmtg');tg.hidden=S.side;tg.textContent=P(['إظهار المواعيد ◂','Show deadlines ◂']);
  var kt=document.getElementById('cmkt'),hasO=E.items.some(function(i){return !i.own});kt.innerHTML=esc(P(['رحلتي','My journey']))+'<span class="cm-bv"><button data-bv="kb" class="'+(S.bv!='tbl'?'on':'')+'" title="'+esc(P(['عرض اللوحة','Board view']))+'">▦ '+esc(P(['لوحة','Board']))+'</button><button data-bv="tbl" class="'+(S.bv=='tbl'?'on':'')+'" title="'+esc(P(['المهام والخدمات في جدولين','Tasks and services in two tables']))+'">☰ '+esc(P(['جداول','Tables']))+'</button></span>';
 
-(function(){var sc=function(x){return E.scope=='all'||(E.scope=='team'?(!x.own&&(!E.tpc||E.tpc.has(x.pc))):x.own)};var nU=E.items.filter(function(x){return x.k=='tasks'&&x.stage==1&&sc(x)}).length,nD=E.items.filter(function(x){return x.k=='tasks'&&x.stage==5&&sc(x)}).length;
+(function(){var sc=function(x){return E.scope=='all'||(E.scope=='team'?(!x.own&&(x.unit||!E.tpc||E.tpc.has(x.pc))):x.own)};var nU=E.items.filter(function(x){return x.k=='tasks'&&x.stage==1&&sc(x)}).length,nD=E.items.filter(function(x){return x.k=='tasks'&&x.stage==5&&sc(x)}).length;
   document.getElementById('cmtt').innerHTML='<button class="cm-tfx '+(E.tu?'on':'')+'" data-tfu>'+(E.tu?'✓ ':'＋ ')+esc(P(['المهام القادمة','Upcoming tasks']))+(nU?' ('+AR(nU)+')':'')+'</button><button class="cm-tfx '+(E.td?'on':'')+'" data-tfd>'+(E.td?'✓ ':'＋ ')+esc(P(['المهام المنجزة','Done tasks']))+(nD?' ('+AR(nD)+')':'')+'</button>'+(1?'<span class="cm-lg"><em class="cm-na"></em> '+esc(P(['متأخرة','late']))+'<i></i> '+esc(P(['الإجمالي','total']))+'</span>':'')})();
  document.getElementById('cmall').textContent=P(['كل الخدمات ↓','All services ↓']);
  var base=M.filter(function(m){return S.f?m[S.f]:(m.x.stage<5||(m.x.k=='tasks'&&E.td))});
