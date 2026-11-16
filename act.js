@@ -38,6 +38,7 @@
     + '.acsh table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 12px}.acsh th,.acsh td{border:1px solid #e6ecf1;padding:7px 8px;text-align:start;vertical-align:top;overflow-wrap:anywhere}.acsh th{background:#f1f5f8;font-size:12.5px}.acsh td.o{color:#8a5a00;background:#fffaf0}.acsh td.n{color:#0a6b3d;background:#f3faf5;font-weight:700}'
     + '.acsh .acq{white-space:pre-wrap;background:#f7f9fb;border-inline-start:4px solid var(--pc);border-radius:10px;padding:10px 12px;margin:0 0 12px;font-size:14px;line-height:1.7}'
     + '.acsh .acli{margin:0 0 12px;padding:0;list-style:none}.acsh .acli li{border-bottom:1px dashed #e6ecf1;padding:6px 0;font-size:14px}'
+    + '.acsh .acpa{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:start;background:#eef6fb!important;border:1px solid #cfe2f1!important;color:#1d5f8a!important;font-weight:800;border-radius:12px!important;padding:10px 12px!important;margin:4px 0 12px}.acsh .acpa small{font-weight:500;color:#5b6570;font-size:12px}.acw .acfb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#eef6fb;border:1px solid #cfe2f1;border-radius:12px;padding:8px 12px;margin:0 0 8px;font-size:13.5px}.acw .acfb b{color:#1d5f8a}'
     + '.acsh h4{margin:12px 0 6px;font-size:14px}.acsh .acb{display:flex;flex-wrap:wrap;gap:8px;position:sticky;bottom:-16px;background:#fff;padding:10px 0 4px;border-top:1px solid #eef2f6}';
   function css() { if (document.getElementById('acw-css')) return; var s = document.createElement('style'); s.id = 'acw-css'; s.textContent = CSS; document.head.appendChild(s); }
   var ST = {}, N = 0;
@@ -63,6 +64,7 @@
       + '<select onchange="IDOACT._days(\'' + id + '\',this.value)">' + [[1, 'اليوم', 'Today'], [7, 'آخر ٧ أيام', 'Last 7 days'], [30, 'آخر ٣٠ يومًا', 'Last 30 days'], [90, 'آخر ٣ أشهر', 'Last 3 months'], [365, 'آخر سنة', 'Last year']].map(function (o) { return '<option value="' + o[0] + '"' + (s.days == o[0] ? ' selected' : '') + '>' + (ar ? o[1] : o[2]) + '</option>'; }).join('') + '</select></div>';
     if (!s.pc) h += '<div class="acs" style="grid-template-columns:1fr"><input type="search" placeholder="' + T('ابحث باسم مهمة أو مؤشر أو شخص…', 'Search by task, KPI or person…') + '" value="' + E(s.q || '') + '" oninput="IDOACT._q(\'' + id + '\',this.value)"></div>';
     h += '<div class="acf">' + AREAS.filter(function (a) { return !a[0] || cnt[a[0]]; }).map(function (a) { return '<button class="' + ((s.area || '') == a[0] ? 'on' : '') + '" onclick="IDOACT._area(\'' + id + '\',\'' + a[0] + '\')">' + (a[3] ? a[3] + ' ' : '') + (ar ? a[1] : a[2]) + (a[0] ? ' <span class="num">' + cnt[a[0]] + '</span>' : '') + '</button>'; }).join('') + '</div>';
+    if (s.fp) h += '<div class="acfb">' + T('تعرض أنشطة مشروع', 'Showing activities of') + ' <b>' + E(prj[s.fp] || s.fp) + '</b> ' + T('فقط', 'only') + '<button class="lnk" style="background:none!important;border:0!important;color:#1d5f8a;font-weight:800;padding:0!important;margin-inline-start:auto" onclick="IDOACT._fp(\'' + id + '\',\'\')">' + T('إظهار كل المشاريع', 'Show all projects') + '</button></div>';
     if (nNew) h += '<div class="row" style="margin:0 0 6px;align-items:center;gap:8px"><span class="mut" style="font-size:13px">' + T(nNew + ' جديدة منذ آخر زيارة', nNew + ' new since your last visit') + '</span><button class="lnk" style="background:none!important;border:0!important;color:#1d5f8a;font-weight:700;padding:0!important" onclick="IDOACT._seen(\'' + id + '\')">' + T('تعليمها كمقروءة', 'Mark as read') + '</button></div>';
     if (s.busy && !s.rows) h += '<div class="mut">…</div>';
     else if (s.err) h += '<div class="card mut">' + T('تعذّر تحميل النشاط: ', 'Could not load activity: ') + E(s.err) + '</div>';
@@ -114,7 +116,8 @@
     }
     if (o.text) h += '<h4>' + T('النص', 'Text') + '</h4><div class="acq">' + E(o.text) + '</div>';
     if (o.lines && o.lines.length) h += '<h4>' + T('التحديثات', 'Updates') + ' (' + o.lines.length + ')</h4><ul class="acli">' + o.lines.map(function (l) { return '<li>' + E(l) + '</li>'; }).join('') + '</ul>';
-    h += '<div class="acb">' + (o.link ? '<a href="' + E(o.link) + '"><button class="p">' + E(o.linkLabel || T('فتح في صفحته', 'Open its page')) + '</button></a>' : '') + (o.pcode && o.onProject ? '<button onclick="' + o.onProject + '">' + T('كل نشاط هذا المشروع', 'All activity of this project') + '</button>' : '') + '<button onclick="IDOACT.close()">' + T('إغلاق', 'Close') + '</button></div></div>';
+    if (o.pcode && o.onProject) h += '<button type="button" class="acpa" onclick="' + o.onProject + '">📋 ' + T('عرض كل أنشطة هذا المشروع', 'Show all activities of this project') + '<small>' + T('تُغلق هذه النافذة وتُصفّى القائمة على «' + E(o.pname || o.pcode) + '» فقط', 'Closes this panel and filters the list to this project') + '</small></button>';
+    h += '<div class="acb">' + (o.link ? '<a href="' + E(o.link) + '"><button class="p">' + E(o.linkLabel || T('فتح في صفحته', 'Open its page')) + '</button></a>' : '') + '<button onclick="IDOACT.close()">' + T('إغلاق', 'Close') + '</button></div></div>';
     var ov = document.createElement('div'); ov.id = 'acov'; ov.className = 'acov'; ov.onclick = function (e) { if (e.target === ov) close(); }; ov.innerHTML = h; document.body.appendChild(ov); document.addEventListener('keydown', esc);
     try { ov.querySelector('.acx').focus({ preventScroll: true }); } catch (e) {}
   }
@@ -133,11 +136,11 @@
   window.IDOACT = {
     mount: function (el, o) {
       css(); o = o || {}; if (!el.id) el.id = 'acw' + (++N);
-      ST[el.id] = { pc: o.pc || null, days: o.days || 30, area: '', fp: '', q: '', rows: null, seen: seen() };
+      ST[el.id] = { pc: o.pc || null, days: o.days || 30, area: '', fp: o.fp || '', q: '', rows: null, seen: seen() };
       load(el.id);
     },
     _area: function (id, a) { ST[id].area = a; draw(id); },
-    _fp: function (id, v) { ST[id].fp = v; draw(id); },
+    _fp: function (id, v) { if (!ST[id]) return; ST[id].fp = v; ST[id].area = ''; draw(id); var el = document.getElementById(id); if (el && v) try { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} },
     _q: function (id, v) { ST[id].q = v; clearTimeout(ST[id].t); ST[id].t = setTimeout(function () { var el = document.getElementById(id), f = el && document.activeElement && el.contains(document.activeElement) ? document.activeElement : null, p = f ? f.selectionStart : 0; draw(id); if (f) { var n = document.getElementById(id).querySelectorAll('input[type=search]')[0]; if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (e) {} } } }, 200); },
     _days: function (id, v) { ST[id].days = +v || 30; load(id); },
     _open: openRow, sheet: sheet, close: close, pcol: pcol,
