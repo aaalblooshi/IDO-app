@@ -154,7 +154,7 @@ async function boot(){
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['tasks.others']);if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
- try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
+ try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;OPTL=L||{};if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
  try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
  await start()}
 Object.assign(D,{
@@ -214,7 +214,7 @@ function mkProject(p){try{(window.TRAW=window.TRAW||{})[p.id]=p.tasks||[]}catch(
  return pr}
 let ATTN={};
 function fileChips(r){const n=ATTN[r.pr.pid+'|'+r.id]||0,hasN=!!(r.x&&(r.x.tn||r.x.nt));if(!n&&!hasN)return '';const AR_=lang=='ar';return (n?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'مرفقات':'Attachments'}">📎 ${n}</span>`:'')+(hasN?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'ملاحظات':'Notes'}">📝</span>`:'')}
-async function reload(){try{pcrMine(true)}catch(_){}
+async function reload(){try{pcrMine(true)}catch(_){}try{uibLoad().then(()=>{if(location.hash=='#unit'&&UIB&&UIB.length){history.replaceState(null,'',location.pathname+location.search);uibOpen()}})}catch(_){}
  try{ATTN={};const a=await sb.from('plan_attachments').select('cr_id,task_id').not('task_id','is',null).limit(5000);(a.data||[]).forEach(z=>{const k=z.cr_id+'|'+z.task_id;ATTN[k]=(ATTN[k]||0)+1})}catch(_){}
  let rows=[];
  try{GRT={};GRPL={};const g=await (await sb.rpc('my_grants').then(r=>r.error?sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id):r,()=>sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id)));(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1;if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRPL[x.pcode]=1})}catch(_){}
@@ -473,7 +473,7 @@ async function openSheet(k){const r=findR(k);if(!r)return;SH={k,r};closeSheet();
  o.innerHTML=`<div class="sbx"><div class="shh"><h3>${x.ms?'◆ ':''}${esc(x.n)}</h3><div style="margin:4px 0 6px">${whoH(r)} ${stChip(r)}${prChip(r)}</div><div class="mut">${pLink(r)}${pathS(r)?' · '+pathS(r):''}</div>
  <div class="mut" style="margin:6px 0 0">${t('plan')}: ${dtx(r.s)} ${lang=='ar'?'←':'→'} ${dtx(r.e)} · ${relT(r)}${r.own?' · '+esc(UN[r.own]||''):''}</div>
  ${ADM&&r.ew!=null?`<div class="mut">${t('ew')}: <b class="num">${(r.ew<0.01?r.ew.toFixed(3):r.ew.toFixed(2))}%</b></div>`:''}
- ${x.tu?`<div class="mut">${t('sh_last')}: ${esc(x.tu.by||'')} · <span class="num">${fd(String(x.tu.at||'').slice(0,10))}</span></div>`:''}
+ ${x.tu?`<div class="mut">${t('sh_last')}: ${esc(x.tu.by||'')} · <span class="num">${fd(String(x.tu.at||'').slice(0,10))}</span></div>`:''}${tkMeta(r)}
  ${ro?`<div class="chp o" style="margin:8px 0 0">${t('sh_ro')}</div>`:''}</div>
  ${r.leaf?`<div class="sx">${sxh('tasks',t('sh_prog'))}<div style="display:flex;gap:10px;align-items:center"><input type="range" id="sh_rg" min="0" max="100" step="5" value="${r.pcr}" ${dis} style="flex:1;padding:0"><input type="number" id="sh_pc" min="0" max="100" value="${r.pcr}" ${dis} style="width:84px;direction:ltr"></div>
  <div class="pb">${[0,25,50,75,100].map(v=>`<button ${dis} onclick="shPc(${v})"><span class="num">${v}%</span></button>`).join('')}</div>
@@ -500,13 +500,41 @@ function addOpen(pid,par){const L=addPlans();if(!L.length)return toast(t('addNoP
  <label>${t('addPar')}</label><select id="ad_g"></select>
  <label>${t('addN')}</label><input id="ad_n">
  <div class="g2"><div><label>${t('addS')}</label><input type="date" id="ad_s"></div><div><label>${t('addE')}</label><input type="date" id="ad_e"></div></div>
- <label>${t('addW')}</label><select id="ad_w"><option value="">—</option>${us.map(([i,n])=>`<option value="${esc(i)}" ${i==ME.id?'selected':''}>${esc(n)}</option>`).join('')}</select>
+ <label>${t('addW')}</label><select id="ad_w" onchange="adWho()"><option value="">—</option><optgroup label="${lang=='ar'?'شخص':'Person'}">${us.map(([i,n])=>`<option value="${esc(i)}" ${i==ME.id?'selected':''}>${esc(n)}</option>`).join('')}</optgroup>${unitOpts()}<option value="__m">👥 ${lang=='ar'?'عدة أشخاص…':'Several people…'}</option></select>
+ <div id="ad_mx" style="display:none;border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-top:6px"><div style="font-weight:700;margin-bottom:4px">${lang=='ar'?'نوع المهمة الجماعية':'Group task type'}</div>
+  <label class="tg" style="display:flex;gap:8px;align-items:flex-start"><input type="radio" name="ad_gm" value="all" checked style="width:auto;margin-top:3px"><span><b>${lang=='ar'?'كل واحد ينجز دوره':'Each does their part'}</b><br><small class="mut">${lang=='ar'?'تُنشأ مهمة لكل شخص، ولا تكتمل المهمة إلا بعد أن ينجز الجميع.':'One task per person; complete when everyone finishes.'}</small></span></label>
+  <label class="tg" style="display:flex;gap:8px;align-items:flex-start"><input type="radio" name="ad_gm" value="any" style="width:auto;margin-top:3px"><span><b>${lang=='ar'?'يكفي أن ينجزها أحدهم':'Any one of them'}</b><br><small class="mut">${lang=='ar'?'تظهر للجميع، وأول من ينجزها تُغلق للبقية تلقائيًا ويُسجَّل اسمه.':'Shown to all; the first to finish closes it for the rest.'}</small></span></label>
+  <div style="max-height:180px;overflow:auto;margin-top:6px">${us.map(([i,n])=>`<label class="tg" style="display:flex;gap:8px;align-items:center;margin:2px 0"><input type="checkbox" class="ad_mw" value="${esc(i)}" style="width:auto"><span>${esc(n)}</span></label>`).join('')}</div></div>
+ <div id="ad_oh" class="mut" style="display:none;margin-top:4px">🏢 ${lang=='ar'?'تظهر المهمة لمسؤول الوحدة في «موجهة لوحدتك» ليحدد المكلّف من فريقه.':'The unit head sees it under “Directed to your unit” and picks the assignee.'}</div>
  <div class="row" style="margin-top:10px"><button class="p" onclick="addGo()">${t('addGo')}</button><button onclick="closeSheet()">${t('addX')}</button></div></div>`;if(pid!=null&&[...$('ad_p').options].some(o=>o.value==String(pid)))$('ad_p').value=String(pid);addPar();if(par&&[...$('ad_g').options].some(o=>o.value==par))$('ad_g').value=par}
+function adWho(){const v=$('ad_w').value;$('ad_mx').style.display=v=='__m'?'':'none';$('ad_oh').style.display=v.startsWith('u:')?'':'none'}
+function unitL(k){const p=String(k||'').split(':'),S=(OPTL.sectors||SECS||[]),D=(OPTL.depts||[]),nm=a=>Array.isArray(a)?(lang=='ar'?a[0]:(a[1]||a[0])):String(a||'');const sn=nm(S[p[0]-1]);if(p.length<2)return sn||k;const dn2=nm((D[p[0]-1]||[])[p[1]-1]);return sn+' — '+dn2+(p.length>2?' — '+p.slice(2).join(':'):'')}
+function unitOpts(){const S=(OPTL.sectors||[]);if(!S.length)return '';let h=`<optgroup label="${lang=='ar'?'وحدة تنظيمية (يحدد مسؤولها المكلّف)':'Org unit (its head picks)'}">`;S.forEach((sx,i)=>{h+=`<option value="u:${i+1}">🏢 ${esc(unitL(String(i+1)))}</option>`;((OPTL.depts||[])[i]||[]).forEach((d,j)=>{h+=`<option value="u:${i+1}:${j+1}">🏢 ${esc(unitL((i+1)+':'+(j+1)))}</option>`})});return h+'</optgroup>'}
+function tkMeta(r){const x=r.x,par=x.p&&r.pr.m?r.pr.m[x.p]:null,ar=lang=='ar',L2=[];
+ if(par&&par.gm)L2.push(`<div class="chp b" style="margin:6px 0 0;display:inline-block">👥 ${par.gm=='any'?(ar?'يكفي أن ينجزها أحد المكلفين؛ أول من ينجزها تُغلق للبقية':'Any one assignee is enough'):(ar?'مهمة جماعية: كل مكلف ينجز دوره':'Group task: each does their part')}</div>`);
+ if(x.ou)L2.push(`<div class="mut">🏢 ${ar?'موجهة لوحدة':'Directed to unit'}: <b>${esc(unitL(x.ou))}</b>${x.w?'':' — '+(ar?'بانتظار تحديد المكلّف من مسؤول الوحدة':'awaiting the unit head')}</div>`);
+ if(x.cbn)L2.push(`<div class="mut">✍️ ${ar?'أنشأها':'Created by'}: ${esc(x.cbn)}${x.ca?' · <span class="num">'+esc(String(x.ca).replace('T',' '))+'</span>':''}</div>`);
+ if(x.wbn)L2.push(`<div class="mut">👤 ${ar?'حدّد المكلّف':'Assigned by'}: ${esc(x.wbn)}${x.wa?' · <span class="num">'+esc(String(x.wa).replace('T',' '))+'</span>':''}</div>`);
+ if(Array.isArray(x.wh)&&x.wh.length)L2.push(`<details class="mut"><summary>${ar?'سجل التكليف':'Assignment history'} (${x.wh.length})</summary>${x.wh.map(h=>`<div>• ${esc(h.at||'')} — ${esc(h.by||'')}: ${esc(h.from||'—')} ← ${esc(h.to||'—')}${h.note?' ('+esc(h.note)+')':''}</div>`).join('')}</details>`);
+ return L2.join('')}
+/* المهام الموجهة لوحداتي */
+async function uibLoad(){try{const r=await sb.rpc('unit_inbox');UIB=r.error?[]:(r.data||[])}catch(_){UIB=[]}uibBtn()}
+function uibBtn(){let b=$('uibb');const n=(UIB||[]).filter(x=>!x.w).length;if(!UIB||!UIB.length){if(b)b.remove();return}
+ if(!b){b=document.createElement('button');b.id='uibb';b.onclick=uibOpen;b.style.cssText='position:fixed;inset-inline-start:14px;bottom:calc(var(--gnh,0px) + 74px);z-index:30;border-radius:99px;padding:9px 14px;font-weight:800;background:#1d5f8a;color:#fff;border:0;box-shadow:0 3px 10px rgba(0,0,0,.2)';document.body.appendChild(b)}
+ b.textContent='🏢 '+(lang=='ar'?'موجهة لوحدتك':'For your unit')+(n?' ('+n+')':'')}
+function uibOpen(){closeSheet();const us=Object.entries(UN).sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'ar')),ar=lang=='ar';
+ const o=document.createElement('div');o.id='sov';o.className='sov';o.onclick=e=>{if(e.target==o)closeSheet()};document.body.appendChild(o);
+ o.innerHTML=`<div class="sbx"><h3>🏢 ${ar?'مهام موجهة لوحدتك':'Tasks directed to your unit'}</h3><div class="mut" style="margin-bottom:6px">${ar?'حدّد من فريقك من ينفذ كل مهمة. يصله تنبيه، ويُسجَّل اسمك كمن حدد المكلّف.':'Pick who in your team does each task. They are notified and you are recorded as the assigner.'}</div>
+ ${(UIB||[]).map((x,i)=>`<div style="border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin:6px 0"><b>${esc(x.n||'')}</b><div class="mut">${esc(x.pname||'')} · ${esc(unitL(x.ou))} · <span class="num" dir="ltr">${esc(x.s||'')} → ${esc(x.e||'')}</span></div>${x.cbn?`<div class="mut">✍️ ${ar?'أنشأها':'By'}: ${esc(x.cbn)}</div>`:''}${x.wbn&&x.w?`<div class="mut">👤 ${ar?'المكلّف الحالي':'Current'}: <b>${esc(x.wn||'')}</b> — ${ar?'حدّده':'by'} ${esc(x.wbn)}</div>`:''}
+  <div class="row" style="gap:6px;margin-top:6px;align-items:center"><select id="uib_w${i}" style="flex:1"><option value="">${ar?'— اختر المكلّف —':'— choose —'}</option>${us.map(([k,n])=>`<option value="${esc(k)}" ${x.w==k?'selected':''}>${esc(n)}</option>`).join('')}</select><button class="p" onclick="uibSet(${i})">${ar?'تكليف':'Assign'}</button></div></div>`).join('')}
+ <div class="row" style="margin-top:8px"><button onclick="closeSheet()">${t('addX')}</button></div></div>`}
+async function uibSet(i){const x=UIB[i],w=$('uib_w'+i).value;if(!w)return toast(lang=='ar'?'اختر المكلّف.':'Choose someone.');const r=await sb.rpc('pl_task_assign',{p_pid:x.pid,p_tid:x.tid,p_w:w,p_note:null});if(r.error)return toast(r.error.message);toast(lang=='ar'?'تم التكليف وأُبلغ المكلّف.':'Assigned.');await uibLoad();uibOpen();reload()}
 function addPar(){const p=PR.find(z=>String(z.pid)==$('ad_p').value);if(!p)return;const mainOk=ADM||p.cb==ME.id||SCED()||GRT[p.pcode];
  const opts=[];const walk=(pid,lv)=>(p.kids[pid]||[]).forEach(x=>{const r=p.byId[x.id];if(r&&(mainOk||r.mine))opts.push(`<option value="${esc(x.id)}">${'— '.repeat(lv)}${esc(x.n)}</option>`);walk(x.id,lv+1)});walk('',0);
  $('ad_g').innerHTML=(mainOk?`<option value="">${t('addNone')}</option>`:'')+opts.join('')}
 async function addGo(){const n=$('ad_n').value.trim(),s=$('ad_s').value,e=$('ad_e').value;if(!n||!s||!e)return toast(t('addNeed'));if(e<s)return toast(t('addDates'));
- const {error}=await sb.rpc('pl_add_task',{pid:+$('ad_p').value,p_parent:$('ad_g').value||'',p_name:n,p_s:s,p_e:e,p_w:$('ad_w').value||null});
+ const wv=$('ad_w').value;let pw=null,pou=null,pws=null,pgm=null;if(wv=='__m'){pws=[...document.querySelectorAll('.ad_mw:checked')].map(c=>c.value);if(pws.length<2)return toast(lang=='ar'?'اختر شخصين على الأقل.':'Pick at least two people.');pgm=(document.querySelector('input[name=ad_gm]:checked')||{}).value||'all'}else if(wv.startsWith('u:'))pou=wv.slice(2);else pw=wv||null;
+ const {error}=await sb.rpc('pl_add_task',{pid:+$('ad_p').value,p_parent:$('ad_g').value||'',p_name:n,p_s:s,p_e:e,p_w:pw,p_ou:pou,p_ws:pws,p_gm:pgm});
  if(error)return toast(error.message);closeSheet();toast(t('addOk'));await reload()}
 function shD(w,today){const r=SH.r,x=r.x,tdy=ds(TODAY),cl=n=>ds(Math.min(n,TODAY));
  if(w=='close'){shPc(100);if(!$('sh_as').value)$('sh_as').value=x.s?cl(r.s):tdy;$('sh_ae').value=tdy;fire('sh_as');fire('sh_ae');return toast(t('sh_filled'))}
@@ -609,7 +637,7 @@ Object.assign(D,{
  vDig:['ملخص الفترة','Digest'],dg_w:['الأسبوع','Week'],dg_m:['الشهر','Month'],dg_end:['تنتهي','Ending'],dg_start:['تبدأ','Starting'],dg_run:['جارية','Running'],dg_late:['متأخرة','Late'],
  dg_old:['متأخرة من قبل هذه الفترة','Overdue from before this period'],dg_none:['لا مهام في هذه الفترة.','No tasks in this period.'],dg_pr:['السابق','Prev'],dg_nx:['التالي','Next'],dg_tdy:['اليوم','Today']
 });
-let STG={},DGP='week',DGO=0;
+let STG={},OPTL={},UIB=null,DGP='week',DGO=0;
 const stgKey=()=>'tk_stg_'+(ME&&ME.id||'');
 function stgLoad(){try{STG=JSON.parse(localStorage.getItem(stgKey())||'{}')||{}}catch(_){STG={}}}
 function stgSave(){try{localStorage.setItem(stgKey(),JSON.stringify(STG))}catch(_){}}

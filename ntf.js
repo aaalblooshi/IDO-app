@@ -2,7 +2,7 @@
 (function () {
   var G = [
     ['wf', ['سير عمل النماذج (الميثاق، الخطة، طلب التغيير، التقرير الختامي)', 'Form workflow'], ['submitted', 'reviewerAssigned', 'approverAssigned', 'draftAssigned', 'reviewDone', 'approved', 'reviewerRejected', 'approverRejected', 'deleteRequested', 'deleteApproved', 'deleteRejected', 'reminderReview', 'reminderApprove']],
-    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['planChangeReq', 'pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
+    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['planChangeReq', 'planChangeDec', 'unitTask', 'pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
     ['tk', ['المهام', 'Tasks'], ['taskAssigned', 'taskDueSoon', 'taskOverdue', 'updDaily', 'taskUpdated', 'taskReminder', 'reminderUpdate']],
     ['kr', ['المؤشرات والمخاطر والموازنة والإنجاز', 'KPIs, risks, budget & progress'], ['kpiDue', 'kpiRed2', 'riskRequest', 'riskDecision', 'riskReview', 'riskEscalate', 'overBudget', 'progRequest', 'progDecision']],
     ['of', ['المكتب والتصعيد', 'Office & escalation'], ['escRequest', 'escDecision', 'officeRemind', 'personal']],
@@ -61,7 +61,9 @@
     permExpiry: ['انتهاء صلاحية مؤقتة', 'Temporary access expiring', ''],
     chatDM: ['رسالة خاصة جديدة', 'New direct message', 'إشعار الهاتف فقط افتراضيًا؛ لا يُكرَّر داخل النظام لأن للمحادثة عدّادها.'],
     chatMsg: ['رسالة في محادثة مشروع أو مجموعة', 'Message in a project or group chat', 'لكل أعضاء المحادثة؛ موقوفة افتراضيًا. الكتم في المحادثة يوقفها للشخص.'],
-    planChangeReq: ['تعديل مواعيد في الخطة من صفحة المهام', 'Plan dates changed from Tasks', 'لمدير المشروع ومكتب التطوير؛ الخطة تعود للاعتماد.'],
+    planChangeDec: ['قرار مدير المشروع على طلب تعديل المواعيد', 'Decision on a date-change request', 'يصل صاحب الطلب: قُبل (يسري بعد اعتماد الخطة) أو رُفض مع السبب.'],
+    unitTask: ['مهمة موجهة لوحدتك', 'Task directed to your unit', 'لمسؤول الوحدة ليحدد المكلّف من فريقه.'],
+    planChangeReq: ['طلب أو تعديل مواعيد من صفحة المهام', 'Date change from Tasks', 'لمدير المشروع ومكتب التطوير: طلب من الفريق ينتظر القرار، أو تعديل أُضيف لمسودة التعديل.'],
     chatMention: ['ذكرك في محادثة', 'Mentioned in chat', ''],
     chatAdd: ['إضافتك لمحادثة أو مجموعة', 'Added to a chat', ''],
     chatJoinReq: ['طلب انضمام لمحادثتك', 'Join request', ''],
