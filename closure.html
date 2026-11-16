@@ -1095,10 +1095,7 @@ function toggleNb(k){const b=$('nb_'+k);if(!b)return;const show=b.style.display=
 async function restoreCR(){if(!confirm(lang=='ar'?'استعادة هذا الطلب كمسودة؟ يمكن بعدها تعديله وتقديمه من جديد.':'Restore this request as a draft?'))return;await setStatus('Draft');homeView()}
 async function cancelCR(){if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
- const w=window.open('','_blank');
- const {data,error}=await sb.storage.from('rp-attachments').createSignedUrl(a.path,300);
- if(error){if(w)w.close();return msg(error.message)}
- if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl}
+ try{await IDODL('rp-attachments',a.path,a.file_name||a.name||a.title||'')}catch(e){msg(e.message||String(e))}}
 async function delAtt(id){const a=atts.find(x=>x.id==id);if(!a||!confirm(t('attDel')))return;
  await sb.storage.from('rp-attachments').remove([a.path]);
  const {error}=await sb.from('closure_attachments').delete().eq('id',id);if(error)return msg(error.message);

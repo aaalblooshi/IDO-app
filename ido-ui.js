@@ -584,3 +584,18 @@ new MutationObserver(function(){if(!q){q=1;requestAnimationFrame(fix)}}).observe
 
 /* ثبات الصفحة على الجوال: منع التكبير التلقائي عند لمس الحقول وأي تمدد أفقي */
 (function(){var s=document.createElement('style');s.id='idofit';s.textContent='html{-webkit-text-size-adjust:100%;text-size-adjust:100%}html,body{overflow-x:clip;max-width:100%}@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea{font-size:16px!important}}img,video{max-width:100%}';(document.head||document.documentElement).appendChild(s)})();
+/* IDODL — download a stored file without leaving the page or opening a blank tab */
+(function(){if(window.IDODL)return;
+window.IDODL=async function(bucket,path,name){
+ var c=null;try{c=Function('return typeof sb!="undefined"?sb:null')()||window.sb}catch(e){c=window.sb}
+ var base=String(path||'').split('/').pop().replace(/^\d{10,}_/,''),ext=(/\.[A-Za-z0-9]{1,6}$/.exec(base)||[''])[0];name=String(name||'').trim().replace(/[\\/:*?"<>|]+/g,' ')||base;if(ext&&!/\.[A-Za-z0-9]{1,6}$/.test(name))name+=ext;
+ var ar=(document.documentElement.lang||'ar')=='ar',tb=document.createElement('div');
+ tb.textContent=(ar?'جارٍ تنزيل ':'Downloading ')+name+'…';tb.setAttribute('role','status');
+ tb.style.cssText='position:fixed;z-index:99999;bottom:90px;left:50%;transform:translateX(-50%);background:#1d5f8a;color:#fff;padding:9px 16px;border-radius:12px;font:600 13.5px inherit;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+ document.body.appendChild(tb);var done=function(){setTimeout(function(){tb.remove()},600)};
+ var r=await c.storage.from(bucket).createSignedUrl(path,300,{download:name});
+ if(r.error){done();throw r.error}
+ try{var res=await fetch(r.data.signedUrl);if(!res.ok)throw 0;var b=await res.blob(),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},5000)}
+ catch(e){location.href=r.data.signedUrl}
+ done()};
+})();

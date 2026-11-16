@@ -194,7 +194,7 @@ let PR=[],ALLR=[],CLS={},MODE='me',VIEW='list',TAB='open',PEXP=new Set(),Q='',FP
 const TEAM=()=>!!ME;const ALLOK=()=>ADM||!!(ME&&ME.view_scope);let ALLM=false;
 const dayP=n=>plr(n,'day');const SCOL={done:'#1c7a45',late:'#d1101d',prog:'#3D96C7',fut:'#949594'};document.body.classList.add('tkp');
 let ISO=null;
-async function start(){if(!TEAM())MODE='me';{const hh=location.hash;if(hh=='#team'&&TEAM()){MODE='team';ALLM=false}else if(/^#tab=(\w+)$/.test(hh)){TAB=hh.slice(5)}if(hh=='#team'||/^#tab=/.test(hh)){try{history.replaceState(null,'',location.pathname)}catch(_){}}}const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM()){MODE='team';ALLM=ALLOK()}stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';ALLM=ALLOK();await reload();if(!findR(k)&&!ALLM){ALLM=true;await reload()}}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
+async function start(){if(!TEAM())MODE='me';{const hh=location.hash;if(hh=='#team'&&TEAM()){MODE='team';ALLM=false}else if(/^#tab=(\w+)$/.test(hh)){TAB=hh.slice(5)}else if(/^#p=\d+$/.test(hh)){window.FPID=+hh.slice(3)}if(hh=='#team'||/^#tab=/.test(hh)||/^#p=/.test(hh)){try{history.replaceState(null,'',location.pathname)}catch(_){}}}const hk=(/^#k=(.+)$/.exec(location.hash)||[])[1];const ht=(/^#t=(.+)$/.exec(location.hash)||[])[1];if(hk&&TEAM()){MODE='team';ALLM=ALLOK()}stgLoad();await reload();stgBar();if(ht){const k=decodeURIComponent(ht);if(!findR(k)&&MODE=='me'&&TEAM()){MODE='team';ALLM=ALLOK();await reload();if(!findR(k)&&!ALLM){ALLM=true;await reload()}}if(findR(k)){ISO=k;draw();scrollTo(0,0)}}if(hk){const k=decodeURIComponent(hk);if(typeof findR=='function'&&findR(k))openSheet(k)}}
 let GRT={},GRPL={};const SCED=()=>!!(ME&&ME.scope_complete&&ME.view_scope);
 function ownerChain(m,x){let c=x,g=0;while(c&&g++<12){if(c.w==ME.id)return true;c=c.p?m[c.p]:null}return false}
 function mkProject(p){try{(window.TRAW=window.TRAW||{})[p.id]=p.tasks||[]}catch(_){}
@@ -266,13 +266,15 @@ const pathS=r=>r.path.length?esc(r.path.join(' ‹ ')):'';
 function healthOf(a){return health(a.gap!=null?a.gap:0,a.lateN||0)}
 
 /* ---- filtering ---- */
+const arN=s=>String(s||'').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\s+/g,' ');
+const arW=w=>w.length>4&&/^(وال|بال|كال|فال|لل)/.test(w)?w.slice(3):w.length>3&&/^ال/.test(w)?w.slice(2):w;
 function scope(){
- const q=Q.trim().toLowerCase();
+ const qw=arN(Q).trim().split(' ').filter(Boolean).map(arW),q=qw.length;
  return ALLR.filter(r=>{
   if(MODE=='me'&&!r.mine)return false;
   if(FP&&r.pr.pcode!=FP)return false;
   if(MODE=='team'){if(FS&&r.pr.sc!=FS)return false;if(FU){if(FU=='-'){if(r.own)return false}else if(r.own!=FU)return false}}
-  if(q&&!((r.x.n||'')+' '+r.pr.pname+' '+r.pr.pcode+' '+(UN[r.own]||'')).toLowerCase().includes(q))return false;
+  if(q){const hay=arN((r.x.n||'')+' '+(r.path||[]).join(' ')+' '+r.pr.pname+' '+r.pr.pcode+' '+(UN[r.own]||'')+' '+(r.x.tn||''));if(!qw.every(w=>hay.includes(w)))return false}
   return true})}
 const leaves=rs=>rs.filter(r=>r.leaf);
 function tabF(r){const w0=mon0(TODAY),w1=w0+6,s=stOf(r);
@@ -342,9 +344,10 @@ function draw(){try{if(ADM&&window.IDOBKD)IDOBKD.load(sb,true,()=>draw())}catch(
  const us=[...new Set(ALLR.map(r=>r.own).filter(Boolean))];
  const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
  const tabs=MODE=='me'&&VIEW=='list'?TABS.map(([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
+ if(window.FPID&&PR.length){const fp=PR.find(z=>z.pid==window.FPID);if(fp)FP=fp.pcode;window.FPID=null}
  const UPK=$('updtop');if(UPK)UPK.remove();const ME_L=MODE=='me';
  $('app').innerHTML=`${isoH()}${hero()}<div id="updsl2"></div><div id="calbar"></div><div class="sb noprint">
-  ${TEAM()?`<div class="seg">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}</div>`:''}
+  ${TEAM()?`<div class="seg">${btn(MODE=='me',"setMode('me')",t('mMe'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}</div>`:''}
   <div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><input id="q" placeholder="${t('search')}" value="${esc(Q)}" style="flex:1;min-width:0"><button class="more addb" onclick="addOpen()" title="${esc(t('addT'))}">＋</button><button class="more" onclick="moreOpen()" title="${lang=='ar'?'المزيد':'More'}">⋯</button></div>
   <div class="seg">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
   ${tabs?`<div class="tchips">${tabs}</div>`:''}
@@ -623,9 +626,8 @@ async function shAtts(){const r=SH.r,el=$('sh_atl');if(!el)return;
  const {data,error}=await sb.from('plan_attachments').select('*').eq('cr_id',r.pr.pid).eq('task_id',r.id).order('created_at',{ascending:false});
  if(!$('sh_atl'))return;
  if(error||!data||!data.length){el.innerHTML=t('sh_noatt');return}
- el.innerHTML=data.map(a=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding:4px 0"><a href="#" onclick="shOpenA('${esc(a.path)}');return false" style="color:#2a6a90;overflow-wrap:anywhere">📎 ${esc(a.title)}</a>${(ADM||a.uploaded_by==ME.id)?`<button class="r" style="padding:2px 10px" onclick="shDelA(${a.id},'${esc(a.path)}')">${t('sh_del')}</button>`:''}</div>`).join('')}
-async function shOpenA(path){const w=window.open('','_blank');const {data,error}=await sb.storage.from('pl-attachments').createSignedUrl(path,300);
- if(error){if(w)w.close();return toast(error.message)}if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl}
+ el.innerHTML=data.map(a=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding:4px 0"><a href="#" onclick="shOpenA('${esc(a.path)}',this.dataset.n);return false" data-n="${esc(a.title||'')}" style="color:#2a6a90;overflow-wrap:anywhere">📎 ${esc(a.title)}</a>${(ADM||a.uploaded_by==ME.id)?`<button class="r" style="padding:2px 10px" onclick="shDelA(${a.id},'${esc(a.path)}')">${t('sh_del')}</button>`:''}</div>`).join('')}
+async function shOpenA(path,nm){try{await IDODL('pl-attachments',path,nm)}catch(e){toast(e.message||String(e))}}
 const shDelA=(id,path)=>run(async()=>{await sb.storage.from('pl-attachments').remove([path]);const {error}=await sb.from('plan_attachments').delete().eq('id',id);if(error)throw error;await shAtts()},t('upd'));
 const shUp=()=>run(async()=>{const f=$('sh_af').files[0];if(!f)throw new Error(t('sh_f'));if(f.size>10485760)throw new Error(t('e_big'));
  const r=SH.r,ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase(),path=r.pr.pid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
@@ -763,7 +765,7 @@ function affView(k){const r=findR(k);if(!r)return;const sc=affInfo(r),cur=effD(r
  o.innerHTML=`<div class="sbx"><h3>${t('af_h')}</h3>${sc.length?affTL(rows):`<div class="mut">${t('af_none')}</div>`}<div class="row" style="margin-top:10px"><button onclick="openSheet('${esc(k)}')">${t('sh_close')}</button></div></div>`}
 /* صندوق التعديل داخل ورقة المهمة */
 function schedBox(r){
- if(!r.edit)return '';const x=r.x,cur=effD(r.pr,x),g=(STG[r.pr.pid]||{})[r.id];
+ if(!r.edit)return '';if(isDone(r)&&!(ADM||r.pr.cb==ME.id||(r.pr.pm&&r.pr.pm==ME.full_name)))return '';const x=r.x,cur=effD(r.pr,x),g=(STG[r.pr.pid]||{})[r.id];
  if(cur.s==null||cur.e==null)return '';
  const sc=affInfo(r).length;
  return pcrChip(r)+`<div class="card" style="margin:10px 0;background:#fafbfb"><b>✏️ ${t('sc_h')}</b>

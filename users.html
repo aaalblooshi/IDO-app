@@ -173,7 +173,7 @@ function nodeH(k,lv){
 
 function rootH(){
  const ex=USERS.filter(x=>rk(x)=='exec'),ad=USERS.filter(x=>rk(x)=='admin'),open=OPN['__c']!==false;
- const head=`<div class="nh" onclick="OPN['__c']=${open?'false':'true'};draw()"><b>🏛 ${t('o_center')}</b><span class="mut"><span class="num">${USERS.length}</span> ${t('o_mem')} ${open?'▾':'▸'}</span></div>`;
+ const head=`<div class="nh" onclick="OPN['__c']=${open?'false':'true'};draw()"><b>🏛 ${t('o_center')}</b><span class="mut"><span class="num">${ad.length+ex.length}</span> ${lang=='ar'?'يرى المركز كاملًا':'see the whole centre'} · <span class="num">${USERS.length}</span> ${lang=='ar'?'إجمالي المستخدمين':'users in total'} ${open?'▾':'▸'}</span></div>`;
  const body=open?`<div class="mut" style="margin-top:6px">${t('o_cview')}</div><div>${ad.map(x=>`<span class="cp v i">${esc(x.full_name)} · ${t('o_adm')}</span>`).join('')}${ex.map(x=>`<span class="cp v">${esc(x.full_name)} · ${t('o_exec')} <i onclick="event.stopPropagation();setExec('${x.id}','user')">×</i></span>`).join('')}</div>
   <select onchange="setExec(this.value,'exec')"><option value="">${t('o_addc')}</option>${USERS.filter(x=>rk(x)!='exec'&&rk(x)!='admin').map(x=>`<option value="${x.id}">${esc(x.full_name)}</option>`).join('')}</select>
   <div class="mut" style="margin-top:6px">${t('o_ch')}</div>`:'';

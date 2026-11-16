@@ -1012,7 +1012,7 @@ function vTrd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,all=gsc(),L=TR
 let FIL=null,FILM='all',FILQ='';
 async function filLoad(){const ids=scoped().map(p=>p.id).filter(Boolean);FIL=[];try{if(ids.length){const r=await sb.from('plan_attachments').select('id,cr_id,task_id,title,path,size,created_at').in('cr_id',ids).not('task_id','is',null).order('created_at',{ascending:false}).limit(5000);FIL=r.data||[]}}catch(_){}FILK=ids.join(',');draw()}
 let FILK='';
-async function filOpen(path){try{const r=await sb.storage.from('pl-attachments').createSignedUrl(path,300);if(r.error)throw r.error;window.open(r.data.signedUrl,'_blank')}catch(e){alert(e.message||e)}}
+async function filOpen(path){try{await IDODL('pl-attachments',path)}catch(e){alert(e.message||e)}}
 function vFil(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=scoped();
  const fk=L.map(p=>p.id).filter(Boolean).join(',');if(FIL==null||FILK!==fk){B.innerHTML=`<div class="card mut">${t('loading')}</div>`;if(!window._filBusy){window._filBusy=1;filLoad().finally(()=>{window._filBusy=0})}return}
  const by={};FIL.forEach(a=>{(by[a.cr_id+'|'+a.task_id]=by[a.cr_id+'|'+a.task_id]||[]).push(a)});

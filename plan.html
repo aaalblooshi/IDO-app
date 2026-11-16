@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html lang="en"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.rvb{border:1px solid #BF9849;background:#fffaf0;border-radius:14px;padding:10px 12px;margin:8px 0}.mebtn{border:1px solid #d6c79f;background:#fbf6ea;color:#7a5a12;border-radius:99px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.fwed{display:inline-flex;align-items:center;gap:4px;margin-inline-start:8px;font-size:12.5px;font-weight:700;color:#0a6b3d;background:#e5f2ea;border-radius:99px;padding:1px 9px;cursor:pointer}.fwed input{width:auto;margin:0}</style>
+<html lang="en"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.rvb{border:1px solid #BF9849;background:#fffaf0;border-radius:14px;padding:10px 12px;margin:8px 0}.mebtn{border:1px solid #d6c79f;background:#fbf6ea;color:#7a5a12;border-radius:99px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.fwed{display:inline-flex;align-items:center;gap:4px;margin-inline-start:8px;font-size:12.5px;font-weight:700;color:#0a6b3d;background:#e5f2ea;border-radius:99px;padding:1px 9px;cursor:pointer}.fwed input{width:auto;margin:0}
+.myupd{display:inline-block;margin-top:3px;font-size:12px;font-weight:700;color:#1d5f8a;background:#e6f2f9;border-radius:99px;padding:1px 10px;text-decoration:none}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -1753,7 +1755,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  let h='';
  if(!d.levels&&PL.canEdit){h=onboard()}
  else{
-  h=rnoteH()+(PL.canEdit&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!PL.canEdit&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="grpOpen()">👥 ${t('pl_grp')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')+(PL.canEdit&&T().length?`<div class="rdy ${issues().some(i=>i.e)?'':'ok'}">${issues().some(i=>i.e)?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')+legend()+sheetH()+impH()}
+  h=rnoteH()+myTasksNote()+(PL.canEdit&&d.tasks.length?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!PL.canEdit&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+toolbar()+checks()+(PL.view=='gantt'?ganttH():tableH())+(PL.canEdit?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="grpOpen()">👥 ${t('pl_grp')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')+(PL.canEdit&&T().length?`<div class="rdy ${issues().some(i=>i.e)?'':'ok'}">${issues().some(i=>i.e)?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')+legend()+sheetH()+impH()}
  el.innerHTML=h;
  if(PL.view=='gantt'&&$('gx')){bindGantt(sc)}
  if(PL.focus){const f=document.querySelector(`.pr[data-id="${PL.focus}"] input[data-pk=n]`);PL.focus=null;if(f&&PL.view=='list')f.focus({preventScroll:false})}
@@ -1826,7 +1828,7 @@ function rowH2(x){const m=M[x.id],ed=PL.canEdit,trk=PL.trk,leaf=!m.kids.length,s
  const crit=CP.crit.has(x.id);
  return `<div class="pr d${m.d} ${sel?'sel':''} ${leaf?'':'sum'} ${crit?'crit':''}" data-id="${x.id}" onclick="rowClick(event,'${x.id}')">
   <div class="c-w" data-l="#">${m.kids.length?`<button class="cl" onclick="event.stopPropagation();togColl('${x.id}')">${PL.coll[x.id]?'▸':'▾'}</button>`:'<i class="cl"></i>'}<span class="wb">${m.w}</span></div>
-  <div class="c-n" data-l="${t('pl_name')}"><input data-pk="n" value="${esc(x.n)}" ${dis} placeholder="${t('pl_namePh')}"></div>
+  <div class="c-n" data-l="${t('pl_name')}"><input data-pk="n" value="${esc(x.n)}" ${dis} placeholder="${t('pl_namePh')}">${!ed&&leaf&&typeof me!='undefined'&&me&&x.w==me.id&&cr&&cr.status=='Approved'?`<a class="myupd" href="tasks.html#t=${cr.id}%7C${encodeURIComponent(x.id)}" onclick="event.stopPropagation()">✏️ ${lang=='ar'?'حدّث إنجازك أو اطلب تعديل الموعد':'Update progress or request a date change'}</a>`:''}</div>
   <div class="c-s" data-l="${t('pl_start')}"><input type="date" data-pk="s" value="${esc(x.s)}" ${(!ed||!leaf)?'disabled':''}></div>
   <div class="c-e" data-l="${t('pl_end')}"><input type="date" data-pk="e" value="${esc(x.e)}" ${(!ed||!leaf)?'disabled':''}></div>
   <div class="c-d" data-l="${t('pl_dur')}"><input data-pk="du" inputmode="numeric" value="${isNaN(dn(x.s))||isNaN(dn(x.e))?'':durOf(x)}" ${(!ed||!leaf)?'disabled':''}></div>
@@ -1867,6 +1869,8 @@ function onPlanChange(x){const k=x.dataset.pk;if(!k){return}const row=x.closest(
 }
 function afterDates(t0){norm();rollup();propagate();rollup();renderPlan();pSave()}
 
+function myTasksNote(){if(PL.canEdit||typeof me=='undefined'||!me||!cr||cr.status!='Approved')return '';const TS=cr.data.tasks||[],n=TS.filter(x=>x.w==me.id&&!TS.some(z=>z.p==x.id)).length;if(!n)return '';const ar=lang=='ar';
+ return `<div class="card" style="background:#eef6fb;border-color:#cfe2f1;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>${ar?'لديك '+(n==1?'مهمة واحدة':n==2?'مهمتان':n+' مهام')+' في هذه الخطة':'You have '+n+' task(s) in this plan'}</b><div class="mut" style="font-size:13px">${ar?'الخطة للعرض فقط. حدّث إنجازك أو اطلب تعديل موعد من «مهامي»، ويصل الطلب لمدير المشروع.':'The plan is read-only. Update progress or request a date change from My tasks; the request goes to the project manager.'}</div></div><a href="tasks.html#p=${cr.id}"><button class="p">${ar?'افتح مهامي في هذا المشروع':'Open my tasks in this project'}</button></a></div>`}
 function rnoteH(){const d=cr.data;if(PL.rev)return `<div class="rnote"><b>📝 ${t('pl_revGen')}</b><textarea id="rn_g" rows="3" placeholder="${t('pl_revGenPh')}">${esc(d.rnote||'')}</textarea><div class="row" style="margin-top:6px"><button class="sm p" onclick="saveRnote()">${t('pl_revNoteSave')}</button></div></div>`;
  return d.rnote?`<div class="rnote ro"><b>📝 ${t('pl_revGen')}</b><div style="white-space:pre-wrap">${esc(d.rnote)}</div></div>`:''}
 async function saveRnote(){cr.data.rnote=($('rn_g')||{}).value||'';await save(false);msg(t('saved'))}
@@ -2321,7 +2325,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  else{
   if(d.pmode=='agile'&&PL._agv!==cr.id){PL._agv=cr.id;PL.view='agile'}if(PL.view=='agile'&&d.pmode!='agile')PL.view='list';
   const body=PL.view=='net'&&window.NetDiag?NetDiag.html(T(),{title:d.pname,isWork:n=>isWork(n)}):PL.view=='sum'&&window.sumH?sumH():PL.view=='agile'?agH():PL.view=='gantt'?ganttH():(PL.view=='wbs'?wbsH():tableH()),ed=PL.canEdit,er=issues().some(i=>i.e);
-  h=rnoteH()+pcrH()+diffH()+(ed&&d.tasks.length&&PL.view!='agile'?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
+  h=rnoteH()+myTasksNote()+pcrH()+diffH()+(ed&&d.tasks.length&&PL.view!='agile'?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
    +(ed&&PL.view!='agile'?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="grpOpen()">👥 ${t('pl_grp')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')
    +(ed&&!PL.aed&&T().length?`<div class="rdy ${er?'':'ok'}">${er?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')
    +legend()+sheetH()+impH()+(ed&&PL.view=='list'?qabH():'')+(ed?undoFabH():'')}
@@ -2680,10 +2684,7 @@ async function cancelCR(){
   msg(t('revCancelled'));return openCR(cr.id)}
  if(!confirm(t('confirmCancel')))return;await setStatus('Cancelled');homeView()}
 async function openAtt(id){const a=atts.find(x=>x.id==id);if(!a)return;
- const w=window.open('','_blank');
- const {data,error}=await sb.storage.from('pl-attachments').createSignedUrl(a.path,300);
- if(error){if(w)w.close();return msg(error.message)}
- if(w)w.location.href=data.signedUrl;else location.href=data.signedUrl}
+ try{await IDODL('pl-attachments',a.path,a.file_name||a.name||a.title||'')}catch(e){msg(e.message||String(e))}}
 async function delAtt(id){const a=atts.find(x=>x.id==id);if(!a||!confirm(t('attDel')))return;
  await sb.storage.from('pl-attachments').remove([a.path]);
  const {error}=await sb.from('plan_attachments').delete().eq('id',id);if(error)return msg(error.message);
