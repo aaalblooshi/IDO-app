@@ -2,13 +2,13 @@
 (function () {
   var G = [
     ['wf', ['سير عمل النماذج (الميثاق، الخطة، طلب التغيير، التقرير الختامي)', 'Form workflow'], ['submitted', 'reviewerAssigned', 'approverAssigned', 'draftAssigned', 'reviewDone', 'approved', 'reviewerRejected', 'approverRejected', 'deleteRequested', 'deleteApproved', 'deleteRejected', 'reminderReview', 'reminderApprove']],
-    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['planChangeReq', 'planChangeDec', 'unitTask', 'pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
+    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['activity', 'planChangeReq', 'planChangeDec', 'unitTask', 'pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
     ['tk', ['المهام', 'Tasks'], ['taskAssigned', 'taskDueSoon', 'taskOverdue', 'updDaily', 'taskUpdated', 'taskReminder', 'reminderUpdate']],
     ['kr', ['المؤشرات والمخاطر والموازنة والإنجاز', 'KPIs, risks, budget & progress'], ['kpiDue', 'kpiRed2', 'riskRequest', 'riskDecision', 'riskReview', 'riskEscalate', 'overBudget', 'progRequest', 'progDecision']],
     ['of', ['المكتب والتصعيد', 'Office & escalation'], ['escRequest', 'escDecision', 'officeRemind', 'personal']],
     ['ac', ['الحساب والصلاحيات', 'Account & access'], ['welcome', 'roleChanged', 'permExpiry']],
     ['ch', ['التواصل', 'Communication'], ['chatDM', 'chatMsg', 'chatMention', 'chatAdd', 'chatJoinReq']],
-    ['pf', ['الأداء وسجل الإنجاز', 'Performance'], ['kudos', 'mgrNote']],
+    ['pf', ['الأداء وسجل الإنجاز', 'Performance'], ['kudos', 'mgrNote', 'teamRate']],
     ['dg', ['الملخصات الدورية', 'Periodic summaries'], ['digest', 'officeDigest']]
   ];
   var L = {
@@ -62,11 +62,13 @@
     chatDM: ['رسالة خاصة جديدة', 'New direct message', 'إشعار الهاتف فقط افتراضيًا؛ لا يُكرَّر داخل النظام لأن للمحادثة عدّادها.'],
     chatMsg: ['رسالة في محادثة مشروع أو مجموعة', 'Message in a project or group chat', 'لكل أعضاء المحادثة؛ موقوفة افتراضيًا. الكتم في المحادثة يوقفها للشخص.'],
     planChangeDec: ['قرار مدير المشروع على طلب تعديل المواعيد', 'Decision on a date-change request', 'يصل صاحب الطلب: قُبل (يسري بعد اعتماد الخطة) أو رُفض مع السبب.'],
+    activity: ['نشاط المشاريع (كل تحديث في مشاريعك)', 'Project activity (every update in your projects)', 'لمكتب التطوير ومدير المشروع ومالكه ومسؤول الوحدة وصاحب البند. تُجمع لكل مشروع وشخص كل ٣٠ دقيقة؛ والبريد ملخص يومي فقط.'],
     unitTask: ['مهمة موجهة لوحدتك', 'Task directed to your unit', 'لمسؤول الوحدة ليحدد المكلّف من فريقه.'],
     planChangeReq: ['طلب أو تعديل مواعيد من صفحة المهام', 'Date change from Tasks', 'لمدير المشروع ومكتب التطوير: طلب من الفريق ينتظر القرار، أو تعديل أُضيف لمسودة التعديل.'],
     chatMention: ['ذكرك في محادثة', 'Mentioned in chat', ''],
     chatAdd: ['إضافتك لمحادثة أو مجموعة', 'Added to a chat', ''],
     chatJoinReq: ['طلب انضمام لمحادثتك', 'Join request', ''],
+    teamRate: ['تذكير بتقييم فريق المشروع', 'Reminder to rate the project team', 'لمدير المشروع عند اعتماد التقرير الختامي.'],
     kudos: ['رسالة شكر في سجل الإنجاز', 'Thank-you message', ''],
     mgrNote: ['ملاحظة المدير في سجل إنجازك', 'Manager note on your record', ''],
     digest: ['الملخص الأسبوعي', 'Weekly summary', ''],

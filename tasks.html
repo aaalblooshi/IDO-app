@@ -283,7 +283,7 @@ function isStaleR(r){if(!r.leaf||(+r.pcr||0)>=100||r.s==null||r.s>=TODAY)return 
 const dnS=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?Math.round(Date.UTC(+m[1],+m[2]-1,+m[3])/864e5):null};
 const cntTab=k=>{const s=TAB;TAB=k;const n=leaves(scope()).filter(tabF).length;TAB=s;return n};
 const sortP=(a,b)=>prio(b)-prio(a)||(a.e==null)-(b.e==null)||a.e-b.e;
-const TABS=[['open','tOpen'],['late','tLate'],['soon','tSoon'],['today','tToday'],['week','tWeek'],['prog','tProg'],['fut','tFut'],['mdone','tMdone'],['done','tDone'],['stale','tStale'],['all','tAll']];
+const TABS=[['open','tOpen'],['all','tAll'],['late','tLate'],['soon','tSoon'],['today','tToday'],['week','tWeek'],['prog','tProg'],['fut','tFut'],['mdone','tMdone'],['done','tDone'],['stale','tStale']];
 Object.assign(D,{tSoon:['اليوم وغدًا','Today & tomorrow'],tMdone:['أنجزتها هذا الشهر','Done this month']});
 const legend=()=>`<div class="stp">${['fut','prog','late','done'].map(k=>`<span style="--c:${SCOL[k]}">${t('st_'+k)}</span>`).join('')}</div>`;
 /* ---- tasks v2: hero, sections, compact cards ---- */
@@ -347,7 +347,7 @@ function draw(){try{if(ADM&&window.IDOBKD)IDOBKD.load(sb,true,()=>draw())}catch(
  if(window.FPID&&PR.length){const fp=PR.find(z=>z.pid==window.FPID);if(fp)FP=fp.pcode;window.FPID=null}
  const UPK=$('updtop');if(UPK)UPK.remove();const ME_L=MODE=='me';
  $('app').innerHTML=`${isoH()}${hero()}<div id="updsl2"></div><div id="calbar"></div><div class="sb noprint">
-  ${TEAM()?`<div class="seg">${btn(MODE=='me',"setMode('me')",t('mMe'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}</div>`:''}
+  ${TEAM()?`<div class="seg">${btn(MODE=='me',"setMode('me')",t('mMe'))}${btn(MODE=='team'&&!ALLM,"setMode('team')",t('mTeam'))}${ALLOK()?btn(MODE=='team'&&ALLM,"setMode('all')",t('mAll')):''}</div>`:''}
   <div class="row" style="margin:0 0 8px;flex-wrap:nowrap"><input id="q" placeholder="${t('search')}" value="${esc(Q)}" style="flex:1;min-width:0"><button class="more addb" onclick="addOpen()" title="${esc(t('addT'))}">＋</button><button class="more" onclick="moreOpen()" title="${lang=='ar'?'المزيد':'More'}">⋯</button></div>
   <div class="seg">${['list','proj','gantt','dig'].map(v=>btn(VIEW==v,`VIEW='${v}';draw()`,t('v'+v[0].toUpperCase()+v.slice(1)))).join('')}</div>
   ${tabs?`<div class="tchips">${tabs}</div>`:''}
