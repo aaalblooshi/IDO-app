@@ -133,7 +133,7 @@ async function loadP(){const [a,b,c,g,n]=await Promise.all([sb.from('project_ris
  try{const pq=await sb.from('plans').select('id,status,archived,act:data->>_active,tasks:data->tasks').or('code.eq.'+PC+',data->>pcode.eq.'+PC).eq('archived',false).order('id',{ascending:false});const L=(pq.data||[]);const pl=L.find(x=>x.status=='Approved'||x.act=='true')||L[0];TK=(pl&&pl.tasks)||[]}catch(_){TK=[]}
  try{const l=await sb.from('risk_log').select('*').eq('pcode',PC).order('at',{ascending:false}).limit(600);LG=l.data||[]}catch(_){LG=[]}
  await rxLoad([PC]);
- const cs=await sb.rpc('risk_can_see',{pc:PC});if(cs.data!==true)R=null}
+ const cs=await sb.rpc('risk_can_see',{pc:PC});if(cs.data!==true&&!(R&&R.length))R=null}
 async function loadOv(){const [o,p]=await Promise.all([sb.rpc('risk_overview'),sb.from('risk_changes').select('*').eq('status','pending').order('id',{ascending:false}).limit(200)]);OV=o.data||[];CH=p.data||[];
  const codes=OV.map(x=>x.pcode);R=[];if(codes.length){const r=await sb.from('project_risks').select('*').in('pcode',codes).order('pcode').order('rno');R=r.data||[]}
  try{const l=await sb.from('risk_log').select('*').gte('at',new Date(Date.now()-60*864e5).toISOString()).order('at',{ascending:false}).limit(800);LG=l.data||[]}catch(_){LG=[]}
@@ -342,7 +342,9 @@ function edDraw(){let o=$('edw');if(!o){o=document.createElement('div');o.id='ed
  <details class="box" ${v.rprob||v.rimpact?'open':''}><summary><b>${P(['الخطر المتبقي بعد الاستجابة','Residual risk after the response'])}</b></summary>${seg('rprob')}${seg('rimpact')}${rs?`<div class="scr" style="background:${rl[4]};color:${rl[3]}">${P(['الدرجة المتبقية: ','Residual score: '])}<b>${num(rs)}</b></div>`:''}</details>
  <label>${P(['سبب التعديل (يراه مكتب التطوير)','Reason for the change (seen by the office)'])}</label><input id="f_note" value="${esc(ED.note||'')}" oninput="ED.note=this.value">
  <div class="row"><button class="p" onclick="edSave()">${OFF?P(['حفظ','Save']):P(['إرسال للاعتماد','Send for approval'])}</button>${ED.r?`<button class="r" onclick="edDel()">${P(['حذف الخطر','Delete risk'])}</button>`:''}<button onclick="edClose()">${P(['إلغاء','Cancel'])}</button></div>
+ ${ED.r?`<details class="box" style="margin-top:10px" ${window.RCOLO?'open':''} ontoggle="window.RCOLO=this.open"><summary><b>🤝 ${P(['المشاركون والنقاش والملفات','Collaborators, discussion & files'])}</b></summary><div id="rcol" style="margin-top:8px"></div></details>`:''}
  ${ED.r?timeline(ED.r)+hist(ED.r):''}</div>`;
+ if(ED.r&&window.IDOCOL&&$('rcol')&&!$('rcol').dataset.m){$('rcol').dataset.m=1;IDOCOL.mount($('rcol'),{kind:'risk',ref:ED.r.id,pcode:ED.r.pcode||PC,full:true,files:true})}
  if(keep){const e=$(keep);if(e){e.focus();try{e.setSelectionRange(ss,ss)}catch(_){}}}
  try{pkEnh()}catch(_){}}
 function hist(r){const L=CH.filter(c=>c.risk_id==r.id&&c.status=='approved');if(!L.length)return '';return '<details style="margin-top:10px"><summary class="mut">'+P(['تاريخ هذا الخطر','This risk\'s history'])+' ('+num(L.length)+')</summary>'+L.map(c=>'<div class="lg"><b>'+opN(c.op)+'</b> <span class="mut">'+esc(c.by_user?nm(c.by_user):(c.note||''))+' · '+fd(c.at)+'</span>'+(c.op=='update'?'<div class="mut">'+Object.keys(c.data||{}).filter(k=>FL[k]).map(k=>P(FL[k])+': '+esc(fv(k,c.data[k]))).join(' · ')+'</div>':'')+'</div>').join('')+'</details>'}
@@ -660,4 +662,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="hub.js?v=5"></script><script src="ovx.js?v=7"></script><script src="ido-ui.js?v=38"></script></body></html>
+<script src="hub.js?v=5"></script><script src="ovx.js?v=7"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=38"></script></body></html>
