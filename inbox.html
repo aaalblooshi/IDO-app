@@ -1,5 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}
+.ibt{display:flex;gap:8px;margin:0 0 8px;flex-wrap:wrap}.ibl{font-size:12px;font-weight:800;color:#6b7280;margin:6px 2px 4px}
+.tabs.ibh{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:3px;margin-bottom:4px}.tabs.ibh button{flex:none;white-space:nowrap}
+.ibs{max-height:72vh;overflow-y:auto;overscroll-behavior:contain;padding:2px}.ibd{font-weight:800;color:#5b6570;font-size:13px;margin:12px 2px 6px}
+.ibi{display:block;width:100%;text-align:start;font:inherit;color:inherit;cursor:pointer;border-inline-start:4px solid var(--pc)!important;background:#fff}.ibi.nw{background:#f3f9fd}.ibn{font-weight:800}.ibx{margin:2px 0;line-height:1.6}
+</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -184,7 +189,7 @@ async function start(){
   const {data}=await sb.from(tb).select('*').order('at',{ascending:false}).limit(60);if(!data||!data.length)return;
   const ids=[...new Set(data.map(x=>x.cr_id))],{data:cs}=await sb.from(dt).select('id,code,archived,nm:data->>pname').in('id',ids),cm={},nmm={},arc={};(cs||[]).forEach(c=>{cm[c.id]=c.code;nmm[c.id]=c.nm;if(c.archived)arc[c.id]=1});
   /* archived documents disappear from notifications */data.filter(x=>!arc[x.cr_id]).forEach(x=>all.push({at:x.at,who:aid(x.user_name,'audit'),act:x.action||'',sv,pg,tk:/^(taskprog|taskrem|taskadd)/.test(x.action||''),id:x.cr_id,code:cm[x.cr_id]||'',nm:nmm[x.cr_id]||''}))}));
- try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:aid(x.from_name,'notify'),act:'nudge|'+x.msg,sv:'nudge',kind:x.kind||'',pg:x.link||'inbox.html',tk:false,id:0,code:'',nm:aid(x.from_name,'notify')||''}))}catch(_){}
+ try{const {data:nu}=await sb.from('user_nudges').select('*').eq('to_user',ME.id).order('created_at',{ascending:false}).limit(30);(nu||[]).forEach(x=>all.push({at:x.created_at,who:aid(x.from_name,'notify'),act:'nudge|'+x.msg,sv:'nudge',kind:x.kind||'',ev:x.ev||'',meta:x.meta||null,pg:x.link||'inbox.html',tk:false,id:0,code:'',nm:(x.meta&&x.meta.p)||aid(x.from_name,'notify')||''}))}catch(_){}
  let NC={all:'1',off:''};try{const {data:nc}=await sb.from('app_settings').select('key,value').in('key',['notif_all','notif_off']);(nc||[]).forEach(x=>{if(x.key=='notif_all')NC.all=x.value;else NC.off=x.value||''})}catch(_){}
  NTOFF=NC.all=='0';const OFFC=String(NC.off||'').split(',').filter(Boolean),catOf=e=>e.sv=='nudge'?(e.kind||'flow'):e.tk?'tasks':'flow';if(OFFC.includes('rem'))ESC=[];
  EV=all.filter(e=>e.who!=ME.full_name&&!NTOFF&&!OFFC.includes(catOf(e))).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,120);draw()}
@@ -205,11 +210,28 @@ function draw(){
  const isNew=e=>new Date(e.at).getTime()>SEEN,L=EV.filter(e=>(!ONLY||isNew(e))&&(!FK||KIND(e.act)==FK)&&(!FSV||(FSV=='task'?e.tk:e.sv==FSV))),nn=EV.filter(isNew).length;
  const offH=NTOFF?`<div class="card" style="border:1px solid #f0d48a;background:#fff8e6">🔕 ${lang=='ar'?'التنبيهات موقوفة حاليًا من مكتب التطوير المؤسسي.':'Notifications are currently turned off by the office.'}</div>`:'';
  const escH=offH+(ESC.length?`<div class="card" style="border:2px solid #d1101d;background:#fff6f6"><b style="color:#d1101d">⬆ ${lang=='ar'?'طلبات تصعيد بانتظار قرارك':'Escalations awaiting your decision'} (${ESC.length})</b>${ESC.map(x=>`<a class="tk" style="display:block;text-decoration:none;color:inherit" href="${x.pg}#o=${x.cr_id}"><b dir="ltr">${esc(x.code||('#'+x.cr_id))}</b> <span class="mut">${esc(UN[x.requested_by]||'')} · ${fd(String(x.created_at).slice(0,10))}${x.reason?' · '+esc(x.reason):''}</span></a>`).join('')}</div>`:'');
- $('app').innerHTML=segH+escH+`<div class="row" style="margin:0 0 8px"><button class="${ONLY?'p':''}" onclick="ONLY=!ONLY;draw()">${t('only')} <span class="num">${nn}</span></button><button onclick="markAll()">${t('markAll')}</button></div>
- <div class="tabs">${[['','k_all'],['appr','k_appr'],['sign','k_sign'],['ret','k_ret'],['task','k_task'],['edit','k_edit']].map(([k,l])=>`<button class="${FK==k?'on':''}" onclick="FK='${k}';draw()">${t(l)}</button>`).join('')}</div>
- <div class="tabs">${[['','s_all'],['task','sv_task'],['cr','sv_cr'],['charter','sv_charter'],['plan','sv_plan'],['closure','sv_closure']].map(([k,l])=>`<button class="${FSV==k?'on':''}" onclick="FSV='${k}';draw()">${t(l)}</button>`).join('')}</div>
- ${L.length?L.map(e=>`<a class="tk" style="display:block;text-decoration:none;color:inherit;${isNew(e)?'border-inline-start:4px solid #3D96C7':''}" href="${/[#?]/.test(e.pg)?e.pg:e.pg+'#o='+e.id}"><div><b>${esc(e.nm||e.code)}</b></div><div class="mut">${t(e.tk?'sv_task':'sv_'+e.sv)} <span dir="ltr">${esc(e.code)}</span> · <span class="num">${fd(String(e.at).slice(0,10))} ${new Date(e.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'})}</span>${isNew(e)?` · <b style="color:#3D96C7">${t('unread')}</b>`:''}</div><div>${esc(txt(e.act))}</div><div class="mut">${t('by')} ${esc(e.who||'')}</div></a>`).join(''):`<div class="card mut">${t('none')}</div>`}
+ const chip=(on,fn,lab,n)=>`<button class="${on?'on':''}" onclick="${fn}">${lab}${n!=null?` <span class="num">${n}</span>`:''}</button>`;
+ const base=EV.filter(e=>(!ONLY||isNew(e))),cK=k=>base.filter(e=>(!FSV||(FSV=='task'?e.tk:e.sv==FSV))&&(!k||KIND(e.act)==k)).length,cS=k=>base.filter(e=>(!FK||KIND(e.act)==FK)&&(!k||(k=='task'?e.tk:e.sv==k))).length;
+ const Ks=[['','k_all'],['appr','k_appr'],['sign','k_sign'],['ret','k_ret'],['task','k_task'],['edit','k_edit']].filter(([k])=>!k||cK(k)||FK==k),Ss=[['','s_all'],['task','sv_task'],['cr','sv_cr'],['charter','sv_charter'],['plan','sv_plan'],['closure','sv_closure'],['nudge','sv_nudge']].filter(([k])=>!k||cS(k)||FSV==k);
+ IBL=L;let lastD='';const dlab=d=>{const td=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Dubai'}),y=new Date(Date.now()-864e5).toLocaleDateString('en-CA',{timeZone:'Asia/Dubai'});return d==td?(lang=='ar'?'اليوم':'Today'):d==y?(lang=='ar'?'أمس':'Yesterday'):fd(d)};
+ $('app').innerHTML=segH+escH+`<div class="ibt"><button class="${ONLY?'p':''}" onclick="ONLY=!ONLY;draw()">${t('only')} <span class="num">${nn}</span></button><button onclick="markAll()">✓ ${t('markAll')}</button></div>
+ <div class="ibl">${lang=='ar'?'النوع':'Type'}</div><div class="tabs ibh">${Ks.map(([k,l])=>chip(FK==k,`FK='${k}';draw()`,t(l),k?cK(k):null)).join('')}</div>
+ <div class="ibl">${lang=='ar'?'الخدمة':'Service'}</div><div class="tabs ibh">${Ss.map(([k,l])=>chip(FSV==k,`FSV='${k}';draw()`,t(l),k?cS(k):null)).join('')}</div>
+ <div class="mut" style="margin:4px 2px 6px;font-size:13px">${lang=='ar'?'اضغط أي إشعار لعرض تفاصيله كاملة.':'Tap any notification to see its full details.'}</div>
+ ${L.length?`<div class="ibs">`+L.map((e,i)=>{const d=new Date(e.at).toLocaleDateString('en-CA',{timeZone:'Asia/Dubai'}),hd=d!=lastD?`<div class="ibd">${dlab(d)}</div>`:'';lastD=d;const col=window.IDOACT?IDOACT.pcol(e.code||e.nm):'#1d5f8a';
+  return hd+`<button type="button" class="tk ibi${isNew(e)?' nw':''}" style="--pc:${col}" onclick="ibOpen(${i})"><div class="ibn">${esc(e.nm||e.code||'')}</div><div class="mut">${e.sv=='nudge'?(e.ev=='activity'?(lang=='ar'?'نشاط المشاريع':'Project activity'):(lang=='ar'?'تنبيه':'Alert')):t(e.tk?'sv_task':'sv_'+e.sv)} ${e.code?`<span dir="ltr">${esc(e.code)}</span>`:''} · <span class="num">${new Date(e.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'})}</span>${isNew(e)?` · <b style="color:#3D96C7">${t('unread')}</b>`:''}</div><div class="ibx">${esc(txt(e.act))}</div><div class="mut">${t('by')} ${esc(e.who||'')}</div></button>`}).join('')+`</div>`:`<div class="card mut">${t('none')}</div>`}
  <div class="card mut" style="margin-top:10px">${t('prefsH')}<div class="row"><a href="account.html"><button>${t('prefs')}</button></a></div></div>`}
+let IBL=[];
+function isNewE(e){return new Date(e.at).getTime()>SEEN}
+function ibOpen(i){const e=IBL[i];if(!e||!window.IDOACT)return;const ar=lang=='ar',at=new Date(e.at),when=at.toLocaleDateString('en-GB',{timeZone:'Asia/Dubai'})+' '+at.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'});
+ const link=/[#?]/.test(e.pg)?e.pg:e.pg+(e.id?'#o='+e.id:'');
+ if(e.sv=='nudge'){const m=e.meta||{},isA=e.ev=='activity',msg=String(e.act).replace(/^nudge\|/,'');
+  return IDOACT.sheet({title:isA?(ar?'نشاط في مشروع':'Project activity'):(ar?'تنبيه':'Alert'),pname:m.p||'',pcode:m.pc||m.p||'',icon:isA?'📋':'🔔',
+   kv:[[ar?'المشروع':'Project',m.p||''],[ar?'من':'From',e.who||(ar?'النظام':'System')],[ar?'التاريخ والوقت':'Date & time',when],[ar?'عدد التحديثات':'Updates',m.n?String(m.n):'']],
+   text:isA?'':msg,lines:isA?(m.l||[msg]).slice().reverse():null,link:link,linkLabel:ar?'فتح':'Open',
+   onProject:isA&&m.pc?`IDOACT.close();ibMode('act');setTimeout(()=>IDOACT._fp('actw','${String(m.pc).replace(/'/g,'')}'),900)`:''})}
+ IDOACT.sheet({title:txt(e.act),pname:e.nm||'',pcode:e.code||e.nm,icon:e.tk?'✅':'📄',kv:[[ar?'المشروع':'Project',e.nm||''],[ar?'الخدمة':'Service',t(e.tk?'sv_task':'sv_'+e.sv)],[ar?'الرقم':'Code',e.code||''],[ar?'نوع الإشعار':'Kind',(KIND(e.act)?t('k_'+KIND(e.act)):'')],[ar?'بواسطة':'By',e.who||''],[ar?'التاريخ والوقت':'Date & time',when],[ar?'الحالة':'State',isNewE(e)?(ar?'غير مقروء':'Unread'):(ar?'مقروء':'Read')]],
+  link:link,linkLabel:ar?'فتح الطلب':'Open the request'})}
 let IBM=location.hash=='#act'?'act':'n';function ibMode(m){IBM=m;try{history.replaceState(null,'',location.pathname+location.search+(m=='act'?'#act':''))}catch(_){}draw()}
 window.addEventListener('hashchange',()=>{const m=location.hash=='#act'?'act':'n';if(m!=IBM){IBM=m;draw()}});
 function markAll(){SEEN=Date.now();try{localStorage.setItem('inbox_seen_'+ME.id,String(SEEN))}catch(_){}draw()}
@@ -444,4 +466,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="act.js?v=1"></script><script src="ido-ui.js?v=38"></script></body></html>
+<script src="act.js?v=2"></script><script src="ido-ui.js?v=38"></script></body></html>
