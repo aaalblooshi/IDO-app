@@ -298,14 +298,14 @@ function hero(){const ar=lang=='ar',T=(a,e)=>ar?a:e,lv=leaves(scope()),c=k=>lv.f
  const L=c('late'),S=c('soon'),W=c('week'),M=c('mdone'),team=MODE=='team';
  let hr=9;try{hr=+new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Dubai',hour:'numeric',hourCycle:'h23'}).format(new Date())}catch(_){}
  const nm=String(ME.full_name||'').trim().split(/\s+/)[0]||'';
- const h1=team?(ALLM?T('كل المهام','All tasks'):T('مهام فريقي ووحدتي','My team and unit')):(hr<12?T('صباح الخير','Good morning'):T('مساء الخير','Good evening'))+(nm?T('، ',', ')+esc(nm):'')+' 👋';
- const P=[];if(L)P.push((team?'':T('عندك ','You have '))+plr(L,'task')+' '+T('متأخرة','late'));if(S)P.push(plr(S,'task')+' '+T('تنتهي اليوم أو غدًا','due today or tomorrow'));
- const sub=P.length?P.join(T(' و',' and '))+'.':(lv.some(r=>!isDone(r))?T('لا شيء متأخر. استمر على هذا ✨','Nothing late. Keep it up ✨'):T('لا مهام مفتوحة حاليًا.','No open tasks right now.'));
+ const h1=team?(ALLM?T('كل المهام','All tasks'):T('مهام فريقي ووحدتي','My team and unit')):T('مرحبًا ','Hello ')+esc(String(ME.full_name||'').trim());
+ const P=[];if(L)P.push((team?'':T('لديك ','You have '))+plr(L,'task')+' '+T('متأخرة','late'));if(S)P.push(plr(S,'task')+' '+T('تنتهي اليوم أو غدًا','due today or tomorrow'));
+ const sub=P.length?P.join(T(' و',' and '))+'.':(lv.some(r=>!isDone(r))?T('لا توجد مهام متأخرة.','No late tasks.'):T('لا مهام مفتوحة حاليًا.','No open tasks right now.'));
  const avg=lv.length?lv.reduce((s,r)=>s+r.a.a,0)/lv.length:0,ex=lv.length?lv.reduce((s,r)=>s+r.a.ex,0)/lv.length:0;
  const on=k=>(team?FST==k:TAB==k)&&VIEW=='list';
  const tl=(k,n,l,cls)=>`<button class="ht${on(k)?' on':''}${cls?' '+cls:''}" onclick="${on(k)&&!team?"TAB='open';SHOWN=40;draw()":`gotoTab('${k}')`}" aria-pressed="${on(k)}"><b class="num">${n}</b><span>${l}</span></button>`;
  return `<section class="hero2"><h1>${h1}</h1><p>${sub}</p>
- ${CFG.sum?`<div class="hts">${tl('late',L,T('متأخرة','Late'),L?'bd':'')}${tl('soon',S,T('اليوم وغدًا','Today & tomorrow'))}${tl('week',W,T('هذا الأسبوع','This week'))}${tl('mdone',M,T('أنجزتها هذا الشهر','Done this month'))}</div>
+ ${CFG.sum?`<div class="hts">${tl('late',L,T('متأخرة','Late'),L?'bd':'')}${tl('soon',S,T('اليوم وغدًا','Today & tomorrow'))}${tl('week',W,T('هذا الأسبوع','This week'))}${tl('mdone',M,T('المنجزة هذا الشهر','Done this month'))}</div>
  ${lv.length?`<div class="hav"><span>${T('متوسط الإنجاز','Average progress')} <b class="num">${pct(avg)}</b> · ${T('المتوقع حتى اليوم','Expected by today')} <b class="num">${pct(ex)}</b></span><button class="lnk" onclick="info('howCalc','calcTxt')">${T('كيف يُحسب؟','How is it calculated?')}</button></div>`:''}`:''}</section>`}
 function pChips(ps){if(ps.length<2&&!FP)return '';const ar=lang=='ar';
  return `<div class="tchips pch">${[['',ar?'كل المشاريع':'All projects']].concat(ps).map(([c,n])=>{const p=PR.find(z=>z.pcode==c),col=p?pcol(p.pid):'#23272b';return `<button class="${FP==c?'on':''}" style="--pc:${col}" onclick="FP='${esc(c)}';SHOWN=40;draw()" title="${esc(n)}"><i>${c?esc(pini(n)):'✓'}</i>${esc(String(n).length>26?String(n).slice(0,25)+'…':n)}</button>`}).join('')}</div>`}
@@ -1194,4 +1194,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=3"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=42"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=3"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=43"></script></body></html>
