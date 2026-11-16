@@ -1555,7 +1555,7 @@ async function openCR0(id){
  if(curView===homeView)HSY=window.scrollY;
  const [a,b,c,e]=await Promise.all([sb.from('plans').select('*').eq('id',id).single(),sb.from('plan_signatories').select('*').eq('cr_id',id).order('id'),sb.from('plan_audit').select('*').eq('cr_id',id).order('at',{ascending:false}),sb.from('plan_attachments').select('*').eq('cr_id',id).order('id')]);
  if(!a.data)return homeView();
- cr=a.data;PL.base=JSON.parse(JSON.stringify(cr.data||{}));PL.rev=+((cr.data||{})._rev)||0;try{if(window.plJoin)plJoin(cr.id)}catch(_){}if(WCM&&aedOn()&&cr.status=='Approved'){try{const x=JSON.parse(sessionStorage.getItem('wc:'+id)||'null');if(x)cr.data=x}catch(_){}}sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
+ cr=a.data;if(cr&&cr.data)cr.data=plIn(cr.data);try{delete PCRS[cr.id]}catch(_){}PL.base=JSON.parse(JSON.stringify(cr.data||{}));PL.rev=+((cr.data||{})._rev)||0;try{if(window.plJoin)plJoin(cr.id)}catch(_){}if(WCM&&aedOn()&&cr.status=='Approved'){try{const x=JSON.parse(sessionStorage.getItem('wc:'+id)||'null');if(x)cr.data=x}catch(_){}}sigs=b.data;atts=e.data||[];const attErr=e.error?e.error.message:'';const logs=c.data||[],st=cr.status,arch=!!cr.archived;
  const adm=me.role=='admin',fin=st=='Approved'||st=='Rejected'||st=='Cancelled';
  const aed=!arch&&aedOn()&&(adm&&!WCM?!['Draft','Returned to PM','Cancelled'].includes(st):(WCM&&st=='Approved'&&(adm||cr.created_by==me.id||pmOf(cr)||gEd(cr))));PL.snapK=null;let cInv=false;try{const q0=await sb.from('plan_consult').select('closes_at,invitees').eq('plan_id',id).maybeSingle();cInv=!!(q0.data&&new Date(q0.data.closes_at)>new Date()&&(q0.data.invitees||[]).includes(me.id))&&st=='Draft'&&!arch}catch(_){}
  const ed=aed||!arch&&(cr.created_by==me.id||adm||gEd(cr)||pmOf(cr)||window.FWE)&&(st=='Draft'||st=='Returned to PM')||(window.FWE&&!arch&&!['Approved','Rejected','Cancelled'].includes(st));
@@ -1649,7 +1649,7 @@ async function save(q){if(!cr)return;norm();rollup();stampEdits();const dd={...c
  if(WCM&&aedOn()&&cr.status=='Approved'){try{sessionStorage.setItem('wc:'+cr.id,JSON.stringify(dd))}catch(_){}snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.cOnly){const {error:e3}=await sb.rpc('pl_consult_save',{pid:cr.id,p_tasks:dd.tasks,p_del:dd._del||[]});if(e3)return msg(e3.message);snapTasks();if(q!==false)await openCR(cr.id);return}
  if(PL.rvEd){const {error:e2}=await sb.rpc('pl_review_save',{pid:cr.id,p_tasks:dd.tasks});if(e2)return msg(e2.message);if(q!==false)await openCR(cr.id);return}
- const sv=window.plSaveRev?await plSaveRev(dd):await (async()=>{const x=await sb.from('plans').update({data:dd}).eq('id',cr.id).select('id');return{error:x.error,ok:x.data&&x.data.length}})();if(sv.error)return msg(sv.error.message||sv.error);if(!sv.ok)return msg(t('saveFail'));snapTasks();if(q!==false)await openCR(cr.id)}
+ const sv=window.plSaveRev?await plSaveRev(dd):await (async()=>{const x=await sb.from('plans').update({data:plOut(dd)}).eq('id',cr.id).select('id');return{error:x.error,ok:x.data&&x.data.length}})();if(sv.error)return msg(sv.error.message||sv.error);if(!sv.ok)return msg(t('saveFail'));snapTasks();if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save();try{if(cr&&cr.status=='Draft'&&CS&&CS.pc)await lg(cr.id,'consultsave')}catch(_){}msg(t('draftSaved'))}
 let PSV=null;function pSave(){clearTimeout(PSV);PSV=setTimeout(()=>{if(cr&&(PL.canEdit||PL.trk||PL.rev))save(false)},700)}
 let WCM=false;
@@ -1659,7 +1659,7 @@ async function wcCommit(){const id=cr.id;try{await flushAtt()}catch(e){return ms
  await save(false);let dd=null;try{dd=JSON.parse(sessionStorage.getItem('wc:'+id)||'null')}catch(_){}
  if(!dd){return wcCancel()}
  const r=await sb.rpc('pl_revise',{pid:id});if(r.error)return msg(r.error.message);
- delete dd._rev;const u=await sb.from('plans').update({data:dd}).eq('id',id).select('id');if(u.error||!u.data||!u.data.length)return msg(u.error?u.error.message:t('saveFail'));
+ delete dd._rev;const u=await sb.from('plans').update({data:plOut(Object.assign(dd,{_live:null}))}).eq('id',id).select('id');if(u.error||!u.data||!u.data.length)return msg(u.error?u.error.message:t('saveFail'));
  WCM=false;AEDIT=null;AEDIT0='';try{sessionStorage.removeItem('wc:'+id)}catch(_){}ftab='plan';await openCR(id);
  msg(lang=='ar'?'أُنشئ الإصدار الجديد بتعديلاتك. راجعه ثم أرسله للمراجعة والاعتماد.':'New version created from your edits. Review it, then submit.')}
 const revBanner=()=>{if(SVC!='plan'||!cr||cr.version<2||cr.status!='Draft'||cr.archived||!(me.role=='admin'||cr.created_by==me.id||pmOf(cr)))return '';const a=lang=='ar';
@@ -2321,7 +2321,7 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  else{
   if(d.pmode=='agile'&&PL._agv!==cr.id){PL._agv=cr.id;PL.view='agile'}if(PL.view=='agile'&&d.pmode!='agile')PL.view='list';
   const body=PL.view=='net'&&window.NetDiag?NetDiag.html(T(),{title:d.pname,isWork:n=>isWork(n)}):PL.view=='sum'&&window.sumH?sumH():PL.view=='agile'?agH():PL.view=='gantt'?ganttH():(PL.view=='wbs'?wbsH():tableH()),ed=PL.canEdit,er=issues().some(i=>i.e);
-  h=rnoteH()+diffH()+(ed&&d.tasks.length&&PL.view!='agile'?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
+  h=rnoteH()+pcrH()+diffH()+(ed&&d.tasks.length&&PL.view!='agile'?`<div class="mut" style="font-size:12.5px;margin-bottom:6px">${t('pl_selHint')}</div>`:'')+(!ed&&!d.tasks.length&&!PL.arch?`<div class="mut" style="padding:8px 2px">${lang=='ar'?'التعديل متاح لمنشئ الخطة فقط (أو الأدمن) وهي في حالة مسودة.':'Only the plan creator (or an admin) can edit a draft plan.'}</div>`:'')+planInfoH()+toolbar()+checks()+(PL.view=='list'?crumbH():'')+body
    +(ed&&PL.view!='agile'?`<div class="row" style="margin-top:10px"><button class="p" onclick="addTask('')">+ ${t('pl_addMain')}</button><button onclick="grpOpen()">👥 ${t('pl_grp')}</button><button onclick="xlOpen()">📥 ${t('pl_xlImport')}</button>${T().filter(isLeaf).length>1?`<button onclick="linkAll()">🔗 ${t('pl_linkAll')}</button>`:''}</div>`:'')
    +(ed&&!PL.aed&&T().length?`<div class="rdy ${er?'':'ok'}">${er?'':'<b>✅ '+t('pl_ready')+'</b>'}<div class="row" style="margin:6px 0 0"><button onclick="saveDrf()">${t('saveDraft')}</button><button class="p" onclick="submitCR()">${t('submit')}</button></div></div>`:'')
    +legend()+sheetH()+impH()+(ed&&PL.view=='list'?qabH():'')+(ed?undoFabH():'')}
@@ -2330,6 +2330,29 @@ function renderPlan0(){const el=$('plan');if(!el||!cr)return;const d=cr.data;nor
  if(PL.focus){const f=document.querySelector(`.pr[data-id="${PL.focus}"] input[data-pk=n]`);PL.focus=null;if(f&&PL.view=='list')f.focus({preventScroll:false})}
  window.scrollTo(0,wy)}
 // ---- changes since approved version ----
+/* أثناء تعديل خطة معتمدة: المسودة منفصلة (_draft) والفريق يعمل على الخطة المعتمدة (tasks) */
+function plIn(d){if(d&&Array.isArray(d._draft)){const o={...d};o._live=o.tasks;o.tasks=o._draft;delete o._draft;return o}return d}
+function plOut(d){if(d&&('_live' in d)){const o={...d};o._draft=o.tasks;o._dcl=1;delete o.tasks;delete o._live;return o}return d}
+window.plIn=plIn;window.plOut=plOut;
+/* طلبات تعديل المواعيد من فريق المشروع */
+let PCRS={};
+async function pcrLoad(id){try{const r=await sb.rpc('pcr_list',{p_pid:id});if(r.error)return;PCRS[id]=r.data||[];const b=document.getElementById('pcrb');if(b&&cr&&cr.id==id)b.outerHTML=pcrH()}catch(_){}}
+function pcrH(){if(!cr)return '';const L0=PCRS[cr.id];if(!L0){setTimeout(()=>pcrLoad(cr.id),0);return '<div id="pcrb"></div>'}
+ const pend=L0.filter(r=>r.status=='pending');if(!pend.length)return '<div id="pcrb"></div>';
+ return `<div id="pcrb" style="background:#fff8e6;border:1px solid #f0d9a8;border-radius:12px;padding:9px 12px;margin:8px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><b>📨 ${L('طلبات تعديل مواعيد من الفريق بانتظار قرارك','Date-change requests from the team awaiting your decision')}: ${ad(pend.length)}</b><button class="p" onclick="pcrOpen()">${L('عرض والقرار','Review and decide')}</button></div>`}
+const dd0=(a,b)=>{const x=dn(a),y=dn(b);return isNaN(x)||isNaN(y)?null:y-x};
+function pcrOpen(){const LL=PCRS[cr.id]||[],ce=cr.data.edate||'';let o=document.getElementById('pcrw');if(o)o.remove();o=document.createElement('div');o.id='pcrw';o.className='nov';o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:220;display:flex;align-items:center;justify-content:center;padding:10px';o.onclick=e=>{if(e.target==o)o.remove()};
+ const row=r=>{const im=r.impact||{},dl=dd0(im.old_end,im.new_end),late=ce&&im.new_end?dd0(ce,im.new_end):null;
+  return `<div style="border:1px solid #e6e2d6;border-radius:12px;padding:10px;margin:8px 0;background:#fff"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(r.by_name||'')}</b><span class="mut" dir="ltr">${esc(String(r.created_at||'').slice(0,16).replace('T',' '))}</span></div>
+  ${r.note?`<div style="margin:4px 0">💬 ${esc(r.note)}</div>`:''}
+  <div style="margin:6px 0"><b>${L('المهام','Tasks')} (${ad((r.changes||[]).length)}):</b>${(r.changes||[]).map(c=>{const d=dd0(c.oe,c.e);return `<div class="mut" style="margin:2px 0">• ${esc(c.n||c.id)} — <span dir="ltr">${esc(c.os||'')}→${esc(c.oe||'')}</span> ⇒ <span dir="ltr">${esc(c.s||'')}→${esc(c.e||'')}</span>${d?` <b style="color:${d>0?'#d1101d':'#1c7a45'}">(${d>0?'+':''}${ad(d)} ${L('يوم','d')})</b>`:''}</div>`}).join('')}</div>
+  <div style="margin:6px 0;padding:6px 8px;border-radius:8px;background:${dl>0?'#fdecee':'#eef6fb'}">🏁 ${L('نهاية المشروع','Project end')}: <span dir="ltr">${esc(im.old_end||'—')}</span> → <span dir="ltr">${esc(im.new_end||'—')}</span>${dl!=null?` <b>(${dl>0?'+':''}${ad(dl)} ${L('يوم','d')})</b>`:''}${ce?`<br>📄 ${L('نهاية الميثاق','Charter end')}: <span dir="ltr">${esc(ce)}</span>${late>0?` — <b style="color:#d1101d">${L('يتجاوزها بـ','exceeds by')} ${ad(late)} ${L('يوم','d')}</b>`:late!=null?` — ${L('ضمنها','within it')}`:''}`:''}</div>
+  ${r.status=='pending'?`<div class="row" style="gap:6px"><button class="g" onclick="pcrDo(${r.id},true)">✅ ${L('قبول ونقله لمسودة التعديل','Accept into the revision draft')}</button><button class="r" onclick="pcrDo(${r.id},false)">⛔ ${L('رفض','Reject')}</button></div>`
+   :`<div class="mut">${r.status=='accepted'?'✅ '+L('قُبل','Accepted'):'⛔ '+L('رُفض','Rejected')} — ${esc(r.decided_name||'')}${r.decision_note?': '+esc(r.decision_note):''}</div>`}</div>`};
+ o.innerHTML=`<div style="background:#fbfaf6;border-radius:16px;max-width:640px;width:100%;max-height:88vh;overflow:auto;padding:14px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:17px">📨 ${L('طلبات تعديل المواعيد','Date-change requests')}</b><button onclick="document.getElementById('pcrw').remove()">✕</button></div>
+ <div class="mut" style="margin:4px 0 8px">${L('القبول يضيف التعديل إلى مسودة تعديل الخطة (ويبدأ تعديلًا جديدًا إن كانت معتمدة)، ولا يراه الفريق إلا بعد اعتماد الخطة. لمواءمة الجدول بعدها استخدم «🎯 مواءمة الجدول».','Accepting adds the change to the plan revision draft; the team sees it only after approval. Then use “🎯 Align schedule”.')}</div>${LL.length?LL.map(row).join(''):`<div class="mut">${L('لا توجد طلبات.','No requests.')}</div>`}</div>`;document.body.appendChild(o)}
+async function pcrDo(id,ok){let note=null;if(!ok){note=prompt(L('سبب الرفض (يصل لصاحب الطلب):','Reason for rejection (sent to the requester):'));if(note==null)return;if(!note.trim())return msg(L('اكتب سبب الرفض.','Write a reason.'))}
+ const r=await sb.rpc('pcr_decide',{p_id:id,p_ok:ok,p_note:note});if(r.error)return msg(r.error.message);const w=document.getElementById('pcrw');if(w)w.remove();delete PCRS[cr.id];await openCR(cr.id);msg(ok?L('قُبل الطلب وأُضيف إلى مسودة تعديل الخطة. راجعها ثم أرسلها للاعتماد.','Accepted and added to the revision draft.'):L('رُفض الطلب وأُبلغ صاحبه.','Rejected; the requester was notified.'))}
 function diffTasks(){const base=cr.data._base||[],cur=T(),bm={},cm={},out=[];base.forEach(b=>bm[b.id]=b);cur.forEach(c=>cm[c.id]=c);
  const nm=id=>users[id]?users[id].full_name:'';
  cur.forEach(c=>{const b=bm[c.id];if(!b){out.push({k:'add',by:nm(c.eb),n:(M[c.id]?M[c.id].w:'')+' '+(c.n||'')});return}
@@ -2338,7 +2361,7 @@ function diffTasks(){const base=cr.data._base||[],cur=T(),bm={},cm={},out=[];bas
   if(ch.length)out.push({k:'chg',by:nm(c.eb),n:(M[c.id]?M[c.id].w:'')+' '+(c.n||''),ch})});
  base.forEach(b=>{if(!cm[b.id]){const dl=(cr.data._del||[]).find(r=>r.id==b.id);out.push({k:'del',by:dl?nm(dl.by):'',n:b.n||'—'})}});return out}
 function diffH(){if(!cr||cr.version<2||!Array.isArray(cr.data._base)||!cr.data._base.length||cr.status=='Approved')return '';const df=diffTasks();
- return `<details class="vsum"><summary>🔁 ${t('pl_diffT')} (${ad(df.length)})</summary>${df.length?df.map(r=>`<div class="vd ${r.k}"><b>${t(r.k=='add'?'pl_dAdd':r.k=='del'?'pl_dDel':'pl_dChg')}:</b> ${esc(r.n)}${r.by?` <span class="mut">· ${t('pl_dBy')}: <b>${esc(r.by)}</b></span>`:''}${r.ch?`<div class="mut">${r.ch.map(esc).join('<br>')}</div>`:''}</div>`).join(''):`<div class="mut">${t('pl_dNone')}</div>`}</details>`}
+ return (cr.data&&('_live' in cr.data)?`<div class="mut" style="background:#eef6fb;border:1px solid #cfe3f0;border-radius:10px;padding:8px 10px;margin:6px 0">ℹ️ ${L('هذه مسودة تعديل منفصلة: فريق المشروع يرى ويحدّث الخطة المعتمدة الحالية، ولا تظهر لهم هذه التعديلات إلا بعد اعتمادها. ما يُدخله الفريق من إنجاز يُحفظ ويُدمج تلقائيًا عند الاعتماد.','This is a separate revision draft: the team keeps working on the approved plan and sees these changes only after approval. Their progress is kept and merged on approval.')}</div>`:'')+`<details class="vsum"><summary>🔁 ${t('pl_diffT')} (${ad(df.length)})</summary>${df.length?df.map(r=>`<div class="vd ${r.k}"><b>${t(r.k=='add'?'pl_dAdd':r.k=='del'?'pl_dDel':'pl_dChg')}:</b> ${esc(r.n)}${r.by?` <span class="mut">· ${t('pl_dBy')}: <b>${esc(r.by)}</b></span>`:''}${r.ch?`<div class="mut">${r.ch.map(esc).join('<br>')}</div>`:''}</div>`).join(''):`<div class="mut">${t('pl_dNone')}</div>`}</details>`}
 // ---- print / PDF ----
 function printPlan(){norm();rollup();cpm();const d=cr.data,css=[...document.styleSheets].map(s=>{try{return[...s.cssRules].map(r=>r.cssText).join('\n')}catch(_){return ''}}).join('\n');
  const keep={view:PL.view,zoom:PL.zoom,gfs:PL.gfs,lm:PL.lm,sel:PL.sel,ed:PL.ed,rh:PL.rh};PL.view='gantt';PL.zoom='auto';PL.gfs=false;PL.lm=0;PL.ed=null;PL.rh=28;
@@ -3275,7 +3298,7 @@ function depOk(o,to){const a=o.after?itemByK(o.after):null,ti=sprIdx(to);let msg
  return !msgs.length||confirm('⚠️ '+msgs.join('\n')+'\n\n'+L('متابعة النقل رغم ذلك؟','Move anyway?'))}
 function depBad(it){if(it.si<0)return '';const a=it.after?itemByK(it.after):null;if(a&&(a.si<0||a.si>it.si))return L('يبدأ بعد «'+a.n+'» الموجود '+(a.si<0?'في القائمة':'في سبرنت لاحق'),'Must start after “'+a.n+'”');return ''}
 async function agRpc(fn,args,okMsg){const r=await sb.rpc(fn,args);if(r.error){msg((/could not find|schema cache/i.test(r.error.message)?L('شغّل ملف التحديث update-oct70 أولًا. ','Run update-oct70 first. '):'')+r.error.message);return false}
- try{if(window.plPing)plPing();const f=await sb.from('plans').select('data').eq('id',cr.id).single();if(f.data){const fresh=f.data.data||{};const dirty=JSON.stringify(cr.data.backlog)!==JSON.stringify(PL.base.backlog)||JSON.stringify(cr.data.tasks)!==JSON.stringify(PL.base.tasks);cr.data=dirty&&window.plMerge?plMerge(PL.base,cr.data,fresh).d:JSON.parse(JSON.stringify(fresh));PL.base=JSON.parse(JSON.stringify(fresh));PL.rev=+fresh._rev||0;cr.data._rev=PL.rev;norm();rollup();renderPlan()}}catch(_){}
+ try{if(window.plPing)plPing();const f=await sb.from('plans').select('data').eq('id',cr.id).single();if(f.data){const fresh=plIn(f.data.data||{});const dirty=JSON.stringify(cr.data.backlog)!==JSON.stringify(PL.base.backlog)||JSON.stringify(cr.data.tasks)!==JSON.stringify(PL.base.tasks);cr.data=dirty&&window.plMerge?plMerge(PL.base,cr.data,fresh).d:JSON.parse(JSON.stringify(fresh));PL.base=JSON.parse(JSON.stringify(fresh));PL.rev=+fresh._rev||0;cr.data._rev=PL.rev;norm();rollup();renderPlan()}}catch(_){}
  if(okMsg&&window.plNote)plNote(okMsg);return true}
 window.agSuggest=async function(){const i=document.getElementById('agn_sug'),z=document.getElementById('ags_sug'),n=i&&i.value.trim();if(!n)return;i.value='';await agRpc('ag_suggest',{p_id:cr.id,p_name:n,p_pts:+(z&&z.value)||3},L('أُرسل اقتراحك إلى مدير المشروع.','Your suggestion was sent to the project manager.'));const e=document.getElementById('agn_sug');if(e)e.focus()};
 window.agNewGroup=function(){const v=prompt(L('اسم مجموعة العمل (مثال: نموذج الطلب الإلكتروني):','Work group name:'),'');if(!v||!v.trim())return;snap();groups().push({id:'g'+nid(),n:v.trim()});renderPlan();pSave();lgA('group|'+v.trim())};
@@ -3488,12 +3511,12 @@ function merge(b,m,t){const cf=new Set(),o={},ks=new Set([...Object.keys(m||{}),
  return{d:o,cf:[...cf]}}
 window.plMerge=merge;
 window.plSaveRev=async function(dd){let base=PL.base||{},mine=dd,tries=0,cf=[];
- while(tries++<4){const send={...mine,_rev:(PL.rev||0)+1};const r=await sb.from('plans').update({data:send}).eq('id',cr.id).select('id,data');
-  if(!r.error){if(!r.data||!r.data.length)return{ok:false};const sv=r.data[0].data||send;PL.base=C(sv);PL.rev=+sv._rev||send._rev;cr.data._rev=PL.rev;
+ while(tries++<4){const send=plOut({...mine,_rev:(PL.rev||0)+1});const r=await sb.from('plans').update({data:send}).eq('id',cr.id).select('id,data');
+  if(!r.error){if(!r.data||!r.data.length)return{ok:false};const sv=plIn(r.data[0].data||send);PL.base=C(sv);PL.rev=+sv._rev||send._rev;cr.data._rev=PL.rev;
    if(tries>1){const keep=PL.ed;cr.data=C(sv);PL.base=C(sv);norm();rollup();PL.ed=keep;renderPlan();note(cf.length?L('تم دمج تعديلاتك مع تعديلات زملائك. تعارض في: ','Your edits were merged with colleagues’ changes. Conflict on: ')+cf.slice(0,5).join('، ')+L(' (حُفظ تعديلك).',' (yours kept).'):L('تم دمج تعديلاتك مع تعديلات زملائك.','Your edits were merged with colleagues’ changes.'))}
    ping();return{ok:true}}
   if(!/rev conflict/i.test(r.error.message||''))return{error:r.error};
-  const f=await sb.from('plans').select('data').eq('id',cr.id).single();if(f.error)return{error:f.error};const theirs=f.data.data||{};
+  const f=await sb.from('plans').select('data').eq('id',cr.id).single();if(f.error)return{error:f.error};const theirs=plIn(f.data.data||{});
   const mg=merge(base,mine,theirs);cf=cf.concat(mg.cf);mine=mg.d;base=theirs;PL.rev=+theirs._rev||0}
  return{error:{message:L('تعذّر الحفظ بسبب تعديلات متزامنة كثيرة. أعد المحاولة.','Could not save due to many concurrent edits. Try again.')}}};
 function note(t){let e=document.getElementById('plnote');if(!e){e=document.createElement('div');e.id='plnote';document.body.appendChild(e)}e.textContent='🔄 '+t;e.classList.add('on');clearTimeout(note.t);note.t=setTimeout(()=>e.classList.remove('on'),5000)}
@@ -3505,7 +3528,7 @@ window.plPing=ping;
 function dirty(){try{return !!(typeof PSV!=='undefined'&&PSV)||J(cr.data.tasks)!==J(PL.base.tasks)||J(cr.data.backlog)!==J(PL.base.backlog)}catch(_){return true}}
 async function refresh(who){if(!cr||cr.id!=CID)return;const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.closest('#plan,#agw')){clearTimeout(rt);rt=setTimeout(()=>refresh(who),1500);return}
  if(document.getElementById('agw')||document.getElementById('labw')){clearTimeout(rt);rt=setTimeout(()=>refresh(who),2000);return}
- const f=await sb.from('plans').select('data,status').eq('id',cr.id).single();if(f.error||!f.data)return;const fresh=f.data.data||{};if((+fresh._rev||0)<=(PL.rev||0))return;
+ const f=await sb.from('plans').select('data,status').eq('id',cr.id).single();if(f.error||!f.data)return;const fresh=plIn(f.data.data||{});if((+fresh._rev||0)<=(PL.rev||0))return;
  if(dirty()){const mg=merge(PL.base,cr.data,fresh);cr.data=mg.d;cr.data._rev=PL.rev}else{cr.data=C(fresh)}PL.base=C(fresh);PL.rev=+fresh._rev||0;cr.data._rev=PL.rev;
  try{norm();rollup();renderPlan()}catch(_){}note((who?who+' ':'')+L('حدّث الخطة — تظهر تعديلاته الآن.','updated the plan — changes shown.'))}
 window.plJoin=function(id){if(CID==id&&CH)return;try{if(CH){sb.removeChannel(CH);CH=null}}catch(_){}CID=id;ON={};if(!sb||!sb.channel||!me)return;

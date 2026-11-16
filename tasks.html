@@ -214,7 +214,7 @@ function mkProject(p){try{(window.TRAW=window.TRAW||{})[p.id]=p.tasks||[]}catch(
  return pr}
 let ATTN={};
 function fileChips(r){const n=ATTN[r.pr.pid+'|'+r.id]||0,hasN=!!(r.x&&(r.x.tn||r.x.nt));if(!n&&!hasN)return '';const AR_=lang=='ar';return (n?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'مرفقات':'Attachments'}">📎 ${n}</span>`:'')+(hasN?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'ملاحظات':'Notes'}">📝</span>`:'')}
-async function reload(){
+async function reload(){try{pcrMine(true)}catch(_){}
  try{ATTN={};const a=await sb.from('plan_attachments').select('cr_id,task_id').not('task_id','is',null).limit(5000);(a.data||[]).forEach(z=>{const k=z.cr_id+'|'+z.task_id;ATTN[k]=(ATTN[k]||0)+1})}catch(_){}
  let rows=[];
  try{GRT={};GRPL={};const g=await (await sb.rpc('my_grants').then(r=>r.error?sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id):r,()=>sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id)));(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1;if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRPL[x.pcode]=1})}catch(_){}
@@ -593,7 +593,7 @@ const ad=x=>String(x);
 Object.assign(D,{
  exp:['المخطط','Planned'],act:['الفعلي','Actual'],
  sc_h:['تعديل الموعد المخطط','Edit planned dates'],
- sc_note:['التعديل لا يغيّر الخطة المعتمدة مباشرة: يُحفظ في مسودة تعديلات، وعند الانتهاء ترسلها كلها بزر واحد للاعتماد.','Edits do not change the approved plan directly: they are kept as a draft of changes, then sent for approval with one button.'],
+ sc_note:['التعديل لا يغيّر الخطة المعتمدة مباشرة: يُجمع هنا ثم يُرسل بزر واحد. إن كنت مدير المشروع يدخل مسودة تعديل الخطة، وإن كنت من الفريق يصل طلبًا لمدير المشروع مع أثره على نهاية المشروع.','Edits do not change the approved plan directly. Managers: they go into the plan revision draft. Team members: they go to the PM as a request with the impact on the project end.'],
  sc_w1:['+ أسبوع','+ 1 week'],sc_w2:['+ أسبوعان','+ 2 weeks'],sc_m1:['+ شهر','+ 1 month'],sc_b1:['− أسبوع','− 1 week'],
  sc_s:['البداية المخططة','Planned start'],sc_e:['النهاية المخططة','Planned end'],
  sc_cas:['انقل معها المهام الفرعية والمهام التي تعتمد عليها','Move its sub-tasks and dependent tasks with it'],
@@ -604,7 +604,7 @@ Object.assign(D,{
  af_old:['قبل','Before'],af_opt:['تحسين الجدولة','Optimise schedule'],af_opt_on:['✔ تم تحسين الجدولة: تتأخر اللاحقة بالقدر اللازم فقط.','✔ Schedule optimised: later tasks move only as much as needed.'],af_undo:['التراجع','Undo'],af_opt_none:['لا يوجد ما يمكن تحسينه: الجدولة الحالية تؤخّر اللاحقة بالقدر اللازم فقط.','Nothing to optimise: later tasks already move only as much as needed.'],af_new:['بعد','After'],af_none:['لا توجد مهام أخرى متأثرة.','No other tasks are affected.'],af_conf:['يتعارض مع المهمة السابقة','Conflicts with its predecessor'],
  sg_bar:['{n} مهمة معدّلة في المسودة','{n} task(s) changed in draft'],sg_rev:['مراجعة وإرسال','Review & send'],sg_drop:['تجاهل الكل','Discard all'],
  sg_h:['تعديلات الخطة قبل الإرسال','Plan changes before sending'],sg_send:['إرسال للاعتماد','Send for approval'],sg_nt:['ملاحظة للمعتمدين (اختياري)','Note for approvers (optional)'],
- sg_ok:['أُنشئت مسودة التعديل. أكمل الإرسال من صفحة الخطة.','Change draft created. Finish sending from the plan page.'],
+ sg_ok:['أُضيف التعديل إلى مسودة تعديل الخطة. أكمل الإرسال للاعتماد من صفحة الخطة؛ الفريق يرى الخطة الحالية حتى الاعتماد.','Added to the plan revision draft. Send it for approval from the plan page; the team sees the current plan until approval.'],sg_req:['أُرسل طلب التعديل لمدير المشروع ليقرر. لا تتغير الخطة قبل قراره، وسيصلك تنبيه بالنتيجة.','Your change request was sent to the project manager. The plan does not change before the decision; you will be notified.'],pq_pend:['⏳ طلب تعديل بانتظار قرار مدير المشروع:','⏳ Change request awaiting PM decision:'],pq_ok:['✅ قُبل طلب التعديل (يسري بعد اعتماد الخطة):','✅ Change request accepted (effective after plan approval):'],pq_no:['⛔ رُفض طلب التعديل:','⛔ Change request rejected:'],
  sg_info:['بعد الضغط ستتحول الخطة إلى مسودة بإصدار جديد (وتبقى الخطة السابقة سارية لتُنجَز المهام)، ثم تضغط «إرسال» في صفحة الخطة لبدء الاعتماد.','The plan becomes a new-version draft (the previous plan keeps running so tasks can still be updated); then press Submit on the plan page to start approval.'],
  vDig:['ملخص الفترة','Digest'],dg_w:['الأسبوع','Week'],dg_m:['الشهر','Month'],dg_end:['تنتهي','Ending'],dg_start:['تبدأ','Starting'],dg_run:['جارية','Running'],dg_late:['متأخرة','Late'],
  dg_old:['متأخرة من قبل هذه الفترة','Overdue from before this period'],dg_none:['لا مهام في هذه الفترة.','No tasks in this period.'],dg_pr:['السابق','Prev'],dg_nx:['التالي','Next'],dg_tdy:['اليوم','Today']
@@ -667,7 +667,7 @@ function schedBox(r){
  if(!r.edit)return '';const x=r.x,cur=effD(r.pr,x),g=(STG[r.pr.pid]||{})[r.id];
  if(cur.s==null||cur.e==null)return '';
  const sc=affInfo(r).length;
- return `<div class="card" style="margin:10px 0;background:#fafbfb"><b>✏️ ${t('sc_h')}</b>
+ return pcrChip(r)+`<div class="card" style="margin:10px 0;background:#fafbfb"><b>✏️ ${t('sc_h')}</b>
  ${g?`<div class="chp o" style="margin:6px 0">${t('sc_staged')} <a href="#" onclick="stgUndo('${esc(r.pr.pid)}','${esc(r.id)}');return false" style="margin-inline-start:8px">${t('sc_undo')}</a></div>`:''}
  ${sc?`<div style="margin:6px 0"><a href="#" onclick="affView('${esc(r.pr.pid)}|${esc(r.id)}');return false" class="chp o">🔗 ${(lang=='ar'?'تؤثر على '+plr(sc,'task'):t('af_chip').replace('{n}',ad(sc)))}</a></div>`:''}
  <div class="mut" style="margin:4px 0">${t('sc_note')}</div>
@@ -728,11 +728,19 @@ function stgReview(){closeSheet();const o=document.createElement('div');o.id='so
  let h='';Object.keys(STG).forEach(pid=>{const pr=PR.find(p=>p.pid==pid);if(!pr)return;h+=`<div style="margin-top:8px"><b>${esc(pr.pname)}</b></div>`+Object.keys(STG[pid]).map(i=>{const x=pr.m[i],g=STG[pid][i];if(!x)return '';return `<div style="border-top:1px solid var(--line);padding:5px 0;font-size:13px"><div>${esc(x.n)} <a href="#" onclick="stgUndo('${esc(pid)}','${esc(i)}');return false" style="color:#d1101d">✕</a></div><div class="mut num">${fd(x.s)} ${lang=='ar'?'←':'→'} ${fd(x.e)} ${lang=='ar'?'⟵':'⟶'} <b>${fd(g.s)} ${lang=='ar'?'←':'→'} ${fd(g.e)}</b></div></div>`}).join('')});
  o.innerHTML=`<div class="sbx"><h3>${t('sg_h')}</h3>${h}<div class="mut" style="margin:8px 0">${t('sg_info')}</div><label>${t('sg_nt')}</label><textarea id="sg_n"></textarea>
  <div class="row" style="margin-top:10px"><button class="p" id="sg_go" onclick="stgSend()">${t('sg_send')}</button><button onclick="closeSheet()">${t('addX')}</button></div></div>`}
-async function stgSend(){const note=($('sg_n').value||'').trim()||null;const b=$('sg_go');if(b)b.disabled=true;let last=null;
+async function stgSend(){const note=($('sg_n').value||'').trim()||null;const b=$('sg_go');if(b)b.disabled=true;let last=null,nreq=0;
  for(const pid of Object.keys(STG)){const ch=Object.keys(STG[pid]).map(i=>({id:i,s:STG[pid][i].s,e:STG[pid][i].e}));
-  const {error}=await sb.rpc('pl_propose',{pid:+pid,changes:ch,p_note:note});if(error){if(b)b.disabled=false;return toast(error.message)}
-  delete STG[pid];last=pid}
- stgSave();toast(t('sg_ok'));if(last)setTimeout(()=>{location.href='plan.html#o='+last},700);else{closeSheet();stgBar();reload()}}
+  const {data:rv,error}=await sb.rpc('pl_propose',{pid:+pid,changes:ch,p_note:note,p_impact:stgImpact(pid)});if(error){if(b)b.disabled=false;return toast(error.message)}
+  delete STG[pid];if(rv<0)nreq++;else last=pid}
+ stgSave();if(nreq&&!last){toast(t('sg_req'));closeSheet();stgBar();reload();pcrMine(true);return}
+ toast(t('sg_ok'));if(last)setTimeout(()=>{location.href='plan.html#o='+last},700);else{closeSheet();stgBar();reload()}}
+/* أثر التعديل على نهاية المشروع (يُرسل مع الطلب) */
+function stgImpact(pid){const pr=PR.find(p=>String(p.pid)==String(pid));if(!pr)return null;const g=STG[pid]||{};let o=null,n=null;
+ (pr.tasks||[]).forEach(x=>{const e=x.e,ne=(g[x.id]&&g[x.id].e)||e;if(e&&(!o||e>o))o=e;if(ne&&(!n||ne>n))n=ne});return {old_end:o,new_end:n,cnt:Object.keys(g).length}}
+/* طلباتي المعلّقة: تظهر على المهمة */
+let PCR=null;async function pcrMine(f){if(PCR&&!f)return PCR;try{const r=await sb.rpc('pcr_mine');PCR=r.data||[]}catch(_){PCR=[]}return PCR}
+function pcrChip(r){if(!PCR)return '';const q=PCR.find(z=>z.pid==r.pr.pid&&(z.changes||[]).some(c=>c.id==r.id)&&(z.status=='pending'||(Date.now()-new Date(z.decided_at||0))<7*864e5));if(!q)return '';
+ const c=(q.changes||[]).find(c=>c.id==r.id)||{};return `<div class="chp ${q.status=='rejected'?'r':'o'}" style="margin:6px 0;display:block">${q.status=='pending'?t('pq_pend'):q.status=='accepted'?t('pq_ok'):t('pq_no')} <span dir="ltr">${esc(c.oe||'')} → ${esc(c.e||'')}</span>${q.decision_note?' — '+esc(q.decision_note):''}</div>`}
 /* ملخص الفترة: أسبوع / شهر بخط زمني */
 function vDig(rs){
  const lv=leaves(rs).filter(r=>r.s!=null&&r.e!=null);let a,b,ticks=[];
