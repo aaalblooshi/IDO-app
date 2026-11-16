@@ -2,12 +2,12 @@
 (function () {
   var G = [
     ['wf', ['سير عمل النماذج (الميثاق، الخطة، طلب التغيير، التقرير الختامي)', 'Form workflow'], ['submitted', 'reviewerAssigned', 'approverAssigned', 'draftAssigned', 'reviewDone', 'approved', 'reviewerRejected', 'approverRejected', 'deleteRequested', 'deleteApproved', 'deleteRejected', 'reminderReview', 'reminderApprove']],
-    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
+    ['pj', ['المشاريع والفرق', 'Projects & teams'], ['planChangeReq', 'pmAssigned', 'pmRemoved', 'projTransfer', 'planActive', 'grantAdded', 'assignWork', 'docAssign', 'planDraft', 'planSuggest', 'halt', 'closureDue']],
     ['tk', ['المهام', 'Tasks'], ['taskAssigned', 'taskDueSoon', 'taskOverdue', 'updDaily', 'taskUpdated', 'taskReminder', 'reminderUpdate']],
     ['kr', ['المؤشرات والمخاطر والموازنة والإنجاز', 'KPIs, risks, budget & progress'], ['kpiDue', 'kpiRed2', 'riskRequest', 'riskDecision', 'riskReview', 'riskEscalate', 'overBudget', 'progRequest', 'progDecision']],
     ['of', ['المكتب والتصعيد', 'Office & escalation'], ['escRequest', 'escDecision', 'officeRemind', 'personal']],
     ['ac', ['الحساب والصلاحيات', 'Account & access'], ['welcome', 'roleChanged', 'permExpiry']],
-    ['ch', ['التواصل', 'Communication'], ['chatMention', 'chatAdd', 'chatJoinReq']],
+    ['ch', ['التواصل', 'Communication'], ['chatDM', 'chatMsg', 'chatMention', 'chatAdd', 'chatJoinReq']],
     ['pf', ['الأداء وسجل الإنجاز', 'Performance'], ['kudos', 'mgrNote']],
     ['dg', ['الملخصات الدورية', 'Periodic summaries'], ['digest', 'officeDigest']]
   ];
@@ -59,6 +59,9 @@
     welcome: ['بريد الترحيب للحساب الجديد', 'Welcome email', 'برابط النظام، دون كلمة المرور.'],
     roleChanged: ['تغيير دورك أو إضافة دور', 'Role changed', ''],
     permExpiry: ['انتهاء صلاحية مؤقتة', 'Temporary access expiring', ''],
+    chatDM: ['رسالة خاصة جديدة', 'New direct message', 'إشعار الهاتف فقط افتراضيًا؛ لا يُكرَّر داخل النظام لأن للمحادثة عدّادها.'],
+    chatMsg: ['رسالة في محادثة مشروع أو مجموعة', 'Message in a project or group chat', 'لكل أعضاء المحادثة؛ موقوفة افتراضيًا. الكتم في المحادثة يوقفها للشخص.'],
+    planChangeReq: ['تعديل مواعيد في الخطة من صفحة المهام', 'Plan dates changed from Tasks', 'لمدير المشروع ومكتب التطوير؛ الخطة تعود للاعتماد.'],
     chatMention: ['ذكرك في محادثة', 'Mentioned in chat', ''],
     chatAdd: ['إضافتك لمحادثة أو مجموعة', 'Added to a chat', ''],
     chatJoinReq: ['طلب انضمام لمحادثتك', 'Join request', ''],
