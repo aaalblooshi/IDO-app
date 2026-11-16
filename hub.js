@@ -65,6 +65,7 @@
     if (!h) { h = document.createElement('nav'); h.id = 'hubn'; h.className = 'hubn'; h.setAttribute('aria-label', ar() ? 'أجزاء المشروع' : 'Project sections'); h.addEventListener('click', onClick); }
     if (h.nextSibling !== m) m.parentNode.insertBefore(h, m);
     h.style.display = '';
+    try { var cs = getComputedStyle(m), cw = m.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); if (cw > 200) h.style.maxWidth = Math.round(cw) + 'px'; } catch (_) { }
     document.body.classList.toggle('hubrec', isDoc && !!pc);
     if (key === LAST && !force && h.childNodes.length) return; LAST = key;
     h.innerHTML = L(pc).map(function (x) {
