@@ -538,7 +538,7 @@
   } catch (e) {}
 })();
 /* smart KPI / risk updates in My tasks (feature u_tasks) */
-(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=9';s.defer=true;document.head.appendChild(s)})();
+(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=10';s.defer=true;document.head.appendChild(s)})();
 /* keep horizontal tab and chip rows where the user left them when a page redraws */
 (function(){if(window.__hsk)return;window.__hsk=1;var M={};
 function key(e){var p=[],n=e;for(var i=0;i<3&&n&&n!==document.body;i++){p.push(n.tagName+'.'+(typeof n.className=='string'?n.className.replace(/\s*\b(on|p|active|sel)\b/g,''):'')+(n.id?'#'+n.id:''));n=n.parentElement}return p.join('<')}
@@ -599,3 +599,16 @@ window.IDODL=async function(bucket,path,name){
  catch(e){location.href=r.data.signedUrl}
  done()};
 })();
+/* IDOASK: نافذة كتابة بمربع نص يتمدّد بدل prompt() — تُرجع النص أو null عند الإلغاء */
+window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
+ var ar=(document.documentElement.dir||'rtl')!='ltr',T=function(a,e){return ar?a:e};
+ if(!document.getElementById('idoaskcss')){var s=document.createElement('style');s.id='idoaskcss';s.textContent='.iask{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,32,.45);display:flex;align-items:center;justify-content:center;padding:16px}.iask>div{background:#fff;border-radius:18px;max-width:560px;width:100%;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.22);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;gap:10px;font:inherit}.iask h4{margin:0;font-size:15.5px;line-height:1.6;white-space:pre-line;color:#1f2a33}.iask textarea{font:inherit;font-size:15px;line-height:1.7;width:100%;box-sizing:border-box;min-height:110px;max-height:55dvh;resize:vertical;border:1px solid #d6d9de;border-radius:12px;padding:10px 12px;overflow:auto}.iask textarea:focus{outline:2px solid #1d5f8a;border-color:#1d5f8a}.iask .iakf{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.iask .iakc{flex:1;color:#6b6f76;font-size:12px}.iask button{font:inherit;cursor:pointer;border-radius:99px;padding:8px 18px;font-weight:700;font-size:14px}.iask .iako{background:#1d5f8a;color:#fff;border:0}.iask .iako:disabled{opacity:.45;cursor:default}.iask .iakx{background:#fff;color:#333;border:1px solid #d6d9de}@media(max-width:560px){.iask{align-items:flex-end;padding:0}.iask>div{border-radius:18px 18px 0 0;max-height:92dvh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}}';document.head.appendChild(s)}
+ var w=document.createElement('div');w.className='iask';w.dir=ar?'rtl':'ltr';
+ w.innerHTML='<div role="dialog" aria-modal="true"><h4></h4><textarea rows="4"></textarea><div class="iakf"><span class="iakc"></span><button class="iakx" type="button"></button><button class="iako" type="button"></button></div></div>';
+ var h=w.querySelector('h4'),ta=w.querySelector('textarea'),ok=w.querySelector('.iako'),cx=w.querySelector('.iakx'),cc=w.querySelector('.iakc');
+ h.textContent=msg;ta.value=o.def||'';ta.placeholder=o.ph||T('اكتب هنا…','Type here…');ok.textContent=o.ok||T('إرسال','Send');cx.textContent=T('إلغاء','Cancel');
+ var grow=function(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight+2,window.innerHeight*.55)+'px';var n=ta.value.trim().length;ok.disabled=!!o.req&&!n;cc.textContent=n?n+T(' حرفًا',' chars'):(o.req?T('مطلوب','Required'):T('اختياري','Optional'))};
+ var end=function(v){document.removeEventListener('keydown',kd,true);w.remove();res(v)};
+ var kd=function(e){if(e.key=='Escape'){e.preventDefault();end(null)}else if(e.key=='Enter'&&(e.ctrlKey||e.metaKey)&&!ok.disabled){e.preventDefault();end(ta.value)}};
+ ta.addEventListener('input',grow);ok.onclick=function(){end(ta.value)};cx.onclick=function(){end(null)};w.addEventListener('click',function(e){if(e.target===w)end(null)});document.addEventListener('keydown',kd,true);
+ document.body.appendChild(w);grow();setTimeout(function(){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},30)})};

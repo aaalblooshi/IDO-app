@@ -169,7 +169,7 @@ let MGS=0;function mgSet(n){MGS=MGS==n?0:n;$('mgS').innerHTML=stars(MGS,'mgSet')
 async function mgSave(){const r=await sb.rpc('perf_mgr_save',{p_uid:U.id,p_period:FROM.slice(0,4),p_rating:MGS||null,p_note:$('mgN').value});if(r.error)return toast(P('تعذّر: ','Failed: ')+r.error.message);toast(P('تم الحفظ','Saved'));load()}
 async function pinAdd(){const t=$('pnT').value.trim();if(!t)return toast(P('اكتب الإنجاز','Write the achievement'));const r=await sb.rpc('perf_pin_save',{p_title:t,p_note:$('pnN').value,p_at:$('pnD').value||null});if(r.error)return toast(P('تعذّر: ','Failed: ')+r.error.message);toast(P('أُضيف','Added'));load()}
 async function pinDel(id){if(!confirm(P('حذف هذا الإنجاز؟','Delete?')))return;await sb.rpc('perf_pin_del',{p_id:id});load()}
-async function kudo(){const m=prompt(P('رسالة شكر إلى ','Thanks to ')+U.full_name+':');if(!m||!m.trim())return;const r=await sb.rpc('perf_kudos_send',{p_to:U.id,p_msg:m.trim()});if(r.error)return toast(P('تعذّر: ','Failed: ')+r.error.message);toast(P('أُرسل الشكر 🙏','Thanks sent 🙏'));load()}
+async function kudo(){const m=await IDOASK(P('رسالة شكر إلى ','Thanks to ')+U.full_name,{req:1});if(!m||!m.trim())return;const r=await sb.rpc('perf_kudos_send',{p_to:U.id,p_msg:m.trim()});if(r.error)return toast(P('تعذّر: ','Failed: ')+r.error.message);toast(P('أُرسل الشكر 🙏','Thanks sent 🙏'));load()}
 /* تقييم مدير المشروع لفريقه */
 /* تقييم مدير المشروع لفريقه — معايير، حقائق من النظام، عبارات جاهزة، اقتراح صياغة، حفظ تلقائي، مسودة ثم نشر */
 const CRIT=[['t','الالتزام بالمواعيد','Timeliness'],['q','جودة العمل','Quality'],['c','التعاون والتواصل','Collaboration'],['i','المبادرة','Initiative']];
@@ -227,4 +227,4 @@ async function tmAll(pub){let ok=0,bad=0;for(let i=0;i<TEAM.length;i++){const m=
  if(pub)pmDraw();toast((pub?P('نُشر ','Published '):P('حُفظ ','Saved '))+ok+(bad?P(' · تعذّر ',' · failed ')+bad:''))}
 init();
 </script>
-<script src="ido-ui.js?v=41"></script></body></html>
+<script src="ido-ui.js?v=42"></script></body></html>
