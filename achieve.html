@@ -185,7 +185,7 @@ function xl(name,rows){const go=()=>{const ws=XLSX.utils.aoa_to_sheet(rows);ws['
 function tasksF(){return (R.tasks||[]).filter(x=>(!MF||String(x.de).slice(0,7)==MF)&&(!TL||x.late)&&(!TQ||(x.n+' '+(x.pn||x.pc)).toLowerCase().includes(TQ.toLowerCase())))}
 function docsAll(){return [...(R.docl||[]).map(x=>({...x,t:'doc'})),...(R.sigs||[]).map(x=>({...x,t:'sig'}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)))}
 function docsF(){return docsAll().filter(x=>(DK=='all'||x.t==DK)&&(!DQ||((x.code||'')+' '+(x.pn||'')+' '+(KN[x.k]||'')).toLowerCase().includes(DQ.toLowerCase())))}
-function secOpen(id){OPEN[id]=true;const d=$(id);if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}}
+function secOpen(id){try{const tk={dOpen:'work',dTasks:'work',dDocs:'docs',dPins:'eval',pjs:'sum',kudos:'eval'}[id];if(tk&&window.ACHT)ACHT.go(tk)}catch(_){}OPEN[id]=true;const d=$(id);if(d){d.open=true;d.scrollIntoView({behavior:'smooth',block:'start'})}}
 window.addEventListener('toggle',e=>{const t=e.target;if(t&&t.tagName=='DETAILS'&&t.id)OPEN[t.id]=t.open},true);
 function chartSvg(){const M=R.months||[],n=M.length||1,mx=Math.max(1,...M.map(m=>m.done)),W=Math.max(760,n*70),H=170,bw=Math.min(30,W/n*.6),X=i=>W-((i+.5)*W/n);
  let g=`<line x1="0" x2="${W}" y1="${H-26}" y2="${H-26}" stroke="#e4dfd4"/>`;
@@ -262,7 +262,7 @@ function draw(){const r=R,c=r.can||{},f=r.feat||{},self=!!c.self;const pct=r.don
   ${tile(pct!=null&&pct<70?'r':'g',pct==null?'—':pct+'%',P('الإنجاز في الموعد','On time'),`${r.ontime||0} ${P('في موعدها','on time')} · ${r.late||0} ${P('بعد الموعد','late')}`,"TL=true;MF='';drawLists();secOpen('dTasks')")}
   ${tile('',r.avgdelay||'—',P('متوسط التأخير (يوم)','Avg delay (days)'),P('للمهام المنجزة بعد موعدها','for late completions'),"TL=true;drawLists();secOpen('dTasks')")}
   ${tile(r.overdue?'r':'',r.open||0,P('مهام جارية','Open tasks'),`${r.overdue||0} ${P('متأخرة الآن','overdue now')}`,"secOpen('dOpen')")}
-  ${tile('',(r.projects||[]).length,P('مشاريع شارك فيها','Projects'),`${pmN} ${P('كمدير مشروع','as PM')}`,"document.getElementById('pjs').scrollIntoView({behavior:'smooth'})")}
+  ${tile('',(r.projects||[]).length,P('مشاريع شارك فيها','Projects'),`${pmN} ${P('كمدير مشروع','as PM')}`,"secOpen('pjs')")}
   ${tile('',r.signed||0,P('توقيعات واعتمادات','Signatures'),'',"DK='sig';drawLists();secOpen('dDocs')")}
   ${tile('',r.docs||0,P('وثائق أعدّها','Documents prepared'),'',"DK='doc';drawLists();secOpen('dDocs')")}
   ${tile('',r.kpiupd||0,P('تحديثات مؤشرات','KPI updates'),P('قراءات سجّلها','readings entered'),"location.href='kpis.html'")}
@@ -343,4 +343,10 @@ async function tmAll(pub){let ok=0,bad=0;for(let i=0;i<TEAM.length;i++){const m=
  if(pub)pmDraw();toast((pub?P('نُشر ','Published '):P('حُفظ ','Saved '))+ok+(bad?P(' · تعذّر ',' · failed ')+bad:''))}
 init();
 </script>
-<script src="ido-ui.js?v=55"></script></body></html>
+<script src="ido-ui.js?v=56"></script><script>(function itInit(n){if(!window.IDOTabs||!document.querySelector('#app .kg')){if(n<120)setTimeout(()=>itInit(n+1),150);return}let A=true;try{A=(localStorage.getItem('lang')||'ar')!='en'}catch(_){}
+const W=['dOpen','dTasks'],D=['dDocs'],E=['dPins','kudos'];
+try{window.ACHT=IDOTabs({host:'#app',key:'ach',deep:false,count:false,items:':scope > *',always:e=>e.classList.contains('ptitle')||!!e.querySelector(':scope .ah h1'),
+ tabs:[['sum',A?'📊 الملخص والمشاريع':'📊 Summary',(e,t)=>e.classList.contains('kg')||e.id=='pjs'||!!e.querySelector('#msum')],
+  ['work',A?'✅ المهام':'✅ Tasks',e=>W.includes(e.id)],
+  ['docs',A?'✍️ التوقيعات والوثائق':'✍️ Signatures & documents',e=>D.includes(e.id)],
+  ['eval',A?'⭐ التقييم والتقدير':'⭐ Ratings & recognition',e=>E.includes(e.id)||/تقييم|تقدير المدير|Rating|assessment/i.test((e.querySelector('h1,h2')||{}).textContent||'')]]})}catch(e){console.warn(e)}})(0);</script></body></html>

@@ -619,7 +619,14 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  function hdr(){var h=document.getElementById('hd2')||document.getElementById('hd');if(!h)return 0;var cs=getComputedStyle(h);if(cs.display=='none'||cs.visibility=='hidden'||(cs.position!='sticky'&&cs.position!='fixed'))return 0;return Math.round(h.getBoundingClientRect().height)}
  function scan(){var all=document.body?document.body.getElementsByTagName('*'):[];for(var i=0;i<all.length;i++){var e=all[i];if(seen.has(e))continue;seen.add(e);if(e.id=='hd2'||e.id=='hd')continue;var cs=getComputedStyle(e);if(cs.position=='sticky'&&!(e.closest&&e.closest('#hd2,#hd,#gnav'))){var t=parseFloat(e.style.top||cs.top);if(!isNaN(t)){e.dataset.st0=t;st.push(e)}}}}
  function run(){busy=0;scan();var H=hdr(),d=document.documentElement,emb=d.classList.contains('embed')||d.classList.contains('emb');st=st.filter(function(e){return e.isConnected});
-  st.forEach(function(e){var t0=+e.dataset.st0,nt=t0>=40?Math.max(0,t0-50+(emb?0:H)):t0;if(Math.abs((parseFloat(e.style.top)||-1)-nt)>.5)e.style.top=nt+'px';var z=parseInt(getComputedStyle(e).zIndex,10);if(!emb&&H&&z>=20&&!e.closest('.sheet,.dr,#pal,.iask'))e.style.zIndex='19'})}
+  st.forEach(function(e){var z=parseInt(getComputedStyle(e).zIndex,10);if(!emb&&H&&z>=20&&!e.closest('.sheet,.dr,#pal,.iask'))e.style.zIndex='19'});stack()}
+ /* stacked sticky bars (project bar + tabs …): each one sits right under the header and the bars that are actually stuck above it, so nothing floats with a gap when an upper bar has scrolled away */
+ function stack(){var H=hdr(),d=document.documentElement,emb=d.classList.contains('embed')||d.classList.contains('emb'),acc=emb?0:H;
+  st.filter(function(e){return e.isConnected&&+e.dataset.st0>=40}).sort(function(a,b){return (+a.dataset.st0)-(+b.dataset.st0)}).forEach(function(e){
+   if(!e.offsetParent&&getComputedStyle(e).position!='fixed')return;if(Math.abs((parseFloat(e.style.top)||-1)-acc)>.5)e.style.top=acc+'px';
+   var r=e.getBoundingClientRect();if(r.height>0&&r.width>innerWidth*.4&&Math.abs(r.top-acc)<=2)acc+=r.height});
+  st.filter(function(e){return e.isConnected&&+e.dataset.st0<40}).forEach(function(e){var t0=+e.dataset.st0;if(Math.abs((parseFloat(e.style.top)||-1)-t0)>.5)e.style.top=t0+'px'})}
+ var sk=0;addEventListener('scroll',function(){if(sk)return;sk=1;requestAnimationFrame(function(){sk=0;stack()})},{passive:true});
  function q(){if(!busy){busy=1;setTimeout(run,150)}}
  new MutationObserver(q).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',function(){q()});addEventListener('load',q);q();
 }catch(e){}})();
