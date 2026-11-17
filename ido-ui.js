@@ -652,3 +652,42 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  document.addEventListener('click',function(e){if(e.target&&e.target.closest&&e.target.closest('#hm_m'))setTimeout(paint,30)},true);
  window.ubRefresh=function(){N=0;paint();setTimeout(load,300)};setTimeout(load,1200);setTimeout(function(){if(N!=null)paint()},3500);setInterval(load,60000);addEventListener('focus',load);document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
 }catch(_){}})();
+
+/* ===== فتح صفحات البوابة كتبويب داخل الصفحة بدل مغادرتها ===== */
+(function(){try{
+ if(window.top!==window.self)return;
+ var cur=(location.pathname.split('/').pop()||'index.html');
+ var SKIP=/^(index\.html|\.\/?|)$/;
+ function css(){if(document.getElementById('ipcss'))return;var s=document.createElement('style');s.id='ipcss';s.textContent=
+  '#ipnl{position:fixed;inset:0;z-index:95;background:rgba(20,30,40,.45);display:flex;justify-content:flex-start}'+
+  '#ipnl .ipb{background:#f4f2ec;width:min(1180px,96vw);height:100%;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(0,0,0,.25);animation:ipin .18s ease}'+
+  '@keyframes ipin{from{transform:translateX(-30px);opacity:.6}to{transform:none;opacity:1}}'+
+  '#ipnl .iph{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #e4dfd4;padding-top:calc(10px + env(safe-area-inset-top,0px))}'+
+  '#ipnl .iph b{flex:1;min-width:0;font:800 16px/1.3 Cairo,system-ui,sans-serif;color:#14324a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+  '#ipnl .iph button,#ipnl .iph a{border:1px solid #e4dfd4;background:#fff;border-radius:99px;padding:6px 12px;font:700 13px Cairo,system-ui,sans-serif;color:#23272b;text-decoration:none;cursor:pointer;white-space:nowrap}'+
+  '#ipnl iframe{flex:1;width:100%;border:0;background:#f4f2ec}'+
+  '#ipnl .ipl{position:absolute;inset:60px 0 0;display:flex;align-items:center;justify-content:center;color:#6b6f76;font:600 14px Cairo,system-ui,sans-serif;pointer-events:none}'+
+  '@media(max-width:899px){#ipnl .ipb{width:100%}}html.ipon,html.ipon body{overflow:hidden}';document.head.appendChild(s)}
+ function close(fromPop){var o=document.getElementById('ipnl');if(!o)return;o.remove();document.documentElement.classList.remove('ipon');if(!fromPop&&history.state&&history.state.ipnl)try{history.back()}catch(_){}try{window.dispatchEvent(new Event('idopanel-close'))}catch(_){}}
+ function open(href,title){css();var o=document.getElementById('ipnl');if(o)o.remove();var ar=(document.documentElement.lang||'ar')!='en';
+  o=document.createElement('div');o.id='ipnl';o.innerHTML='<div class="ipb" role="dialog" aria-modal="true"><div class="iph"><button type="button" class="ipx" aria-label="'+(ar?'إغلاق':'Close')+'">✕</button><b></b><button type="button" class="ipk">‹ '+(ar?'رجوع':'Back')+'</button><a class="ipf" href="">'+(ar?'صفحة كاملة ↗':'Full page ↗')+'</a></div><div class="ipl">'+(ar?'جارٍ الفتح…':'Opening…')+'</div><iframe title=""></iframe></div>';
+  o.querySelector('b').textContent=title||'';o.querySelector('.ipf').href=href;document.body.appendChild(o);document.documentElement.classList.add('ipon');
+  var f=o.querySelector('iframe');f.onload=function(){var l=o.querySelector('.ipl');if(l)l.remove();try{var t=f.contentDocument.title;if(!title&&t)o.querySelector('b').textContent=t;o.querySelector('.ipf').href=f.contentWindow.location.href}catch(_){}};f.src=href;
+  o.querySelector('.ipx').onclick=function(){close()};o.querySelector('.ipk').onclick=function(){try{f.contentWindow.history.back()}catch(_){}};
+  o.addEventListener('click',function(e){if(e.target===o)close()});
+  try{history.pushState({ipnl:1},'')}catch(_){}}
+ addEventListener('popstate',function(){if(document.getElementById('ipnl'))close(true)});
+ addEventListener('keydown',function(e){if(e.key=='Escape'&&document.getElementById('ipnl'))close()});
+ function target(h){if(!h)return null;h=String(h).trim();if(/^(#|javascript:|mailto:|tel:|https?:\/\/(?!aaalblooshi\.github\.io))/i.test(h))return null;
+  var u;try{u=new URL(h,location.href)}catch(_){return null}if(u.origin!==location.origin)return null;var f=u.pathname.split('/').pop()||'index.html';
+  if(!/\.html$/.test(f)||SKIP.test(f))return null;if(f===cur)return null;return u.href}
+ document.addEventListener('click',function(e){
+  if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;
+  var el=e.target&&e.target.closest?e.target:null;if(!el)return;
+  if(el.closest('#hm,.hmp,#hd,#hd2,#gnav,#ipnl,[data-full],.noipnl'))return;
+  var a=el.closest('a[href]'),href=null,title='';
+  if(a){if(a.target&&a.target!='_self'||a.hasAttribute('download'))return;href=target(a.getAttribute('href'));title=(a.textContent||'').replace(/\s+/g,' ').trim().slice(0,80)}
+  else{var b=el.closest('[onclick]');if(b){var m=/^\s*(?:window\.)?location(?:\.href)?\s*=\s*['"]([^'"]+)['"]\s*;?\s*$/.exec(b.getAttribute('onclick')||'');if(m){href=target(m[1]);title=(b.textContent||'').replace(/\s+/g,' ').trim().slice(0,80)}}}
+  if(!href)return;e.preventDefault();e.stopImmediatePropagation();open(href,title)},true);
+ window.IDOPANEL={open:open,close:close};
+}catch(_){}})();
