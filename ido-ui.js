@@ -594,6 +594,7 @@ window.IDODL=async function(bucket,path,name){
  tb.style.cssText='position:fixed;z-index:99999;bottom:90px;left:50%;transform:translateX(-50%);background:#1d5f8a;color:#fff;padding:9px 16px;border-radius:12px;font:600 13.5px inherit;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:90vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
  document.body.appendChild(tb);var done=function(){setTimeout(function(){tb.remove()},600)};
  var r=await c.storage.from(bucket).createSignedUrl(path,300,{download:name});
+  try{if(!r.error)c.rpc('audit_doc_view',{p_bucket:bucket,p_path:path,p_name:name||null,p_kind:'download'}).then(function(){},function(){})}catch(_){}
  if(r.error){done();throw r.error}
  try{var res=await fetch(r.data.signedUrl);if(!res.ok)throw 0;var b=await res.blob(),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},5000)}
  catch(e){location.href=r.data.signedUrl}

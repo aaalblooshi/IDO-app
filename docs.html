@@ -162,7 +162,7 @@ async function go(){if(RUN)return;try{await loadZip()}catch(_){return toast(P(['
  if(!jobs.length)return;RUN={i:0,n:jobs.length,t:''};draw();
  for(const j of jobs){RUN.t=(j.k=='doc'?SV[j.d.svc].i+' '+j.d.no:'📎 '+(j.f.title||''))+' — '+(j.p.name||j.p.pc);draw();
   try{if(j.k=='doc'){const r=await exportDoc(j.d);if(r.ok&&r.blob)z.file(j.dir+'/'+safe(r.name.replace(/\.[a-z]+$/i,''))+'.'+(r.name.split('.').pop()||'docx'),r.blob);else fails.push(j.d.no+' ('+(r.err||'')+')')}
-   else{const r=await sb.storage.from(SV[j.d.svc].bk).download(j.f.path);if(r.error||!r.data)throw r.error||new Error('');const nm=safe((j.f.title||'').replace(/\.[a-z0-9]+$/i,''))+'.'+(j.f.path.split('.').pop()||'bin');z.file(j.dir+'/'+nm,r.data)}}
+   else{const r=await sb.storage.from(SV[j.d.svc].bk).download(j.f.path);try{sb.rpc('audit_doc_view',{p_bucket:SV[j.d.svc].bk,p_path:j.f.path,p_name:j.f.title||null,p_kind:'export'}).then(()=>{},()=>{})}catch(_){}if(r.error||!r.data)throw r.error||new Error('');const nm=safe((j.f.title||'').replace(/\.[a-z0-9]+$/i,''))+'.'+(j.f.path.split('.').pop()||'bin');z.file(j.dir+'/'+nm,r.data)}}
   catch(e){fails.push((j.k=='doc'?j.d.no:(j.f.title||j.f.path))+' ('+(e&&e.message||'')+')')}RUN.i++;draw()}
  RUN.t=P(['جارٍ تجهيز الملف المضغوط…','Building the zip…']);draw();
  if(fails.length)z.file(P(['ملاحظات التنزيل','Download notes'])+'.txt','﻿'+P(['تعذّر تنزيل:','Could not download:'])+'\n'+fails.join('\n'));
@@ -400,4 +400,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="hub.js?v=5"></script><script src="ovx.js?v=8"></script><script src="ido-ui.js?v=47"></script></body></html>
+<script src="hub.js?v=5"></script><script src="ovx.js?v=8"></script><script src="ido-ui.js?v=48"></script></body></html>
