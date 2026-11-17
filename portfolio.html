@@ -205,6 +205,7 @@ xe_ok:['المحفظة منتظمة','The portfolio is on track'],xe_wa:['الم
  rTitle:['تقرير متابعة المشاريع','Project follow-up report'],rGen2:['أُعدّ بتاريخ','Prepared on'],rDone:['مهام أُنجزت في الفترة','Tasks finished in period'],rCR:['طلبات التغيير في الفترة','Change requests in period'],rNoCR:['لا توجد طلبات تغيير في الفترة.','No change requests in the period.'],
  rDet:['تفاصيل الخطط','Plan details'],rAllS:['كل المشاريع ضمن الصلاحية','All projects in scope'],rBySec:['قطاع: ','Sector: '],rByP:['مشروع: ','Project: '],rGrp:['مجموعة','Group'],
  st:['الحالة','Status'],cnt:['مشروع','projects'],ms:['مرحلة','Milestone'],lateD:['يوم تأخير','d late']});
+let SCOPED=null;const scopeLbl=()=>SCOPED?(lang=='ar'?'نطاقك: ':'Your scope: ')+SCOPED.map(u=>{const [a,b]=u.split(':');return (lang=='ar'?'قطاع ':'Sector ')+a+(b?(lang=='ar'?' · إدارة ':' · Dept ')+b:'')}).join('، '):'';
 let FM=0;try{FM=+localStorage.getItem('pfFM')||0}catch(_){}
 let TPC=null;if(FM==2)setTimeout(async()=>{try{const r0=await sb.rpc('my_team_pcodes');if(!r0.error){TPC=new Set(r0.data||[]);TEAM=[]}else{const r=await sb.rpc('my_team');TEAM=r.error?[]:(r.data||[])}}catch(_){TEAM=[]};if(typeof draw=='function'&&PL&&PL.length)draw()},1500);
 let BEFF=null,BOFF=false,PROGV={},PROGP={},MSP=false,XPLC=false,RECC=false,SECV=false,CLS={},GL={},OG=null,SHC=false,PL=[],CFG={},CRS=[],WR=2,WS={},TAB='exe',FS='',FP='',FU='',EXP=new Set(),PXD=0,RP=null,FSG='';
@@ -213,7 +214,7 @@ async function start(){
  if(!(ADM||ME.view_scope))return gate('noacc');
  const q=(tb,c,f)=>{let r=sb.from(tb).select(c);if(f)r=f(r);return r.then(x=>x.data||[],()=>[])};
  const [pl,cf,cr,ss,gr]=await Promise.all([
-  q('plans','id,code,status,act:data->>_active,archived,pn:data->>pname,sc:data->>sector,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,cb:created_by,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,tasks:data->tasks',r=>r.eq('archived',false)).then(a=>a.filter(p=>p.status=='Approved'||p.act=='true')),
+  q('plans','id,code,status,act:data->>_active,archived,pn:data->>pname,sc:data->>sector,dp:data->>dept,pt:data->>ptype,pm:data->>pmname,pc:data->>pcode,wm:data->>wmode,cb:created_by,bud:data->>budget,ow:data->>owner,dsc:data->>pdesc,tasks:data->tasks',r=>r.eq('archived',false)).then(a=>a.filter(p=>p.status=='Approved'||p.act=='true')),
   q('project_cfg','*'),
   q('change_requests','id,code,status,archived,created_at,pc:data->>pcode,ti:data->>title',r=>r.eq('archived',false)),
   q('app_settings','key,value',r=>r.in('key',['w_ratio','w_sector','opt_goals','goal_w','fin_cfg'])),sb.rpc('my_grants').then(r=>r.error?q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)):(r.data||[]),()=>q('project_grants','pcode,lvl,svcs',x=>x.eq('user_id',ME.id)))]);
@@ -235,6 +236,8 @@ async function start(){
  const best={};pl.forEach(p=>{const k=p.pc||p.code;if(!best[k]||(p.id||0)>(best[k].id||0))best[k]=p});
  PL=Object.values(best).filter(p=>{const c=CFG[p.pc||p.code]||{};return !(c.hidden&&!ADM&&!SECV&&!(c.hidden_users||[]).includes(ME.id))}).map(p=>{const k=p.pc||p.code,c=CFG[k]||{};let an;try{an=p.id?analyze(p.tasks||[],p.wm,window.IDOHALT?IDOHALT.day(k):null):chAn(p)}catch(er){window.PFERR=(window.PFERR||[]).concat(k+': '+String(er&&er.message||er));try{an=chAn(p)}catch(_){an={a:0,ex:0,gap:0,lateN:0,kids:{},t:{},s:null,e:null}}}
   return {k,ext:!!p.ext,sa:p.sa,sd:p.sd,ed:p.ed,fromCh:!p.id,goal:GL[k]||0,closed:!!CLS[k]||!!(HS(k)&&HS(k).state=='cancelled'),halt:HS(k)?HS(k).state:'',id:p.id,wm:p.wm,cb:p.cb,name:(HS(k)?(HS(k).state=='cancelled'?'⛔ ':'⏸ '):'')+(p.ext?'🔗 ':'')+(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||k),ag:(p.tasks||[]).some(x=>x&&x.spr),sc:+p.sc||0,pt:p.pt,pm:p.pm,bud:BEFF&&k in BEFF?BEFF[k]:(BOFF||p.be=='1'?0:parseFloat(String(p.bud||'').replace(/[^0-9.]/g,''))||0),ow:p.ow,dsc:p.dsc,tasks:p.tasks||[],an,a:an.a,ex:an.ex,gap:an.gap,lateN:HS(k)?0:an.lateN,w:WM[k]!=null?+WM[k]:c.weight!=null?+c.weight:(p.pt=='strategic'?WR:1)}});
+ /* a viewing scope limited to units shows only those units' projects, never a centre-wide picture */
+ if(!ADM&&ME.view_scope&&ME.view_scope!='all'){const U=(ME.view_units||[]).map(String).concat((ME.view_sectors||[]).map(String)),DP={};pl.forEach(x=>{DP[x.pc||x.code]=x.dp});PL=PL.filter(p=>U.some(u=>{const [us,ud]=u.split(':');return String(p.sc)==us&&(!ud||String(CFG[p.k]&&CFG[p.k].dept_ov||DP[p.k]||'')==ud)}));SCOPED=U;const L0=scopeLbl();D.x_h=[L0,L0];D.xe_hp=['ملخص مشاريع نطاقك','Projects in your scope'];D.wbC=[L0,L0];window.IDOOV_SCOPE=new Set(PL.map(p=>p.k))}
  {const HR={bad:0,wa:1,ok:2},hr=p=>p.closed?3:(HR[health(p.gap||0,p.lateN||0,p.an&&p.an.n)]??2);PL.sort((a,b)=>a.sc-b.sc||hr(a)-hr(b)||(b.gap||0)-(a.gap||0)||(b.lateN||0)-(a.lateN||0)||a.name.localeCompare(b.name,'ar'))}
  if(ADM&&!window._tabInit){window._tabInit=1;let v=null;try{v=localStorage.getItem('pfTab')}catch(_){}TAB=['exe','ovx','sum','tree','wbs','gantt','net','xpl','trd','fil','rec','rep','kan','pln','goal','att','deg','lag','otd','rmap','dq','wts'].includes(v)?v:'att'}
  draw()}
@@ -350,7 +353,7 @@ function vGantt(){const L=gsc(),A=agg(L),us=new Map();L.forEach(p=>p.tasks.forEa
  const rows=[];const sp=(o)=>o;
  const span=(list)=>{const ss=list.map(p=>p.an.s).filter(v=>v!=null),ee=list.map(p=>p.an.e).filter(v=>v!=null);return[ss.length?Math.min(...ss):null,ee.length?Math.max(...ee):null]};
  const [cs,ce]=span(L);
- rows.push({k:'gc',lv:0,n:lang=='ar'?'المركز — كل القطاعات':'Centre — all sectors',s:cs,e:ce,a:A.a,ex:A.ex,late:A.late,st:stA({a:A.a,late:0,lateN:A.late,s:cs}),kids:A.rows.length});
+ rows.push({k:'gc',lv:0,n:SCOPED?scopeLbl():lang=='ar'?'المركز — كل القطاعات':'Centre — all sectors',s:cs,e:ce,a:A.a,ex:A.ex,late:A.late,st:stA({a:A.a,late:0,lateN:A.late,s:cs}),kids:A.rows.length});
  if(XS('gc'))A.rows.forEach(r=>{if(FSG&&!r.L.some(pm))return;const [s0,e0]=span(r.L),sk='gs:'+r.sc;
   rows.push({k:sk,lv:1,n:secN(r.sc)||'—',s:s0,e:e0,a:r.a,ex:r.ex,late:r.late,st:stA({a:r.a,late:0,lateN:r.late,s:s0}),kids:r.L.length});
   if(XS(sk))r.L.filter(pm).forEach(p=>{const pk='gp:'+p.k;
@@ -360,10 +363,10 @@ function vGantt(){const L=gsc(),A=agg(L),us=new Map();L.forEach(p=>p.tasks.forEa
      rows.push({k:tk,lv,n:x.n,s:m.s,e:m.e,a:m.a,ex:m.ex,late:m.late,st:stA(m),kids:ch,ms:x.ms,who:x.w});
      if(ch&&XS(tk))walk(x.id,lv+1)});walk('',3)}})});
  const ss=rows.map(r=>r.s).filter(v=>v!=null),ee=rows.map(r=>r.e).filter(v=>v!=null);
- const lb=(n,k)=>`<button class="${k}" onclick="gLevel(${n})">${[lang=='ar'?'المركز':'Centre',lang=='ar'?'القطاعات':'Sectors',lang=='ar'?'المشاريع':'Projects',lang=='ar'?'عرض الكل':'Show all'][n-1]}</button>`;
+ const lb=(n,k)=>`<button class="${k}" onclick="gLevel(${n})">${[SCOPED?(lang=='ar'?'نطاقك':'Scope'):lang=='ar'?'المركز':'Centre',lang=='ar'?'القطاعات':'Sectors',lang=='ar'?'المشاريع':'Projects',lang=='ar'?'عرض الكل':'Show all'][n-1]}</button>`;
  const ctrl=`<div class="row noprint" style="margin:0 0 8px"><span class="mut">${lang=='ar'?'مستوى العرض':'Detail level'}</span>${[1,2,3,4].map(n=>lb(n,'')).join('')}${hpBtn()}<select id="fu" style="flex:1;min-width:130px"><option value="">${t('allU')}</option>${[...us].sort((x,y)=>String(x[1]).localeCompare(y[1],'ar')).map(([i,n])=>`<option value="${esc(i)}" ${FU==i?'selected':''}>${esc(n)}</option>`).join('')}</select><select id="fsg" onchange="FSG=this.value;vGantt()"><option value="">${lang=='ar'?'كل الحالات':'All statuses'}</option><option value="late" ${FSG=='late'?'selected':''}>${lang=='ar'?'المتأخرة فقط':'Late only'}</option><option value="done" ${FSG=='done'?'selected':''}>${lang=='ar'?'المنجزة فقط':'Done only'}</option></select><button onclick="PXD=Math.min(24,PXD*1.4);vGantt()">＋</button><button onclick="PXD=Math.max(.8,PXD/1.4);vGantt()">－</button></div>`;
  const ph=innerWidth<760,AR=lang=='ar';
- const lvN=[AR?'المركز':'Centre',AR?'القطاعات':'Sectors',AR?'المشاريع':'Projects',AR?'عرض الكل':'Show all'];
+ const lvN=[SCOPED?(AR?'نطاقك':'Scope'):AR?'المركز':'Centre',AR?'القطاعات':'Sectors',AR?'المشاريع':'Projects',AR?'عرض الكل':'Show all'];
  const lvCur=(()=>{let c=1;if(EXP.has('gc'))c=2;if(A.rows.some(r=>EXP.has('gs:'+r.sc)))c=3;if(L.some(q=>EXP.has('gp:'+q.k)))c=4;return c})();
  const ctrlP=`<div class="gco noprint"><select id="glv" onchange="gLevel(+this.value)">${lvN.map((n,i)=>`<option value="${i+1}" ${lvCur==i+1?'selected':''}>${n}</option>`).join('')}</select><button onclick="gToday()">${AR?'اليوم':'Today'}</button><button class="sq" onclick="PXD=Math.max(.8,PXD/1.4);vGantt()">−</button><button class="sq" onclick="PXD=Math.min(24,PXD*1.4);vGantt()">＋</button><button onclick="window.GFO=!window.GFO;vGantt()" class="${window.GFO||FU||FSG?'on':''}">⚙ ${AR?'تصفية':'Filter'}${FU||FSG?' •':''}</button></div><div class="gfp noprint" style="display:${window.GFO?'flex':'none'}">${hpBtn()}<select id="fu"><option value="">${t('allU')}</option>${[...us].sort((x,y)=>String(x[1]).localeCompare(y[1],'ar')).map(([i,n])=>`<option value="${esc(i)}" ${FU==i?'selected':''}>${esc(n)}</option>`).join('')}</select><select id="fsg" onchange="FSG=this.value;vGantt()"><option value="">${AR?'كل الحالات':'All statuses'}</option><option value="late" ${FSG=='late'?'selected':''}>${AR?'المتأخرة فقط':'Late only'}</option><option value="done" ${FSG=='done'?'selected':''}>${AR?'المنجزة فقط':'Done only'}</option></select></div>`;
  const CT=ph?ctrlP:ctrl;
@@ -524,7 +527,7 @@ function vExe(){const L=scoped(),A=agg(L),T=TODAY;
  
  const kc=(c,lb,n,sub,go)=>`<div class="xk xc" onclick="${go}" style="--c:${c}"><small>${lb}</small><b class="num">${n}</b><span>${sub}</span></div>`;
  $('body').innerHTML=`${XE_CSS}
- <div style="font-size:12px;color:#8a8478;margin:0 2px 8px">${t('x_h')} · <span class="num">${fd(ds(T))}</span></div>
+ <div style="font-size:12px;color:#8a8478;margin:0 2px 8px">${SCOPED?scopeLbl():t('x_h')} · <span class="num">${fd(ds(T))}</span></div>
  <div class="xg">${kc('#9a7f48',t('kA'),R(A.a)+'%',t('xe_pl2')+' '+R(A.ex)+'% · '+t('xe_gap')+' '+(gp>=1?'−'+R(gp)+'%':'0%'),"goDr('all')")}${kc(hCol.bad,t('kL'),A.late,(lang=='ar'?'في '+plr(latePj,'project'):t('xe_in').replace('#',latePj)),"goDr('late')")}${kc(hCol.ok,t('xe_dn'),doneN,'',"goDr('done')")}${kc('#3D96C7',t('xe_nx'),nextN,'',"goDr('next')")}</div>
  <div class="card" id="xmap" style="position:relative">${xeMap(L)}</div>
  <div class="card"><h2 class="xs">${t('x_s')}</h2><table class="xt"><tr><th>${t('sec')}</th><th>${t('cnt')}</th><th style="width:40%">${t('xe_bar')}</th><th>${t('kA')}</th><th>${t('late')}</th></tr>
@@ -1467,7 +1470,7 @@ async function xpPlans(which){const AR_=lang=='ar';if(!XPLC)return;
  const d=new Date(),ds_=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
  XLSX.writeFile(wb,(sel.length>1?'plans_all_':'plan_'+sel[0].k+'_')+ds_+'.xlsx')}
 </script>
-<script src="netdiag.js?v=6"></script><script src="ovx.js?v=7"></script><script src="repx.js?v=3"></script><script src="xlupd.js?v=3"></script><script src="xlmore.js?v=2"></script><script src="ido-ui.js?v=47"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
+<script src="netdiag.js?v=6"></script><script src="ovx.js?v=8"></script><script src="repx.js?v=3"></script><script src="xlupd.js?v=3"></script><script src="xlmore.js?v=2"></script><script src="ido-ui.js?v=47"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
 (function(){const _v=window.vXpl;if(!_v)return;window.vXpl=function(){_v();if(!ADM)return;const AR_=lang=='ar',b=document.getElementById('body');if(!b)return;const d=document.createElement('div');d.className='card';
  d.innerHTML='<h3 style="margin:0 0 6px">🗂 '+(AR_?'ملفات Excel للأدمن':'Admin Excel files')+'</h3><div class="mut" style="line-height:1.8">'+(AR_?'كل مجال له ملفه الخاص: المؤشرات من صفحة المؤشرات، المخاطر من سجل المخاطر، الموازنة من صفحة الموازنات، والخطة من صفحة كل خطة (رفع Excel). هنا: التفاصيل الأساسية للمشاريع (تنزيل وتحديث ورفع) والملف الشامل.':'Each area has its own file: KPIs, risks, budgets and each plan on their pages. Here: project basic details (download, edit, upload) and the all-in-one file.')+'</div>'
   +'<div class="row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="pfBasicOut()">⬇ '+(AR_?'التفاصيل الأساسية':'Basic details')+'</button><label class="btn" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;cursor:pointer">⬆ '+(AR_?'رفع التفاصيل الأساسية':'Upload basic details')+'<input type="file" accept=".xlsx,.xls" style="display:none" onchange="pfBasicIn(this)"></label><button class="p" onclick="pfAllOut()">📦 '+(AR_?'الملف الشامل لكل المشاريع':'All-in-one file')+'</button></div>'
