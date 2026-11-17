@@ -612,3 +612,13 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  var kd=function(e){if(e.key=='Escape'){e.preventDefault();end(null)}else if(e.key=='Enter'&&(e.ctrlKey||e.metaKey)&&!ok.disabled){e.preventDefault();end(ta.value)}};
  ta.addEventListener('input',grow);ok.onclick=function(){end(ta.value)};cx.onclick=function(){end(null)};w.addEventListener('click',function(e){if(e.target===w)end(null)});document.addEventListener('keydown',kd,true);
  document.body.appendChild(w);grow();setTimeout(function(){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)},30)})};
+/* stickyfix: sticky bars assumed a 50px site header. Measure the real header (0 inside an embedded frame) and shift every sticky element by the difference, and keep them under the header so its menu is never covered. Each element's style is read once. */
+(function(){try{
+ var busy=0,seen=new WeakSet(),st=[];
+ function hdr(){var h=document.getElementById('hd2')||document.getElementById('hd');if(!h)return 0;var cs=getComputedStyle(h);if(cs.display=='none'||cs.visibility=='hidden'||(cs.position!='sticky'&&cs.position!='fixed'))return 0;return Math.round(h.getBoundingClientRect().height)}
+ function scan(){var all=document.body?document.body.getElementsByTagName('*'):[];for(var i=0;i<all.length;i++){var e=all[i];if(seen.has(e))continue;seen.add(e);if(e.id=='hd2'||e.id=='hd')continue;var cs=getComputedStyle(e);if(cs.position=='sticky'&&!(e.closest&&e.closest('#hd2,#hd,#gnav'))){var t=parseFloat(e.style.top||cs.top);if(!isNaN(t)){e.dataset.st0=t;st.push(e)}}}}
+ function run(){busy=0;scan();var H=hdr(),d=document.documentElement,emb=d.classList.contains('embed')||d.classList.contains('emb');st=st.filter(function(e){return e.isConnected});
+  st.forEach(function(e){var t0=+e.dataset.st0,nt=t0>=40?Math.max(0,t0-50+(emb?0:H)):t0;if(Math.abs((parseFloat(e.style.top)||-1)-nt)>.5)e.style.top=nt+'px';var z=parseInt(getComputedStyle(e).zIndex,10);if(!emb&&H&&z>=20&&!e.closest('.sheet,.dr,#pal,.iask'))e.style.zIndex='19'})}
+ function q(){if(!busy){busy=1;setTimeout(run,150)}}
+ new MutationObserver(q).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',function(){q()});addEventListener('load',q);q();
+}catch(e){}})();
