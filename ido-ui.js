@@ -623,3 +623,16 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  function q(){if(!busy){busy=1;setTimeout(run,150)}}
  new MutationObserver(q).observe(document.documentElement,{childList:true,subtree:true});addEventListener('resize',function(){q()});addEventListener('load',q);q();
 }catch(e){}})();
+
+/* عدد الإشعارات غير المقروءة بجانب «القائمة» و«الإشعارات» */
+(function(){try{
+ var N=null,busy=0;
+ function css(){if(document.getElementById('ubcss'))return;var s=document.createElement('style');s.id='ubcss';s.textContent='.ubdg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#d1101d;color:#fff;font:800 11.5px/1 Cairo,system-ui,sans-serif;margin-inline-start:6px;vertical-align:middle}.hmp a .ubdg{margin-inline-start:auto}';document.head.appendChild(s)}
+ function paint(){var n=N||0,t=n>99?'99+':String(n);css();
+  var m=document.getElementById('hm_m');if(m){var b=m.querySelector('.ubdg');if(n){if(!b){b=document.createElement('span');b.className='ubdg';m.appendChild(b)}if(b.textContent!==t)b.textContent=t;var tt=n+' غير مقروء';if(m.title!==tt)m.title=tt}else if(b)b.remove()}
+  var p=document.getElementById('hm_p');if(p){var a=p.querySelector('a[href="inbox.html"]');if(a){var c=a.querySelector('.ubdg');if(n){if(!c){c=document.createElement('span');c.className='ubdg';a.appendChild(c)}if(c.textContent!==t)c.textContent=t}else if(c)c.remove()}}}
+ async function load(){if(busy||typeof sb=='undefined'||!sb||!sb.auth)return;busy=1;try{var s=await sb.auth.getSession(),u=s&&s.data&&s.data.session&&s.data.session.user;if(!u){busy=0;return}
+  var r=await sb.from('user_nudges').select('id',{count:'exact',head:true}).eq('to_user',u.id).is('read_at',null);if(!r.error){N=r.count||0;if(/inbox\.html$/.test(location.pathname))N=0;paint()}}catch(_){}busy=0}
+ var pend=0;new MutationObserver(function(){if(N==null||pend)return;pend=1;requestAnimationFrame(function(){pend=0;paint()})}).observe(document.documentElement,{childList:true,subtree:true});
+ setTimeout(load,1200);setInterval(load,60000);addEventListener('focus',load);document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
+}catch(_){}})();
