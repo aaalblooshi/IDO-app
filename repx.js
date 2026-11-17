@@ -10,20 +10,21 @@
  var D={key:'',risks:{},kpis:{},fin:{},notes:{},prev:{},ok:false,err:''};
  var ds=function(d){return d.toISOString().slice(0,10)};
  function prevPeriod(f,t){var a=new Date(f+'T00:00:00Z'),b=new Date(t+'T00:00:00Z'),n=Math.round((b-a)/864e5)+1;var pt=new Date(a.getTime()-864e5),pf=new Date(pt.getTime()-(n-1)*864e5);return [ds(pf),ds(pt)]}
- async function load(L,RP,force){var codes=L.map(function(p){return p.k}),key=RP.f+'|'+RP.t+'|'+codes.join(',');if(D.ok&&D.key==key&&!force)return D;
-  var c=C();D={key:key,risks:{},kpis:{},fin:{},notes:{},prev:{},ok:false,err:''};if(!c||!codes.length){D.ok=true;return D}
+ var PEND={};
+ async function load(L,RP,force){var codes=L.map(function(p){return p.k}),key=RP.f+'|'+RP.t+'|'+codes.join(',');if(D.ok&&D.key==key&&!force)return D;if(PEND[key]&&!force)return PEND[key];var run=(async function(){
+  var c=C();var d={key:key,risks:{},kpis:{},fin:{},notes:{},prev:{},ok:false,err:''};if(!c||!codes.length){d.ok=true;D=d;return d}
   var jobs=[
-   c.from('project_risks').select('id,pcode,title,prob,impact,status,owner_name,review_at,response').in('pcode',codes).then(function(r){(r.data||[]).forEach(function(x){if(String(x.status||'open')=='closed')return;(D.risks[x.pcode]=D.risks[x.pcode]||[]).push(x)})}),
+   c.from('project_risks').select('id,pcode,title,prob,impact,status,owner_name,review_at,response').in('pcode',codes).then(function(r){(r.data||[]).forEach(function(x){if(String(x.status||'open')=='closed')return;(d.risks[x.pcode]=d.risks[x.pcode]||[]).push(x)})}),
    c.from('project_kpis').select('id,pcode,name,unit,direction,target,baseline,freq,active').in('pcode',codes).eq('active',true).then(async function(r){var K=r.data||[];var ids=K.map(function(k){return k.id});var V={};
      if(ids.length){var v=await c.from('kpi_values').select('kpi_id,period,actual').in('kpi_id',ids);(v.data||[]).forEach(function(x){if(!V[x.kpi_id]||String(x.period)>String(V[x.kpi_id].period))V[x.kpi_id]=x})}
-     K.forEach(function(k){k.last=V[k.id]||null;(D.kpis[k.pcode]=D.kpis[k.pcode]||[]).push(k)})}),
-   c.from('charters').select('id,code,status').in('code',codes).then(function(r){D.ch={};(r.data||[]).sort(function(a,b){return a.id-b.id}).forEach(function(x){if(x.status=='Approved'||!D.ch[x.code])D.ch[x.code]=x.id})}),
-   c.rpc('fin_summary',{p_asof:RP.t}).then(function(r){(r.data||[]).forEach(function(x){D.fin[x.pcode]=x})}),
-   c.from('report_notes').select('*').in('pcode',codes).eq('pf',RP.f).eq('pt',RP.t).then(function(r){(r.data||[]).forEach(function(x){D.notes[x.pcode]=x})}),
-   c.from('report_notes').select('*').in('pcode',codes).lt('pt',RP.f).order('pt',{ascending:false}).limit(500).then(function(r){(r.data||[]).forEach(function(x){if(!D.prev[x.pcode])D.prev[x.pcode]=x})})];
-  try{await Promise.all(jobs.map(function(j){return Promise.resolve(j).catch(function(){})}))}catch(e){D.err=String(e&&e.message||e)}
-  Object.keys(D.risks).forEach(function(k){D.risks[k].sort(function(a,b){return (b.prob*b.impact)-(a.prob*a.impact)})});
-  D.ok=true;return D}
+     K.forEach(function(k){k.last=V[k.id]||null;(d.kpis[k.pcode]=d.kpis[k.pcode]||[]).push(k)})}),
+   c.from('charters').select('id,code,status').in('code',codes).then(function(r){d.ch={};(r.data||[]).sort(function(a,b){return a.id-b.id}).forEach(function(x){if(x.status=='Approved'||!d.ch[x.code])d.ch[x.code]=x.id})}),
+   c.rpc('fin_summary',{p_asof:RP.t}).then(function(r){(r.data||[]).forEach(function(x){d.fin[x.pcode]=x})}),
+   c.from('report_notes').select('*').in('pcode',codes).eq('pf',RP.f).eq('pt',RP.t).then(function(r){(r.data||[]).forEach(function(x){d.notes[x.pcode]=x})}),
+   c.from('report_notes').select('*').in('pcode',codes).lt('pt',RP.f).order('pt',{ascending:false}).limit(500).then(function(r){(r.data||[]).forEach(function(x){if(!d.prev[x.pcode])d.prev[x.pcode]=x})})];
+  try{await Promise.all(jobs.map(function(j){return Promise.resolve(j).catch(function(){})}))}catch(e){d.err=String(e&&e.message||e)}
+  Object.keys(d.risks).forEach(function(k){d.risks[k].sort(function(a,b){return (b.prob*b.impact)-(a.prob*a.impact)})});
+  d.ok=true;D=d;return d})();PEND[key]=run;try{return await run}finally{delete PEND[key]}}
  function kst(k){var l=k.last;if(!l||l.actual==null||k.target==null)return 'na';var a=+l.actual,t=+k.target,b=k.baseline==null?null:+k.baseline;var up=k.direction!='down';
   var done=up?a>=t:a<=t;if(done)return 'ok';if(b==null)return 'wa';var pr=up?(a-b)/((t-b)||1):(b-a)/((b-t)||1);return pr>=.6?'wa':'bad'}
  var KS={ok:['على المسار','On track','#0a6b3d'],wa:['يحتاج متابعة','Needs attention','#b26b00'],bad:['متأخر','Behind','#d1101d'],na:['بلا قراءة','No reading','#8a8f96']};

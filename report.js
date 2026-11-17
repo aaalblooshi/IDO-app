@@ -50,7 +50,7 @@ async function snaps(sb,codes,f,t){var out={s:{},e:{}};if(!sb||!codes.length)ret
 /* ---------- بناء التقرير ---------- */
 function build(c,SN){var L=c.L,A=c.A,RP=c.RP,cfg=c.cfg,D=c.D||{},f=dn(RP.f),e=dn(RP.t),today=dn(c.today),per=perLabel(RP.f,RP.t),secN=c.secN,hl=c.hl,UN=c.UN||{};
  var inP=function(s){var n=dn(s);return n!=null&&n>=f&&n<=e};
- var P=L.map(function(p){var g=hl(p.gap,p.lateN,p.an&&p.an.n),dn0=(p.tasks||[]).filter(function(x){return inP(x.ae)}),s0=SN.s[p.k],e0=SN.e[p.k],aE=e>=today?p.a:(e0?+e0.actual:p.a),aS=s0?+s0.actual:null;
+ var P=L.map(function(p){var g=hl(p.gap,p.lateN,p.an&&p.an.n),dn0=(p.tasks||[]).filter(function(x){return inP(x.ae)&&!((p.an&&p.an.kids[x.id])||[]).length}),s0=SN.s[p.k],e0=SN.e[p.k],aE=e>=today?p.a:(e0?+e0.actual:p.a),aS=s0?+s0.actual:null;
   return {p:p,g:g,done:dn0,dlt:aS==null?null:aE-aS,fin:(D.fin||{})[p.k]||null,risks:(D.risks||{})[p.k]||[],kpis:(D.kpis||{})[p.k]||[],note:(D.notes||{})[p.k]||null}});
  var cntH={ok:0,wa:0,bad:0};P.forEach(function(x){cntH[x.g]++});
  var doneT=P.reduce(function(s,x){return s+x.done.length},0),nxtF=e+1,nxtE=e+(e-f+1);
