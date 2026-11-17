@@ -322,7 +322,7 @@ function card2(r){const x=r.x,k=esc(r.pr.pid+'|'+x.id),done=isDone(r),st=stOf(r)
  else act=`<button onclick="openSheet('${k}')">${T('فتح','Open')}</button>`;
  return `<article class="c2${done?' dn':''}${st=='late'?' lt':''}" style="--pc:${pcol(r.pr.pid)}" tabindex="0" onclick="openSheet('${k}')" onkeydown="if(event.key=='Enter')openSheet('${k}')">${ring(r.a.a,col)}
  <div class="c2m"><div class="c2t"><b>${x.ms?'◆ ':''}${esc(x.n)}</b>${c2badge(r)}${window.IDOBKD?IDOBKD.badge(r.pr.pid+'|'+x.id):''}${fileChips(r)}</div>
- <div class="c2s">${esc(r.pr.pname)}${pathS(r)?' · '+pathS(r):''}</div><div class="c2d">${relT(r)}</div></div>
+ <div class="c2s">${esc(r.pr.pname)}${pathS(r)?' · '+pathS(r):''}</div><div class="c2d">${relT(r)}${r.s!=null||r.e!=null?`<span class="c2p" title="${T('الموعد المخطط','Planned dates')}">📅 ${r.s!=null?'<span class="num">'+fd(ds(r.s))+'</span>':'—'} ← ${r.e!=null?'<span class="num">'+fd(ds(r.e))+'</span>':'—'}</span>`:''}</div></div>
  <div class="c2a" onclick="event.stopPropagation()">${act}</div></article>`}
 let SECO=null;
 function secOpen(k){if(!SECO){try{SECO=JSON.parse(localStorage.getItem('tk_sec')||'null')}catch(_){}SECO=SECO||{now:1,wk:1}}return !!SECO[k]}
@@ -1124,7 +1124,7 @@ html[dir=rtl] .pch button{padding:4px 5px 4px 12px!important}
 .rg circle{fill:none;stroke:#e9edf1;stroke-width:4.5}.rg circle.v{stroke:var(--rc);stroke-linecap:round}
 .rg b{font-size:11.5px;font-weight:800;color:#181C32;direction:ltr}
 .c2m{flex:1;min-width:0}.c2t{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}.c2t b{font-size:15px;line-height:1.45;overflow-wrap:anywhere}
-.c2s{font-size:12.5px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c2d{font-size:13px;margin-top:1px}
+.c2s{font-size:12.5px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.c2d{font-size:13px;margin-top:1px;display:flex;flex-wrap:wrap;gap:2px 12px;align-items:center}.c2p{font-size:12px;color:#5b6570;white-space:nowrap}
 .bdg{display:inline-block;border-radius:99px;font-size:11.5px;font-weight:700;padding:0 8px;line-height:20px;white-space:nowrap}
 .bdg.r{background:#fdecee;color:#c0161f}.bdg.o{background:#fbf0d9;color:#8a5a00;cursor:pointer}.bdg.y{background:#fbf3df;color:#8a5a00}.bdg.b{background:#e6f2f9;color:#2a6a90}
 .c2a{display:flex;gap:6px;flex:none;align-items:center;flex-wrap:wrap;justify-content:flex-end}
