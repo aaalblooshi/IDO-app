@@ -627,9 +627,9 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
 /* عدد الإشعارات غير المقروءة بجانب «القائمة» و«الإشعارات» */
 (function(){try{
  var N=null,busy=0;
- function css(){if(document.getElementById('ubcss'))return;var s=document.createElement('style');s.id='ubcss';s.textContent='.ubdg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#d1101d;color:#fff;font:800 11.5px/1 Cairo,system-ui,sans-serif;margin-inline-start:6px;vertical-align:middle}.hmp a .ubdg{margin-inline-start:auto}';document.head.appendChild(s)}
+ function css(){if(document.getElementById('ubcss'))return;var s=document.createElement('style');s.id='ubcss';s.textContent='.ubdg{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:#d1101d;color:#fff;font:800 11.5px/1 Cairo,system-ui,sans-serif;margin-inline-start:6px;vertical-align:middle}.hmp a .ubdg{margin-inline-start:auto}.ubm{position:absolute;top:-7px;inset-inline-start:-7px;margin:0;box-shadow:0 0 0 2px #fff;pointer-events:none;z-index:2}';document.head.appendChild(s)}
  function paint(){var n=N||0,t=n>99?'99+':String(n);css();
-  var m=document.getElementById('hm_m');if(m){var b=m.querySelector('.ubdg');if(n){if(!b){b=document.createElement('span');b.className='ubdg';m.appendChild(b)}if(b.textContent!==t)b.textContent=t;var tt=n+' غير مقروء';if(m.title!==tt)m.title=tt}else if(b)b.remove()}
+  var m=document.getElementById('hm_m');if(m&&m.parentElement){var w=m.parentElement,b=w.querySelector(':scope>.ubm');if(n){if(!b){b=document.createElement('span');b.className='ubdg ubm';w.appendChild(b)}if(b.textContent!==t)b.textContent=t;var tt=n+' غير مقروء';if(m.title!==tt)m.title=tt}else if(b)b.remove()}
   var p=document.getElementById('hm_p');if(p){var a=p.querySelector('a[href="inbox.html"]');if(a){var c=a.querySelector('.ubdg');if(n){if(!c){c=document.createElement('span');c.className='ubdg';a.appendChild(c)}if(c.textContent!==t)c.textContent=t}else if(c)c.remove()}}}
  async function load(){if(busy||typeof sb=='undefined'||!sb||!sb.auth)return;busy=1;try{var s=await sb.auth.getSession(),u=s&&s.data&&s.data.session&&s.data.session.user;if(!u){busy=0;return}
   /* نفس تعريف «جديد» في صفحة الإشعارات: كل ما وصل بعد آخر «تعليم الكل كمقروء»، عدا ما فعلته أنت */
@@ -637,7 +637,7 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
   if(!window.__ubMe){var pr=await sb.from('profiles').select('full_name').eq('id',u.id).maybeSingle();window.__ubMe=(pr.data&&pr.data.full_name)||''}
   var nc=await sb.from('app_settings').select('key,value').in('key',['notif_all','notif_off']);var off='',all='1';(nc.data||[]).forEach(function(x){if(x.key=='notif_all')all=x.value;else off=x.value||''});
   if(all=='0'){N=0;paint();busy=0;return}var OF=String(off).split(',');
-  var q=[['audit_log','at'],['charter_audit','at'],['plan_audit','at'],['closure_audit','at']].map(function(t){var x=sb.from(t[0]).select('id',{count:'exact',head:true}).gt(t[1],since);if(window.__ubMe)x=x.neq('user_name',window.__ubMe);return x});
+  var q=[['audit_log','at'],['charter_audit','at'],['plan_audit','at'],['closure_audit','at']].map(function(t){var x=sb.from(t[0]).select('id',{count:'exact',head:true}).gt(t[1],since);if(window.__ubMe)x=x.or('user_name.is.null,user_name.neq."'+String(window.__ubMe).replace(/"/g,'')+'"');return x});
   q.push(sb.from('user_nudges').select('id,kind',{count:'exact'}).eq('to_user',u.id).gt('created_at',since).limit(500));
   var R=await Promise.all(q),n=0;R.slice(0,4).forEach(function(r){if(!r.error&&OF.indexOf('flow')<0)n+=r.count||0});var nu=R[4];if(!nu.error)(nu.data||[]).forEach(function(x){if(OF.indexOf(x.kind||'flow')<0)n++});
   N=Math.min(n,120);paint()}catch(_){}busy=0}
