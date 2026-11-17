@@ -216,7 +216,8 @@ function mkProject(p){try{(window.TRAW=window.TRAW||{})[p.id]=p.tasks||[]}catch(
 let ATTN={};
 function fileChips(r){const n=ATTN[r.pr.pid+'|'+r.id]||0,hasN=!!(r.x&&(r.x.tn||r.x.nt));if(!n&&!hasN)return '';const AR_=lang=='ar';return (n?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'مرفقات':'Attachments'}">📎 ${n}</span>`:'')+(hasN?`<span class="chp" style="cursor:pointer" onclick="event.stopPropagation();openSheet('${esc(r.pr.pid+'|'+r.id)}')" title="${AR_?'ملاحظات':'Notes'}">📝</span>`:'')}
 async function reload(){try{pcrMine(true)}catch(_){}try{uibLoad().then(()=>{if((location.hash=='#unit'||/[?&]unit=1/.test(location.search))&&UIB&&UIB.length&&!uibLoad.d){uibLoad.d=1;history.replaceState(null,'',location.pathname+location.search);uibOpen()}})}catch(_){}
- try{ATTN={};const a=await sb.from('plan_attachments').select('cr_id,task_id').not('task_id','is',null).limit(5000);(a.data||[]).forEach(z=>{const k=z.cr_id+'|'+z.task_id;ATTN[k]=(ATTN[k]||0)+1})}catch(_){}
+ try{await dlvLoad()}catch(_){}
+  try{ATTN={};const a=await sb.from('plan_attachments').select('cr_id,task_id').not('task_id','is',null).limit(5000);(a.data||[]).forEach(z=>{const k=z.cr_id+'|'+z.task_id;ATTN[k]=(ATTN[k]||0)+1})}catch(_){}
  let rows=[];
  try{GRT={};GRPL={};const g=await (await sb.rpc('my_grants').then(r=>r.error?sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id):r,()=>sb.from('project_grants').select('pcode,lvl,svcs').eq('user_id',ME.id)));(g.data||[]).forEach(x=>{if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('tasks')))GRT[x.pcode]=1;if(x.lvl=='edit'&&(!x.svcs||x.svcs.includes('plan')))GRPL[x.pcode]=1})}catch(_){}
  try{COLT=new Set();TACC={};const cr=await sb.rpc('my_collabs');(cr.data||[]).forEach(x=>{if(x.kind=='task')COLT.add(x.ref);if(x.kind=='task_access'){TACC[x.pcode]=1;GRT[x.pcode]=1}})}catch(_){}
@@ -321,7 +322,7 @@ function card2(r){const x=r.x,k=esc(r.pr.pid+'|'+x.id),done=isDone(r),st=stOf(r)
  if(r.edit){act=done?`<button onclick="setP('${k}',0)">${t('undo')}</button>`:`<button class="pl" onclick="plus25('${k}')" title="${T('زيادة الإنجاز ٢٥٪','Add 25%')}"><span class="num">+25%</span></button>${late?`<button class="ok2" onclick="doneOn('${k}','plan')" title="${T('تُسجَّل نهاية المهمة في موعدها المخطط','Recorded as finished on its planned date')}">✓ ${T('في الموعد','On time')}</button><button class="ok" onclick="doneOn('${k}','today')">✓ ${T('اليوم','Today')}</button>`:`<button class="ok" onclick="doneOn('${k}','today')">✓ ${T('أنجزتها','Done')}</button>`}`}
  else act=`<button onclick="openSheet('${k}')">${T('فتح','Open')}</button>`;
  return `<article class="c2${done?' dn':''}${st=='late'?' lt':''}" style="--pc:${pcol(r.pr.pid)}" tabindex="0" onclick="openSheet('${k}')" onkeydown="if(event.key=='Enter')openSheet('${k}')">${ring(r.a.a,col)}
- <div class="c2m"><div class="c2t"><b>${x.ms?'◆ ':''}${esc(x.n)}</b>${c2badge(r)}${window.IDOBKD?IDOBKD.badge(r.pr.pid+'|'+x.id):''}${fileChips(r)}</div>
+ <div class="c2m"><div class="c2t"><b>${x.ms?'◆ ':''}${esc(x.n)}</b>${c2badge(r)}${window.IDOBKD?IDOBKD.badge(r.pr.pid+'|'+x.id):''}${dlvBadge(r)}${fileChips(r)}</div>
  <div class="c2s">${esc(r.pr.pname)}${pathS(r)?' · '+pathS(r):''}</div><div class="c2d">${relT(r)}${r.s!=null||r.e!=null?`<span class="c2p" title="${T('الموعد المخطط','Planned dates')}">📅 ${r.s!=null?'<span class="num">'+fd(ds(r.s))+'</span>':'—'} ← ${r.e!=null?'<span class="num">'+fd(ds(r.e))+'</span>':'—'}</span>`:''}</div></div>
  <div class="c2a" onclick="event.stopPropagation()">${act}</div></article>`}
 let SECO=null;
@@ -555,13 +556,14 @@ async function openSheet(k){const r=findR(k);if(!r)return;SH={k,r};closeSheet();
  ${sbh?acc('acs','clock',t('sc_h').replace(/^✏️\s*/,''),sbh,stg):''}
  ${CFG.deps&&(r.preds.length||sc.length)?acc('acd','link',t('sh_pred'),dep+`<label>${t('sh_succ')}</label>`+su,r.blocked,`<span class="cnt num">${r.preds.length+sc.length}</span>`):''}
  ${acc('acc2','users',ar?'المشاركون والنقاش':'Collaborators & discussion',`<div id="sh_col"></div>`,!!(r.collab&&!r.mine))}
+ ${r.x&&r.x.dr?acc('acdl','clip',(ar?'المخرَج المطلوب':'Required deliverable')+(r.x.dl?': '+esc(r.x.dl):''),`<div id="sh_dlv" class="mut">…</div>`,1,dlvBadge(r)):''}
  ${acc('aca','clip',t('sh_att'),`<div id="sh_atl" class="mut">…</div>${r.edit||r.collab?`<div class="g2" style="margin-top:6px"><div><input type="text" id="sh_at" placeholder="${t('sh_ft')}"></div><div><input type="file" id="sh_af"></div></div><div class="row" style="margin-top:6px"><button onclick="shUp()">📎 ${t('sh_up')}</button></div>`:''}`,0,(ATTN[r.pr.pid+'|'+r.id]?`<span class="cnt num">${ATTN[r.pr.pid+'|'+r.id]}</span>`:''))}
  ${acc('ach','note',t('sh_hist'),`<div id="sh_hl" class="mut">…</div>`,0)}
  ${r.edit||addPlans().includes(r.pr)?`<div class="row" style="margin:4px 0 0"><button class="lnk" onclick="addOpen('${esc(String(r.pr.pid))}','${esc(r.id)}')">＋ ${t('addUnder')}</button></div>`:''}
  <div class="row shf">${r.leaf&&!ro?`<button class="p" onclick="shSave()">${t('sh_save')}</button>`:''}<button onclick="closeSheet()">${t('sh_close')}</button></div></div>`;
  if(r.leaf){const rg=$('sh_rg'),pc=$('sh_pc');rg.oninput=()=>{pc.value=rg.value;shRing()};pc.oninput=()=>{rg.value=clamp(+pc.value||0,0,100);rg.dispatchEvent(new Event('rng'));shRing()};pc.addEventListener('change',shRing)}
  document.addEventListener('keydown',shEsc);try{o.querySelector('.x2').focus({preventScroll:true})}catch(_){}
- shAtts();shHist();try{if(window.IDOCOL)IDOCOL.mount($('sh_col'),{kind:'task',ref:r.pr.pid+'|'+r.id,pcode:r.pr.pcode,full:!!r.edit})}catch(_){}}
+ shAtts();shHist();dlvSheet();try{if(window.IDOCOL)IDOCOL.mount($('sh_col'),{kind:'task',ref:r.pr.pid+'|'+r.id,pcode:r.pr.pcode,full:!!r.edit})}catch(_){}}
 function shEsc(e){if(e.key=='Escape'&&$('sov')){closeSheet();document.removeEventListener('keydown',shEsc)}}
 function shRing(){const pc=$('sh_pc'),g=document.querySelector('.sxp .rg');if(!pc||!g)return;const v=clamp(Math.round(+pc.value||0),0,100);g.querySelector('b').textContent=v+'%';g.querySelector('.v').setAttribute('stroke-dasharray',(2*Math.PI*19*v/100).toFixed(1)+' 999')}
 const fire=id=>{const e=$(id);if(!e)return;['input','change'].forEach(n=>e.dispatchEvent(new Event(n,{bubbles:true})))};
@@ -633,6 +635,31 @@ async function shAtts(){const r=SH.r,el=$('sh_atl');if(!el)return;
  el.innerHTML=data.map(a=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;border-top:1px dashed var(--line);padding:4px 0"><a href="#" onclick="shOpenA('${esc(a.path)}',this.dataset.n);return false" data-n="${esc(a.title||'')}" style="color:#2a6a90;overflow-wrap:anywhere">📎 ${esc(a.title)}</a>${(ADM||a.uploaded_by==ME.id)?`<button class="r" style="padding:2px 10px" onclick="shDelA(${a.id},'${esc(a.path)}')">${t('sh_del')}</button>`:''}</div>`).join('')}
 async function shOpenA(path,nm){try{await IDODL('pl-attachments',path,nm)}catch(e){toast(e.message||String(e))}}
 const shDelA=(id,path)=>run(async()=>{await sb.storage.from('pl-attachments').remove([path]);const {error}=await sb.from('plan_attachments').delete().eq('id',id);if(error)throw error;await shAtts()},t('upd'));
+/* ===== المخرَج المطلوب ===== */
+let DLV={};
+async function dlvLoad(){try{const r=await sb.rpc('deliv_mine');DLV=(r&&!r.error&&r.data)||{}}catch(_){DLV={}}}
+function dlvSt(r){const d=DLV[r.pr.pid+'|'+r.id];return d?d.st:'none'}
+function dlvBadge(r){if(!r.x||!r.x.dr)return '';const ar=lang=='ar',st=dlvSt(r),done=(+r.x.pc||0)>=100;
+ if(st=='approved')return `<span class="bdg b">✅ ${ar?'مخرَج معتمد':'Approved'}</span>`;
+ if(st=='pending')return `<span class="bdg y">📎 ${ar?'بانتظار اعتماد المخرَج':'Awaiting approval'}</span>`;
+ if(st=='returned')return `<span class="bdg r">↩ ${ar?'أُعيد المخرَج للتعديل':'Returned'}</span>`;
+ return done?`<span class="bdg r">📎 ${ar?'ارفع المخرَج لإغلاق المهمة':'Upload deliverable'}</span>`:`<span class="bdg b">📎 ${ar?'يتطلب مخرَجًا':'Needs deliverable'}</span>`}
+async function dlvSheet(){const r=SH&&SH.r,el=$('sh_dlv');if(!el||!r)return;const ar=lang=='ar';let H=[];try{const q=await sb.rpc('deliv_hist',{p_plan:r.pr.pid,p_task:r.id});H=(q&&!q.error&&q.data)||[]}catch(_){}
+ if(!$('sh_dlv'))return;const last=H.find(x=>x.status!='superseded'),done=(+r.x.pc||0)>=100,can=r.edit||(r.x.w==ME.id);
+ const stx=!last?(done?(ar?'المهمة مكتملة ولم يُرفع المخرَج بعد. لن تُغلق حتى يُرفع ويُعتمد.':'Task complete; deliverable not uploaded yet.'):(ar?'عند إكمال المهمة ارفع المخرَج هنا ليعتمده المعتمِد.':'Upload the deliverable here when the task is done.')):
+  last.status=='pending'?(ar?'رُفع الإصدار '+last.ver+' في '+fd(String(last.at).slice(0,10))+' وينتظر الاعتماد.':'Version '+last.ver+' awaiting approval.'):
+  last.status=='approved'?(ar?'✅ اعتمده '+(last.decided_name||'')+' في '+fd(String(last.decided_at).slice(0,10))+'.':'✅ Approved.'):
+  (ar?'↩ أعاده '+(last.decided_name||'')+' للتعديل'+(last.dec_note?': «'+last.dec_note+'»':'.')+' ارفع إصدارًا جديدًا.':'↩ Returned'+(last.dec_note?': '+last.dec_note:''));
+ el.classList.remove('mut');
+ el.innerHTML=`<div style="font-size:14px;margin-bottom:6px">${esc(stx)}</div>`+
+  (H.length?`<div style="font-size:12.5px;margin-bottom:6px">${H.map(x=>`<div style="display:flex;gap:8px;justify-content:space-between;border-top:1px dashed var(--line);padding:4px 0"><a href="#" onclick="event.preventDefault();shOpenA('${esc(x.path)}','${esc(x.file_name||'')}')">${ar?'الإصدار ':'v'}${x.ver} · ${esc(x.file_name||'')}</a><span class="mut">${x.status=='approved'?(ar?'معتمد':'approved'):x.status=='returned'?(ar?'أُعيد':'returned'):x.status=='pending'?(ar?'بانتظار الاعتماد':'pending'):(ar?'استُبدل':'replaced')}</span></div>`).join('')}</div>`:'')+
+  (can&&(!last||last.status!='approved')?`<div class="g2"><div><input type="file" id="dl_f"></div><div><input type="text" id="dl_n" placeholder="${ar?'ملاحظة للمعتمِد (اختياري)':'Note for the approver (optional)'}"></div></div><div class="row" style="margin-top:6px"><button class="p" onclick="dlvUp()">📤 ${last&&last.status=='pending'?(ar?'استبدال الملف المرفوع':'Replace file'):(ar?'رفع المخرَج للاعتماد':'Submit for approval')}</button></div>`:'')}
+const dlvUp=()=>run(async()=>{const f=$('dl_f').files[0],ar=lang=='ar';if(!f)throw new Error(ar?'اختر الملف أولًا':'Choose a file');if(f.size>10485760)throw new Error(t('e_big'));
+ const r=SH.r,ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase(),path=r.pr.pid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
+ const up=await sb.storage.from('pl-attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});if(up.error)throw up.error;
+ const q=await sb.rpc('deliv_submit',{p_plan:r.pr.pid,p_task:r.id,p_path:path,p_name:f.name,p_size:f.size,p_mime:f.type||'',p_note:$('dl_n').value||null});
+ if(q.error){await sb.storage.from('pl-attachments').remove([path]);throw q.error}
+ await dlvLoad();await dlvSheet();await shAtts();toast(ar?'رُفع المخرَج وأُرسل للاعتماد.':'Submitted for approval.')},t('upd'));
 const shUp=()=>run(async()=>{const f=$('sh_af').files[0];if(!f)throw new Error(t('sh_f'));if(f.size>10485760)throw new Error(t('e_big'));
  const r=SH.r,ext=(f.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0].toLowerCase(),path=r.pr.pid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+ext;
  const up=await sb.storage.from('pl-attachments').upload(path,f,{contentType:f.type||'application/octet-stream'});if(up.error)throw up.error;

@@ -429,7 +429,7 @@ window.S=S;S.inc=['a'];S.per=8;S.hp=7;let HEAT=null,HISTR=null,TGT=75;
 
 /* ===================== data ===================== */
 async function load(force){if(LOADING)return;LOADING=true;
- try{const [a,b,c,hh,ht,sc,aq]=await Promise.all([sb.rpc('room_overview'),sb.rpc('office_pending'),sb.rpc('room_extra'),sb.rpc('room_heat',{p_days:S.hp}),sb.rpc('room_hist',{p_weeks:S.per}),sb.rpc('scope_all').then(r=>r,()=>({})),sb.rpc('audit_quick').then(r=>r,()=>({}))]);SCP=(sc&&!sc.error&&sc.data)||[];AQ=(aq&&!aq.error&&aq.data)||null;if(a.error)throw a.error;HEAT=hh.error?null:hh.data;HISTR=ht.error?null:ht.data;if(HISTR&&HISTR.target)TGT=Math.max(30,Math.min(100,+HISTR.target||75));
+ try{const [a,b,c,hh,ht,sc,aq,dv]=await Promise.all([sb.rpc('room_overview'),sb.rpc('office_pending'),sb.rpc('room_extra'),sb.rpc('room_heat',{p_days:S.hp}),sb.rpc('room_hist',{p_weeks:S.per}),sb.rpc('scope_all').then(r=>r,()=>({})),sb.rpc('audit_quick').then(r=>r,()=>({})),sb.rpc('deliv_overdue').then(r=>r,()=>({}))]);DOV=(dv&&!dv.error&&dv.data)||[];SCP=(sc&&!sc.error&&sc.data)||[];AQ=(aq&&!aq.error&&aq.data)||null;if(a.error)throw a.error;HEAT=hh.error?null:hh.data;HISTR=ht.error?null:ht.data;if(HISTR&&HISTR.target)TGT=Math.max(30,Math.min(100,+HISTR.target||75));
   D=a.data;OP=b.error?{services:[],tasks:[]}:(b.data||{services:[],tasks:[]});X=c.error?{}:(c.data||{});
   const P=X.prefs||{};if(Array.isArray(P.watch))S.watch=new Set(P.watch);if(P.gm)S.gm=P.gm;if(P.sm)S.sm=P.sm;if(Array.isArray(P.inc)&&P.inc.length&&!S.incSet){S.inc=P.inc;S.incSet=1}
   build();redrawAll();$('clk').textContent=hhmm(new Date());if(force)toast('تم تحديث البيانات')}
@@ -469,7 +469,7 @@ function build(){const td=TD(),w=wts(),secN=D.sectors||[];
  alarms();steps()}
 
 /* ===================== alarms ===================== */
-const ALC0=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];let ALC=ALC0.slice();let SCP=[],AQ=null;
+const ALC0=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];let ALC=ALC0.slice();let SCP=[],AQ=null,DOV=[];
 function alarms(){AL=[];PJ.forEach(p=>{if(p.halted)return;
   if(p.fc&&p.fc.stall)AL.push({id:'ach:'+p.pc,cat:'ach',sev:'bad',pc:p.pc});else if(p.fcLate>14)AL.push({id:'ach:'+p.pc,cat:'ach',sev:p.fcLate>40?'bad':'warn',pc:p.pc});
   if(p.kOff)AL.push({id:'kpi:'+p.pc,cat:'kpi',sev:p.kOff>1?'bad':'warn',pc:p.pc});p.kp.forEach(k=>(k.pend||[]).forEach(v=>{if(kAnom(k,v)!=null)AL.push({id:'kan:'+v.id,cat:'kpi',sev:'bad',pc:p.pc})}));
@@ -477,6 +477,7 @@ function alarms(){AL=[];PJ.forEach(p=>{if(p.halted)return;
   if(p.idle!=null&&p.idle>=14&&!p.n7)AL.push({id:'idle:'+p.pc,cat:'idle',sev:'warn',pc:p.pc})});
  (OP.services||[]).forEach(s=>{if((!s.office&&s.days>=7)||(s.office&&s.days>=3))AL.push({id:'doc:'+s.key,cat:'appr',sev:s.days>=10?'bad':'warn',pc:s.pcode})});
  (D.esc||[]).forEach(e=>AL.push({id:'esc:'+e.id,cat:'esc',sev:'bad'}));
+ DOV.forEach(x=>{const p=pj(x.pcode);AL.push({id:'dlv:'+x.id,cat:'appr',sev:x.days>=7?'bad':'warn',pc:x.pcode,t:'مخرَج «'+(x.dl||x.n)+'» بانتظار الاعتماد منذ '+x.days+' يومًا',f:(p?'«'+p.n+'» · ':'')+'رفعه '+(x.by||''),lk:'audit.html#tab=ev&cat=deliv&pc='+encodeURIComponent(x.pcode)})});
  ALC=ALC0.slice();if(SCP.length)ALC.push(['scope','النطاق']);if(AQ)ALC.push(['comm','المراسلات']);
  SCP.forEach(r=>{if(r.g!='bad'&&r.g!='wa')return;const p=pj(r.pcode);if(p&&p.halted)return;AL.push({id:'scope:'+r.pcode,cat:'scope',sev:r.g=='bad'?'bad':'warn',pc:r.pcode,t:'«'+(p?p.n:r.pcode)+'» '+(r.g=='bad'?'خارج نطاقه المعتمد':'يحتاج متابعة في النطاق'),f:'مؤشر الالتزام بالنطاق '+Math.round(+r.score)+'٪',lk:'myprojects.html?pc='+encodeURIComponent(r.pcode)})});
  if(AQ){if(+AQ.fail7)AL.push({id:'mailfail:'+TD(),cat:'comm',sev:'bad',t:cnt(+AQ.fail7,'رسالة بريد فشل إرسالها','رسالتا بريد فشل إرسالهما','رسائل بريد فشل إرسالها','رسالة بريد فشل إرسالها')+' خلال 7 أيام',f:'افتح سجل التدقيق لمعرفة المستلمين وسبب الفشل.',lk:'audit.html#tab=ev&cat=comm&st=failed'});
