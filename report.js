@@ -64,7 +64,7 @@ function build(c,SN){var L=c.L,A=c.A,RP=c.RP,cfg=c.cfg,D=c.D||{},f=dn(RP.f),e=dn
  var dl=P.filter(function(x){return x.dlt!=null}),avgD=dl.length?dl.reduce(function(s,x){return s+x.dlt},0)/dl.length:null;
  /* الملخص الذكي */
  var ins=[];
- ins.push((ovH=='ok'?'المحفظة تسير وفق الخطة':ovH=='wa'?'المحفظة تحتاج متابعة':'المحفظة متأخرة عن الخطة')+': الإنجاز الفعلي <b>'+pc(A.a)+'</b> مقابل <b>'+pc(A.ex)+'</b> مخطط حتى نهاية الفترة'+(gapAll>1?'، بفجوة '+R(gapAll)+' نقطة.':'.'));
+ ins.push((ovH=='ok'?'المحفظة تسير وفق الخطة':ovH=='wa'?'المحفظة تحتاج متابعة':'المحفظة متأخرة عن الخطة')+': الإنجاز الفعلي <b>'+pc(A.a)+'</b> مقابل <b>'+pc(A.ex)+'</b> مخطط حتى نهاية الفترة'+(gapAll>1?'، بفجوة '+cnt(R(gapAll),'نقطة واحدة','نقطتين','نقاط','نقطة')+'.':'.'));
  if(avgD!=null)ins.push('تقدّمت المشاريع خلال الفترة بمتوسط <b>'+(avgD>=0?'+':'')+avgD.toFixed(1)+'</b> نقطة، وأُنجز فيها '+cnt(doneT,'مهمة واحدة','مهمتان','مهام','مهمة')+'.');else ins.push('أُنجز خلال الفترة '+cnt(doneT,'مهمة واحدة','مهمتان','مهام','مهمة')+'.');
  var top=dl.slice().sort(function(a,b){return b.dlt-a.dlt}).filter(function(x){return x.dlt>0}).slice(0,3);if(top.length)ins.push('الأكثر تقدمًا: '+top.map(function(x){return '«'+esc(x.p.name)+'» (+'+R(x.dlt)+')'}).join('، ')+'.');
  var stall=P.filter(function(x){return !x.p.closed&&x.dlt!=null&&x.dlt<=0.5&&x.p.gap>=10});if(stall.length)ins.push('<span class="r">'+cnt(stall.length,'مشروع لم يتقدم','مشروعان لم يتقدما','مشاريع لم تتقدم','مشروعًا لم يتقدم')+' خلال الفترة رغم تأخره عن الخطة: '+stall.slice(0,3).map(function(x){return '«'+esc(x.p.name)+'»'}).join('، ')+'.</span>');
@@ -73,7 +73,7 @@ function build(c,SN){var L=c.L,A=c.A,RP=c.RP,cfg=c.cfg,D=c.D||{},f=dn(RP.f),e=dn
  if(cfg.kpi&&allK.length)ins.push('المؤشرات: <b>'+kc.ok+'</b> على المسار، و<b>'+(kc.wa+kc.bad)+'</b> تحتاج متابعة'+(kc.na?'، و'+kc.na+' بلا قراءة':'')+'.');
  if(cfg.bud&&tA){var burn=P.filter(function(x){return x.spc!=null&&x.spc>(x.p.a||0)+20});ins.push('الصرف التراكمي <b>'+nf(tS)+'</b> من <b>'+nf(tA)+'</b> درهم ('+R(tS/tA*100)+'%)'+(burn.length?'، و'+cnt(burn.length,'مشروع يسبق','مشروعان يسبقان','مشاريع يسبق','مشروعًا يسبق')+' صرفُه إنجازَه بأكثر من 20 نقطة':'')+'.')}
  if(cfg.cr&&crs.length)ins.push('قُدّم في الفترة '+cnt(crs.length,'طلب تغيير واحد','طلبا تغيير','طلبات تغيير','طلب تغيير')+'.');
- if(next.length)ins.push('في الفترة القادمة يستحق '+cnt(next.length,'موعد مهمة واحدة','موعدا مهمتين','مواعيد مهام','موعد مهمة')+(next.filter(function(n){return n.x.ms}).length?'، منها '+next.filter(function(n){return n.x.ms}).length+' معالم رئيسية':'')+'.');
+ if(next.length)ins.push('في الفترة القادمة يستحق '+cnt(next.length,'موعد مهمة واحدة','موعدا مهمتين','مواعيد مهام','موعد مهمة')+(next.filter(function(n){return n.x.ms}).length?'، منها '+cnt(next.filter(function(n){return n.x.ms}).length,'معلم رئيسي واحد','معلمان رئيسيان','معالم رئيسية','معلمًا رئيسيًا'):'')+'.');
  /* الصفحات */
  var page=function(h,cls){return '<section class="pg '+(cls||'')+'">'+h+'<footer><span>'+esc(per.t)+' · '+esc(per.s)+'</span><span>'+esc(c.scope)+'</span><span class="pn"></span></footer></section>'};
  var H2=function(n,t,s){return '<div class="h2"><span>'+n+'</span><div><h2>'+t+'</h2>'+(s?'<p>'+s+'</p>':'')+'</div></div>'};
@@ -122,10 +122,10 @@ var CSS='@page{size:A4;margin:0}*{box-sizing:border-box}body{margin:0;background
  '.nt{border:1px solid #e6e0d2;border-inline-start:5px solid #B39A6B;border-radius:12px;padding:10px 14px;margin:0 0 10px;break-inside:avoid}.nt h4{margin:0 0 4px;font-size:14px;color:#14324a;display:flex;gap:8px;align-items:center}.nt p{margin:4px 0}'+
  '@media(max-width:820px){.cv-k,.kg{grid-template-columns:1fr 1fr}.ex,.two{grid-template-columns:1fr}.cv-mid h1{font-size:36px}.t{font-size:11px}}';
 /* ---------- العارض ---------- */
-var VCSS='#idorep{position:fixed;inset:0;z-index:200;background:rgba(20,30,40,.55);display:flex;flex-direction:column}#idorep .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#14324a;color:#fff;padding:10px 14px}#idorep .bar b{flex:1;font-size:15px}#idorep .bar button{border:0;border-radius:10px;padding:7px 14px;font:inherit;font-weight:700;cursor:pointer;background:#fff;color:#14324a}#idorep .bar button.p{background:#B39A6B;color:#fff}#idorep iframe{flex:1;border:0;width:100%;background:#e9e6df}';
+var VCSS='#idorep{position:fixed;inset:0;z-index:200;background:rgba(20,30,40,.55);display:flex;flex-direction:column}#idorep .irbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#14324a;color:#fff;padding:10px 14px}#idorep .irbar b{flex:1;font-size:15px}#idorep .irbar button{border:0;border-radius:10px;padding:7px 14px;font:inherit;font-weight:700;cursor:pointer;background:#fff;color:#14324a}#idorep .irbar button.p{background:#B39A6B;color:#fff}#idorep iframe{flex:1;border:0;width:100%;background:#e9e6df}';
 async function open(c){var sb=c.sb,codes=c.L.map(function(p){return p.k});
  var v=document.getElementById('idorep');if(v)v.remove();if(!document.getElementById('idorepcss')){var s=document.createElement('style');s.id='idorepcss';s.textContent=VCSS;document.head.appendChild(s)}
- v=document.createElement('div');v.id='idorep';v.innerHTML='<div class="bar"><b>📘 التقرير الشامل</b><button class="p" id="irP">🖨 طباعة / حفظ PDF</button><button id="irD">⬇ تنزيل الملف</button><button id="irX">✕ إغلاق</button></div><iframe title="التقرير"></iframe>';document.body.appendChild(v);
+ v=document.createElement('div');v.id='idorep';v.innerHTML='<div class="irbar"><b>📘 التقرير الشامل</b><button class="p" id="irP">🖨 طباعة / حفظ PDF</button><button id="irD">⬇ تنزيل الملف</button><button id="irX">✕ إغلاق</button></div><iframe title="التقرير"></iframe>';document.body.appendChild(v);
  var fr=v.querySelector('iframe');fr.srcdoc='<p style="font-family:sans-serif;text-align:center;margin-top:40px">جارٍ إعداد التقرير…</p>';
  document.getElementById('irX').onclick=function(){v.remove()};
  var SN=await snaps(sb,codes,c.RP.f,c.RP.t),html;try{html=build(c,SN)}catch(e){fr.srcdoc='<p style="font-family:sans-serif;color:#d1101d;text-align:center;margin-top:40px">تعذّر إعداد التقرير: '+esc(e.message||e)+'</p>';return}

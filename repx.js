@@ -116,7 +116,7 @@
   '@media(max-width:900px){.rxfr.on{position:fixed;inset:0;z-index:600}.rx2{grid-template-columns:1fr}}';
  function css(){if(document.getElementById('rxcss'))return;var s=document.createElement('style');s.id='rxcss';s.textContent=CSS;document.head.appendChild(s)}
  css();
- window.REPX={cfg:CFG,data:D,load:load,sectionsH:sectionsH,deckLines:deckLines,cfgOpen:cfgOpen,wsOpen:wsOpen,prevPeriod:prevPeriod,
+ window.REPX={cfg:CFG,data:D,cur:function(){return D},load:load,sectionsH:sectionsH,deckLines:deckLines,cfgOpen:cfgOpen,wsOpen:wsOpen,prevPeriod:prevPeriod,
   _set:function(k,v){CFG[k]=v?1:0;saveCfg();if(REPX._onCfg)REPX._onCfg()},_reset:function(){Object.keys(DEF).forEach(function(k){CFG[k]=DEF[k]});saveCfg();cfgOpen(REPX._onCfg);if(REPX._onCfg)REPX._onCfg()},
   _closeCfg:function(){var o=document.getElementById('rxcfg');if(o)o.remove()},
   _closeWs:async function(){await flush();TABS=[];TON=-1;var o=document.getElementById('rxws');if(o)o.remove();document.body.style.overflow='';if(REPX.onWsClose)REPX.onWsClose()},
