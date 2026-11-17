@@ -4,7 +4,7 @@
  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
  var C=function(){try{return window.sb||Function('return sb')()}catch(_){return null}};
  var nf=function(v){v=+v||0;return Math.round(v).toLocaleString('en-US')};
- var DEF={sum:1,sec:1,pj:1,cr:1,risk:1,kpi:1,bud:1,notes:1,auto:1,dPerf:1,dProj:1,dRisk:1,dKpi:1,dBud:0,cover:1,ins:1,hl:1,chg:1};
+ var DEF={sum:1,sec:1,pj:1,cr:1,risk:1,kpi:1,bud:1,notes:1,auto:1,dPerf:1,dProj:1,dRisk:1,dKpi:1,dBud:0,cover:1,ins:1,hl:1,chg:1,toc:1,tsec:1,tpj:1,tpjc:0};
  var CFG=(function(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem('repCfg')||'{}'))}catch(_){return Object.assign({},DEF)}})();
  function saveCfg(){try{localStorage.setItem('repCfg',JSON.stringify(CFG))}catch(_){}}
  var D={key:'',risks:{},kpis:{},fin:{},notes:{},prev:{},ok:false,err:''};
@@ -52,7 +52,7 @@
   return out}
  /* ---------- لوحة التحكم في المحتوى ---------- */
  var OPT=[['sum',P('الملخص العام والمؤشرات العليا','Summary')],['sec',P('القطاعات','Sectors')],['pj',P('جدول المشاريع','Projects table')],['cr',P('طلبات التغيير','Change requests')],['risk',P('المخاطر','Risks')],['kpi',P('مؤشرات الأداء','KPIs')],['bud',P('الموازنة والمصروفات','Budget')],['notes',P('ملاحظات المكتب','Office notes')]];
- var OPTF=[['cover',P('صفحة الغلاف','Cover page')],['ins',P('الملخص الذكي (أبرز ما تقوله الأرقام)','Smart summary')],['chg',P('تقدّم كل مشروع خلال الفترة (من اللقطات اليومية)','Progress made in the period')],['hl',P('ما أُنجز في الفترة وما هو مستحق في الفترة القادمة','Done in period and due next')]];
+ var OPTF=[['cover',P('صفحة الغلاف','Cover page')],['toc',P('الفهرس (قابل للضغط حتى في PDF)','Clickable contents')],['tsec',P('فصل لكل قطاع','A chapter per sector')],['tpj',P('صفحة مفصّلة لكل مشروع','A detailed page per project')],['tpjc',P('بطاقات مختصرة للمشاريع (مشروعان في الصفحة) بدل الصفحات الكاملة','Compact project cards instead of full pages')],['ins',P('الملخص الذكي (أبرز ما تقوله الأرقام)','Smart summary')],['chg',P('تقدّم كل مشروع خلال الفترة (من اللقطات اليومية)','Progress made in the period')],['hl',P('ما أُنجز في الفترة وما هو مستحق في الفترة القادمة','Done in period and due next')]];
  var OPTD=[['dPerf',P('شرائح أداء القطاعات','Sector performance slides')],['dProj',P('شريحة لكل مشروع','A slide per project')],['auto',P('الملاحظات التلقائية (المتأخرات والفجوة)','Automatic notes (late tasks, gap)')],['dRisk',P('سطر المخاطر في شريحة المشروع','Risks line on project slide')],['dKpi',P('سطر المؤشرات في شريحة المشروع','KPIs line on project slide')],['dBud',P('سطر الصرف في شريحة المشروع','Spending line on project slide')]];
  function cfgOpen(onChange){var o=document.getElementById('rxcfg');if(o)o.remove();o=document.createElement('div');o.id='rxcfg';o.className='rxov';
   var ck=function(x){return '<label class="rxck"><input type="checkbox" '+(CFG[x[0]]?'checked':'')+' onchange="REPX._set(\''+x[0]+'\',this.checked)"> '+x[1]+'</label>'};
