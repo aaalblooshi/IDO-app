@@ -6,7 +6,7 @@
  var nf=function(v){v=+v||0;return Math.round(v).toLocaleString('en-US')};
  var DEF={sum:1,sec:1,pj:1,cr:1,risk:1,kpi:1,bud:1,notes:1,auto:1,dPerf:1,dProj:1,dRisk:1,dKpi:1,dBud:0,cover:1,ins:1,hl:1,chg:1,toc:1,tsec:1,tpj:1,tpjc:0};
  var CFG=(function(){try{return Object.assign({},DEF,JSON.parse(localStorage.getItem('repCfg')||'{}'))}catch(_){return Object.assign({},DEF)}})();
- var ADVK=['cmp','dq','est','dec','quad','fcp','team','one','tabs','en'],SYS=null,SYSP=null;ADVK.forEach(function(k){CFG[k]=0});
+ var ADVK=['cmp','dq','est','dec','quad','fcp','team','one','tabs','en','scp'],SYS=null,SYSP=null;ADVK.forEach(function(k){CFG[k]=0});
  function sysApply(){var z=SYS||{};ADVK.forEach(function(k){CFG[k]=z[k]==1||z[k]===true?1:0});if(z.sys==1&&z.sec)Object.keys(z.sec).forEach(function(k){if(k in DEF)CFG[k]=z.sec[k]?1:0})}
  function sysLoad(force){if(SYSP&&!force)return SYSP;var c=C();if(!c)return Promise.resolve();SYSP=c.from('app_settings').select('value').eq('key','rep_cfg').maybeSingle().then(function(r){try{SYS=JSON.parse((r.data&&r.data.value)||'{}')||{}}catch(_){SYS={}}sysApply()},function(){SYS={}});return SYSP}
  function saveCfg(){try{var o={};Object.keys(CFG).forEach(function(k){if(ADVK.indexOf(k)<0)o[k]=CFG[k]});localStorage.setItem('repCfg',JSON.stringify(o))}catch(_){}}
@@ -22,6 +22,7 @@
      if(ids.length){var v=await c.from('kpi_values').select('kpi_id,period,actual').in('kpi_id',ids);(v.data||[]).forEach(function(x){if(!V[x.kpi_id]||String(x.period)>String(V[x.kpi_id].period))V[x.kpi_id]=x})}
      K.forEach(function(k){k.last=V[k.id]||null;(d.kpis[k.pcode]=d.kpis[k.pcode]||[]).push(k)})}),
    c.from('charters').select('id,code,status').in('code',codes).then(function(r){d.ch={};(r.data||[]).sort(function(a,b){return a.id-b.id}).forEach(function(x){if(x.status=='Approved'||!d.ch[x.code])d.ch[x.code]=x.id})}),
+   c.rpc('scope_all').then(function(r){d.scope={};(r.data||[]).forEach(function(x){if(codes.indexOf(x.pcode)>-1)d.scope[x.pcode]=x})},function(){}),
    c.rpc('fin_summary',{p_asof:RP.t}).then(function(r){(r.data||[]).forEach(function(x){d.fin[x.pcode]=x})}),
    c.from('report_notes').select('*').in('pcode',codes).eq('pf',RP.f).eq('pt',RP.t).then(function(r){(r.data||[]).forEach(function(x){d.notes[x.pcode]=x})}),
    c.from('report_notes').select('*').in('pcode',codes).lt('pt',RP.f).order('pt',{ascending:false}).limit(500).then(function(r){(r.data||[]).forEach(function(x){if(!d.prev[x.pcode])d.prev[x.pcode]=x})})];
