@@ -645,11 +645,12 @@ const HP=[[1,'اليوم'],[7,'7 أيام'],[30,'30 يومًا'],[90,'90 يوم�
 const SRCN={task:'المهام',kpi:'المؤشرات',risk:'المخاطر',doc:'الوثائق',act:'أنشطة المشاريع',fin:'الموازنات'};
 const DOWN=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 window.setHP=async d=>{S.hp=d;HF={};$('heat').innerHTML='<div class="dim">جارٍ التحميل…</div>';const r=await sb.rpc('room_heat',{p_days:d});HEAT=r.error?null:r.data;drawHeat();evReset()};
-let HF={},EV={key:'',items:[],total:0,busy:false,src:''};
+let HF={},EV={key:'',items:[],total:0,seq:0,src:''};
+const todayK=()=>new Date(Date.now()+4*36e5).toISOString().slice(0,10);
 const hsel=o=>JSON.stringify(HF)==JSON.stringify(o);
 window.hPick=o=>{HF=hsel(o)?{}:o;drawHeat();evReset()};
 window.hClear=()=>{HF={};drawHeat();evReset()};
-function hDesc(){const p=[];if(HF.d)p.push(fdt(dd(HF.d))+(HF.d==TD().toISOString().slice(0,10)?' (اليوم)':''));if(HF.dow!=null)p.push('أيام '+DOWN[HF.dow]);if(HF.h!=null)p.push('الساعة '+HF.h+':00–'+HF.h+':59');if(HF.src)p.push(SRCN[HF.src]||HF.src);return p.join(' · ')}
+function hDesc(){const p=[];if(HF.d)p.push(fdt(dd(HF.d))+(HF.d==todayK()?' (اليوم)':''));if(HF.dow!=null)p.push('أيام '+DOWN[HF.dow]);if(HF.h!=null)p.push('الساعة '+HF.h+':00–'+HF.h+':59');if(HF.src)p.push(SRCN[HF.src]||HF.src);return p.join(' · ')}
 function drawHeat(){$('heatSw').innerHTML=HP.map(([k,n])=>`<button class="chip${S.hp==k?' on':''}" type="button" onclick="setHP(${k})">${n}</button>`).join('');
  const R=(HEAT&&HEAT.rows)||[],tot=(HEAT&&+HEAT.total)||0,prev=(HEAT&&+HEAT.prev)||0,n=S.hp,td=TD(),key=d=>d.toISOString().slice(0,10);let h='';
  const byD={},byDH={};R.forEach(x=>{byD[x.d]=(byD[x.d]||0)+x.n;byDH[x.d+':'+x.h]=x.n});
@@ -677,12 +678,12 @@ function drawHeat(){$('heatSw').innerHTML=HP.map(([k,n])=>`<button class="chip${
  $('heatF').innerHTML=`<span><b>${tot}</b> تحديث ${per}</span>${ch!=null?`<span>·</span><span class="${ch>=0?'ok':'bd'}">${ch>=0?'▲':'▼'} ${Math.abs(ch)}٪ عن الفترة السابقة</span>`:''}${tot&&n>1&&pkD?`<span>·</span><a href="javascript:void 0" onclick="hPick({d:'${pkD[0]}'})">الأنشط: ${fdt(dd(pkD[0]))}</a>`:''}${tot?`<span>·</span><a href="javascript:void 0" onclick="hPick({h:${pkH}})">الذروة الساعة ${pkH}</a>`:''}${idle?`<span>·</span><span class="wn">${cnt(idle,'مشروع','مشروعان','مشاريع','مشروعًا')} بلا تحديث منذ أسبوع</span><button class="btn sm act-only" type="button" onclick="S.stF='idle';go('steps')">عرضها</button>`:''}`}
 /* ---- activities: every recorded update, linked to the pulse selection ---- */
 const EVS=[['','الكل'],['task','المهام'],['kpi','المؤشرات'],['risk','المخاطر'],['doc','الوثائق'],['act','أنشطة المشاريع'],['fin','الموازنات']];
-function evArgs(){const n=S.hp||7;let f,t=new Date();if(HF.d){f=new Date(HF.d+'T00:00:00+04:00');t=new Date(f.getTime()+DAY)}else f=n==1?new Date(TD().toISOString().slice(0,10)+'T00:00:00+04:00'):new Date(Date.now()-n*DAY);
- return {p_from:f.toISOString(),p_to:t.toISOString(),p_src:HF.src||EV.src||null,p_hour:HF.h??null,p_dow:HF.dow??null,p_pc:null}}
+function evArgs(){const n=S.hp||7;let f,t=null;if(HF.d){f=new Date(HF.d+'T00:00:00+04:00');t=new Date(f.getTime()+DAY).toISOString()}else f=n==1?new Date(todayK()+'T00:00:00+04:00'):new Date(Math.floor(Date.now()/36e5)*36e5-n*DAY);
+ return {p_from:f.toISOString(),p_to:t,p_src:HF.src||EV.src||null,p_hour:HF.h??null,p_dow:HF.dow??null,p_pc:null}}
 function evReset(){EV.key='';EV.items=[];EV.total=0;evLoad()}
-async function evLoad(more){const a=evArgs(),k=JSON.stringify(a);if(!more&&EV.key==k)return evDraw();if(EV.busy)return;EV.busy=true;if(!more){EV.key=k;EV.items=[];$('feed').innerHTML='<div class="dim" style="padding:12px 0">جارٍ التحميل…</div>'}
- const r=await sb.rpc('room_events',{...a,p_limit:50,p_offset:more?EV.items.length:0});EV.busy=false;if(r.error){$('feed').innerHTML=`<div class="dim" style="padding:12px 0">تعذّر التحميل: ${esc(r.error.message)}</div>`;return}
- if(JSON.stringify(evArgs())!=k)return evLoad();EV.total=r.data.total||0;EV.items=EV.items.concat(r.data.items||[]);evDraw()}
+async function evLoad(more){const a=evArgs(),k=JSON.stringify(a);if(!more&&EV.key==k)return evDraw();const my=++EV.seq;if(!more){EV.key=k;EV.items=[];EV.total=0;$('feed').innerHTML='<div class="dim" style="padding:12px 0">جارٍ التحميل…</div>'}
+ const r=await sb.rpc('room_events',{...a,p_to:a.p_to||new Date().toISOString(),p_limit:50,p_offset:more?EV.items.length:0});if(my!=EV.seq)return;if(r.error){$('feed').innerHTML=`<div class="dim" style="padding:12px 0">تعذّر التحميل: ${esc(r.error.message)}</div>`;return}
+ EV.total=r.data.total||0;EV.items=EV.items.concat(r.data.items||[]);evDraw()}
 const EVC={task:'#1d5f8a',kpi:'#3EA3DC',risk:'#d1101d',doc:'#BF9849',act:'#0a6b3d',fin:'#7a5cc2'};
 function evDraw(){const sel=hDesc();$('feedSw').innerHTML=EVS.map(([k,n])=>`<button class="chip${(HF.src||EV.src||'')==k?' on':''}" type="button" onclick="evSrc('${k}')">${n}</button>`).join('');
  $('feedTg').innerHTML=(sel?`<b>${esc(sel)}</b> · `:'')+cnt(EV.total,'نشاط واحد','نشاطان','أنشطة','نشاطًا');
