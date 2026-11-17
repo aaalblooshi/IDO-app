@@ -672,7 +672,7 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  function open(href,title){css();var o=document.getElementById('ipnl');if(o)o.remove();var ar=(document.documentElement.lang||'ar')!='en';
   o=document.createElement('div');o.id='ipnl';o.innerHTML='<div class="ipb" role="dialog" aria-modal="true"><div class="iph"><button type="button" class="ipx" aria-label="'+(ar?'إغلاق':'Close')+'">✕</button><b></b><button type="button" class="ipk">‹ '+(ar?'رجوع':'Back')+'</button><a class="ipf" href="">'+(ar?'صفحة كاملة ↗':'Full page ↗')+'</a></div><div class="ipl">'+(ar?'جارٍ الفتح…':'Opening…')+'</div><iframe title=""></iframe></div>';
   o.querySelector('b').textContent=title||'';o.querySelector('.ipf').href=href;document.body.appendChild(o);document.documentElement.classList.add('ipon');
-  var f=o.querySelector('iframe');f.onload=function(){var l=o.querySelector('.ipl');if(l)l.remove();try{var t=f.contentDocument.title;if(!title&&t)o.querySelector('b').textContent=t;o.querySelector('.ipf').href=f.contentWindow.location.href}catch(_){}};f.src=href;
+  var f=o.querySelector('iframe');f.onload=function(){var l=o.querySelector('.ipl');if(l)l.remove();try{var t=String(f.contentDocument.title||'').split(/\s[|—–-]\s/)[0].trim();if(t)o.querySelector('b').textContent=t;else if(!title)o.querySelector('b').textContent='';o.querySelector('.ipf').href=f.contentWindow.location.href}catch(_){}};f.src=href;
   o.querySelector('.ipx').onclick=function(){close()};o.querySelector('.ipk').onclick=function(){try{f.contentWindow.history.back()}catch(_){}};
   o.addEventListener('click',function(e){if(e.target===o)close()});
   try{history.pushState({ipnl:1},'')}catch(_){}}
