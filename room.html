@@ -459,7 +459,7 @@ function build(){const td=TD(),w=wts(),secN=D.sectors||[];
  const seen=new Set(PJ.map(p=>p.pc));(OP.services||[]).forEach(s=>{if(seen.has(s.pcode))return;seen.add(s.pcode);PJ.push({pc:s.pcode,pid:null,n:s.pname||s.code,sec:'',pm:'',pmid:null,stDoc:s.status,charterOnly:true,appr:false,done:false,halted:false,kp:[],rk:[],tk:[],sv:SV[s.pcode]||[],oldest:0,kOff:0,kWarn:0,kPend:0,rHigh:0,rOver:0,rHighOver:0,c:{},fc:null,fcLate:0,idle:null,h:null,status:'pipe',size:5,tasks:0,late:0,act:null,exp:null,docmax:s.days||0})});
  const ids=[...new Set(PJ.map(p=>p.sec))].sort((a,b)=>(+a||99)-(+b||99));
  SEC=ids.map(id=>{const L=PJ.filter(p=>p.sec==id),run=L.filter(p=>p.appr&&!p.done&&!p.halted);const n=id&&secN[+id-1]?secN[+id-1][0]:(id?'قطاع '+id:'قيد التأسيس');
-  return {id,n,L,h:run.filter(p=>p.h!=null).length?Math.round(avg(run.filter(p=>p.h!=null).map(p=>p.h))):null,a:wav(L.filter(p=>p.act!=null),'act'),e:wav(L.filter(p=>p.exp!=null),'exp')}});
+  return {id,n,L,h:run.filter(p=>p.h!=null).length?Math.round(avg(run.filter(p=>p.h!=null).map(p=>p.h))):null,a:wav(L.map(secVal),'act'),e:wav(L.map(secVal),'exp')}});
  const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.h!=null),comp=k=>{const v=run.map(p=>p.c[k]).filter(x=>x!=null);return v.length?Math.round(avg(v)):null};
  H={h:run.length?Math.round(avg(run.map(p=>p.h))):null,a:comp('a'),k:comp('k'),r:comp('r'),d:comp('d')};
  buildHist();
@@ -469,7 +469,7 @@ function build(){const td=TD(),w=wts(),secN=D.sectors||[];
  alarms();steps()}
 
 /* ===================== alarms ===================== */
-const ALC0=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];let ALC=ALC0.slice();let SCP=[],AQ=null,DOV=[],PW={},PWR=2;const wav=(L,k)=>{const W=L.reduce((s,p)=>s+(p.w||0),0);return W?Math.round(L.reduce((s,p)=>s+p[k]*(p.w||0),0)/W):null};
+const ALC0=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];let ALC=ALC0.slice();let SCP=[],AQ=null,DOV=[],PW={},PWR=2;const secVal=p=>{if(p.act!=null)return p;const td=TD(),a=p.sd?dd(p.sd):null,b=p.ed?dd(p.ed):null;let ex=0;if(a!=null&&b!=null){const du=Math.max(1,days(a,b)+1);ex=Math.max(0,Math.min(100,(days(a,td)+1)/du*100))}return Object.assign({},p,{act:0,exp:ex})};const wav=(L,k)=>{const W=L.reduce((s,p)=>s+(p.w||0),0);return W?Math.round(L.reduce((s,p)=>s+p[k]*(p.w||0),0)/W):null};
 function alarms(){AL=[];PJ.forEach(p=>{if(p.halted)return;
   if(p.fc&&p.fc.stall)AL.push({id:'ach:'+p.pc,cat:'ach',sev:'bad',pc:p.pc});else if(p.fcLate>14)AL.push({id:'ach:'+p.pc,cat:'ach',sev:p.fcLate>40?'bad':'warn',pc:p.pc});
   if(p.kOff)AL.push({id:'kpi:'+p.pc,cat:'kpi',sev:p.kOff>1?'bad':'warn',pc:p.pc});p.kp.forEach(k=>(k.pend||[]).forEach(v=>{if(kAnom(k,v)!=null)AL.push({id:'kan:'+v.id,cat:'kpi',sev:'bad',pc:p.pc})}));
