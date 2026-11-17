@@ -429,7 +429,7 @@ window.S=S;S.inc=['a'];S.per=8;S.hp=7;let HEAT=null,HISTR=null,TGT=75;
 
 /* ===================== data ===================== */
 async function load(force){if(LOADING)return;LOADING=true;
- try{const [a,b,c,hh,ht]=await Promise.all([sb.rpc('room_overview'),sb.rpc('office_pending'),sb.rpc('room_extra'),sb.rpc('room_heat',{p_days:S.hp}),sb.rpc('room_hist',{p_weeks:S.per})]);if(a.error)throw a.error;HEAT=hh.error?null:hh.data;HISTR=ht.error?null:ht.data;if(HISTR&&HISTR.target)TGT=Math.max(30,Math.min(100,+HISTR.target||75));
+ try{const [a,b,c,hh,ht,sc,aq]=await Promise.all([sb.rpc('room_overview'),sb.rpc('office_pending'),sb.rpc('room_extra'),sb.rpc('room_heat',{p_days:S.hp}),sb.rpc('room_hist',{p_weeks:S.per}),sb.rpc('scope_all').then(r=>r,()=>({})),sb.rpc('audit_quick').then(r=>r,()=>({}))]);SCP=(sc&&!sc.error&&sc.data)||[];AQ=(aq&&!aq.error&&aq.data)||null;if(a.error)throw a.error;HEAT=hh.error?null:hh.data;HISTR=ht.error?null:ht.data;if(HISTR&&HISTR.target)TGT=Math.max(30,Math.min(100,+HISTR.target||75));
   D=a.data;OP=b.error?{services:[],tasks:[]}:(b.data||{services:[],tasks:[]});X=c.error?{}:(c.data||{});
   const P=X.prefs||{};if(Array.isArray(P.watch))S.watch=new Set(P.watch);if(P.gm)S.gm=P.gm;if(P.sm)S.sm=P.sm;if(Array.isArray(P.inc)&&P.inc.length&&!S.incSet){S.inc=P.inc;S.incSet=1}
   build();redrawAll();$('clk').textContent=hhmm(new Date());if(force)toast('تم تحديث البيانات')}
@@ -469,14 +469,18 @@ function build(){const td=TD(),w=wts(),secN=D.sectors||[];
  alarms();steps()}
 
 /* ===================== alarms ===================== */
-const ALC=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];
+const ALC0=[['ach','الإنجاز'],['kpi','المؤشرات'],['risk','المخاطر'],['appr','الاعتمادات'],['idle','الركود'],['esc','التصعيد']];let ALC=ALC0.slice();let SCP=[],AQ=null;
 function alarms(){AL=[];PJ.forEach(p=>{if(p.halted)return;
   if(p.fc&&p.fc.stall)AL.push({id:'ach:'+p.pc,cat:'ach',sev:'bad',pc:p.pc});else if(p.fcLate>14)AL.push({id:'ach:'+p.pc,cat:'ach',sev:p.fcLate>40?'bad':'warn',pc:p.pc});
   if(p.kOff)AL.push({id:'kpi:'+p.pc,cat:'kpi',sev:p.kOff>1?'bad':'warn',pc:p.pc});p.kp.forEach(k=>(k.pend||[]).forEach(v=>{if(kAnom(k,v)!=null)AL.push({id:'kan:'+v.id,cat:'kpi',sev:'bad',pc:p.pc})}));
   if(p.rHighOver)AL.push({id:'risk:'+p.pc,cat:'risk',sev:p.rHighOver>1?'bad':'warn',pc:p.pc});
   if(p.idle!=null&&p.idle>=14&&!p.n7)AL.push({id:'idle:'+p.pc,cat:'idle',sev:'warn',pc:p.pc})});
  (OP.services||[]).forEach(s=>{if((!s.office&&s.days>=7)||(s.office&&s.days>=3))AL.push({id:'doc:'+s.key,cat:'appr',sev:s.days>=10?'bad':'warn',pc:s.pcode})});
- (D.esc||[]).forEach(e=>AL.push({id:'esc:'+e.id,cat:'esc',sev:'bad'}))}
+ (D.esc||[]).forEach(e=>AL.push({id:'esc:'+e.id,cat:'esc',sev:'bad'}));
+ ALC=ALC0.slice();if(SCP.length)ALC.push(['scope','النطاق']);if(AQ)ALC.push(['comm','المراسلات']);
+ SCP.forEach(r=>{if(r.g!='bad'&&r.g!='wa')return;const p=pj(r.pcode);if(p&&p.halted)return;AL.push({id:'scope:'+r.pcode,cat:'scope',sev:r.g=='bad'?'bad':'warn',pc:r.pcode,t:'«'+(p?p.n:r.pcode)+'» '+(r.g=='bad'?'خارج نطاقه المعتمد':'يحتاج متابعة في النطاق'),f:'مؤشر الالتزام بالنطاق '+Math.round(+r.score)+'٪',lk:'myprojects.html?pc='+encodeURIComponent(r.pcode)})});
+ if(AQ){if(+AQ.fail7)AL.push({id:'mailfail:'+TD(),cat:'comm',sev:'bad',t:cnt(+AQ.fail7,'رسالة بريد فشل إرسالها','رسالتا بريد فشل إرسالهما','رسائل بريد فشل إرسالها','رسالة بريد فشل إرسالها')+' خلال 7 أيام',f:'افتح سجل التدقيق لمعرفة المستلمين وسبب الفشل.',lk:'audit.html#tab=ev&cat=comm&st=failed'});
+  (AQ.unread||[]).forEach(u=>AL.push({id:'unread:'+u.uid,cat:'comm',sev:u.n>=8?'bad':'warn',t:(u.nm||'مستخدم')+' لم يطّلع على '+cnt(+u.n,'تنبيه','تنبيهين','تنبيهات','تنبيهًا')+' منذ أكثر من 3 أيام',f:'أقدمها منذ '+fdt(String(u.oldest).slice(0,10)),lk:'audit.html#tab=ev&cat=comm&st=unread&u='+u.uid}))}}
 const acked=id=>(X.acks||{})[id];
 
 /* ===================== smart steps ===================== */
@@ -915,13 +919,13 @@ window.openSector=id=>{const s=SEC.find(x=>x.id==String(id));if(!s)return;SHP=nu
  $('shF').innerHTML=`<button class="btn pr" type="button" onclick="selTroubled('${esc(s.id)}')">تحديد المتعثرة في القطاع</button>`;openSheet('sh')};
 window.selTroubled=id=>{closeAll();S.pjS=id;S.pjF='all';go('proj');if(!S.selMode)selMode();PJ.filter(p=>p.sec==id&&(p.status=='bad'||p.status=='warn')).forEach(p=>S.sel.add(p.pc));drawProjects()};
 let ANK=null,ANSEL=new Set();
-const ANW={ach:'الإنجاز متأخر عن المتوقع',kpi:'مؤشر دون الحد الأدنى أو قراءة غير معتادة',risk:'خطر مرتفع تجاوز موعد مراجعته',appr:'وثيقة متوقفة بانتظار الاعتماد',idle:'لا تحديث منذ مدة طويلة',esc:'طلب تصعيد مفتوح'};
+const ANW={ach:'الإنجاز متأخر عن المتوقع',kpi:'مؤشر دون الحد الأدنى أو قراءة غير معتادة',risk:'خطر مرتفع تجاوز موعد مراجعته',appr:'وثيقة متوقفة بانتظار الاعتماد',idle:'لا تحديث منذ مدة طويلة',esc:'طلب تصعيد مفتوح',scope:'المشروع خارج نطاقه المعتمد',comm:'مراسلات لم تصل أو لم يُطّلع عليها'};
 function annStep(a){const map={ach:['task','idle'],kpi:['kpi'],risk:['risk'],appr:['appr'],idle:['idle'],esc:['appr']}[a.cat];return STEPS.find(s=>s.id==a.id)||STEPS.find(s=>a.cat=='appr'&&s.cat=='appr'&&(s.keys||[]).some(k=>'doc:'+k==a.id))||(a.pc?(STEPS.find(s=>map.includes(s.cat)&&s.pc==a.pc&&a.cat=='ach'&&(s.sug=='rebase'||s.sug=='rem'))||STEPS.find(s=>map.includes(s.cat)&&s.pc==a.pc&&(a.cat!='ach'||s.cat!='idle')&&!/بلا مكلّف/.test(s.t))||STEPS.find(s=>map.includes(s.cat)&&s.pc==a.pc)):null)}
 function annRow(a){const s=annStep(a),p=a.pc?pj(a.pc):null,ak=acked(a.id),on=ANSEL.has(a.id),act=s&&ACT[s.sug];
  return `<div class="step" id="an-${esc(a.id)}" style="padding-inline:4px"><button class="ck${on?' on':''}" type="button" aria-pressed="${on}" aria-label="تحديد" onclick="annTog('${esc(a.id)}')">${on?'✓':''}</button>
- <div><h3><span class="tagx ${a.sev=='bad'?'b':'w'}">${a.sev=='bad'?'حرج':'انتباه'}</span> ${esc(s?s.t:(p?'«'+p.n+'»':'')+' · '+ANW[a.cat])}</h3><div class="facts">${esc(s?s.facts||'':ANW[a.cat])}</div>
+ <div><h3><span class="tagx ${a.sev=='bad'?'b':'w'}">${a.sev=='bad'?'حرج':'انتباه'}</span> ${esc(s?s.t:a.t||(p?'«'+p.n+'»':'')+' · '+ANW[a.cat])}</h3><div class="facts">${esc(s?s.facts||'':a.f||ANW[a.cat])}</div>
  <div class="dim" style="font-size:12px;margin-top:3px">${p&&s&&!s.t.includes(p.n)?'«'+esc(p.n)+'» · ':''}${ak?'👁 يتابعه '+esc(ak.by||''):'لم يُقرّ به أحد بعد'}</div>
- <div class="acts act-only" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${act&&!S.done[s.id]?`<button class="btn sm pr" type="button" onclick="stRun('${esc(s.id)}','${s.sug}')">${act.ic} ${act.l}</button>`:''}${s&&S.done[s.id]?`<span class="ok" style="font-weight:800">${esc(S.done[s.id])}</span>`:''}${p?`<button class="btn sm" type="button" onclick="openProject('${esc(p.pc)}')">لوحة المشروع</button>`:''}<button class="btn sm" type="button" onclick="ackKeys(['${esc(a.id)}'],${ak?'false':'true'})">${ak?'إلغاء الإقرار':'👁 إقرار'}</button></div></div></div>`}
+ <div class="acts act-only" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">${act&&!S.done[s.id]?`<button class="btn sm pr" type="button" onclick="stRun('${esc(s.id)}','${s.sug}')">${act.ic} ${act.l}</button>`:''}${s&&S.done[s.id]?`<span class="ok" style="font-weight:800">${esc(S.done[s.id])}</span>`:''}${p?`<button class="btn sm" type="button" onclick="openProject('${esc(p.pc)}')">لوحة المشروع</button>`:''}${a.lk?`<button class="btn sm" type="button" onclick="tool('${esc(a.lk)}','${a.cat=='scope'?'الالتزام بالنطاق':'سجل التدقيق'}')">${a.cat=='scope'?'📐 تفاصيل النطاق':'🔎 الأدلة'}</button>`:''}<button class="btn sm" type="button" onclick="ackKeys(['${esc(a.id)}'],${ak?'false':'true'})">${ak?'إلغاء الإقرار':'👁 إقرار'}</button></div></div></div>`}
 function annFoot(){const L=AL.filter(x=>x.cat==ANK),sel=[...ANSEL],allOn=L.length&&L.every(x=>ANSEL.has(x.id)),selAck=sel.length&&sel.every(id=>acked(id));
  $('shF').innerHTML=L.length?`<button class="btn" type="button" onclick="annAll()">${allOn?'إلغاء تحديد الكل':'تحديد الكل'}</button>${sel.length?`<button class="btn pr" type="button" onclick="ackSel(${selAck?'false':'true'})">${selAck?'إلغاء إقرار ':'👁 إقرار '}${cnt(sel.length,'المحدد','المحددَين','محددة','محددًا')}</button>`:'<span class="dim" style="font-size:12.5px">حدّد إنذارًا أو أكثر لإقراره، أو استخدم الأزرار داخل كل إنذار.</span>'}`:''}
 window.ackSel=on=>ackKeys([...ANSEL],on);
@@ -940,7 +944,7 @@ window.explain=k=>{SHP=null;const w=wts(),T={lvl:['ما معنى مستوى ال
  $('shT').innerHTML=`<small>شرح</small><b>${T[0]}</b>`;$('shTabs').innerHTML='';$('shB').innerHTML=`<div style="font-size:15px;line-height:1.9;margin:0">${T[1]}</div>`;$('shF').innerHTML='';openSheet('sh')};
 
 /* ===================== embedded tools ===================== */
-const TOOLS=[['control.html','لوحة التحكم','المطلوب الآن، التذكيرات، التصعيد، التجاوزات، المعتمِدون'],['portfolio.html','المحفظة','التقارير والتحليلات'],['projects.html','إعدادات المشاريع','الإخفاء، الإيقاف، الأوزان، الصلاحيات'],['users.html','المستخدمون','الحسابات، البدلاء، النطاقات'],['perms.html','الصلاحيات','الأدوار والمجموعات'],['settings.html','الإعدادات','إعدادات النظام والقوائم'],['budget.html','الموازنات','الموازنات والمصروفات'],['kpis.html','المؤشرات','كل مؤشرات المشاريع'],['risks.html','المخاطر','سجل المخاطر'],['audit.html','سجل التدقيق','كل التغييرات'],['history.html','سجل الخطوات','التراجع عن الخطوات'],['archive.html','الأرشيف','الاستعادة'],['inbox.html','الإشعارات','الإشعارات ونشاط المشاريع']];
+const TOOLS=[['control.html','لوحة التحكم','المطلوب الآن، التذكيرات، التصعيد، التجاوزات، المعتمِدون'],['portfolio.html','المحفظة','التقارير والتحليلات'],['projects.html','إعدادات المشاريع','الإخفاء، الإيقاف، الأوزان، الصلاحيات'],['users.html','المستخدمون','الحسابات، البدلاء، النطاقات'],['perms.html','الصلاحيات','الأدوار والمجموعات'],['settings.html','الإعدادات','إعدادات النظام والقوائم'],['budget.html','الموازنات','الموازنات والمصروفات'],['kpis.html','المؤشرات','كل مؤشرات المشاريع'],['risks.html','المخاطر','سجل المخاطر'],['audit.html','سجل التدقيق','الأدلة والمراسلات والتغييرات'],['history.html','سجل الخطوات','التراجع عن الخطوات'],['archive.html','الأرشيف','الاستعادة'],['inbox.html','الإشعارات','الإشعارات ونشاط المشاريع']];
 window.tool=(url,title)=>{$('tlt').innerHTML=`<small>تُفتح داخل الغرفة كما هي</small><b>${esc(title||url)}</b>`;$('tlo').href=url;$('tlb').innerHTML=`<iframe src="${esc(url)}" title="${esc(title||url)}"></iframe>`;openSheet('tl')};
 window.toolOpen=()=>{$('tlt').innerHTML='<small>كل أدوات الإدارة تُفتح داخل الغرفة</small><b>الأدوات</b>';$('tlo').href='control.html';$('tlb').innerHTML=`<div style="padding:12px 14px;display:grid;gap:8px;overflow:auto">${TOOLS.map(([u,n,d])=>`<button class="row" type="button" style="text-align:start;cursor:pointer;border:1px solid var(--line);border-radius:12px;background:#fff" onclick="tool('${u}','${esc(n)}')"><span class="sv sv-info"></span><span class="tx"><b>${esc(n)}</b><small>${esc(d)}</small></span><span></span></button>`).join('')}</div>`;openSheet('tl')};
 

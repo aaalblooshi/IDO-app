@@ -162,7 +162,7 @@ async function load(){if(!sb)return gate('needLogin');const {data:{session}}=awa
  let {data:p}=await sb.from('profiles').select('role').eq('id',session.user.id).single();p=await capAs(p,['audit.view']);if(!p||p.role!='admin')return gate('adminOnly');
  try{const c=await sb.from('charters').select('code,pn:data->>pname').order('code',{ascending:false}).limit(1000);PJ=c.data||[]}catch(_){}
  try{const u=await sb.from('profiles').select('id,full_name');(u.data||[]).forEach(x=>US[x.id]=x.full_name)}catch(_){}
- const hq=new URLSearchParams(location.hash.slice(1));if(CUST[hq.get('tab')]){F.tab=hq.get('tab');if(hq.get('pc'))BK.pc=hq.get('pc')}
+ const hq=new URLSearchParams(location.hash.slice(1));if(CUST[hq.get('tab')]){F.tab=hq.get('tab');if(hq.get('pc'))BK.pc=hq.get('pc');if(window.AX)AX.init({pc:hq.get('pc'),u:hq.get('u'),cat:hq.get('cat'),st:hq.get('st'),sub:hq.get('sub'),from:hq.get('from')})}
  draw();if(!CUST[F.tab])await fetchRows(true)}
 async function fetchRows(reset){if(LOADING)return;LOADING=true;if(reset){ROWS=[];TOTAL=0}
  const r=await sb.rpc('admin_audit',args(ROWS.length,PG()));LOADING=false;
@@ -465,4 +465,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=48"></script><script src="auditx.js?v=2"></script></body></html>
+<script src="ido-ui.js?v=48"></script><script src="auditx.js?v=3"></script></body></html>
