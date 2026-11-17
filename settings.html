@@ -451,7 +451,7 @@ const saveChat=()=>run(async()=>{const v=$('chat_on').checked?'1':'0';await setS
 function lrCfg(){let c={};try{c=JSON.parse(SET.late_rules||'{}')||{}}catch(e){}return Object.assign({on:false,mode:'sim',days:60,repeat:14,own:false,esc:true,esc_days:7},c)}
 function lrHtml(){const c=lrCfg(),A=lang=='ar';const num=(id,v,mn,mx)=>`<input id="${id}" type="number" inputmode="numeric" min="${mn}" max="${mx}" value="${v}" style="width:90px">`;
  return `<label class="tg"><input type="checkbox" id="lr_on" ${c.on?'checked':''}><span><b>${A?'تشغيل القواعد':'Rules on'}</b><br><span class="mut">${A?'عند الإيقاف لا يحدث شيء ولا يُسجَّل شيء.':'When off, nothing runs.'}</span></span></label>
- <div class="tg" style="flex-wrap:wrap"><span style="font-weight:700">${A?'طريقة العمل':'Mode'}</span>
+ <div class="tg" style="flex-direction:column;align-items:flex-start;gap:6px"><span style="font-weight:700">${A?'طريقة العمل':'Mode'}</span>
   <label style="display:flex;gap:6px;align-items:center"><input type="radio" name="lr_mode" value="sim" ${c.mode!='live'?'checked':''}>${A?'محاكاة: تُسجَّل النتائج هنا فقط ولا يصل شيء لأحد':'Simulation: results are logged here only'}</label>
   <label style="display:flex;gap:6px;align-items:center"><input type="radio" name="lr_mode" value="live" ${c.mode=='live'?'checked':''}>${A?'تشغيل فعلي: تصل التنبيهات للأشخاص':'Live: notifications are sent'}</label></div>
  <div class="tg" style="flex-wrap:wrap"><span>${A?'① اطلب إعادة الجدولة من مدير المشروع إذا تأخرت مهمة':'① Ask the PM to reschedule when a task is late'} ${num('lr_days',c.days,7,365)} ${A?'يومًا أو أكثر':'days or more'}</span></div>
