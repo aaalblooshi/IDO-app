@@ -642,5 +642,5 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
   var R=await Promise.all(q),n=0;R.slice(0,4).forEach(function(r){if(!r.error&&OF.indexOf('flow')<0)n+=r.count||0});var nu=R[4];if(!nu.error)(nu.data||[]).forEach(function(x){if(OF.indexOf(x.kind||'flow')<0)n++});
   N=Math.min(n,120);paint()}catch(_){}busy=0}
  var pend=0;new MutationObserver(function(){if(N==null||pend)return;pend=1;requestAnimationFrame(function(){pend=0;paint()})}).observe(document.documentElement,{childList:true,subtree:true});
- setTimeout(load,1200);setInterval(load,60000);addEventListener('focus',load);document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
+ window.ubRefresh=function(){N=0;paint();setTimeout(load,300)};setTimeout(load,1200);setInterval(load,60000);addEventListener('focus',load);document.addEventListener('visibilitychange',function(){if(!document.hidden)load()});
 }catch(_){}})();
