@@ -340,7 +340,7 @@
   if (EMB) {
     document.documentElement.classList.add('embed');
     var es = document.createElement('style'); es.id = 'idoemb';
-    es.textContent = 'html.embed #hd2,html.embed .top,html.embed #gnav,html.embed .hm,html.embed .hmp,html.embed #pgban,html.embed .pgban,html.embed .ttl,html.embed #fdbar+x{display:none!important}html.embed body{padding-bottom:12px!important;--gnh:0px}html.embed,html.embed body{background:transparent!important}html.embed .tbn,html.embed #tbnav,html.embed .bnav{display:none!important}html.embed main{padding-top:8px!important}';
+    es.textContent = 'html.embed #hd2,html.embed .top,html.embed #gnav,html.embed .hm,html.embed .hmp,html.embed #pgban,html.embed .pgban,html.embed .ttl,html.embed #fdbar+x{display:none!important}html.embed body{padding-bottom:12px!important;--gnh:0px}html.embed{background:transparent!important}html.embed body{background:var(--bg,transparent)!important}html.embed .tbn,html.embed #tbnav,html.embed .bnav{display:none!important}html.embed main{padding-top:8px!important}';
     (document.head || document.documentElement).appendChild(es);
     /* روابط الصفحات الأخرى من داخل الإطار تفتح في الصفحة الأم */
     document.addEventListener('click', function (ev) { try { if (!/perms\.html$/.test(window.top.location.pathname)) return; var a = ev.target.closest && ev.target.closest('a[href]'); if (!a || a.target) return; var h = a.getAttribute('href') || ''; if (!/\.html(\?|#|$)/.test(h) || /^javascript:/.test(h)) return; var here = location.pathname.split('/').pop(); if (h.split(/[?#]/)[0] === here) return; ev.preventDefault(); window.top.location.href = new URL(h, location.href).href; } catch (e) {} }, true);
