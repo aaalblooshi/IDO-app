@@ -1482,9 +1482,9 @@ applyStatic();start();
   var ar=lg()=='ar',role=ls('hdrRole'),sc=ls('hdrScope')=='1';
   var key=[ar,role,sc,ls('hdrPerf'),ls('hdrProj'),sess()].join();
   var l=document.getElementById('hm_l');if(!l)return;
-  l.textContent=ar?'EN':'عربي';
-  var o=document.getElementById('hm_o');o.textContent=ar?'خروج':'Sign out';o.style.display=sess()?'':'none';
-  document.getElementById('hm_m').textContent='☰ '+(ar?'القائمة':'Menu');
+  var lt=ar?'EN':'عربي';if(l.textContent!==lt)l.textContent=lt;
+  var o=document.getElementById('hm_o'),ot=ar?'خروج':'Sign out',od=sess()?'':'none';if(o.textContent!==ot)o.textContent=ot;if(o.style.display!==od)o.style.display=od;
+  var mm=document.getElementById('hm_m');if(mm.getAttribute('data-l')!==(ar?'ar':'en')){mm.textContent='☰ '+(ar?'القائمة':'Menu');mm.setAttribute('data-l',ar?'ar':'en')}
   var h='';ITEMS.forEach(function(i){if(i[5]==1&&role!='admin')return;if(i[5]==2&&role!='admin'&&!sc)return;if(i[5]==3&&role!='admin'&&ls('hdrPerf')!='1')return;if(i[5]==4&&role!='admin'&&ls('hdrProj')!='1')return;if(!sess()&&i[4]!='index.html'&&i[4]!='help.html')return;h+='<a href="'+i[0]+'" class="'+(f==i[4]||(f==''&&i[4]=='index.html')?'on':'')+'"><i>'+i[1]+'</i><span>'+(ar?i[2]:i[3])+'</span></a>'});
   var p=document.getElementById('hm_p');if(p&&p.getAttribute('data-k')!=key){p.innerHTML=h;p.setAttribute('data-k',key)}
   var tt=document.getElementById('hd2t');var tb=document.querySelector('.top b');if(tt&&tb&&tt.textContent!=tb.textContent)tt.textContent=tb.textContent;
