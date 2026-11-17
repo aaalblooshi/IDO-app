@@ -3,7 +3,7 @@
 .roomcta{display:flex;gap:12px;align-items:center;background:#23272b;color:#fff;border-radius:16px;padding:12px 16px;margin:0 0 12px;text-decoration:none;border-inline-start:4px solid #BF9849}.roomcta .ri{font-size:24px}.roomcta .rt{flex:1;min-width:0}.roomcta b{display:block;font-size:16px}.roomcta small{color:#c5cad0;font-size:12.5px}.roomcta .rg{background:#3EA3DC;border-radius:99px;padding:5px 14px;font-weight:800;font-size:13px;flex:none}.cgrp{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 6px}.cgrp::-webkit-scrollbar{display:none}.cgrp button{flex:none;border:1px solid #dcd6c8;background:#fff;border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;color:#3b3f44}.cgrp button.on{background:#0a6b3d;border-color:#0a6b3d;color:#fff}.cgrp .bd{font-style:normal}
 
 /* phone comfort: full-screen sheets + full-screen any card */
-@media (max-width:899px){.sheet{inset:0;top:0;height:100dvh;max-height:none;border-radius:0;padding-top:env(safe-area-inset-top,0px)}.sheet .grab{display:none}.shh{position:sticky;top:0;background:#fff;z-index:2}.shh .t b{font-size:18px}#tl .sbd{flex:1}#tl iframe{flex:1;width:100%;min-height:calc(100dvh - 70px);border:0}}
+
 .fsb{margin-inline-start:auto;border:1px solid var(--line);background:#fff;border-radius:10px;padding:4px 9px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink,#1b1d1f);line-height:1.4}
 .cd.fs{position:fixed;inset:0;z-index:85;border-radius:0;margin:0;overflow:auto;max-height:none!important;height:100dvh!important;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);grid-column:auto!important}
 .cd.fs>.ch{position:sticky;top:0;background:var(--card,#fff);z-index:3}.cd.fs .fsb{background:#14324a;color:#fff;border-color:#14324a}
@@ -1206,6 +1206,7 @@ button.p,.btn.p{background:var(--g);border-color:var(--g)}
 html[dir=ltr] .pgban{background:radial-gradient(circle at 0 0,rgba(255,255,255,.12) 0,rgba(255,255,255,.12) 150px,transparent 151px),linear-gradient(135deg,#1d5f8a,#3EA3DC)}
 .pgban h1{margin:0;font-size:22px;font-weight:800}.pgban p{margin:4px 0 0;font-size:13.5px;opacity:.9}
 @media(max-width:520px){.pgban{padding:14px;border-radius:18px}.pgban h1{font-size:19px}}
+@media (max-width:899px){.sheet,#act.sheet{inset:0!important;top:0!important;left:0!important;width:100%!important;height:100dvh!important;max-height:none!important;border-radius:0!important;padding-top:env(safe-area-inset-top,0px)}.sheet .grab{display:none}.shh{position:sticky;top:0;background:#fff;z-index:2}.shh .t b{font-size:18px}#tl .sbd{flex:1}#tl iframe{flex:1;width:100%;min-height:calc(100dvh - 70px);border:0}}
 </style>
 <script>/*ellTip*/document.addEventListener('mouseover',function(e){var el=e.target,n=0;while(el&&el.nodeType==1&&n++<4){if(!el.title&&el.scrollWidth>el.clientWidth+1&&getComputedStyle(el).textOverflow=='ellipsis'){el.title=(el.textContent||'').replace(/\s+/g,' ').trim();return}el=el.parentElement}},true);</script><script>/*drBox*/(function(){if(window.__drbox)return;window.__drbox=1;
 var D='(?:\\d{4}-\\d{2}-\\d{2}|[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{1,2}\\/[\\d\\u0660-\\u0669]{4}|[\\d\\u0660-\\u0669]{1,2}\\s+[^\\s\\d\\u2192<]{2,12}\\.?\\s+(?:\\d{2}|\\d{4})|—|-)';
