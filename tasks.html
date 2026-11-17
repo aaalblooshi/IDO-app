@@ -645,7 +645,7 @@ function dlvBadge(r){if(!r.x||!r.x.dr)return '';const ar=lang=='ar',st=dlvSt(r),
  if(st=='returned')return `<span class="bdg r">↩ ${ar?'أُعيد المخرَج للتعديل':'Returned'}</span>`;
  return done?`<span class="bdg r">📎 ${ar?'ارفع المخرَج لإغلاق المهمة':'Upload deliverable'}</span>`:`<span class="bdg b">📎 ${ar?'يتطلب مخرَجًا':'Needs deliverable'}</span>`}
 async function dlvSheet(){const r=SH&&SH.r,el=$('sh_dlv');if(!el||!r)return;const ar=lang=='ar';let H=[];try{const q=await sb.rpc('deliv_hist',{p_plan:r.pr.pid,p_task:r.id});H=(q&&!q.error&&q.data)||[]}catch(_){}
- if(!$('sh_dlv'))return;const last=H.find(x=>x.status!='superseded'),done=(+r.x.pc||0)>=100,can=r.edit||(r.x.w==ME.id);
+ if(!$('sh_dlv'))return;const last=H.find(x=>x.status!='superseded'),done=(+r.x.pc||0)>=100,can=r.edit||(r.x.w==ME.id)||!!r.collab;
  const stx=!last?(done?(ar?'المهمة مكتملة ولم يُرفع المخرَج بعد. لن تُغلق حتى يُرفع ويُعتمد.':'Task complete; deliverable not uploaded yet.'):(ar?'عند إكمال المهمة ارفع المخرَج هنا ليعتمده المعتمِد.':'Upload the deliverable here when the task is done.')):
   last.status=='pending'?(ar?'رُفع الإصدار '+last.ver+' في '+fd(String(last.at).slice(0,10))+' وينتظر الاعتماد.':'Version '+last.ver+' awaiting approval.'):
   last.status=='approved'?(ar?'✅ اعتمده '+(last.decided_name||'')+' في '+fd(String(last.decided_at).slice(0,10))+'.':'✅ Approved.'):
