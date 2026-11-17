@@ -548,7 +548,7 @@ const resetHome=()=>run(async()=>{await setS('home_cfg','');SET.home_cfg='';HC=n
 /* ===== تنظيم صفحة الإعدادات: أقسام ثابتة + بحث + اختصار رؤية المشاريع السرية ===== */
 const SECS=[
  ['gen','⚙️',['عام','General'],/صفحات الإعدادات|Settings pages|الصفحة الرئيسية|Home layout|القوائم المنسدلة|Drop-down|أيام العمل|Working days|المرفقات|Attachments|الأوزان|Weights|قائمة المحفظة|Portfolio menu/i],
- ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/التحديث عبر Excel|Excel updates|مصدر الموازنات|Budget source|^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
+ ['flow','🔄',['الخدمات وسير العمل','Services & workflow'],/التحديث عبر Excel|Excel updates|مصدر الموازنات|Budget source|^(🧩 )?الخدمات$|^Services$|مدد إنجاز|SLA|turnaround|التصعيد|Escalation|قواعد المهام المتأخرة|Late-task rules|الإنابة|Proxy|Delegat|رحلة المتعامل|journey|^التحكم|^Control/i],
  ['eval','📊',['التقييم والتقارير','Evaluation & reports'],/سجل الإنجاز|Achievement record|نموذج تقييم|Evaluation model|نتائج التقييم|rating|الملخص الأسبوعي|Weekly digest|التقرير الشهري|Monthly report|الخصائص الاختيارية|Optional features/i],
  ['note','🔔',['التنبيهات والبريد','Notifications & email'],/تنبيهات البريد|Email alerts|إعدادات البريد|Mail &|Mail and|التنبيهات|Notifications/i],
  ['perm','🔐',['الصلاحيات والخصوصية','Access & privacy'],/المستخدمون والصلاحيات|Users|ظهور الأدمن|Admin visib|سجل التدقيق|Audit|المشاريع السرية|Secret projects/i],
