@@ -19,7 +19,7 @@
   var jobs=[
    c.from('project_risks').select('id,pcode,title,prob,impact,status,owner_name,review_at,response').in('pcode',codes).then(function(r){(r.data||[]).forEach(function(x){if(String(x.status||'open')=='closed')return;(d.risks[x.pcode]=d.risks[x.pcode]||[]).push(x)})}),
    c.from('project_kpis').select('id,pcode,name,unit,direction,target,baseline,freq,active').in('pcode',codes).eq('active',true).then(async function(r){var K=r.data||[];var ids=K.map(function(k){return k.id});var V={};
-     if(ids.length){var v=await c.from('kpi_values').select('kpi_id,period,actual').in('kpi_id',ids);(v.data||[]).forEach(function(x){if(!V[x.kpi_id]||String(x.period)>String(V[x.kpi_id].period))V[x.kpi_id]=x})}
+     if(ids.length){var v=await c.from('kpi_values').select('kpi_id,period,actual,excl').in('kpi_id',ids);(v.data||[]).forEach(function(x){if(x.excl)return;if(!V[x.kpi_id]||String(x.period)>String(V[x.kpi_id].period))V[x.kpi_id]=x})}
      K.forEach(function(k){k.last=V[k.id]||null;(d.kpis[k.pcode]=d.kpis[k.pcode]||[]).push(k)})}),
    c.from('charters').select('id,code,status').in('code',codes).then(function(r){d.ch={};(r.data||[]).sort(function(a,b){return a.id-b.id}).forEach(function(x){if(x.status=='Approved'||!d.ch[x.code])d.ch[x.code]=x.id})}),
    c.rpc('qual_all').then(function(r){d.qual={};(r.data||[]).forEach(function(x){if(codes.indexOf(x.pcode)>-1)d.qual[x.pcode]=x})},function(){}),
