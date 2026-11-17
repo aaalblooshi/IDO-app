@@ -53,6 +53,8 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 
 .top{border-bottom:3px solid #B39A6B}
 .kp{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}@media(min-width:620px){.kp{grid-template-columns:repeat(4,1fr)}}
+.kp>button{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fbfaf6;font:inherit;cursor:pointer;font-weight:400}.kp>button.on{outline:2px solid #a8761a}.kp>button b{display:block;font-size:22px;text-align:start}.kp>button span{font-size:12.5px;color:var(--mut)}
+.achh{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 8px}.achl{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;font-size:12.5px;color:#3d4450;margin-top:4px;background:#f6f8f5;border-radius:9px;padding:4px 8px}.kv3{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}.kv3>div{background:#f8f7f3;border-radius:10px;padding:8px 10px}.kv3 small{display:block;font-size:11.5px;color:#6b7c8c}.kv3 b{font-size:16px}
 .kp div{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:#fbfaf6}.kp b{display:block;font-size:22px;direction:ltr;text-align:start}.kp span{font-size:12.5px;color:var(--mut)}
 .bar{height:10px;border-radius:9px;background:#e9e6dd;position:relative;overflow:hidden;margin:4px 0}.bar i{position:absolute;inset-block:0;inset-inline-start:0;background:#3D96C7;border-radius:9px}.bar u{position:absolute;inset-block:-2px;width:2px;background:#B39A6B;text-decoration:none}
 .bad{color:#d1101d}.ok{color:#1c7a45}.wa{color:#a8761a}
@@ -179,7 +181,7 @@ Object.assign(D,{
  st_reviewed:['مراجعة','Review'],st_approved:['اعتماد','Approval'],
  sv_task:['المهام','Tasks'],sv_cr:['طلب تغيير','Change request'],sv_charter:['ميثاق','Charter'],sv_plan:['خطة','Plan'],sv_closure:['تقرير ختامي','Closure report'],
  msgT:['تذكير من مكتب التطوير المؤسسي: لديك {l} مهام متأخرة و{p} إجراءات بانتظارك. نأمل المتابعة في أقرب وقت.','Reminder from the Institutional Development Office: you have {l} late tasks and {p} actions awaiting you. Please follow up soon.'],
- dl:['تنزيل (Excel)','Download (Excel)']});
+ dl:['تنزيل (Excel)','Download (Excel)'],s_adone:['الأكثر إنجازًا في الفترة','Most completed'],s_aot:['الأعلى التزامًا بالمواعيد','Best on-time'],s_arate:['الأعلى تقييمًا','Highest rated'],d_ach:['الإنجاز','Achievement']});
 let PU=[],DEPS=[],FQ='',SO='risk',DET=null,SCOPE='all',GB='',HF='',MODE='t',OPG={},DTAB='late';
 const pf=(a,b)=>b?Math.round(100*a/b):0;
 const depN=(s,d)=>d?(((DEPS[s-1]||[])[d-1])||[])[lang=='ar'?0:1]||'':'';
@@ -194,20 +196,48 @@ async function start(){
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.depts)&&L.depts.length)DEPS=L.depts}catch(_){}
  if(!DEPS.length)DEPS=[1,2,3,4].map(s=>[1,2,3,4,5].map(q=>['الإدارة '+q+' للقطاع '+s,'Department '+q+' of Sector '+s]))
  const r=await sb.rpc('perf_users');if(r.error){$('app').innerHTML='<div class="card">'+esc(t('err')+r.error.message)+'</div>';return}
- PU=r.data||[];GB=(ADM||ME.perf_scope=='all')?'sector':'dept';draw()}
+ PU=r.data||[];GB=(ADM||ME.perf_scope=='all')?'sector':'dept';draw();achLoad()}
 function inScope(u){if(SCOPE=='sec')return !!ME.org_sector&&u.org_sector==ME.org_sector;if(SCOPE=='dept')return !!ME.org_dept&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept;if(SCOPE=='sect')return !!ME.org_section&&u.org_sector==ME.org_sector&&u.org_dept==ME.org_dept&&u.org_section==ME.org_section;return true}
 const rk=u=>u.t_late*3+u.t_stale*2+u.pend_old*4+u.pend;
-function srt(a){const k={risk:(x,y)=>rk(y)-rk(x),late:(x,y)=>y.t_late-x.t_late||y.pend-x.pend,stale:(x,y)=>y.t_stale-x.t_stale,load:(x,y)=>y.t_open-x.t_open,idle:(x,y)=>String(x.last_upd||'').localeCompare(String(y.last_upd||'')),name:(x,y)=>String(x.full_name).localeCompare(String(y.full_name),'ar')}[SO];return a.sort(k)}
+function srt(a){const A_=u=>ACH[u.user_id]||{};const k={adone:(x,y)=>(A_(y).done||0)-(A_(x).done||0),aot:(x,y)=>(aOt(A_(y))??-1)-(aOt(A_(x))??-1),arate:(x,y)=>(A_(y).rating??-1)-(A_(x).rating??-1),risk:(x,y)=>rk(y)-rk(x),late:(x,y)=>y.t_late-x.t_late||y.pend-x.pend,stale:(x,y)=>y.t_stale-x.t_stale,load:(x,y)=>y.t_open-x.t_open,idle:(x,y)=>String(x.last_upd||'').localeCompare(String(y.last_upd||'')),name:(x,y)=>String(x.full_name).localeCompare(String(y.full_name),'ar')}[SO];return a.sort(k)}
 function base(){return PU.filter(u=>inScope(u)&&(!FQ||String(u.full_name||'').toLowerCase().includes(FQ.toLowerCase())))}
-function flt(){let a=base();if(HF)a=a.filter(u=>hl(u)==HF);return srt(a)}
+function flt(){let a=base();if(HF=='nomgr')a=a.filter(u=>{const x=ACH[u.user_id];return x&&x.can_mgr&&!x.mgr_has});else if(HF)a=a.filter(u=>hl(u)==HF);return srt(a)}
 const sum=a=>a.reduce((o,u)=>{['t_total','t_done','t_late','t_open','t_stale','pend','pend_old','created_open','signed'].forEach(k=>o[k]+=u[k]||0);return o},{t_total:0,t_done:0,t_late:0,t_open:0,t_stale:0,pend:0,pend_old:0,created_open:0,signed:0});
 const avg=(a,k)=>{const v=a.map(u=>u[k]).filter(x=>x!=null).map(Number);return v.length?Math.round(v.reduce((p,c)=>p+c,0)/v.length):null};
 function bars(pl,ac,col){if(ac==null)return '<div class="mut">'+t('nodata')+'</div>';return `<div class="pb2"><div class="pr2"><span>${t('pln')}</span><div class="bar pl"><i style="width:${pl||0}%"></i></div><b class="num">${pl==null?'—':pl+'%'}</b></div><div class="pr2"><span>${t('act')}</span><div class="bar"><i style="width:${ac}%;background:${col}"></i></div><b class="num">${ac}%</b></div></div>`}
+/* ---- achievement record inside users performance ---- */
+let ACH={},APER='y',AOK=true;
+const APL=[['m',['هذا الشهر','This month']],['q',['هذا الربع','This quarter']],['y',['هذه السنة','This year']],['ly',['السنة الماضية','Last year']]];
+function aRange(k){const f=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai'}).format(new Date()),y=+f.slice(0,4),m=+f.slice(5,7);
+ if(k=='m')return [f.slice(0,8)+'01',f];if(k=='q'){const q=Math.floor((m-1)/3)*3+1;return [y+'-'+String(q).padStart(2,'0')+'-01',f]}if(k=='ly')return [(y-1)+'-01-01',(y-1)+'-12-31'];return [y+'-01-01',y+'-12-31']}
+async function achLoad(){const [a,b]=aRange(APER);try{const r=await sb.rpc('perf_users_ach',{p_from:a,p_to:b});if(r.error)throw r.error;AOK=!(r.data&&r.data.off);ACH={};((r.data&&r.data.items)||[]).forEach(x=>ACH[x.id]=x)}catch(_){ACH={};AOK=false}draw()}
+window.setAP=k=>{APER=k;achLoad()};
+const aOt=a=>a&&a.done?Math.round(100*a.ontime/Math.max(1,a.ontime+a.late)):null;
+function spark(v,big){v=v||[];const mx=Math.max(1,...v),n=v.length||1,W=n*8;return `<svg viewBox="0 0 ${W} 20" width="${big?'100%':Math.min(110,W*1.4)}" height="${big?60:20}" preserveAspectRatio="none" style="direction:ltr;vertical-align:middle">${v.map((x,i)=>`<rect x="${W-(i+1)*8+1}" y="${20-Math.max(1,x/mx*18)}" width="6" height="${Math.max(1,x/mx*18)}" rx="1.5" fill="${x?'#0a6b3d':'#e4dfd4'}"/>`).join('')}</svg>`}
+function achLine(u){const a=ACH[u.user_id];if(!a||!AOK)return '';const ot=aOt(a),L=lang=='ar';
+ return `<div class="achl">${spark(a.months)}<span>✅ <b class="num">${a.done}</b> ${L?'منجزة':'done'}</span><span class="${ot!=null&&ot<70?'bad':''}">⏱ <b class="num">${ot==null?'—':ot+'%'}</b> ${L?'في الموعد':'on time'}</span>${a.rating!=null?`<span>⭐ <b class="num">${a.rating}</b> ${L?'من 5':'/ 5'}</span>`:''}${a.kudos?`<span>🙏 <b class="num">${a.kudos}</b></span>`:''}${a.can_mgr&&!a.mgr_has?`<span class="xw">🧭 ${L?'بلا تقدير سنوي':'no annual assessment'}</span>`:''}</div>`}
+function achTiles(B){if(!AOK)return '';const L=lang=='ar',as=B.map(u=>ACH[u.user_id]).filter(Boolean),dn=as.reduce((s,a)=>s+(+a.done||0),0),ot=as.reduce((s,a)=>s+(+a.ontime||0),0),lt=as.reduce((s,a)=>s+(+a.late||0),0),rs=as.filter(a=>a.rating!=null),rv=rs.length?(rs.reduce((s,a)=>s+ +a.rating,0)/rs.length).toFixed(1):'—',nm=as.filter(a=>a.can_mgr&&!a.mgr_has).length;
+ return `<div class="achh"><b>🏆 ${L?'سجل الإنجاز':'Achievement record'}</b><div class="chips" style="margin:0">${APL.map(([k,n])=>`<button class="${APER==k?'on':''}" onclick="setAP('${k}')">${n[L?0:1]}</button>`).join('')}</div></div>
+ <div class="kp"><div><b class="num">${dn}</b><span>${L?'مهام أُنجزت في الفترة':'Tasks completed'}</span></div><div><b class="num ${dn&&ot/Math.max(1,ot+lt)<.7?'bad':''}">${dn?Math.round(100*ot/Math.max(1,ot+lt))+'%':'—'}</b><span>${L?'الالتزام بالمواعيد':'On time'}</span></div><div><b class="num">${rv}</b><span>${L?'متوسط تقييم مديري المشاريع':'Avg PM rating'}</span></div><button class="${HF=='nomgr'?'on':''}" onclick="HF=HF=='nomgr'?'':'nomgr';draw()" style="text-align:start"><b class="num ${nm?'xw':''}">${nm}</b><span>${L?'بلا تقدير سنوي (اضغط للعرض)':'No annual assessment (tap)'}</span></button></div>`}
+function achDet(id){const a=ACH[id],L=lang=='ar';if(!a||!AOK)return `<div class="mut">${L?'سجل الإنجاز غير متاح.':'Not available.'}</div>`;const ot=aOt(a),u=PU.find(x=>x.user_id==id)||{};
+ return `<div class="kv3"><div><small>${L?'منجزة في الفترة':'Completed'}</small><b class="num">${a.done}</b></div><div><small>${L?'في الموعد':'On time'}</small><b class="num">${ot==null?'—':ot+'%'}</b></div><div><small>${L?'متوسط التأخير':'Avg delay'}</small><b class="num">${a.avgdelay??'—'}</b></div><div><small>${L?'توقيعات':'Signatures'}</small><b class="num">${a.signed}</b></div><div><small>${L?'وثائق أعدّها':'Documents'}</small><b class="num">${a.docs}</b></div><div><small>${L?'تحديثات مؤشرات':'KPI updates'}</small><b class="num">${a.kpiupd}</b></div><div><small>${L?'تقييم مديري المشاريع':'PM rating'}${a.rating_n?' · '+a.rating_n:''}</small><b class="num">${a.rating!=null?a.rating+(L?' من 5':' / 5'):'—'}</b></div><div><small>${L?'رسائل شكر':'Thanks'}</small><b class="num">${a.kudos}</b></div><div><small>${L?'تقدير المدير لهذه السنة':'Annual assessment'}</small><b class="num">${a.mgr_has?(a.mgr!=null?a.mgr+(L?' من 5':' / 5'):(L?'مكتوب':'written')):(L?'لم يُكتب':'not yet')}</b></div></div>
+ <div style="margin-top:10px"><small class="mut">${L?'المهام المنجزة شهريًا (الأحدث يسارًا)':'Tasks completed per month'}</small><div>${spark(a.months,1)}</div></div>
+ <div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px"><a href="achieve.html?u=${id}" target="_blank" rel="noopener"><button>🏆 ${L?'سجل الإنجاز الكامل':'Full record'}</button></a>${a.can_mgr?`<a href="achieve.html?u=${id}#mgr" target="_blank" rel="noopener"><button class="${a.mgr_has?'':'p'}">🧭 ${a.mgr_has?(L?'تحديث تقدير المدير':'Update assessment'):(L?'كتابة تقدير المدير':'Write annual assessment')}</button></a>`:''}<button onclick="thank('${id}')">🙏 ${L?'أرسل شكرًا':'Send thanks'}</button></div>`}
+async function thank(id){const u=PU.find(x=>x.user_id==id)||{},L=lang=='ar';const m=await IDOASK((L?'رسالة شكر إلى ':'Thanks to ')+(u.full_name||''),{req:1,ok:L?'إرسال':'Send',ph:L?'مثال: شكرًا على التزامك بمواعيد مهام المشروع.':''});if(!m||!m.trim())return;
+ const r=await sb.rpc('perf_kudos_send',{p_to:id,p_msg:m.trim()});if(r.error)return toast(t('err')+r.error.message);toast(L?'أُرسل الشكر 🙏':'Thanks sent 🙏');achLoad()}
+async function bulkNudge(){const L=lang=='ar',us=flt().filter(u=>u.t_late>0);if(!us.length)return toast(L?'لا يوجد في القائمة من لديه مهام متأخرة':'Nobody in the list has late tasks');
+ if(!confirm(L?`سيصل تذكير بالمهام المتأخرة إلى ${us.length} ${us.length<=10?'أشخاص':'شخصًا'} في القائمة الحالية (${us.map(u=>u.full_name).join('، ')}). متابعة؟`:`Send a late-tasks reminder to ${us.length} people?`))return;
+ let ok=0;for(const u of us){const msg=L?`تذكير من مكتب التطوير المؤسسي: لديك ${u.t_late} ${u.t_late<=10?'مهام':'مهمة'} متأخرة. نأمل تحديث إنجازها أو مواعيدها في أقرب وقت.`:`Reminder: you have ${u.t_late} late tasks.`;const r=await sb.rpc('perf_nudge',{p_user:u.user_id,p_msg:msg});if(!r.error)ok++}
+ toast((L?'أُرسل التذكير إلى ':'Reminded ')+ok)}
+function dlX(){const L=lang=='ar',rows=flt().map(u=>{const a=ACH[u.user_id]||{};return [u.full_name,u.job_title||'',unitN(u),u.t_total,u.t_done,u.t_late,u.t_open,pf(u.t_done,u.t_total),u.t_stale,u.pend,u.pend_old,a.done??'',aOt(a)??'',a.avgdelay??'',a.signed??'',a.docs??'',a.rating??'',a.kudos??'',a.mgr_has?(a.mgr??'✓'):'']});
+ const head=L?['المستخدم','المسمى','الوحدة','المهام','المنجزة','المتأخرة','الجارية','نسبة الإنجاز %','بلا تحديث','بانتظار إجراءه','منها متأخرة +3 أيام','أنجز في الفترة','في الموعد %','متوسط التأخير','توقيعات','وثائق','تقييم مديري المشاريع','رسائل شكر','تقدير المدير']:['User','Title','Unit','Tasks','Done','Late','Open','Completion %','Stale','Pending','Pending 3d+','Done in period','On time %','Avg delay','Signatures','Documents','PM rating','Thanks','Annual'];
+ const go=()=>{const ws=XLSX.utils.aoa_to_sheet([head,...rows]);ws['!cols']=head.map(()=>({wch:18}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,L?'أداء المستخدمين':'Users');XLSX.writeFile(wb,'users-performance-'+ds(TODAY)+'.xlsx')};
+ if(window.XLSX)return go();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=()=>dlP();document.head.appendChild(s)}
 function rowH(u,flat){const h=hl(u);
  const m=MODE=='t'?`<span class="${u.t_late?'bad':''}">${t('c_late')}: <b class="num">${u.t_late}</b></span> · <span class="${u.t_stale?'xw':''}">${t('c_stale')}: <b class="num">${u.t_stale}</b></span> · ${t('c_open')}: <b class="num">${u.t_open}</b> · ${t('c_pend')}: <b class="num">${u.pend}</b>`:`<span class="${u.pend_old?'bad':''}">${t('c_pend')}: <b class="num">${u.pend}</b> (${t('k_old')}: <b class="num">${u.pend_old}</b>)</span> · ${t('c_reqs')}: <b class="num">${u.created_open}/${u.created}</b> · ${t('c_sign')}: <b class="num">${u.signed}</b>`;
  return `<div class="xr" onclick="openD('${u.user_id}')"><span class="xd" style="background:${hCol[h]}"></span><div class="xi"><b>${esc(u.full_name)}</b><span class="mut"> ${esc(flat?unitN(u):(u.job_title||''))}</span>
  ${MODE=='t'?bars(u.t_plan==null?null:Math.round(u.t_plan),u.t_total?Math.round(u.t_act==null?pf(u.t_done,u.t_total):u.t_act):null,hCol[h]):''}
- <div class="mut xl">${m} · ${t('last')}: ${ago(u.last_upd)}</div></div><span class="xv">›</span></div>`}
+ <div class="mut xl">${m} · ${t('last')}: ${ago(u.last_upd)}</div>${achLine(u)}</div><span class="xv">›</span></div>`}
 function groupsH(L){
  const m={};L.forEach(u=>{const k=gkey(u,GB);(m[k]=m[k]||{k,lab:glab(u,GB),us:[]}).us.push(u)});
  const gs=Object.values(m).map(g=>({...g,s:sum(g.us),pl:avg(g.us,'t_plan'),ac:avg(g.us,'t_act'),rk:g.us.reduce((p,u)=>p+rk(u),0),nb:g.us.filter(u=>hl(u)=='bad').length})).sort((x,y)=>y.rk-x.rk);
@@ -220,17 +250,18 @@ function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
  if(!ME)return;
- const B=base(),L=srt(HF?B.filter(u=>hl(u)==HF):B.slice()),s=sum(B),cnt={ok:0,wa:0,bad:0};B.forEach(u=>cnt[hl(u)]++);
+ const B=base(),L=flt(),s=sum(B),cnt={ok:0,wa:0,bad:0};B.forEach(u=>cnt[hl(u)]++);
  const wide=ADM||ME.perf_scope=='all';
  const sc=[['all',wide?t('sc_all'):t('sc_mine'),1],['sec',t('sc_sec'),!!ME.org_sector],['dept',t('sc_dept'),!!ME.org_dept],['sect',t('sc_sect'),!!ME.org_section]].filter(x=>x[2]);
  $('app').innerHTML=`<div class="mut" style="margin:0 0 8px">${t('sub')}</div>
  ${sc.length>1?`<div class="chips">${sc.map(x=>`<button class="${SCOPE==x[0]?'on':''}" onclick="SCOPE='${x[0]}';HF='';draw()">${x[1]}</button>`).join('')}</div>`:''}
  <div class="kp3">${[['ok','h_ok'],['wa','h_wa'],['bad','h_bad']].map(([k,l])=>`<button class="${HF==k?'on':''}" style="--sc:${hCol[k]}" onclick="HF=HF=='${k}'?'':'${k}';draw()"><b class="num">${cnt[k]}</b><span>${t(l)}</span></button>`).join('')}</div>
  <div class="kp"><div><b class="num">${B.length}</b><span>${t('k_users')}</span></div><div><b class="num ${s.t_late?'bad':''}">${s.t_late}</b><span>${t('k_late')}</span></div><div><b class="num ${s.t_stale?'xw':''}">${s.t_stale}</b><span>${t('k_stale')}</span></div><div><b class="num ${s.pend_old?'bad':''}">${s.pend}</b><span>${t('k_pend')}</span></div></div>
+ ${achTiles(B)}
  <div class="chips" style="margin-top:12px"><button class="${MODE=='t'?'on':''}" onclick="MODE='t';draw()">${t('m_t')}</button><button class="${MODE=='s'?'on':''}" onclick="MODE='s';draw()">${t('m_s')}</button></div>
  <div class="row" style="gap:8px;margin:8px 0;flex-wrap:wrap;align-items:center"><input placeholder="${t('f_q')}" value="${esc(FQ)}" oninput="FQ=this.value;clearTimeout(window._pq);window._pq=setTimeout(()=>{draw();const e=document.querySelector('#app input');if(e){e.focus();e.setSelectionRange(FQ.length,FQ.length)}},250)" style="max-width:200px">
- <select onchange="SO=this.value;draw()">${[['risk','s_risk'],['late','s_late'],['stale','s_stale'],['load','s_load'],['idle','s_idle'],['name','s_name']].map(([k,l])=>`<option value="${k}" ${SO==k?'selected':''}>${t('f_sort')}: ${t(l)}</option>`).join('')}</select>
- <button onclick="dlP()">${t('dl')}</button></div>
+ <select onchange="SO=this.value;draw()">${[['risk','s_risk'],['late','s_late'],['stale','s_stale'],['load','s_load'],['idle','s_idle'],['adone','s_adone'],['aot','s_aot'],['arate','s_arate'],['name','s_name']].map(([k,l])=>`<option value="${k}" ${SO==k?'selected':''}>${t('f_sort')}: ${t(l)}</option>`).join('')}</select>
+ <button onclick="dlX()">⬇ ${t('dl')}</button><button onclick="bulkNudge()">🔔 ${lang=='ar'?'تذكير كل من لديه متأخرات':'Remind all with late tasks'}</button></div>
  <div class="chips">${[['sector','g_sector'],['dept','g_dept'],['section','g_section'],['people','g_people']].map(([k,l])=>`<button class="${GB==k?'on':''}" onclick="GB='${k}';OPG={};draw()">${t(l)}</button>`).join('')}</div>
  ${L.length?(GB=='people'?`<div class="xg"><div class="xb" style="border:0">${L.map(u=>rowH(u,true)).join('')}</div></div>`:groupsH(L)):`<div class="card mut">${t('none')}</div>`}
  ${DET?detH():''}`}
@@ -239,14 +270,14 @@ function detH(){const D0=DET,u=PU.find(x=>x.user_id==D0.id);if(!u)return'';const
  const cn={late:T.filter(x=>x.late).length,stale:T.filter(x=>x.stale).length,all:T.filter(x=>x.open).length,pend:(d.pending||[]).length,cr:(d.created||[]).length};
  const tkH=a=>a.map(x=>`<div class="tk ${x.pc>=100?'dn':''} ${x.late?'lt':''}"><b>${esc(x.task||'')}</b><div class="mut">${esc(x.plan||'')} · ${esc(x.proj||'')}</div>${pbar(+x.pc,null,x.late?'#d1101d':'#1c7a45')}<div class="mut"><span class="num">${Math.round(x.pc)}%</span> · ${t('due')}: <span class="num">${fd(x.e)||'—'}</span>${x.late?` · <span class="bad">${t('c_late')}</span>`:''}${x.stale?` · <span class="xw">${t('c_stale')}${x.lu!=null?' '+TODAY-x.lu+'d':''}</span>`:''}</div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
  let body;
- if(DTAB=='late')body=tkH(T.filter(x=>x.late));else if(DTAB=='stale')body=tkH(T.filter(x=>x.stale));else if(DTAB=='all')body=tkH(T.filter(x=>x.open));
+ if(DTAB=='ach')body=achDet(u.user_id);else if(DTAB=='late')body=tkH(T.filter(x=>x.late));else if(DTAB=='stale')body=tkH(T.filter(x=>x.stale));else if(DTAB=='all')body=tkH(T.filter(x=>x.open));
  else if(DTAB=='pend')body=(d.pending||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${t('st_'+x.stage)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
  else body=(d.created||[]).map(x=>`<div class="tk"><b>${esc(x.pn||x.code)}</b><div class="mut">${t('sv_'+x.svc)} · ${esc(x.code||'')} · ${esc(x.status)} · <span class="num">${fd(x.at)}</span></div></div>`).join('')||`<div class="mut">${t('d_none')}</div>`;
- const tabs=[['late','c_late'],['stale','c_stale'],['all','c_open'],['pend','c_pend'],['cr','d_cr']];
+ const tabs=[['ach','d_ach'],['late','c_late'],['stale','c_stale'],['all','c_open'],['pend','c_pend'],['cr','d_cr']];cn.ach=(ACH[u.user_id]||{}).done??'';
  return `<div class="sov" onclick="if(event.target==this){DET=null;draw()}"><div class="sbx"><h3>${esc(u.full_name)}</h3><div class="mut">${esc(u.job_title||'')} · ${esc(unitN(u))}</div>
  <div class="chips" style="margin-top:10px">${tabs.map(([k,l])=>`<button class="${DTAB==k?'on':''}" onclick="DTAB='${k}';draw()">${t(l)} <span class="num">${cn[k]}</span></button>`).join('')}</div>${body}
  <div class="row" style="margin-top:12px"><button class="p" onclick="nudge('${u.user_id}')">${t('nudge')}</button><a href="achieve.html?u=${DET.id}"><button>🏆 ${lang=='ar'?'سجل الإنجاز':'Achievement record'}</button></a><button onclick="DET=null;draw()">${t('close')}</button></div></div></div>`}
-async function openD(id){const r=await sb.rpc('perf_user_detail',{p_user:id});if(r.error)return toast(t('err')+r.error.message);DET={id,d:r.data||{}};DTAB='late';draw()}
+async function openD(id){const r=await sb.rpc('perf_user_detail',{p_user:id});if(r.error)return toast(t('err')+r.error.message);DET={id,d:r.data||{}};DTAB='ach';draw()}
 function nudge(id){const u=PU.find(x=>x.user_id==id);if(!u)return;const pt=(n,a)=>{n=+n||0;return n==1?a[0]:n==2?a[1]:n+' '+((n>=3&&n<=10)||n==0?a[2]:a[3])};const m=lang=='ar'?'تذكير من مكتب التطوير المؤسسي: لديك '+pt(u.t_late,['مهمة متأخرة','مهمتان متأخرتان','مهام متأخرة','مهمة متأخرة'])+' و'+pt(u.pend,['إجراء بانتظارك','إجراءان بانتظارك','إجراءات بانتظارك','إجراءً بانتظارك'])+'. نأمل المتابعة في أقرب وقت.':t('msgT').replace('{l}',u.t_late).replace('{p}',u.pend);
  const o=document.createElement('div');o.className='sov';o.style.zIndex=120;o.innerHTML=`<div class="sbx"><h3>${t('nudgeT')} ${esc(u.full_name)}</h3><div class="mut" style="margin:4px 0 8px">${t('nudgeH')}</div><textarea id="nd_m">${esc(m)}</textarea><div class="row" style="margin-top:10px"><button class="p" id="nd_s">${t('send')}</button><button id="nd_c">${t('cancel')}</button></div></div>`;
  document.body.appendChild(o);o.onclick=e=>{if(e.target==o)o.remove()};$('nd_c').onclick=()=>o.remove();
