@@ -20,7 +20,7 @@ function sorted(){const o={late:0,due:1,soon:2};return (IT||[]).slice().sort((a,
 async function load(force){if(ld&&!force)return ld;ld=(async()=>{const s=db();if(!s){IT=[];return IT}
  try{if(!ME){const u=await s.auth.getUser();ME=u.data&&u.data.user}const r=await s.rpc('my_updates');IT=r.error?[]:(r.data||[])}catch(_){IT=[]}
  try{sessionStorage.setItem('updN',JSON.stringify({t:Date.now(),n:IT.filter(x=>st(x)!='soon').length}))}catch(_){}
- badge();paint();return IT})();return ld}
+ badge();paint();try{document.dispatchEvent(new Event('ido-upd'))}catch(_){}return IT})();return ld}
 function title(x){return x.kind=='kpi'?P(['قراءة مطلوبة منك لمؤشر «','Reading needed for “'])+x.name+P(['»','”'])+(x.periods.length>1?P([' — '+x.periods.length+' فترات',' — '+x.periods.length+' periods']):' — '+pl(x.periods[0]))
  :x.kind=='risk'?P(['مراجعة مطلوبة منك للخطر «','Review needed for risk “'])+x.name+P(['»','”']):x.kind=='act'?P(['إجراء استجابة مطلوب منك «','Response action needed “'])+x.name+P(['»','”']):P([(+x.n==1?'قراءة مؤشر واحدة':+x.n==2?'قراءتا مؤشر':x.n+(+x.n<=10?' قراءات مؤشرات':' قراءة مؤشرات'))+' أدخلها الفريق وتنتظر اعتمادك',x.n+' KPI reading(s) to approve'])}
 function row(x,i){const s=SL[st(x)],via=x.via=='pm'?' · '+P(['لا مسؤول محدد — أنت مدير المشروع','no owner set — you manage the project']):x.via=='access'?' · '+P(['مكلّف بتحديث مؤشرات المشروع','assigned to update this project\'s KPIs']):'';
@@ -109,7 +109,7 @@ function openAct(x){CUR=x;shell('<div class="upmh"><div><b>🎯 '+E(x.name)+'</b
 async function saveAct(){const x=CUR,r=await db().rpc('upd_risk_action',{p_risk:x.id,p_idx:x.idx,p_pc:+document.getElementById('upas').value});if(r.error)return note(P(['تعذّر: ','Failed: '])+r.error.message);note(P(['تم الحفظ','Saved']));SESS?next():close()}
 function openItem(x){if(x.kind=='kpi')return openKpi(x);if(x.kind=='risk')return openRisk(x);if(x.kind=='act')return openAct(x)}
 function next(){if(!SESS)return close();SESS.i++;if(SESS.i>=SESS.L.length){shell('<div style="text-align:center;padding:18px"><div style="font-size:40px">✅</div><b style="font-size:17px">'+P(['اكتملت جولة التحديث','Update round finished'])+'</b><div class="mut" style="margin:6px 0 14px">'+P(['حُفظت جميع التحديثات التي أدخلتها.','Everything you updated is saved.'])+'</div><button class="upgo" onclick="IDOUPD.close()">'+P(['إغلاق','Close'])+'</button></div>');SESS=null;return}openItem(SESS.L[SESS.i])}
-window.IDOUPD={load,st,
+window.IDOUPD={load,st,items:()=>IT||[],openX:x=>x&&x.kind=='appr'?apprOpen(x):openItem(x),
  open:i=>openItem(window.__UPL[i]),appr:i=>apprOpen(window.__UPL[i]),apprOk,ret:apprRet,ev:(p,n)=>{if(window.IDODL)IDODL('kpi-evidence',p,n).catch(e=>alert(e.message||e))},same,close:()=>close(),next,live,saveKpi,saveRisk,saveAct,tr,
  tog:()=>{OPEN=!OPEN;try{localStorage.setItem('updOpen2',OPEN?'1':'0')}catch(_){}paint()},
  upo:()=>{UPO=!UPO;paint()},
