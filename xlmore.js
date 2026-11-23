@@ -148,12 +148,13 @@
         var v = VS.find(function (z) { return z.kpi_id == k.id && z.period == per; });
         if (String((v && v.at) || '') != String(r0[I.kst] || '') && !(v == null && !r0[I.kst])) return res.kpis.push({ st: 'conflict', row: o.i, n: nm, why: T('حُدِّثت القراءة في النظام بعد تنزيل الملف', 'Reading changed in the system after download') });
         var A2 = ratio ? (nu != null && de ? Math.round(nu / de * (+k.factor || 100) * 10000) / 10000 : null) : act;
-        if (k.ev_req && A2 != null && !(v && (v.evidence || v.ev_path))) return res.kpis.push({ st: 'error', row: o.i, n: nm, why: T('هذا المؤشر يتطلب دليلًا؛ أدخل القراءة من صفحة المؤشرات لإرفاقه', 'Evidence required; enter it from the KPIs page') });
+        var evL = !!(k.ev_req && A2 != null && !(v && (v.evidence || v.ev_path)));
         if (A2 != null && FO('k_corr', k.pcode) && !(v && v.corr)) { var pp = prevPer(k.freq, per), v0 = pp && VS.find(function (z) { return z.kpi_id == k.id && z.period == pp; }), a1 = kAch(FO, k, { actual: A2, target: v ? v.target : null }), a0 = v0 ? kAch(FO, k, v0) : null;
           if (kOff(FO, k, a1) && kOff(FO, k, a0)) return res.kpis.push({ st: 'error', row: o.i, n: nm, why: T('المؤشر سيكون متأخرًا لفترتين متتاليتين، والخطة التصحيحية إلزامية؛ أدخل هذه القراءة من صفحة المؤشرات لكتابتها', 'Red for two periods in a row; a corrective plan is required — enter this reading from the KPIs page') }); }
         if (A2 == null && !note && !v) return res.kpis.push({ st: 'same', row: o.i, n: nm });
-        res.kpis.push({ st: 'change', row: o.i, n: nm, d: (per == 'final' ? T('نهائي', 'Final') : per) + ': ' + (v && v.actual != null ? v.actual : '—') + ' ← ' + (A2 == null ? '—' : A2) });
-        payload.kpis.push({ id: v && v.id, row: { kpi_id: k.id, period: per, actual: A2, num: ratio ? nu : null, den: ratio ? de : null, note: note || null, by_user: M.id, at: new Date().toISOString() } });
+        res.kpis.push({ st: 'change', row: o.i, n: nm, d: (per == 'final' ? T('نهائي', 'Final') : per) + ': ' + (v && v.actual != null ? v.actual : '—') + ' ← ' + (A2 == null ? '—' : A2) + (evL ? T(' · 📎 الدليل يُرفق لاحقًا (سيصلك تذكير)', ' · 📎 attach evidence later (you will be reminded)') : '') });
+        var rw = { kpi_id: k.id, period: per, actual: A2, num: ratio ? nu : null, den: ratio ? de : null, note: note || null, by_user: M.id, at: new Date().toISOString() }; if (evL) rw.ev_later = true;
+        payload.kpis.push({ id: v && v.id, row: rw });
       });
     }
     /* المخاطر */
