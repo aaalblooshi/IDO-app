@@ -1,6 +1,6 @@
 // IDO service worker v4 — pages come from the network first (new versions show on the first open),
 // falling back to the saved copy when the network is slow or offline.
-var HC = 'ido-html-v4', AC = 'ido-asset-v3' /* r2 */, KEEP = [HC, AC];
+var HC = 'ido-html-v4', AC = 'ido-asset-v4' /* r2 */, KEEP = [HC, AC];
 var PRE = ['index.html', 'tasks.html', 'inbox.html', 'myprojects.html', 'chat.html', 'charter.html', 'plan.html', 'cr.html', 'closure.html', 'account.html'];
 var OFF = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>غير متصل</title></head><body style="font-family:system-ui,sans-serif;background:#f5f3ee;color:#23272b;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;margin:0"><div style="padding:24px"><div style="font-size:48px">📡</div><h2>لا يوجد اتصال بالإنترنت</h2><p>تأكد من الاتصال ثم أعد المحاولة.</p><button onclick="location.reload()" style="background:#0a6b3d;color:#fff;border:0;border-radius:10px;padding:12px 24px;font-size:16px">إعادة المحاولة</button></div></body></html>';
 
@@ -29,7 +29,7 @@ self.addEventListener('activate', function (e) {
 });
 
 // a page that finished loading asks whether a newer copy was downloaded meanwhile
-self.addEventListener('message', function (e) {
+self.addEventListener('message',function(e){if(e.origin!==location.origin)return;
   var d = e.data || {};
   if (d.t !== 'ido-q' || !d.page || !e.source) return;
   var key = pageKey(d.page);
@@ -76,7 +76,7 @@ self.addEventListener('fetch', function (e) {
 
   // 2) versioned static files (same-origin .js/.css with ?v=, CDN libraries with a pinned version, fonts): cache-first
   var sameStatic = url.origin === self.location.origin && /\.(js|css)$/.test(url.pathname) && /[?&]v=/.test(url.search) && !/\/sw\.js$/.test(url.pathname);
-  var cdn = (url.hostname === 'cdn.jsdelivr.net' && /@\d+\.\d+\.\d+/.test(url.pathname)) || (url.hostname === 'cdnjs.cloudflare.com' && /\/\d+\.\d+\.\d+\//.test(url.pathname)) || url.hostname === 'fonts.gstatic.com';
+  var cdn = (url.hostname === 'cdn.jsdelivr.net' && /@\d+\.\d+\.\d+/.test(url.pathname)) || (url.hostname === 'cdnjs.cloudflare.com' && /\/\d+\.\d+\.\d+\//.test(url.pathname)) || (url.hostname === 'cdn.sheetjs.com' && /xlsx-\d+\.\d+\.\d+\//.test(url.pathname)) || url.hostname === 'fonts.gstatic.com';
   if (sameStatic || cdn) {
     e.respondWith(caches.open(AC).then(function (c) {
       return c.match(r).then(function (hit) {
@@ -105,7 +105,7 @@ self.addEventListener('push', function (e) {
   var d = {};
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
   var base = self.registration.scope;
-  var u = String(d.url || 'inbox.html'); if (!/^https?:/.test(u)) u = base + u.replace(/^\.?\//, '');
+  var u = String(d.url || 'inbox.html'); if (!/^https?:/.test(u)) u = base + u.replace(/^\.?\//, ''); try { if (new URL(u).origin !== self.location.origin) u = base + 'inbox.html'; } catch (_) { u = base + 'inbox.html'; }
   e.waitUntil(self.registration.showNotification(d.title || 'منصة مكتب التطوير المؤسسي', { body: d.body || '', data: { url: u }, tag: d.tag || undefined, dir: 'rtl', lang: 'ar' }));
 });
 self.addEventListener('notificationclick', function (e) {

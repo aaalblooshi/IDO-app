@@ -183,7 +183,7 @@ function shOpen(title,sub,body,foot){let s=$('ash');if(!s){s=document.createElem
  $('ashT').innerHTML=`<small>${esc(sub||'')}</small><b>${title}</b>`;$('ashB').innerHTML=body;$('ashF').innerHTML=foot||'';$('ashF').style.display=foot?'':'none';s.classList.add('on');document.body.style.overflow='hidden'}
 function shClose(){const s=$('ash');if(s)s.classList.remove('on');document.body.style.overflow=''}
 function xl(name,rows){const go=()=>{const ws=XLSX.utils.aoa_to_sheet(rows);ws['!cols']=rows[0].map(()=>({wch:24}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,name.slice(0,30));XLSX.writeFile(wb,name+' - '+(U.full_name||'')+' - '+FROM+'_'+TO+'.xlsx')};
- if(window.XLSX)return go();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';s.onload=go;s.onerror=()=>toast(P('تعذّر تحميل أداة Excel','Could not load the Excel tool'));document.head.appendChild(s)}
+ if(window.XLSX)return go();const s=document.createElement('script');s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';s.onload=go;s.onerror=()=>toast(P('تعذّر تحميل أداة Excel','Could not load the Excel tool'));document.head.appendChild(s)}
 function tasksF(){return (R.tasks||[]).filter(x=>(!MF||String(x.de).slice(0,7)==MF)&&(!TL||x.late)&&(!TQ||(x.n+' '+(x.pn||x.pc)).toLowerCase().includes(TQ.toLowerCase())))}
 function docsAll(){return [...(R.docl||[]).map(x=>({...x,t:'doc'})),...(R.sigs||[]).map(x=>({...x,t:'sig'}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)))}
 function docsF(){return docsAll().filter(x=>(DK=='all'||x.t==DK)&&(!DQ||((x.code||'')+' '+(x.pn||'')+' '+(KN[x.k]||'')).toLowerCase().includes(DQ.toLowerCase())))}
