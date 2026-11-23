@@ -101,8 +101,8 @@ function act(r){
  const p=String(r.summary||'').split('|'),k=p[0],S=SVN[r.src]?SVN[r.src][A()?0:1]:'';
  switch(k){
   case 'status':return P('تغيّرت الحالة إلى: ','Status changed to: ')+stn(p[1]);
-  case 'signed':return P('تم التوقيع (','Signed (')+stg(p[1])+')'+(p[2]=='admin'?P(' — بصفة الأدمن',' — as admin'):p[2]=='proxy'?P(' — بالإنابة',' — by proxy'):p[2]=='behalf'?P(' — نيابةً عن المعدّ ',' — on behalf of the preparer ')+({admin:P('بصفة الأدمن','as administrator'),office:P('بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'),unit:P('بصفة مسؤول الوحدة','as unit head'),edit:P('بصلاحية التعديل على المشروع','with edit rights')}[p[3]]||''):'');
-  case 'behalf':return P('تولّي التقديم نيابةً عن المعدّ','Took over submission on behalf of the preparer')+(p[1]?' «'+p[1]+'»':'')+' — '+({admin:P('بصفة الأدمن','as administrator'),office:P('بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'),unit:P('بصفة مسؤول الوحدة','as unit head'),edit:P('بصلاحية التعديل على المشروع','with edit rights')}[p[2]]||'');
+  case 'signed':return P('تم التوقيع (','Signed (')+stg(p[1])+')'+(p[2]=='admin'?P(' — بصفة مدير النظام',' — as admin'):p[2]=='proxy'?P(' — بالإنابة',' — by proxy'):p[2]=='behalf'?P(' — نيابةً عن المعدّ ',' — on behalf of the preparer ')+({admin:P('بصفة مدير النظام','as administrator'),office:P('بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'),unit:P('بصفة مسؤول الوحدة','as unit head'),edit:P('بصلاحية التعديل على المشروع','with edit rights')}[p[3]]||''):'');
+  case 'behalf':return P('تولّي التقديم نيابةً عن المعدّ','Took over submission on behalf of the preparer')+(p[1]?' «'+p[1]+'»':'')+' — '+({admin:P('بصفة مدير النظام','as administrator'),office:P('بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'),unit:P('بصفة مسؤول الوحدة','as unit head'),edit:P('بصلاحية التعديل على المشروع','with edit rights')}[p[2]]||'');
   case 'submittedby':return P('قدّم الطلب: ','Submitted by: ')+(p[1]||'')+(p[3]=='self'?P(' (المعدّ نفسه)',' (the preparer)'):P(' — نيابةً عن المعدّ «',' — on behalf of the preparer «')+(p[2]||'')+'»');
   case 'created':return P('إنشاء ','Created ')+S;
   case 'assigned':return P('تعيين ','Assigned ')+(p[1]||'')+' — '+stg(p[2]);
@@ -133,7 +133,7 @@ function act(r){
   case 'delreq':return P('طلب إلغاء','Cancel requested');
   case 'delok':return P('الموافقة على الإلغاء','Cancel approved');
   case 'delno':return P('رفض طلب الإلغاء','Cancel rejected');
-  case 'adminedit':return P('تعديل بصفة الأدمن','Edited as admin')+(p[1]&&p[1]!='-'?': '+p[1]:'');
+  case 'adminedit':return P('تعديل بصفة مدير النظام','Edited as admin')+(p[1]&&p[1]!='-'?': '+p[1]:'');
   case 'escnote':return P('ملاحظة مكتب التطوير على التصعيد ('+({r:'توجيه',i:'تجاهل',w:'سحب'}[p[1]]||'')+'): ','Office note on escalation: ')+p.slice(2).join(' · ');
   case 'escalated':return P('تصعيد لشخص آخر','Escalated');
   default:return p.join(' · ')}}

@@ -1,4 +1,4 @@
-/* علامة للأدمن: مهام سُجّلت منجزة بتاريخ أقدم من يوم الإجراء — window.IDOBKD */
+/* علامة لمدير النظام: مهام سُجّلت منجزة بتاريخ أقدم من يوم الإجراء — window.IDOBKD */
 (function(){
  var M=null,busy=false,A=function(){return (window.lang||'ar')!='en'};
  function load(sb,isAdmin,done){if(!isAdmin||M||busy||!sb)return;busy=true;

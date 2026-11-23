@@ -780,7 +780,7 @@ boot();
 
 /* ===== أوزان المشاريع (منهجية التقييم) ===== */
 
-/* ---- جودة البيانات (للأدمن): ما يُضعف دقة المحفظة وأين يجب التدخل ---- */
+/* ---- جودة البيانات (لمدير النظام): ما يُضعف دقة المحفظة وأين يجب التدخل ---- */
 function dqT(a){const m=a.parentNode.previousElementSibling;if(!m)return false;const o=m.hidden;m.hidden=!o;a.textContent=o?a.dataset.b+' ▴':a.dataset.a+' ('+a.dataset.n+') ▾';return false}
 function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,P=gsc(),ds_=x=>x.name;
  const WLm={};(Array.isArray(WL)?WL:[]).forEach(w=>WLm[w.pcode]=w);const wReady=Array.isArray(WL);
@@ -815,7 +815,7 @@ function vDq(){if(WL==null&&!WBUSY)wLoad();const B=$('body'),AR_=lang=='ar',T=(a
  ${box(T('مشاريع بلا خطة أو بلا مهام','Projects without a plan or tasks'),noT,p=>'• <span style="'+(p.half?'color:#d1101d;font-weight:700':'')+'">'+esc(p.name)+'</span> — '+(p.t=='n'?T('ميثاق معتمد بلا خطة','approved charter, no plan')+(p.w?' · '+T('منذ ','for ')+plr(p.w,'day'):'')+(p.half?' · '+T('تجاوز نصف مدته','past half its duration'):''):T('خطة بلا مهام','plan without tasks'))+(ADM?' <a href="projects.html#k='+esc(p.k)+'"><button class="sm" type="button">'+T('تفعيل الخطة','Activate plan')+'</button></a>':''),T('المخطط لها يُحسب من الميثاق إلى أن تُعتمد أو تُفعَّل خطة. الأحمر: تجاوز نصف مدته بلا خطة، والترتيب الأقدم أولًا.','Planned progress comes from the charter until a plan is approved or activated. Red: past half its duration; oldest first.'),'#d1101d')}
  ${box(T('مشاريع متأخرة (حسب عدد المهام المتأخرة)','Late projects'),lateM,p=>'• '+esc(p.name)+' — '+p.an.lateN,T('للمتابعة الفورية.','For immediate follow-up.'),'#d1101d')}`;}
 
-/* ====== أدوات الأدمن: انتباه اليوم / ملف المشروع / التدهور / من لا يحدّث ====== */
+/* ====== أدوات مدير النظام: انتباه اليوم / ملف المشروع / التدهور / من لا يحدّث ====== */
 const leafT=p=>{const k=new Set((p.tasks||[]).map(x=>x.p).filter(Boolean));return(p.tasks||[]).filter(x=>!k.has(x.id))};
 const lastUpd=x=>x.tu&&x.tu.at?dn(String(x.tu.at).slice(0,10)):null;
 const isStale=x=>{if((+x.pc||0)>=100)return false;const s0=dn(x.s);if(s0==null||s0>=TODAY)return false;const u=lastUpd(x);return u!=null?TODAY-u>14:TODAY-s0>14};
@@ -859,7 +859,7 @@ function trajChart(g,c){const W=300,H=118,pl=26,pr=8,pt=8,pb=22,z=g.z,n=z.length
 const AR_x=()=>lang=='ar';
 function vDeg(){ensureAdminData();const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=gsc().filter(p=>!p.closed||SHC),th=DEGT(),P=DEGP;
  if(SNPL){B.innerHTML=`<div class="card mut">${t('loading')}</div>`;return}
- if(SNP===false||!SNP||!SNP.length){B.innerHTML=`<div class="card"><b>📈 ${T('مسار الإنجاز','Progress trajectory')}</b><div class="mut" style="margin-top:6px">${T('لا توجد بيانات تاريخية بعد. تُبنى تلقائيًا عند فتح الأدمن للمحفظة بعد تشغيل التحديث، ثم تُسجَّل يوميًا.','No history yet. It is built automatically when an admin opens the portfolio after the update, then recorded daily.')}</div></div>`;return}
+ if(SNP===false||!SNP||!SNP.length){B.innerHTML=`<div class="card"><b>📈 ${T('مسار الإنجاز','Progress trajectory')}</b><div class="mut" style="margin-top:6px">${T('لا توجد بيانات تاريخية بعد. تُبنى تلقائيًا عند فتح مدير النظام للمحفظة بعد تشغيل التحديث، ثم تُسجَّل يوميًا.','No history yet. It is built automatically when an admin opens the portfolio after the update, then recorded daily.')}</div></div>`;return}
  const rows=L.map(p=>({p,g:trajOf(p.k,P)})),ok=rows.filter(z=>z.g&&!z.g.nodata),nd=rows.filter(z=>!z.g||z.g.nodata);
  const dec=ok.filter(z=>z.g.d<=-th),imp=ok.filter(z=>z.g.d>=th),flat=ok.length-dec.length-imp.length,avg=ok.length?ok.reduce((q,z)=>q+z.g.d,0)/ok.length:0;
  ok.sort((a,b)=>a.g.d-b.g.d);
@@ -905,7 +905,7 @@ function pfDraw(p){const AR_=lang=='ar',T=(a,e)=>AR_?a:e,box=$('pfs');box.datase
  ${dl.length?`<div style="margin-top:6px"><b style="font-size:13px">${T('يعتمد عليه','Blocks')}</b><div class="mut" style="font-size:12.5px">${dl.map(k=>esc(nm(k))).join('، ')}</div></div>`:''}
  <div class="row" style="margin-top:12px">${p.id&&(p.tasks||[]).length?`<button onclick="NetDiag.open(PL.find(q=>q.k=='${jsa(p.k)}').tasks,{title:'${jsa(p.name).replace(/'/g,'')}'})">🕸 ${T('مخطط الشبكة','Network diagram')}</button>`:''}${p.id?`<a href="plan.html#o=${p.id}"><button>${T('الخطة','Plan')}</button></a>`:`<span class="chp o">${T('بلا خطة — المخطط من الميثاق','No plan — planned from charter')}</span>`}<button onclick="pfClose();RQ='${jsa(p.k)}';TAB='rec';draw()">${T('السجلات','Records')}</button><button onclick="pfClose();FP='${jsa(p.k)}';FS='${p.sc}';TAB='tree';EXP.add('p:${jsa(p.k)}');draw()">${T('في الهيكل','In tree')}</button><a href="projects.html"><button>${T('من يراه؟','Who sees it')}</button></a>${st.length?`<button class="p" onclick="lagRemind([${p.id}])">${T('تذكير المتأخرين','Remind late')}</button>`:''}</div></div></div>`}
 
-/* ---- الإنجاز في الموعد (للأدمن): هل أُنجزت المهام فعلًا في موعدها؟ وما الذي سُجِّل بعد فوات الموعد؟ ---- */
+/* ---- الإنجاز في الموعد (لمدير النظام): هل أُنجزت المهام فعلًا في موعدها؟ وما الذي سُجِّل بعد فوات الموعد؟ ---- */
 let OTF='all';
 function vOtd(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=gsc().filter(p=>!p.closed||SHC),rows=[];
  L.forEach(p=>leafT(p).forEach(x=>{if((+x.pc||0)<100)return;const e=dn(x.e),ae=dn(x.ae);if(e==null||ae==null)return;const rec=lastUpd(x);let k;
@@ -991,7 +991,7 @@ function trHover(ev){const h=window.TRH,sv=$('trsv');if(!h||!sv)return;const r=s
  tip.style.display='block';const w=$('trw').getBoundingClientRect(),px=ev.clientX-w.left,tw=tip.offsetWidth,touch=ev.pointerType=='touch'||ev.pointerType=='pen';tip.classList.toggle('tc',touch);if(touch){tip.style.top=(-tip.offsetHeight-10)+'px';const side=px>w.width/2?px-tw-40:px+40;tip.style.left=Math.max(0,Math.min(w.width-tw,side))+'px'}else{tip.style.top='';tip.style.left=Math.max(0,Math.min(w.width-tw,px-tw/2))+'px'}}
 function trOut(){['trg','trc1','trc2','trtip'].forEach(i=>{const e=$(i);if(e)e.style.display='none'})}
 function trCus(){const a=$('trf').value,b=$('trt').value;TRF=a?dn(a):null;TRT=b?dn(b):null;vTrd()}
-/* لقطات يومية حقيقية (للأدمن): تُسجَّل مرة كل يوم عند فتح المحفظة، فيصبح المسار التاريخي حقيقيًا من اليوم فصاعدًا */
+/* لقطات يومية حقيقية (لمدير النظام): تُسجَّل مرة كل يوم عند فتح المحفظة، فيصبح المسار التاريخي حقيقيًا من اليوم فصاعدًا */
 async function snapSave(){try{const r=await sb.rpc('snap_ensure');if(!r.error)return}catch(_){}if(!ADM||!PL.length)return;const k='snp'+TODAY;try{if(localStorage.getItem(k))return}catch(_){}
  try{const rows=PL.map(p=>({snap_date:ds(TODAY),code:p.k,actual:Math.round(p.a*10)/10,planned:Math.round(((p.exC!=null?p.exC:p.ex)||0)*10)/10,late:(p.an&&p.an.lateN)||p.lateN||0}));const r=await sb.from('portfolio_snapshots').upsert(rows,{onConflict:'snap_date,code'});if(!r.error)try{localStorage.setItem(k,'1')}catch(_){}}catch(_){}}
 /* بناء السجل التاريخي تلقائيًا (تقديري من تواريخ المهام، أسبوعيًا) مرة واحدة، ولا يستبدل أي لقطة حقيقية */
@@ -1041,7 +1041,7 @@ function vFil(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e,L=scoped();
    ${z.nt.map(n=>`<div style="margin-top:6px;white-space:pre-wrap;background:#faf8f3;border-radius:10px;padding:8px 10px">📝 ${esc(n)}</div>`).join('')}
    ${z.at.length?`<div class="row" style="margin-top:8px">${z.at.map(a=>`<button onclick="filOpen('${jsa(a.path)}')">📎 ${esc(a.title||'file')}</button>`).join('')}</div>`:''}</div>`).join(''):`<div class="card mut">${t('none')}</div>`}`}
 
-/* ---- خارطة طريق المشاريع (للأدمن): الترابط بين المشاريع يُحدَّد هنا فقط ---- */
+/* ---- خارطة طريق المشاريع (لمدير النظام): الترابط بين المشاريع يُحدَّد هنا فقط ---- */
 let PLK=null,RMPX=0,RMBUSY=false,RMSEL='';
 function rmSel(k){RMSEL=RMSEL==k?'':k;vRmap()}
 async function rmLoad(){RMBUSY=true;try{const r=await sb.from('project_links').select('*').order('id');if(r.error)throw r.error;PLK=r.data||[]}catch(e){PLK=false}RMBUSY=false;draw()}
@@ -1089,7 +1089,7 @@ function vRmap(){const B=$('body'),AR_=lang=='ar',T=(a,e)=>AR_?a:e;
  const opts=all.slice().sort((a,b)=>a.name.localeCompare(b.name,'ar')).map(p=>`<option value="${esc(p.k)}">${esc(p.name)}</option>`).join('');
  const lt=PLK.map(l=>{const sl=by[l.from_code]&&by[l.to_code]?slack(l):null;return `<div class="rmr"><span>${esc(nameOf(l.from_code))} <b>${AR_?'←':'→'}</b> ${esc(nameOf(l.to_code))}</span><span class="mut">${l.typ=='ss'?T('بداية ببداية','Start-to-start'):T('نهاية ببداية','Finish-to-start')}${l.lag?' · '+(l.lag>0?'+':'')+l.lag+' '+T('يوم','d'):''}${sl==null?'':sl<0?` · <b style="color:#d1101d">${T('تعارض','Conflict')} ${-sl} ${T('يوم','d')}</b>`:` · ${T('انزلاق','Slack')} ${sl} ${T('يوم','d')}`}</span><button class="r" onclick="rmDel(${l.id})">${T('حذف','Delete')}</button></div>`}).join('');
  const todayX=X(TODAY);
- B.innerHTML=`<div class="card"><div class="row" style="margin:0 0 6px"><b>🗺 ${T('خارطة طريق المشاريع','Projects roadmap')}</b><span class="mut">${T('للأدمن فقط — الترابط يُحدَّد هنا ولا يظهر في الميثاق أو الخطة.','Admin only — links are defined here and never appear in charters or plans.')}</span></div>
+ B.innerHTML=`<div class="card"><div class="row" style="margin:0 0 6px"><b>🗺 ${T('خارطة طريق المشاريع','Projects roadmap')}</b><span class="mut">${T('لمدير النظام فقط — الترابط يُحدَّد هنا ولا يظهر في الميثاق أو الخطة.','Admin only — links are defined here and never appear in charters or plans.')}</span></div>
   <div class="row" style="margin:6px 0"><span class="chp g">${T('ترابطات','Links')}: <b class="num">${links.length}</b></span><span class="chp r">${T('تعارضات','Conflicts')}: <b class="num">${conf.length}</b></span><span class="chp o">${T('ضيّقة (≤٧ أيام)','Tight (≤7d)')}: <b class="num">${tight.length}</b></span>${hpBtn()}<button onclick="RMPX=Math.min(8,(RMPX||${PX.toFixed(3)})*1.4);vRmap()">＋</button><button onclick="RMPX=Math.max(.3,(RMPX||${PX.toFixed(3)})/1.4);vRmap()">－</button></div>
   ${rows.length?`<div class="rmw" id="rmw"><div class="rmi"><div class="rmlc" style="width:${LW}px"><div class="rmh" style="height:${HH}px">${T('المشروع','Project')}</div>${lab}</div>
   <div class="rmcv" style="width:${CW}px;height:${HH+rows.length*RH}px"><div class="rmh" style="height:${HH}px;width:${CW}px">${mh}</div>${rows.map((p,i)=>`<div class="rmrow" style="top:${HH+i*RH}px;height:${RH}px;width:${CW}px"></div>`).join('')}${mo.map(n=>`<i class="rmg" style="left:${X(n)}px;top:${HH}px;height:${rows.length*RH}px"></i>`).join('')}<i class="rmt" style="left:${todayX}px;top:0;height:${HH+rows.length*RH}px"></i>${rows.map(bar).join('')}
@@ -1483,9 +1483,9 @@ async function xpPlans(which){const AR_=lang=='ar';if(!XPLC)return;
  const d=new Date(),ds_=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
  XLSX.writeFile(wb,(sel.length>1?'plans_all_':'plan_'+sel[0].k+'_')+ds_+'.xlsx')}
 </script>
-<script src="netdiag.js?v=6"></script><script src="ovx.js?v=12"></script><script src="repx.js?v=11"></script><script src="report.js?v=21"></script><script src="xlupd.js?v=16"></script><script src="xlmore.js?v=5"></script><script src="blx.js?v=3"></script><script src="ido-ui.js?v=64"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
+<script src="netdiag.js?v=6"></script><script src="ovx.js?v=13"></script><script src="repx.js?v=11"></script><script src="report.js?v=21"></script><script src="xlupd.js?v=16"></script><script src="xlmore.js?v=5"></script><script src="blx.js?v=3"></script><script src="ido-ui.js?v=64"></script><style id="pftabs">.sb .tabs{flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding-bottom:6px;scroll-padding-inline:40px}.sb .tabs button{flex:none;white-space:nowrap}</style><script>/*pfxl*/
 (function(){const _v=window.vXpl;if(!_v)return;window.vXpl=function(){_v();if(!ADM)return;const AR_=lang=='ar',b=document.getElementById('body');if(!b)return;const d=document.createElement('div');d.className='card';
- d.innerHTML='<h3 style="margin:0 0 6px">🗂 '+(AR_?'ملفات Excel للأدمن':'Admin Excel files')+'</h3><div class="mut" style="line-height:1.8">'+(AR_?'كل مجال له ملفه الخاص: المؤشرات من صفحة المؤشرات، المخاطر من سجل المخاطر، الموازنة من صفحة الموازنات، والخطة من صفحة كل خطة (رفع Excel). هنا: التفاصيل الأساسية للمشاريع (تنزيل وتحديث ورفع) والملف الشامل.':'Each area has its own file: KPIs, risks, budgets and each plan on their pages. Here: project basic details (download, edit, upload) and the all-in-one file.')+'</div>'
+ d.innerHTML='<h3 style="margin:0 0 6px">🗂 '+(AR_?'ملفات Excel لمدير النظام':'Admin Excel files')+'</h3><div class="mut" style="line-height:1.8">'+(AR_?'كل مجال له ملفه الخاص: المؤشرات من صفحة المؤشرات، المخاطر من سجل المخاطر، الموازنة من صفحة الموازنات، والخطة من صفحة كل خطة (رفع Excel). هنا: التفاصيل الأساسية للمشاريع (تنزيل وتحديث ورفع) والملف الشامل.':'Each area has its own file: KPIs, risks, budgets and each plan on their pages. Here: project basic details (download, edit, upload) and the all-in-one file.')+'</div>'
   +'<div class="row" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button onclick="pfBasicOut()">⬇ '+(AR_?'التفاصيل الأساسية':'Basic details')+'</button><label class="btn" style="display:inline-flex;align-items:center;gap:4px;font-weight:700;border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 16px;cursor:pointer">⬆ '+(AR_?'رفع التفاصيل الأساسية':'Upload basic details')+'<input type="file" accept=".xlsx,.xls" style="display:none" onchange="pfBasicIn(this)"></label><button class="p" onclick="pfAllOut()">📦 '+(AR_?'الملف الشامل لكل المشاريع':'All-in-one file')+'</button></div>'
   +'<div class="mut" style="margin-top:8px"><a href="kpis.html">📈 '+(AR_?'المؤشرات':'KPIs')+'</a> · <a href="risks.html">🛡️ '+(AR_?'المخاطر':'Risks')+'</a> · <a href="budget.html">💰 '+(AR_?'الموازنات':'Budgets')+'</a></div>';b.appendChild(d)}})();
 const PFB=[['code','رمز المشروع'],['pname','اسم المشروع'],['ptype','نوع المشروع'],['sector','القطاع'],['dept','الإدارة'],['sdate','تاريخ البداية'],['edate','تاريخ النهاية'],['budget','الميزانية'],['pmname','مدير المشروع'],['owner','مالك المشروع'],['pdesc','الوصف'],['status','حالة الميثاق']];
@@ -1493,12 +1493,12 @@ const PFE=['pname','ptype','sector','dept','sdate','edate','budget','pdesc'];
 async function pfCh(){const r=await sb.from('charters').select('id,code,status,data').order('id');const M={};(r.data||[]).forEach(x=>{if(x.code)M[x.code]=x});return M}
 const pfD=v=>{v=String(v==null?'':v).trim();let m;if((m=/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(v))){const y=m[3].length==2?'20'+m[3]:m[3];return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}return v};
 const pfF=v=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:(v||'')};
-async function pfBasicOut(){try{await pfLoadXLSX()}catch(_){return alert('Excel')}const M=await pfCh();
+async function pfBasicOut(){try{await pfLoadXLSX()}catch(_){return alert((document.documentElement.lang||'ar')!='en'?'تعذّر تحميل أداة Excel. تحقق من الاتصال بالإنترنت ثم أعد المحاولة.':'Could not load the Excel tool. Check your connection and retry.')}const M=await pfCh();
  const rows=Object.values(M).filter(x=>!(x.data&&x.data._del)).map(x=>{const d=x.data||{},o={};PFB.forEach(([k,h])=>{o[h]=k=='code'?x.code:k=='status'?x.status:(k=='sdate'||k=='edate')?pfF(d[k]):(d[k]==null?'':(typeof d[k]=='object'?JSON.stringify(d[k]):d[k]))});return o});
  const ws=XLSX.utils.json_to_sheet(rows,{header:PFB.map(x=>x[1])});ws['!cols']=PFB.map(([k])=>({wch:k=='pname'||k=='pdesc'?40:15}));
  const h=XLSX.utils.aoa_to_sheet([['طريقة التحديث'],['عدّل: اسم المشروع، النوع، القطاع، الإدارة، تاريخ البداية والنهاية (dd/mm/yyyy)، الميزانية، الوصف. ثم ارفع الملف.'],['رمز المشروع هو المفتاح ولا يتغير. مدير ومالك المشروع وحالة الميثاق للعرض فقط (تتغير من إعدادات المشاريع أو طلب تغيير).']]);h['!cols']=[{wch:110}];
  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,'التفاصيل الأساسية');XLSX.utils.book_append_sheet(wb,h,'التعليمات');XLSX.writeFile(wb,'projects-basic-'+new Date().toISOString().slice(0,10)+'.xlsx')}
-async function pfBasicIn(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f||!ADM)return;try{await pfLoadXLSX()}catch(_){return alert('Excel')}
+async function pfBasicIn(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f||!ADM)return;try{await pfLoadXLSX()}catch(_){return alert((document.documentElement.lang||'ar')!='en'?'تعذّر تحميل أداة Excel. تحقق من الاتصال بالإنترنت ثم أعد المحاولة.':'Could not load the Excel tool. Check your connection and retry.')}
  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),raw=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:'',raw:false}),H={};PFB.forEach(([k,h])=>H[h]=k);
  const M=await pfCh(),ch=[],bad=[];
  raw.forEach((o,i)=>{const x={};Object.keys(o).forEach(h=>{const k=H[String(h).trim()];if(k)x[k]=String(o[h]).trim()});if(!x.code)return;const c=M[x.code];if(!c){bad.push((lang=='ar'?'صف ':'Row ')+(i+2)+': '+x.code+(lang=='ar'?' غير موجود':' not found'));return}
@@ -1508,7 +1508,7 @@ async function pfBasicIn(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f
  if(!confirm((lang=='ar'?'سيُحدَّث '+ch.length+' مشروع:\n':'Update '+ch.length+' projects:\n')+ch.slice(0,12).map(c=>c.code+': '+c.diff.join('، ')).join('\n')+(bad.length?'\n\n'+bad.slice(0,8).join('\n'):'')))return;
  let n=0;const er=[];for(const c of ch){const r=await sb.from('charters').update({data:c.data}).eq('id',c.id);if(r.error)er.push(c.code+': '+r.error.message);else n++}
  alert((lang=='ar'?'تم تحديث '+n+' مشروع':'Updated '+n)+(er.length?'\n'+er.slice(0,10).join('\n'):''));try{await start()}catch(_){draw()}}
-async function pfAllOut(){if(!ADM)return;const AR_=lang=='ar';try{toast(AR_?'جارٍ تجهيز الملف الشامل…':'Preparing…')}catch(_){}try{await pfLoadXLSX()}catch(_){return alert('Excel')}
+async function pfAllOut(){if(!ADM)return;const AR_=lang=='ar';try{toast(AR_?'جارٍ تجهيز الملف الشامل…':'Preparing…')}catch(_){}try{await pfLoadXLSX()}catch(_){return alert((document.documentElement.lang||'ar')!='en'?'تعذّر تحميل أداة Excel. تحقق من الاتصال بالإنترنت ثم أعد المحاولة.':'Could not load the Excel tool. Check your connection and retry.')}
  const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};const add=(rows,name,w)=>{const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'—':AR_?'لا بيانات':'No data'}]);if(w)ws['!cols']=w.map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,ws,name)};
  const M=await pfCh();add(Object.values(M).filter(x=>!(x.data&&x.data._del)).map(x=>{const d=x.data||{},o={};PFB.forEach(([k,h])=>{o[h]=k=='code'?x.code:k=='status'?x.status:(k=='sdate'||k=='edate')?pfF(d[k]):(d[k]==null||typeof d[k]=='object'?'':d[k])});return o}),'التفاصيل الأساسية',[16,40,14,10,14,12,12,14,22,22,40,12]);
  const pn=c=>((M[c]||{}).data||{}).pname||c;

@@ -261,15 +261,15 @@ const W=[
 ["delMoved","Moved to the deleted archive.","نُقل إلى أرشيف المحذوفات."],
 ["loadErr","Could not load your data. Sign out and sign in again.","تعذّر تحميل بياناتك. سجّل الخروج ثم ادخل من جديد."],
 ["delReq","Request deletion","طلب حذف"],
-["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة الأدمن. أضف ملاحظات للأدمن (اختيارية)."],
-["delNote","Reason / notes for the admin","سبب الحذف / ملاحظات للأدمن"],
+["delHint","Deleting needs the admin's approval. Add notes for the admin (optional).","الحذف يحتاج موافقة مدير النظام. أضف ملاحظات لمدير النظام (اختيارية)."],
+["delNote","Reason / notes for the admin","سبب الحذف / ملاحظات لمدير النظام"],
 ["delSend","Send deletion request","إرسال طلب الحذف"],
 ["delSent","Deletion request sent to the Institutional Development Office.","تم إرسال طلب الحذف إلى مكتب التطوير المؤسسي."],
 ["delBadge","Deletion request","طلب حذف"],
 ["a_delReq","Deletion request: decide","طلب حذف: اتخذ قرارًا"],
 ["manageUsers","Manage users","إدارة المستخدمين"],
 ["manageUsersH","Search users, edit their details, role, email and password.","ابحث عن المستخدمين وعدّل بياناتهم ودورهم وبريدهم وكلمة مرورهم."],
-["delPending","Deletion request awaiting admin decision","طلب حذف بانتظار قرار الأدمن"],
+["delPending","Deletion request awaiting admin decision","طلب حذف بانتظار قرار مدير النظام"],
 ["delRejected","Deletion request was rejected","تم رفض طلب الحذف"],
 ["delApprove","Approve deletion","الموافقة على الحذف"],
 ["delReject","Reject deletion","رفض الحذف"],
@@ -352,7 +352,7 @@ const W=[
 ["draftSaved","Draft saved successfully.","تم حفظ المسودة بنجاح."],
 ["l_apprej","Rejected by the approver","رفض المعتمد"],
 ["l_revrej","Rejected by the reviewer","رفض المراجع"],
-["l_proxy","signed by proxy","توقيع بالإنابة"],["l_adm","by the administrator (override)","بصفة الأدمن (تجاوز)"],["admSub","Submit as administrator","تقديم بصفة الأدمن"],["admSign","Sign as administrator","توقيع بصفة الأدمن"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
+["l_proxy","signed by proxy","توقيع بالإنابة"],["l_adm","by the administrator (override)","بصفة مدير النظام (تجاوز)"],["admSub","Submit as administrator","تقديم بصفة مدير النظام"],["admSign","Sign as administrator","توقيع بصفة مدير النظام"],["l_taskprog","Task progress updated","تحديث إنجاز نشاط"],["byProxy","by proxy: {n}","بالإنابة: {n}"],["byProxyFor","on behalf of","نيابةً عن"],["offApprove","Approve directly (Institutional Development Office)","اعتماد مباشر (مكتب التطوير المؤسسي)"],["offApprovePh","Note (optional)","ملاحظة (اختياري)"],["offReject","Reject","رفض"],["aedBtn","Edit (Institutional Development Office)","تعديل (مكتب التطوير المؤسسي)"],["aedBanner","Edit mode — Institutional Development Office. Changes are recorded in the audit log only.","وضع التعديل — مكتب التطوير المؤسسي. تُسجَّل التعديلات في سجل التدقيق فقط."],["aedSave","Save changes","حفظ التعديلات"],["l_adminedit","Edited by the Institutional Development Office","تعديل من مكتب التطوير المؤسسي"],["l_offapp","Approved by the Institutional Development Office","اعتماد من مكتب التطوير المؤسسي"],["l_offrej","Rejected by the Institutional Development Office","رفض من مكتب التطوير المؤسسي"],
 ["l_crlink","Linked to change request","ربط بطلب التغيير"],
 ["l_crunlink","Link to change request removed","إلغاء الربط بطلب التغيير"],
 ["l_stagenote","Note","ملاحظة"],
@@ -790,7 +790,7 @@ async function ftrStart(){const rv=sigs.filter(x=>x.stage=='reviewed'),apv=sigs.
 async function ftrStop(){if(!confirm(lang=='ar'?'إيقاف المسار الرسمي؟ يبقى الميثاق معتمدًا من مكتب التطوير المؤسسي.':'Stop the formal track? The charter stays approved.'))return;await ftrSet('stopped');openCR(cr.id)}
 async function ftrNext(){const apP=sigs.some(x=>x.stage=='approved'&&x.status=='pending');await ftrSet(apP?'approval':'done');openCR(cr.id)}
 async function ftrRej(){askNote(t('reject'),t('rejPrompt'),t('reject'),async c=>{await ftrSet('rejected',{c,rb:me.full_name});openCR(cr.id)},true)}
-const BHW={admin:['بصفة الأدمن','as administrator'],office:['بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'],unit:['بصفة مسؤول الوحدة','as unit head'],edit:['بصلاحية التعديل على المشروع','with edit rights on the project']};const bhw=w=>{const x=BHW[w];return x?(lang=='ar'?x[0]:x[1]):(w||'')};
+const BHW={admin:['بصفة مدير النظام','as administrator'],office:['بصفة مكتب التطوير المؤسسي','as the Institutional Development Office'],unit:['بصفة مسؤول الوحدة','as unit head'],edit:['بصلاحية التعديل على المشروع','with edit rights on the project']};const bhw=w=>{const x=BHW[w];return x?(lang=='ar'?x[0]:x[1]):(w||'')};
 function logT(a){const p=a.split('|'),k=p[0];
  if(k=='docassign')return lang=='ar'?(p[1]=='transfer'?'نقل ملكية النموذج إلى: ':'إضافة محرر للتعديل والتحكم: ')+(p[2]||''):(p[1]=='transfer'?'Ownership transferred to: ':'Editor added: ')+(p[2]||'');
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير '+({r:'عند توجيه التصعيد',i:'عند تجاهل التصعيد',w:'عند سحب التصعيد'}[p[1]]||'')+': ':'Office note '+({r:'on redirecting the escalation',i:'on ignoring the escalation',w:'on withdrawing the escalation'}[p[1]]||'')+': ')+p.slice(2).join('|');
@@ -899,7 +899,7 @@ const STEP={'Draft':0,'Returned to PM':0,'Submitted':1,'PMO Review':2,'Reviewed'
 const HOLD=['Submitted','PMO Review','Reviewed','Awaiting Approval','Office Decision'];
 const dsince=d=>Math.max(0,Math.floor((Date.now()-new Date(d))/864e5));
 const SLA=3;
-const waitDays=d=>{const a=new Date(d);if(isNaN(a))return 0;const e=new Date(),p=new Date(a.getFullYear(),a.getMonth(),a.getDate()),q=new Date(e.getFullYear(),e.getMonth(),e.getDate());let n=0;while(p<q){p.setDate(p.getDate()+1);const w=p.getDay();if(w!=0&&w!=6)n++}return n};
+const waitDays=d=>{if(window.IDOWAIT)return IDOWAIT(d);const a=new Date(d);if(isNaN(a))return 0;const e=new Date(),p=new Date(a.getFullYear(),a.getMonth(),a.getDate()),q=new Date(e.getFullYear(),e.getMonth(),e.getDate());let n=0;while(p<q){p.setDate(p.getDate()+1);const w=p.getDay();if(w!=0&&w!=6)n++}return n};
 async function loadAll(){
  const [a,b,c,dp,esq]=await Promise.all([sb.from('charters').select('*').order('id',{ascending:false}),sb.from('charter_signatories').select('id,cr_id,stage,user_id,status,signed_at'),sb.from('charter_audit').select('cr_id,action,at').like('action','status|%'),loadDelP(),sb.from('escalations').select('cr_id').eq('svc',SVC).eq('status','pending').then(r=>r,()=>({data:[]}))]);
  const all=a.data||[];
@@ -1210,7 +1210,7 @@ function pasteGo(a){const tx=$('pt_'+a).value.replace(/\r/g,'');const lines=tx.s
  OPEN[a]=null;save(true)}
 const delRow=(a,i)=>{cr.data[a].splice(i,1);if(!cr.data[a].length)delete OPEN[a];save(true)};
 async function save(q){const m=monthsBetween(cr.data.sdate,cr.data.edate);if(m!=null)cr.data.months=m;else delete cr.data.months;
- const {data:r,error}=await sb.from('charters').update({data:cr.data}).eq('id',cr.id).select('id');if(error)return msg(error.message);if(!r||!r.length)return msg(t('saveFail'));if(q!==false)await openCR(cr.id)}
+ let _q=sb.from('charters').update({data:cr.data}).eq('id',cr.id);if(cr.rev!=null)_q=_q.eq('rev',cr.rev);const {data:r,error}=await _q.select('id,rev');if(error)return msg(error.message);if(!r||!r.length){try{const c=await sb.from('charters').select('rev,rev_by').eq('id',cr.id).maybeSingle();if(c.data&&cr.rev!=null&&c.data.rev!=cr.rev&&c.data.rev_by==me.id){const z=await sb.from('charters').update({data:cr.data}).eq('id',cr.id).select('id,rev');if(!z.error&&z.data&&z.data.length){cr.rev=z.data[0].rev;if(q!==false)await openCR(cr.id);return}}if(c.data&&cr.rev!=null&&c.data.rev!=cr.rev)return msg((lang=='ar'?'عدّل شخص آخر هذه الوثيقة بعد أن فتحتها، فلم تُحفظ تعديلاتك حتى لا تُمسح تعديلاته. انسخ ما كتبته، ثم أعد تحميل الصفحة لترى آخر نسخة.':'Someone else changed this document after you opened it, so your edits were not saved to avoid overwriting theirs. Copy your text, then reload to see the latest version.'))}catch(_){}return msg(t('saveFail'))}cr.rev=r[0].rev;if(q!==false)await openCR(cr.id)}
 async function saveDrf(){try{await flushAtt()}catch(err){return msg(err.message||String(err))}await save()}
 
 // ===== Feasibility study (optional, can be made mandatory by an admin) =====
@@ -1311,7 +1311,7 @@ async function addSig(sg){const s=$('as_'+sg);if(!s||!s.value)return;const u=s.v
  await sb.from('charter_signatories').insert({cr_id:cr.id,stage:sg,user_id:u});await lg(cr.id,'assigned|'+users[u].full_name+'|'+sg);openCR(cr.id)}
 async function rmSig(id){await sb.from('charter_signatories').delete().eq('id',id);await lg(cr.id,'removed');openCR(cr.id)}
 async function setStatus(s,extra={}){const _r=await sb.from('charters').update({status:s,...extra}).eq('id',cr.id);await lg(cr.id,'status|'+s);try{if(!(_r&&_r.error)&&window.IDOACT&&IDOACT.afterRate)IDOACT.afterRate(sb,me,'charter',s)}catch(_){}}
-let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;clearTimeout(AUTOT);AUTOT=setTimeout(()=>{if(editing&&cr)save(false)},2500)});
+let AUTOT=null;document.addEventListener('input',()=>{if(!editing||!cr)return;clearTimeout(AUTOT);AUTOT=setTimeout(()=>{if(editing&&cr)save(false)},2500)});document.addEventListener('visibilitychange',()=>{if(document.hidden&&AUTOT&&editing&&cr){clearTimeout(AUTOT);AUTOT=0;save(false)}});
 async function softDel(id,data,prev,reason){const nd={...(data||{}),_deleted:{by:me.full_name,at:new Date().toISOString(),prev:prev,reason:reason||''}};return sb.from('charters').update({status:'Cancelled',archived:true,data:nd}).eq('id',id)}
 async function delCR(){if(!confirm(t('confirmDel')))return;const {error}=await softDel(cr.id,cr.data,cr.status,'');if(error)return msg(error.message);await lg(cr.id,'deleted');msg(t('delMoved'));homeView()}
 const SVC='charter';
@@ -1455,7 +1455,7 @@ function askNote(title,ph,ok,cb,req){let o=$('nmod');if(o)o.remove();o=document.
 // ---- signing ----
 function useSaved(){if(!me.signature_img)return;upImg=me.signature_img;$('prev').src=upImg;$('prev').style.display='block';tab('u')}
 function openSign(id,stage,submit){pend={id,stage,submit:!!submit,by:(()=>{const s=sigs.find(x=>x.id==id);return s&&s.user_id!=me.id?me.id:null})()};$('sv').style.display=me.signature_img?'':'none';$('svt').textContent=t('useSaved');tab('d');drawn=false;upImg=null;$('prev').style.display='none';$('file').value='';const ap=stage=='approved';$('mt').textContent=t(ap?'apprTitle':'signTitle');$('cfb').textContent=t(ap?'signApprove':stage=='reviewed'?'signSendApp':submit?'signSubmit':'confirm');$('anw').style.display='block';$('ant').value='';$('ant').placeholder=t(ap?'apprNotePh':'noteOpt');$('modal').classList.add('on');
- const c=$('cv');c.width=c.offsetWidth;c.height=c.offsetHeight;ctx=c.getContext('2d');ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
+ const c=$('cv');{const _dp=Math.min(2,window.devicePixelRatio||1);c.width=c.offsetWidth*_dp;c.height=c.offsetHeight*_dp;ctx=c.getContext('2d');ctx.scale(_dp,_dp)}ctx.lineWidth=2.2;ctx.lineCap='round';ctx.strokeStyle='#111'}
 function tab(m){mode=m;$('pd').style.display=m=='d'?'':'none';$('pu').style.display=m=='u'?'':'none';$('td').className=m=='d'?'p':'';$('tu').className=m=='u'?'p':''}
 $('td').onclick=()=>tab('d');$('tu').onclick=()=>tab('u');
 const clr=()=>{ctx.clearRect(0,0,$('cv').width,$('cv').height);drawn=false};
@@ -1465,11 +1465,12 @@ cv.onpointermove=e=>{if(!down)return;const p=pos(e);ctx.lineTo(...p);ctx.stroke(
 $('file').onchange=function(){const f=this.files[0];if(!f)return;
  if(!/^image\/(png|jpeg)$/.test(f.type))return msg(t('pngjpg'));if(f.size>1048576)return msg(t('big'));
  const r=new FileReader();r.onload=()=>{upImg=r.result;$('prev').src=upImg;$('prev').style.display='block'};r.readAsDataURL(f)};
-async function confirmSign(){
+async function confirmSign(){if(window.__sg)return;window.__sg=1;const _b=$('cfb');if(_b){_b.disabled=true;_b.dataset.t=_b.textContent;_b.textContent=(lang=='ar'?'جارٍ التوقيع…':'Signing…')}try{return await confirmSign0()}finally{window.__sg=0;if(_b){_b.disabled=false;if(_b.dataset.t)_b.textContent=_b.dataset.t}}}
+async function confirmSign0(){
  let img;if(mode=='d'){if(!drawn)return msg(t('drawFirst'));img=$('cv').toDataURL('image/png')}else{if(!upImg)return msg(t('uploadFirst'));img=upImg}
  if(pend.submit)stripBlank();
  if(cr.created_by==me.id&&pend.stage=='created')await save(false);
- await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);
+ {const {error:se}=await sb.from('charter_signatories').update({status:'signed',signature_img:img,signed_at:new Date().toISOString(),...(pend.by?{signed_by:pend.by}:{})}).eq('id',pend.id);if(se)return msg((lang=='ar'?'لم يُحفظ التوقيع: ':'Signature not saved: ')+se.message)}
  await lg(cr.id,'signed|'+pend.stage+(pend.bh?'|behalf|'+pend.bh:pend.adm?'|admin':pend.by?'|proxy':''));
  {const tx=$('ant').value.trim();if(tx){const {data:cur}=await sb.from('charters').select('data').eq('id',cr.id).single();const nd={...(cur?cur.data:cr.data)};nd._anotes=[...(Array.isArray(nd._anotes)?nd._anotes:[]),{by:me.full_name,at:new Date().toISOString(),text:tx,stage:pend.stage}];await sb.from('charters').update({data:nd}).eq('id',cr.id);await lg(cr.id,pend.stage=='approved'?'approvenote|'+tx:'stagenote|'+pend.stage+'|'+tx)}}
  const {data}=await sb.from('charter_signatories').select('*').eq('cr_id',cr.id);

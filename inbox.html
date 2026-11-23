@@ -195,13 +195,16 @@ async function start(){
  let NC={all:'1',off:''};try{const {data:nc}=await sb.from('app_settings').select('key,value').in('key',['notif_all','notif_off']);(nc||[]).forEach(x=>{if(x.key=='notif_all')NC.all=x.value;else NC.off=x.value||''})}catch(_){}
  NTOFF=NC.all=='0';const OFFC=String(NC.off||'').split(',').filter(Boolean),catOf=e=>e.sv=='nudge'?(e.kind||'flow'):e.tk?'tasks':'flow';if(OFFC.includes('rem'))ESC=[];
  EV=all.filter(e=>e.who!=ME.full_name&&!NTOFF&&!OFFC.includes(catOf(e))).sort((a,b)=>String(b.at).localeCompare(String(a.at))).slice(0,120);draw()}
-function txt(a){const p=a.split('|'),k=p[0],b=D['a_'+k]?t('a_'+k):k;
+const STA={'Draft':['مسودة','Draft'],'Submitted':['مُرسَل','Submitted'],'PMO Review':['مراجعة مكتب التطوير','Office review'],'Office Review':['مراجعة مكتب التطوير','Office review'],'Under Review':['قيد المراجعة','Under review'],'Awaiting Approval':['بانتظار الاعتماد','Awaiting approval'],'Reviewed':['تمت المراجعة','Reviewed'],'Approved':['معتمد','Approved'],'Rejected':['مرفوض','Rejected'],'Returned to PM':['أُعيد لمدير المشروع','Returned to PM'],'Office Decision':['قرار المكتب','Office decision'],'Cancelled':['ملغى','Cancelled'],'Closed':['مغلق','Closed']};
+const AKN={attremoved:['حُذف مرفق','Attachment removed'],taskrem:['حُذفت مهمة','Task removed'],attadded:['أُضيف مرفق','Attachment added'],taskdel:['حُذفت مهمة','Task deleted'],removed:['أُزيل موقّع','Signer removed'],reminded:['أُرسل تذكير','Reminder sent'],edited:['عُدّلت الوثيقة','Document edited']};
+const stT=v=>STA[v]?(lang=='ar'?STA[v][0]:STA[v][1]):v;
+function txt(a){const p=a.split('|'),k=p[0],b=D['a_'+k]?t('a_'+k):AKN[k]?(lang=='ar'?AKN[k][0]:AKN[k][1]):(lang=='ar'?'تحديث على الوثيقة':'Document update');
  if(k=='docassign')return lang=='ar'?(p[1]=='transfer'?'نقل ملكية النموذج إلى: ':'إضافة محرر للتعديل والتحكم: ')+(p[2]||''):(p[1]=='transfer'?'Ownership transferred to: ':'Editor added: ')+(p[2]||'');
  if(k=='escnote')return (lang=='ar'?'ملاحظة مكتب التطوير على التصعيد ('+({r:'توجيه',i:'تجاهل',w:'سحب'}[p[1]]||'')+'): ':'Office note on escalation ('+({r:'redirect',i:'ignored',w:'withdrawn'}[p[1]]||'')+'): ')+p.slice(2).join('|');
  if(k=='assigned'){const R={created:['مُعِدًّا للنموذج','as preparer'],reviewed:['مراجِعًا','as reviewer'],approved:['معتمِدًا','as approver']}[p[2]]||['مُوقِّعًا','as signer'];return lang=='ar'?'تم تعيين '+(p[1]||'')+' '+R[0]:(p[1]||'')+' assigned '+R[1]}
  if(k=='taskprog')return b+': '+(p[1]||'')+' — '+(p[2]||'')+'%';
  if(k=='taskadd')return b+': '+(p[1]||'');
- if(k=='signed')return b+(p[1]?' ('+p[1]+')':'');if(k=='status')return b+': '+(p[1]||'');
+ if(k=='signed')return b+(p[1]?' ('+p[1]+')':'');if(k=='status')return b+': '+stT(p[1]||'');
  if(['returned','rejected','approvenote','attached','taskprog','revrejected','apprejected','nudge'].includes(k)&&p[1])return b+': '+p.slice(1).join(' | ');return b}
 /* مخرجات تنتظر اعتمادي */
 let DLI=null;async function dlvLoadI(){try{const r=await sb.rpc('deliv_inbox');DLI=(r&&!r.error&&r.data)||[]}catch(_){DLI=[]}draw();if(location.hash=='#deliv'){const e=$('dlvi');if(e)e.scrollIntoView({block:'start'})}}
@@ -213,7 +216,7 @@ function rvH(){if(RVI==null){setTimeout(rvLoadI,0);RVI={};return ''}const AR=lan
 function rvH0(){const AR=lang=='ar';
  if(RVI.office&&+RVI.pend)return `<div class="card" id="rvi" style="border-inline-start:5px solid #14324a;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span><b style="font-size:16px">⚖️ ${AR?'بانتظار مراجعة المكتب':'Awaiting office review'} (${RVI.pend})</b><br><span class="mut" style="font-size:13px">${AR?'تغييرات نطاق وطلبات استبعاد من الحساب. تُحتسب على المشاريع حتى تقرر':'Scope changes and exclusion requests. They count until you decide'}${+RVI.req?(AR?' — منها '+RVI.req+' طلب من مديري المشاريع':' — '+RVI.req+' requested by managers'):''}</span></span><button class="p" onclick="DEC.open('rev')">${AR?'مراجعة الآن':'Review now'}</button></div>`;
  if(!RVI.office&&+RVI.mine)return `<div class="card" style="border-inline-start:5px solid #1d5f8a"><b>⚖️ ${AR?'طلبات استبعاد أرسلتها بانتظار قرار المكتب':'Your exclusion requests awaiting the office'}: ${RVI.mine}</b></div>`;return ''}
-async function dlvDec(id,ok){const n=($('dlvn'+id)||{}).value||null;const r=await sb.rpc('deliv_decide',{p_id:id,p_ok:ok,p_note:n});if(r.error)return alert(r.error.message);DLI=null;dlvLoadI()}
+async function dlvDec(id,ok){const n=($('dlvn'+id)||{}).value||null;if(ok&&!confirm(lang=='ar'?'اعتماد هذا المخرج؟':'Approve this deliverable?'))return;if(!ok&&!n&&!confirm(lang=='ar'?'إعادة المخرج للتعديل بدون ملاحظة؟':'Return without a note?'))return;const r=await sb.rpc('deliv_decide',{p_id:id,p_ok:ok,p_note:n});if(r.error)return alert((lang=='ar'?'تعذّر التنفيذ: ':'Could not complete: ')+r.error.message);DLI=null;dlvLoadI()}
 function draw(){
  document.documentElement.lang=lang;document.documentElement.dir=lang=='ar'?'rtl':'ltr';$('lb').textContent=lang=='ar'?'EN':'ع';
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));document.title=t('title');
@@ -480,4 +483,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="act.js?v=3"></script><script src="revx.js?v=7"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=4"></script><script src="ido-ui.js?v=64"></script></body></html>
+<script src="act.js?v=3"></script><script src="revx.js?v=8"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=4"></script><script src="ido-ui.js?v=64"></script></body></html>

@@ -170,11 +170,10 @@ let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
 const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 async function boot(){
  if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
- const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+ const {data:{session}}=await sb.auth.getSession();if(!session){ME={id:null,full_name:'',role:'guest'};ADM=false;try{await start()}catch(e){gate('needLogin')}return}
  const {data:p}=await sb.rpc('my_profile').single();if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors)&&L.sectors.length)SECS=L.sectors}catch(_){}
- try{const {data:us}=await sb.from('profiles').select('id,full_name');(us||[]).forEach(u=>UN[u.id]=u.full_name)}catch(_){}
  await start()}
 Object.assign(D,{title:['المساعدة','Help'],
  h_tour:['ابدأ الجولة','Start the tour'],h_next:['التالي','Next'],h_prev:['السابق','Back'],h_end:['إنهاء','Finish'],h_open:['افتح الصفحة','Open page'],

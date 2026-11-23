@@ -310,7 +310,7 @@
     }, 400);
   }
 
-  /* روابط إضافية في القائمة: «وحدتي» لمسؤولي الوحدات والأدمن، و«التحكم» للأدمن */
+  /* روابط إضافية في القائمة: «وحدتي» لمسؤولي الوحدات ومدير النظام، و«التحكم» لمدير النظام */
   function menuX() {
     var boxes = document.querySelectorAll('.hmp'); if (!boxes.length) return;
     var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -320,7 +320,7 @@
     var ICO = { 'unit.html': '👥', 'perms.html': '🔐', 'control.html': '🧭', 'room.html': '🛰', 'users.html': '🛠', 'settings.html': '⚙', 'audit.html': '📜', 'logs.html': '🗄', 'achieve.html': '🏆', 'projects.html': '📁', 'mail.html': '✉', 'history.html': '↶' };
     boxes.forEach(function (box) {
       try { box.querySelectorAll('a[href="users.html"],a[href="access.html"],a[href="roles.html"]').forEach(function (u) { if (box.querySelector('a[href="perms.html"]')) u.remove(); else { u.setAttribute('href', 'perms.html'); } }); box.querySelectorAll('a[href="perms.html"]').forEach(function (u) { var ar = (document.documentElement.lang || 'ar') === 'ar', sp = u.querySelector('span'), lab = ar ? 'المستخدمون والصلاحيات' : 'Users & access'; if (sp) { if (sp.textContent !== lab) sp.textContent = lab; } else if (!u.querySelector('*') && u.textContent !== lab) u.textContent = lab; }); } catch (e) {}
-      [['achieve.html', true, 'إنجازي', 'My achievements'], ['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['control.html', hc('adm.control'), 'التحكم', 'Control'], ['room.html', hc('adm.control'), 'غرفة التحكم', 'Control room'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['logs.html', adm || hc('audit.view') || hc('off.undo'), 'السجلات والأرشيف', 'Logs & archive'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email']].forEach(function (x) {
+      [['achieve.html', true, 'إنجازي', 'My achievements'], ['unit.html', adm || head || hc('adm.control'), 'وحدتي', 'My unit'], ['room.html', hc('adm.control'), 'غرفة التحكم', 'Control room'], ['perms.html', hc('adm.roles') || hc('adm.users'), 'المستخدمون والصلاحيات', 'Users & access'], ['settings.html', hc('adm.settings'), 'الإعدادات', 'Settings'], ['projects.html', hc('adm.projects'), 'إعدادات المشاريع', 'Project settings'], ['logs.html', adm || hc('audit.view') || hc('off.undo'), 'السجلات والأرشيف', 'Logs & archive'], ['mail.html', hc('adm.mail') && !hc('adm.settings'), 'البريد الإلكتروني', 'Email']].forEach(function (x) {
         if (!x[1] || box.querySelector('a[href="' + x[0] + '"]')) return;
         var ref = box.querySelector('a[href="perf.html"]') || box.querySelector('a[href="portfolio.html"]') || box.querySelector('a'); if (!ref) return;
         var a = ref.cloneNode(true); a.classList.remove('on'); a.setAttribute('href', x[0]); a.removeAttribute('id');
@@ -721,3 +721,9 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
 
 /* ===== التكبير بالإصبعين مسموح، والنقر المزدوج لا يكبّر بالخطأ؛ تباين أوضح للنصوص الثانوية ===== */
 (function(){try{var st=document.createElement('style');st.id='ido-a11y';st.textContent='html{touch-action:manipulation}.mut,.muted,small.mut{color:#5f6b76}@media (prefers-color-scheme:dark){html.nm .mut,html.nm .muted{color:#a7b3bf}}';(document.head||document.documentElement).appendChild(st)}catch(_){}})();
+
+/* ===== أيام العمل والعطل الموحدة (من الإعدادات) لحساب التأخر في كل الصفحات ===== */
+(function(){window.IDOWD=function(){var o={off:[0,6],hol:{}};try{var c=JSON.parse(localStorage.getItem('ido_wd')||'null');if(c){if(Array.isArray(c.off))o.off=c.off;if(c.hol)o.hol=c.hol}}catch(_){}return o};
+ window.IDOWAIT=function(d){var a=new Date(d);if(isNaN(a))return 0;var W=IDOWD(),e=new Date(),p=new Date(a.getFullYear(),a.getMonth(),a.getDate()),q=new Date(e.getFullYear(),e.getMonth(),e.getDate()),n=0,g=0;while(p<q&&g<800){g++;p.setDate(p.getDate()+1);var k=p.getFullYear()+'-'+('0'+(p.getMonth()+1)).slice(-2)+'-'+('0'+p.getDate()).slice(-2);if(W.off.indexOf(p.getDay())<0&&!W.hol[k])n++}return n};
+ function ld(){try{if(typeof sb=='undefined'||!sb||!sb.from)return;sb.from('app_settings').select('key,value').in('key',['wk_off','holidays']).then(function(r){try{var off=[0,6],hol={};(r.data||[]).forEach(function(x){if(x.key=='wk_off'){var v=String(x.value||'').trim();if(v==='-')off=[];else if(v)off=v.split(',').map(Number).filter(function(z){return z>=0&&z<=6});if(off.length>=7)off=[]}if(x.key=='holidays'){try{(JSON.parse(x.value||'[]')||[]).forEach(function(h){if(!h||!h.d)return;var a=new Date(h.d),b=h.d2?new Date(h.d2):a;for(var i=0;i<=60&&a<=b;i++){hol[a.toISOString().slice(0,10)]=1;a=new Date(a.getTime()+864e5)}})}catch(_){}}});localStorage.setItem('ido_wd',JSON.stringify({off:off,hol:hol}))}catch(_){}},function(){})}catch(_){}}
+ setTimeout(ld,1500)})();

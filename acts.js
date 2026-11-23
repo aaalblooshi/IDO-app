@@ -2,7 +2,7 @@
 (function(){
  var OFF=['Submitted','Reviewed','Office Decision'];
  function capList(){try{return JSON.parse(localStorage.getItem('hdrCaps')||'[]')}catch(_){return[]}}
- /* هل أملك صلاحية؟ الأدمن الكامل يملك كل شيء */
+ /* هل أملك صلاحية؟ مدير النظام الكامل يملك كل شيء */
  function has(me,k){if(!me)return false;var full=me.role=='admin'&&!me._base;if(full)return true;var c=me._caps||capList();return c.indexOf(k)>=0}
  /* o: {svc, st, byMe, pmMe, sigs:[توقيعاتي ومن أنوب عنه], createdSigned, office, behalf, consult, esc, del} */
  function reason(o){var st=o.st,sg=o.sigs||[];

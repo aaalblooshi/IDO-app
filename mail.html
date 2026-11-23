@@ -179,7 +179,7 @@ async function evTest(k){try{const r=await sb.rpc('mail_test',{p_event:k});if(r.
 
 /* --- المستلمون --- */
 function vRcp(){const off=(ST&&ST.office)||[];
- return `<div class="card"><h2>${P('مستلمو بريد وإشعارات المكتب','Office mail recipients')}<small>${P('يستلمون ما يصل «للمكتب»: الإرسال للمراجعة، الاعتماد، الرفض، طلبات الحذف، ملخص المكتب، والتصعيد. أي مستخدم يُضاف بمنحه صلاحية «يستلم بريد المكتب» من صفحة الصلاحيات، ولا يشترط أن يكون أدمن.','They receive what is sent to the office. Add anyone by granting “Receives office mail” in permissions — no admin needed.')}</small></h2>
+ return `<div class="card"><h2>${P('مستلمو بريد وإشعارات المكتب','Office mail recipients')}<small>${P('يستلمون ما يصل «للمكتب»: الإرسال للمراجعة، الاعتماد، الرفض، طلبات الحذف، ملخص المكتب، والتصعيد. أي مستخدم يُضاف بمنحه صلاحية «يستلم بريد المكتب» من صفحة الصلاحيات، ولا يشترط أن يكون مدير نظام.','They receive what is sent to the office. Add anyone by granting “Receives office mail” in permissions — no admin needed.')}</small></h2>
  ${off.map(u=>`<span class="ch2 ${u.admin?'':'b'}">${esc(u.name)}${u.email?'':' ⚠ '+P('بلا بريد','no email')}${u.admin?'':' · '+P('بالصلاحية','by permission')}</span>`).join('')||'—'}
  <div class="row"><a href="perms.html#users"><button>🔐 ${P('منح «يستلم بريد المكتب»','Grant “Receives office mail”')}</button></a></div></div>
  <div class="card"><h2>${P('إيقاف رسائل لدور كامل','Mute messages for a whole role')}<small>${P('ألغِ التأشير ليتوقف ذلك النوع عن كل مستخدمي الدور.','Untick to stop that type for everyone in the role.')}</small></h2>

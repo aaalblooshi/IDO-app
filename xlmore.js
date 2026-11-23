@@ -293,12 +293,12 @@
     try { var sv = Function('return typeof save!="undefined"?save:null')(); if (!sv) throw new Error('save'); await sv(); h.done(T('تم تحديث المسودة', 'Draft updated'), T('راجع الحقول في النظام وأكمل القوائم ثم قدّم الميثاق كالمعتاد.', 'Review, complete list fields, then submit as usual.')); } catch (e) { h.fail(e.message || String(e)); } PC2 = null; };
 
   /* =====================================================================
-     4) ملف المستخدمين (للأدمن الكامل): تعديل الاسم والمسمى والوحدة وإضافة مستخدمين
+     4) ملف المستخدمين (لمدير النظام الكامل): تعديل الاسم والمسمى والوحدة وإضافة مستخدمين
      ===================================================================== */
   async function orgLists() { var r = await H().SB().from('app_settings').select('value').eq('key', 'opt_lists').maybeSingle(); var o = {}; try { o = JSON.parse((r.data && r.data.value) || '{}'); } catch (e) { } return o; }
   function unitOpts(o) { var A = H().A(), L = [{ k: '', l: H().T('— بلا وحدة —', '— No unit —') }]; (o.sectors || []).forEach(function (s, si) { var sn = s[A ? 0 : 1] || s[0]; L.push({ k: (si + 1) + '::', l: sn }); ((o.depts || [])[si] || []).forEach(function (d, di) { var dn = d[A ? 0 : 1] || d[0]; L.push({ k: (si + 1) + ':' + (di + 1) + ':', l: sn + ' / ' + dn }); (((o.sects || o.sections || [])[si] || [])[di] || []).forEach(function (q) { var qn = Array.isArray(q) ? (q[A ? 0 : 1] || q[0]) : q, qa = Array.isArray(q) ? q[0] : q; L.push({ k: (si + 1) + ':' + (di + 1) + ':' + qa, l: sn + ' / ' + dn + ' / ' + qn }); }); }); }); return L; }
   X.usersDownload = async function () {
-    var h = H(), T = h.T; var M = await gate('users'); if (!M) return; if (M.role != 'admin') return h.fail(T('للأدمن الكامل فقط.', 'Full admins only.'));
+    var h = H(), T = h.T; var M = await gate('users'); if (!M) return; if (M.role != 'admin') return h.fail(T('لمدير النظام الكامل فقط.', 'Full admins only.'));
     h.busy(T('جارٍ تجهيز ملف المستخدمين…', 'Preparing…'));
     var [pr, o] = await Promise.all([h.SB().rpc('profiles_dir').select('id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section').order('full_name'), orgLists()]);
     var U = (pr.data || []), L = unitOpts(o), lab = function (u) { var k = u.org_sector ? u.org_sector + ':' + (u.org_dept || '') + ':' + (u.org_section || '') : ''; var x = L.find(function (z) { return z.k == k; }) || L.find(function (z) { return z.k == (u.org_sector ? u.org_sector + ':' + (u.org_dept || '') + ':' : ''); }); return x ? x.l : ''; };
@@ -309,12 +309,12 @@
       lists: [L.map(function (x) { return x.l; })],
       dv: { unit: function () { return { type: 'list', allowBlank: true, showErrorMessage: true, error: T('اختر من القائمة', 'Pick from the list'), formulae: ['_lists!$A$1:$A$' + L.length] }; } },
       rows: U.filter(function (u) { return u.role != 'admin'; }).map(function (u) { var ul = lab(u); return { can: true, v: { uid: u.id, oname: u.full_name || '', ojob: u.job_title || '', ounit: ul, email: u.email || '', name: u.full_name || '', job: u.job_title || '', unit: ul } }; }).concat(Array.from({ length: 30 }, function () { return { can: true, blank: 1, v: {} }; })) };
-    try { await buildBook([spec], 'users', '', M, new Date().toISOString(), T('المستخدمون-', 'users-') + h.today() + '.xlsx', [T('تعديل الاسم والمسمى والوحدة للمستخدمين الحاليين. حسابات الأدمن غير مدرجة.', 'Edit name, title and unit. Admin accounts are not listed.'), T('لإضافة مستخدم جديد: اكتب في الصفوف الفارغة البريد والاسم والمسمى والوحدة. يُنشأ بدور «مستخدم» وكلمة مرور مؤقتة تظهر لك مرة واحدة بعد الرفع.', 'New users: fill email, name, title, unit in empty rows; created as User with a one-time temporary password.'), T('الأدوار والصلاحيات لا تُغيَّر من هذا الملف.', 'Roles and permissions are not changed from this file.')]); h.close(); h.done(T('تم تنزيل ملف المستخدمين', 'Users file downloaded'), T('ارفعه من «⬆ رفع ملف المستخدمين».', 'Upload it from “Upload users file”.')); }
+    try { await buildBook([spec], 'users', '', M, new Date().toISOString(), T('المستخدمون-', 'users-') + h.today() + '.xlsx', [T('تعديل الاسم والمسمى والوحدة للمستخدمين الحاليين. حسابات مدير النظام غير مدرجة.', 'Edit name, title and unit. Admin accounts are not listed.'), T('لإضافة مستخدم جديد: اكتب في الصفوف الفارغة البريد والاسم والمسمى والوحدة. يُنشأ بدور «مستخدم» وكلمة مرور مؤقتة تظهر لك مرة واحدة بعد الرفع.', 'New users: fill email, name, title, unit in empty rows; created as User with a one-time temporary password.'), T('الأدوار والصلاحيات لا تُغيَّر من هذا الملف.', 'Roles and permissions are not changed from this file.')]); h.close(); h.done(T('تم تنزيل ملف المستخدمين', 'Users file downloaded'), T('ارفعه من «⬆ رفع ملف المستخدمين».', 'Upload it from “Upload users file”.')); }
     catch (e) { h.fail(e.message || String(e)); }
   };
   var PU = null;
   X.usersUpload = function (onDone) { var h = H(); h.pick(async function (f) {
-    var T = h.T; var M = await gate('users'); if (!M) return; if (M.role != 'admin') return h.fail(T('للأدمن الكامل فقط.', 'Full admins only.'));
+    var T = h.T; var M = await gate('users'); if (!M) return; if (M.role != 'admin') return h.fail(T('لمدير النظام الكامل فقط.', 'Full admins only.'));
     h.busy(T('جارٍ قراءة الملف…', 'Reading…')); var B; try { B = await readBook(f); } catch (e) { return h.fail(e.message || T('تعذّر قراءة الملف.', 'Could not read the file.')); }
     var bad = checkMeta(B.meta, 'users', '', M); if (bad) return h.fail(bad);
     var a = B.sheets.uid; if (!a) return h.fail(T('ورقة المستخدمين غير موجودة.', 'Users sheet missing.'));
@@ -327,7 +327,7 @@
       if (!id) { if (!/^\S+@\S+\.\S+$/.test(em)) { res.push({ st: 'error', row: i + 1, n: name, why: T('بريد غير صحيح', 'Invalid email') }); continue; } if (!name) { res.push({ st: 'error', row: i + 1, n: em, why: T('الاسم مطلوب', 'Name required') }); continue; }
         if (emails[em] || U.some(function (u) { return (u.email || '').toLowerCase() == em; })) { res.push({ st: 'error', row: i + 1, n: name, why: T('البريد مستخدم من قبل', 'Email already exists') }); continue; } emails[em] = 1;
         res.push({ st: 'change', row: i + 1, n: name, d: T('مستخدم جديد: ', 'New user: ') + em }); pay.push({ create: 1, em: em, name: name, job: job, key: key }); continue; }
-      var u = U.find(function (z) { return z.id == id; }); if (!u || u.role == 'admin') { res.push({ st: 'error', row: i + 1, n: name, why: T('المستخدم غير موجود أو أدمن', 'User missing or admin') }); continue; }
+      var u = U.find(function (z) { return z.id == id; }); if (!u || u.role == 'admin') { res.push({ st: 'error', row: i + 1, n: name, why: T('المستخدم غير موجود أو مدير نظام', 'User missing or admin') }); continue; }
       if (!name) { res.push({ st: 'error', row: i + 1, n: u.full_name, why: T('الاسم لا يكون فارغًا', 'Name cannot be empty') }); continue; }
       var oname = txt(x[I.oname]), ojob = txt(x[I.ojob]), ounit = txt(x[I.ounit]);
       if (name == oname && job == ojob && unitL == ounit) { res.push({ st: 'same', row: i + 1, n: name }); continue; }

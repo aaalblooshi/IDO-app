@@ -243,7 +243,7 @@ async function reload(){try{pcrMine(true)}catch(_){}try{uibLoad().then(()=>{if((
  calcEW();
  draw()}
 let CFGW={},WRx=2,WSx={};
-/* الوزن الفعلي لكل نشاط من المركز ككل (للأدمن فقط): وزن القطاع × وزن المشروع في قطاعه × وزن النشاط بين إخوته على كل مستوى */
+/* الوزن الفعلي لكل نشاط من المركز ككل (لمدير النظام فقط): وزن القطاع × وزن المشروع في قطاعه × وزن النشاط بين إخوته على كل مستوى */
 function calcEW(){if(!ADM||MODE!='team')return;
  const sw=s=>+(WSx[s]!=null?WSx[s]:1)||0,secs=[...new Set(PR.map(p=>p.sc))],SW=secs.reduce((q,s)=>q+sw(s),0)||1;
  PR.forEach(p=>{const L=PR.filter(q=>q.sc==p.sc),pw=q=>CFGW[q.pcode]!=null?CFGW[q.pcode]:(q.pt=='strategic'?WRx:1),PW=L.reduce((q,x)=>q+pw(x),0)||1;
@@ -358,7 +358,7 @@ function draw(){try{if(ADM&&window.IDOBKD)IDOBKD.load(sb,true,()=>draw())}catch(
  const secs=[...new Set(PR.map(p=>p.sc))].filter(Boolean).sort((a,b)=>a-b);
  const us=[...new Set(ALLR.map(r=>r.own).filter(Boolean))];
  const btn=(on,fn,txt)=>`<button class="${on?'on':''}" onclick="${fn}">${txt}</button>`;
- const tabs=MODE=='me'&&VIEW=='list'?TABS.map(([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>')).join(''):'';
+ const PRI=['open','late','today','week'],tb=([k,l])=>btn(TAB==k,`TAB='${k}';SHOWN=40;draw()`,t(l)+' <span class="num">'+cntTab(k)+'</span>'),MOR=TABS.filter(z=>!PRI.includes(z[0])),curM=MOR.find(z=>z[0]==TAB);const tabs=MODE=='me'&&VIEW=='list'?TABS.filter(z=>PRI.includes(z[0])).map(tb).join('')+(curM?tb(curM):'')+`<details class="tkmore" style="display:inline-block;position:relative"><summary style="list-style:none;cursor:pointer;padding:6px 12px;border:1px solid #d5dde5;border-radius:99px;background:#fff;font-size:13px">${lang=='ar'?'المزيد ▾':'More ▾'}</summary><div style="position:absolute;z-index:30;inset-inline-start:0;top:calc(100% + 6px);background:#fff;border:1px solid #d5dde5;border-radius:12px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,.12)">${MOR.filter(z=>z!==curM).map(tb).join('')}</div></details>`:'';
  if(window.FPID&&PR.length){const fp=PR.find(z=>z.pid==window.FPID);if(fp)FP=fp.pcode;window.FPID=null}
  const UPK=$('updtop');if(UPK)UPK.remove();const ME_L=MODE=='me';
  $('app').innerHTML=`${isoH()}${hero()}<div id="updsl2"></div><div id="calbar"></div><div class="sb noprint">
