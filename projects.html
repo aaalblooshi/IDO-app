@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl"><head><script>/*ido-idle v1*/(function(){if(window.__idoIdle)return;window.__idoIdle=1;var si=window.setInterval;window.setInterval=function(fn,ms){if(typeof fn!=='function')return si.apply(window,arguments);var a=[].slice.call(arguments,2);return si.call(window,function(){if(document.hidden)return;fn.apply(window,a)},ms)};var MO=window.MutationObserver;if(MO&&window.requestAnimationFrame){var W=function(cb){var q=[],p=0,self;var o=new MO(function(r){for(var i=0;i<r.length;i++)q.push(r[i]);if(!p)p=requestAnimationFrame(function(){p=0;var x=q;q=[];if(x.length)cb(x,self)})});self=o;var tr=o.takeRecords.bind(o);o.takeRecords=function(){var x=q.concat(tr());q=[];return x};return o};W.prototype=MO.prototype;window.MutationObserver=W}})();</script>
 <script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>إعدادات المشاريع</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -87,7 +87,7 @@ const stK=s=>({'Draft':'Draft','Submitted':'Submitted','Reviewed':'Reviewed','Ap
 const stC=s=>s=='Approved'?'ok':(s=='Rejected'||s=='Cancelled')?'bad':'wa';
 const stT=s=>{const k='s_'+stK(s);return D[k]?t(k):s};
 async function load(){
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['adm.projects']);if(!p)return gate('needLogin');
  me=p;ADM=p.role=='admin';
@@ -452,4 +452,4 @@ function lkBlock(pc,cf){if(LKG===null){LKG=false;(async()=>{try{const r=await sb
  <label style="margin-top:6px">${lang=='ar'?'الموازنة المعتمدة وخطة الصرف':'Budget'}</label>${LOCK.sel('lkb',cf.lock_bud??null,LKG.g&&LKG.g.bud)}
  <label>${lang=='ar'?'مستهدفات المؤشرات وأوزانها':'KPI targets'}</label>${LOCK.sel('lkt',cf.lock_tgt??null,LKG.g&&LKG.g.tgt)}<div class="mut" id="lkm" data-pc="${esc(pc)}" style="margin-top:4px"></div></div>`}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||(t.id!='lkb'&&t.id!='lkt'))return;const pc=($('lkm')||{}).dataset?.pc;if(!pc)return;const v=t.value===''?null:t.value=='1';const ok=await LOCK.set(pc,t.id=='lkb'?'bud':'tgt',v);if(ok){CFG[pc]=Object.assign(CFG[pc]||{pcode:pc},t.id=='lkb'?{lock_bud:v}:{lock_tgt:v});$('lkm').textContent=lang=='ar'?'✓ حُفظ':'✓ Saved'}});
-</script><script src="ido-ui.js?v=63"></script></body></html>
+</script><script src="ido-ui.js?v=64"></script></body></html>

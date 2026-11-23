@@ -8,7 +8,7 @@
 .ibi{display:block;width:100%;text-align:start;font:inherit;color:inherit;cursor:pointer;border-inline-start:4px solid var(--pc)!important;background:#fff}.ibi.nw{background:#f3f9fd}.ibn{font-weight:800}.ibx{margin:2px 0;line-height:1.6}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>الإشعارات</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -155,7 +155,7 @@ function icsEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;')
 let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
 const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 async function boot(){
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['off.review.cr','off.review.charter','off.review.plan','off.review.closure','off.delete']);if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
@@ -185,7 +185,7 @@ try{SEEN=+localStorage.getItem('inbox_seen_'+'u')||0}catch(_){}
 async function aidLoad(){try{const [a,b]=await Promise.all([sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle(),sb.from('profiles').select('full_name').eq('role','admin')]);AIDS=a.data&&a.data.value?JSON.parse(a.data.value):{};AIDN=new Set((b.data||[]).map(x=>(x.full_name||'').trim()))}catch(_){}}
 function aid(n,k){const s=n==null?'':String(n),m=AIDS[k];if(!s||m=='name'||!AIDN.has(s.trim()))return n;const O=(typeof lang!='undefined'&&lang=='en')?'Institutional Development Office':'مكتب التطوير المؤسسي';return m=='office'?O:O+' — '+s}
 async function start(){
- await aidLoad();try{SEEN=+localStorage.getItem('inbox_seen_'+ME.id)||0}catch(_){}
+ await aidLoad();try{SEEN=+localStorage.getItem('inbox_seen_'+ME.id)||0}catch(_){}try{const sv=await sb.rpc('inbox_seen');if(!sv.error&&+sv.data>SEEN){SEEN=+sv.data;try{localStorage.setItem('inbox_seen_'+ME.id,String(SEEN))}catch(_){}}}catch(_){}
  const all=[];await loadEsc();
  await Promise.all(SRC.map(async([tb,dt,sv,pg])=>{
   const {data}=await sb.from(tb).select('*').order('at',{ascending:false}).limit(60);if(!data||!data.length)return;
@@ -248,7 +248,7 @@ function ibOpen(i){const e=IBL[i];if(!e||!window.IDOACT)return;const ar=lang=='a
   link:link,linkLabel:ar?'فتح الطلب':'Open the request'})}
 let IBM=location.hash=='#act'?'act':'n';function ibMode(m){IBM=m;try{history.replaceState(null,'',location.pathname+location.search+(m=='act'?'#act':''))}catch(_){}draw()}
 window.addEventListener('hashchange',()=>{const m=location.hash=='#act'?'act':'n';if(m!=IBM){IBM=m;draw()}});
-function markAll(){SEEN=Date.now();setTimeout(()=>{try{window.ubRefresh&&ubRefresh()}catch(_){}},50);try{const b=document.querySelector('.ubm');if(b)b.remove();const c=document.querySelector('#hm_p a[href="inbox.html"] .ubdg');if(c)c.remove()}catch(_){}try{localStorage.setItem('inbox_seen_'+ME.id,String(SEEN))}catch(_){}draw()}
+function markAll(){SEEN=Date.now();try{sb.rpc('inbox_mark',{p_ms:SEEN}).then(()=>{},()=>{})}catch(_){}setTimeout(()=>{try{window.ubRefresh&&ubRefresh()}catch(_){}},50);try{const b=document.querySelector('.ubm');if(b)b.remove();const c=document.querySelector('#hm_p a[href="inbox.html"] .ubdg');if(c)c.remove()}catch(_){}try{localStorage.setItem('inbox_seen_'+ME.id,String(SEEN))}catch(_){}draw()}
 boot();
 
 </script><script>/*pwareg*/
@@ -480,4 +480,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="act.js?v=3"></script><script src="revx.js?v=6"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=3"></script><script src="ido-ui.js?v=63"></script></body></html>
+<script src="act.js?v=3"></script><script src="revx.js?v=7"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=4"></script><script src="ido-ui.js?v=64"></script></body></html>

@@ -2,7 +2,7 @@
 <html lang="en"><head><script>/*ido-idle v1*/(function(){if(window.__idoIdle)return;window.__idoIdle=1;var si=window.setInterval;window.setInterval=function(fn,ms){if(typeof fn!=='function')return si.apply(window,arguments);var a=[].slice.call(arguments,2);return si.call(window,function(){if(document.hidden)return;fn.apply(window,a)},ms)};var MO=window.MutationObserver;if(MO&&window.requestAnimationFrame){var W=function(cb){var q=[],p=0,self;var o=new MO(function(r){for(var i=0;i<r.length;i++)q.push(r[i]);if(!p)p=requestAnimationFrame(function(){p=0;var x=q;q=[];if(x.length)cb(x,self)})});self=o;var tr=o.takeRecords.bind(o);o.takeRecords=function(){var x=q.concat(tr());q=[];return x};return o};W.prototype=MO.prototype;window.MutationObserver=W}})();</script>
 <script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.fwed{display:inline-flex;align-items:center;gap:4px;margin-inline-start:8px;font-size:12.5px;font-weight:700;color:#0a6b3d;background:#e5f2ea;border-radius:99px;padding:1px 9px;cursor:pointer}.fwed input{width:auto;margin:0}</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>Project Closure Report</title><script src="halt.js?v=4"></script><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -176,7 +176,7 @@ const W=[
 ["x_backup","Backup (JSON)","نسخة احتياطية (JSON)"],
 ["x_expTitle","Export & backup","التصدير والنسخ الاحتياطي"],
 ["x_expNote","Excel includes all requests with their status and details. The JSON backup also includes signature images; attachment files stay in storage.","ملف Excel يحوي كل الطلبات مع حالتها وتفاصيلها. النسخة الاحتياطية JSON تشمل أيضاً صور التواقيع (ملفات المرفقات تبقى محفوظة في التخزين)."],
-["almost","The page opened, but it is not connected to your database yet. Check the Supabase URL and key near the top of the code.","فُتحت الصفحة، لكنها غير متصلة بقاعدة البيانات بعد. تحقق من رابط Supabase والمفتاح في أعلى الكود."],
+["almost","Could not reach the server. Check your connection, then reload the page.","تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد تحميل الصفحة."],
 ["fullName","Full name (new accounts only)","الاسم الكامل (للحسابات الجديدة فقط)"],
 ["email","Email","البريد الإلكتروني"],
 ["password","Password (6+ characters)","كلمة المرور (6 أحرف على الأقل)"],
@@ -631,7 +631,7 @@ const svcOn=()=>{const p=myPerm();return !(p.svc&&p.svc[SVC]===false)};
 
 const fd=d=>new Date(d).toLocaleString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
 const pl=v=>v?t('p_'+v):'';
-const msg=x=>alert(x);
+const msg=x=>{try{const ar=(document.documentElement.lang||'ar')!='en';let o=document.getElementById('idomsg');if(o)o.remove();o=document.createElement('div');o.id='idomsg';o.setAttribute('role','alertdialog');o.setAttribute('aria-modal','true');o.style.cssText='position:fixed;inset:0;z-index:2147483200;background:rgba(15,23,32,.45);display:flex;align-items:center;justify-content:center;padding:16px';const b=document.createElement('div');b.style.cssText='background:#fff;color:#14283a;border-radius:14px;max-width:460px;width:100%;padding:18px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-size:15px;line-height:1.7;white-space:pre-wrap;max-height:80dvh;overflow:auto';const t=document.createElement('div');t.textContent=String(x==null?'':x);const k=document.createElement('button');k.className='p';k.type='button';k.textContent=ar?'حسنًا':'OK';k.style.cssText='margin-top:12px;min-width:96px';const close=()=>{o.remove();document.removeEventListener('keydown',kd)};const kd=e=>{if(e.key=='Escape'||e.key=='Enter')close()};k.onclick=close;o.onclick=e=>{if(e.target==o)close()};document.addEventListener('keydown',kd);b.append(t,k);o.append(b);document.body.append(o);setTimeout(()=>k.focus(),30)}catch(_){alert(x)}};
 let me,users={},cr,atts=[],NOTES={},noteMode=false,noteFor=null,sigs=[],pend,mode='d',drawn=false,upImg=null,ctx,down=false,curView=null,editing=false,showArch=false;
 const filled=v=>Array.isArray(v)?v.some(filled):(v&&typeof v=='object')?Object.values(v).some(filled):String(v==null?'':v).trim()!=='';
 const shF=x=>!!(x&&(x.n||x.i||x.c));
@@ -1740,7 +1740,7 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="docassign.js?v=1"></script><script src="hub.js?v=5"></script><script src="ido-ui.js?v=63"></script><script>/*archmode: the document archive loads a record here (hidden) and receives its export instead of a download*/(function(){try{
+<script src="docassign.js?v=1"></script><script src="hub.js?v=5"></script><script src="ido-ui.js?v=64"></script><script>/*archmode: the document archive loads a record here (hidden) and receives its export instead of a download*/(function(){try{
 if(!/[?&]arch=1/.test(location.search)||window.parent===window)return;window.ARCH=1;
 var id=+((location.search.match(/[?&]aid=(\d+)/)||[])[1]||0),sent=0;
 function post(o){if(sent)return;sent=1;try{window.parent.postMessage(Object.assign({t:'ido-arch',id:id,svc:'closure'},o),location.origin)}catch(e){}}

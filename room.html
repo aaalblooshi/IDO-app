@@ -64,7 +64,7 @@
 @media(max-width:640px){.glx{display:flex;flex-direction:column}.glx-tb,.glx-fo{position:static;padding:8px 8px 0;order:-1}.glx-tb input{width:120px}.glx-fo button,.glx-ct button{font-size:11px;padding:4px 8px}.glx-help{top:120px}.glx-zl{font-size:11px;bottom:46px}}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>غرفة التحكم</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -484,7 +484,7 @@ const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
 const fmt=x=>{x=+x;return Math.abs(x)>=100?Math.round(x).toLocaleString('en'):(Math.round(x*10)/10).toLocaleString('en')};
 const lateTxt=n=>n>365?'بأكثر من سنة':'بـ '+cnt(n,'يوم واحد','يومين','أيام','يومًا');
 const W0={a:35,k:30,r:20,d:15};
-let ME=null,D=null,OP={services:[],tasks:[]},X={},PJ=[],SEC=[],STEPS=[],AL=[],PEOPLE=[],HIST=[],FUT=[],H={},LOADING=false;
+let ME=null,D=null,OP={services:[],tasks:[]},X={},BND={g:90,a:75},PJ=[],SEC=[],STEPS=[],AL=[],PEOPLE=[],HIST=[],FUT=[],H={},LOADING=false;
 const S={tab:'pulse',view:'radar',stF:'all',pjS:'',pjF:'all',peF:'all',sel:new Set(),selMode:false,stSel:new Set(),tm:0,show:false,rot:null,gm:'dial',sm:'tank',watch:new Set(),done:{}};
 try{S.gm=localStorage.getItem('crGM')||'dial';S.sm=localStorage.getItem('crSM')||'tank'}catch(_){}
 window.S=S;S.inc=['a'];S.per=8;S.hp=7;let HEAT=null,HISTR=null,TGT=75;
@@ -511,7 +511,7 @@ function build(){const B=window.BL&&BL.mode()=='bl';if(!B){build0();blTop();retu
  AL=A0;STEPS=S0;ALC=C0;blTop()}
 function blTop(){const w=$('blw');if(!w)return;w.innerHTML=window.BL&&BL.on?BL.switchHTML('blSw')+(BL.mode()=='bl'?' <span class="blnote" style="background:#fff">📐 التنبيهات تبقى على الخطة الحالية</span>':''):''}
 window.blSw=()=>{build();redrawAll()};
-function build0(){const td=TD(),w=wts(),secN=D.sectors||[];
+function build0(){try{const b=JSON.parse(localStorage.getItem('ido_bands')||'null');if(b&&+b.g>0&&+b.a>0&&+b.a<+b.g)BND={g:+b.g,a:+b.a}}catch(_){}GZ[0][0]=100-BND.g;GZ[1][0]=100-BND.a;const td=TD(),w=wts(),secN=D.sectors||[];
  const KP={},RK={},TK={},SV={};(D.kpis||[]).forEach(k=>(KP[k.pc]=KP[k.pc]||[]).push(k));(D.risks||[]).forEach(r=>(RK[r.pc]=RK[r.pc]||[]).push(r));(OP.tasks||[]).forEach(t=>(TK[t.pcode]=TK[t.pcode]||[]).push(t));(OP.services||[]).forEach(s=>(SV[s.pcode]=SV[s.pcode]||[]).push(s));
  PJ=(D.projects||[]).map(p=>{const o={pc:p.pc,pid:p.pid,n:p.name||p.pc,sec:String(p.sec||''),pm:p.pm,pmid:p.pmid,stDoc:p.st,sd:p.sd,ed:p.ed,tasks:+p.n||0,late:+p.late||0,act:p.act==null?null:+p.act,exp:p.exp==null?null:+p.exp,docmax:+p.docmax||0,n7:+p.n7||0};
   o.pt=p.pt||'';o.w=PW[p.pc]!=null?+PW[p.pc]:(o.pt=='strategic'?PWR:1);o.appr=p.st=='Approved';o.done=o.appr&&o.act!=null&&o.act>=100;o.halted=!!p.halt;o.kp=KP[p.pc]||[];o.rk=RK[p.pc]||[];o.tk=TK[p.pc]||[];o.sv=SV[p.pc]||[];
@@ -525,7 +525,7 @@ function build0(){const td=TD(),w=wts(),secN=D.sectors||[];
   let sw=0,sv=0;[['a',w.a],['k',w.k],['r',w.r],['d',w.d]].forEach(([k,ww])=>{if(c[k]!=null){sw+=ww;sv+=c[k]*ww}});o.h=o.appr&&!o.done&&sw?Math.max(0,Math.round(sv/sw-Math.min(22,o.fcLate/2.5))):null;
   /* الحالة (جيد/انتباه/حرج) تُبنى على الإنجاز وحده: الفعلي مقابل المتوقع مع خصم تأخر الانتهاء المتوقع. المؤشرات والمخاطر والوثائق تظهر كإشارات منفصلة ولا تنقل المشروع بين المراحل */
   o.ps=o.appr&&!o.done&&c.a!=null?Math.max(0,Math.round(c.a-Math.min(22,o.fcLate/2.5))):null;
-  o.status=o.halted?'halt':!o.appr?'pipe':o.done?'done':o.ps==null?'info':o.ps>=75?'ok':o.ps>=60?'warn':'bad';
+  o.status=o.halted?'halt':!o.appr?'pipe':o.done?'done':o.ps==null?'info':o.ps>=BND.g?'ok':o.ps>=BND.a?'warn':'bad';
   o.size=o.appr?Math.max(6,o.tasks):6;return o});
  /* charter-stage projects that have no plan yet */
  const seen=new Set(PJ.map(p=>p.pc));(OP.services||[]).forEach(s=>{if(seen.has(s.pcode))return;seen.add(s.pcode);PJ.push({pc:s.pcode,pid:null,n:s.pname||s.code,sec:'',pm:'',pmid:null,stDoc:s.status,charterOnly:true,appr:false,done:false,halted:false,kp:[],rk:[],tk:[],sv:SV[s.pcode]||[],oldest:0,kOff:0,kWarn:0,kPend:0,rHigh:0,rOver:0,rHighOver:0,c:{},fc:null,fcLate:0,idle:null,h:null,status:'pipe',size:5,tasks:0,late:0,act:null,exp:null,docmax:s.days||0})});
@@ -805,7 +805,7 @@ function glxPend(pc){return AL.filter(a=>a.pc==pc&&(a.cat=='lock'||a.cat=='rev'|
 function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null),ns=Math.max(1,SEC.length);
  return run.map(p=>{const si=Math.max(0,SEC.findIndex(s=>s.id==p.sec)),k=p.c&&p.c.k!=null?p.c.k:null,dist=Math.max(3,Math.min(100,100-p.ps)),
   ang=(si/ns)*Math.PI*2+((hashS(p.pc)%100)/100-.5)*(Math.PI*2/ns)*.7+dist/100*1.1,pend=glxPend(p.pc);
-  return {p,ang,dist,x:Math.cos(ang)*dist*1.6,z:Math.sin(ang)*dist*1.6,y:k==null?0:(k-75)*1.1,r:3+Math.min(6,Math.sqrt(p.size||6)*.75),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info,zone:p.ps>=75?0:p.ps>=60?1:2}})}
+  return {p,ang,dist,x:Math.cos(ang)*dist*1.6,z:Math.sin(ang)*dist*1.6,y:k==null?0:(k-75)*1.1,r:3+Math.min(6,Math.sqrt(p.size||6)*.75),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info,zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2}})}
 function glxVis(d){if(GX.sec!='all'&&d.p.sec!=GX.sec)return false;if(GX.fo=='bad'&&d.zone<2)return false;if(GX.fo=='warn'&&d.zone<1)return false;if(GX.fo=='pend'&&!d.pend.length)return false;if(GX.fo=='risk'&&!d.risk)return false;if(GX.fo=='kpi'&&!(d.k!=null&&d.k<60))return false;return true}
 function vGalaxy(){const D=glxData(),oth=PJ.length-D.length;
  return {svg:`<div class="glx2"><div class="glx" id="glx"><canvas id="glxC" tabindex="0" aria-label="مرصد المشاريع: عرض ثلاثي الأبعاد للمشاريع الجارية"></canvas>
@@ -886,8 +886,8 @@ function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=G
  const bg=g.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#1b2b44');bg.addColorStop(1,'#0b1424');g.fillStyle=bg;g.fillRect(0,0,W,H);
  for(let i=0;i<90;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;g.fillStyle='rgba(255,255,255,'+(.12+(i%5)*.05)+')';g.beginPath();g.arc(sx,sy,.8,0,7);g.fill()}
  const ring=(rr,fill,stroke,lw)=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(Math.cos(an)*rr*1.6,0,Math.sin(an)*rr*1.6);a?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||1;g.stroke()}};
- ring(100,'rgba(209,16,29,.07)','rgba(209,16,29,.35)',1);ring(40,'rgba(183,121,31,.10)','rgba(230,170,70,.55)',1.2);ring(25,'rgba(10,107,61,.16)','rgba(80,190,120,.6)',1.2);
- [[25,'على المسار','#7fd3a0'],[40,'يحتاج متابعة','#f0c070'],[100,'متعثر','#ff8a8a']].forEach(([rr,tx,c])=>{const [lx,ly]=glxProj(-rr*1.6*.72,0,-rr*1.6*.72);g.fillStyle=c;g.font='bold 11px system-ui';g.textAlign='center';g.fillText(tx,lx,ly)});
+ ring(100,'rgba(209,16,29,.07)','rgba(209,16,29,.35)',1);ring(GZ[1][0],'rgba(183,121,31,.10)','rgba(230,170,70,.55)',1.2);ring(GZ[0][0],'rgba(10,107,61,.16)','rgba(80,190,120,.6)',1.2);
+ [[GZ[0][0],'على المسار','#7fd3a0'],[GZ[1][0],'يحتاج متابعة','#f0c070'],[100,'متعثر','#ff8a8a']].forEach(([rr,tx,c])=>{const [lx,ly]=glxProj(-rr*1.6*.72,0,-rr*1.6*.72);g.fillStyle=c;g.font='bold 11px system-ui';g.textAlign='center';g.fillText(tx,lx,ly)});
  const ns=Math.max(1,SEC.length);SEC.forEach((s,i)=>{if(!GX.pts.some(d=>d.p.sec==s.id))return;const a0=i/ns*Math.PI*2,on=GX.sec=='all'||GX.sec==s.id;g.beginPath();for(let r=4;r<=104;r+=4){const an=a0+r/100*1.1,[px,py]=glxProj(Math.cos(an)*r*1.6,0,Math.sin(an)*r*1.6);r==4?g.moveTo(px,py):g.lineTo(px,py)}g.strokeStyle=on?'rgba(140,190,240,.35)':'rgba(140,190,240,.08)';g.lineWidth=2;g.stroke();
   const an=a0+1.22,[lx,ly]=glxProj(Math.cos(an)*116*1.6,0,Math.sin(an)*116*1.6);g.fillStyle=on?'rgba(200,225,245,.95)':'rgba(200,225,245,.3)';g.font='bold 12px system-ui';g.textAlign='center';g.fillText(s.n,lx,ly)});
  const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/600)*.08,cg=g.createRadialGradient(cx,cy,0,cx,cy,30*cs*pul);cg.addColorStop(0,'rgba(255,236,170,.95)');cg.addColorStop(.35,'rgba(191,152,73,.55)');cg.addColorStop(1,'rgba(191,152,73,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,30*cs*pul,0,7);g.fill();
@@ -923,7 +923,7 @@ function vRiver(){if(!RV.data||RV.wk!=RV.w){rvLoad();return {svg:'<div class="di
  const all=show.flatMap(s=>s.pts.map(q=>q.r)),lo=Math.max(0,Math.floor(Math.min(55,...(all.length?all:[55]))/5)*5-5),hi=Math.min(110,Math.max(100,Math.ceil(Math.max(...(all.length?all:[100]))/5)*5)+3);
  const W=900,H=400,L=12,R=46,T=26,B=34,t0=Date.now()-RV.w*6048e5,t1=Date.now(),X=d=>W-R-(d-t0)/(t1-t0)*(W-L-R),Y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
  const band=(a,b,c)=>{const y1=Y(Math.min(hi,b)),y2=Y(Math.max(lo,a));return y2>y1?`<rect x="${L}" y="${y1}" width="${W-L-R}" height="${y2-y1}" fill="${c}"/>`:''};
- let g=band(75,hi,'#eef8f1')+band(60,75,'#fcf6e8')+band(lo,60,'#fdf0f1');
+ let g=band(BND.g,hi,'#eef8f1')+band(BND.a,BND.g,'#fcf6e8')+band(lo,BND.a,'#fdf0f1');
  [100,90,75,60,45,30,15].filter(v=>v>lo&&v<hi).forEach(v=>g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v==100?'#BF9849':C.l2}" stroke-width="${v==100?1.6:1}" ${v==100?'':'stroke-dasharray="3 4"'}/><text x="${W-R+6}" y="${Y(v)+4}" font-size="11" fill="${v==100?'#8a6d1f':C.dim}">${v}</text>`);
  g+=`<text x="${W-R-8}" y="${Y(Math.min(hi,100))-6}" text-anchor="end" font-size="11" fill="#8a6d1f" font-weight="700">100 = مطابق للمتوقع</text>`;
  if(60>lo)g+=`<text x="${W-R-8}" y="${Y(60)+14}" text-anchor="end" font-size="11" fill="#d1101d" font-weight="700">↓ منطقة التعثر</text>`;
@@ -1239,7 +1239,7 @@ window.closeAll=()=>{['sh','act','tl'].forEach(i=>{$(i).classList.remove('on');$
 function drawTabs(){const n=STEPS.filter(s=>!S.done[s.id]).length;$('tabsIn').innerHTML=TABS.map(([k,t,i])=>`<button class="tab${S.tab==k?' on':''}" role="tab" aria-selected="${S.tab==k}" type="button" onclick="go('${k}')">${i} ${t}${k=='steps'&&n?`<span class="bg">${n}</span>`:''}${k=='dec'&&DECN?`<span class="bg">${DECN}</span>`:''}</button>`).join('')}
 window.go=k=>{if(k=='dec'&&!document.getElementById('v-dec'))return;S.tab=k;setTimeout(()=>{if(k=='dec'&&window.DEC){const e=$('decw');if(e)DEC.mount(e)}},0);document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id=='v-'+k));drawTabs();redraw();const t=document.querySelector('.tab.on');if(t)t.scrollIntoView({inline:'center',block:'nearest'});try{history.replaceState(null,'','#'+k)}catch(_){}};
 function redraw(){if(!D)return;$('hsH').textContent=CUR()??'—';drawLevel();drawAnn();drawTabs();drawTop();if(S.tab=='pulse'){drawGauge();drawTanks();drawHeat();drawFeed();drawBrief()}if(S.tab=='map')drawMap();if(S.tab=='steps')drawSteps();if(S.tab=='proj')drawProjects();if(S.tab=='people')drawPeople();if(S.tab=='docs')drawDocs();if(S.tab=='log')drawLog()}
-function redrawAll(){redraw();if(SHP&&$('sh').classList.contains('on')){const p=pj(SHP.pc);if(p){SHP=p;drawSheet()}}$('capT').textContent=PJ.length+' مشروع · البيانات من البوابة مباشرة · تُحدَّث كل دقيقتين'}
+function redrawAll(){redraw();if(SHP&&$('sh').classList.contains('on')){const p=pj(SHP.pc);if(p){SHP=p;drawSheet()}}$('capT').textContent=cnt(PJ.length,'مشروع واحد','مشروعان','مشاريع','مشروعًا')+' · البيانات من البوابة مباشرة · تُحدَّث كل دقيقتين'}
 window.showMode=()=>{S.show=!S.show;document.documentElement.classList.toggle('show',S.show);closeAll();clearInterval(S.rot);
  if(S.show){try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{})}catch(_){}const R=[['pulse'],['map','radar'],['map','tree'],['map','road'],['steps']];let i=0;go('pulse');S.rot=setInterval(()=>{i=(i+1)%R.length;if(R[i][1])S.view=R[i][1];go(R[i][0])},20000);toast('وضع العرض: يتنقّل بين الشاشات كل 20 ثانية، والأزرار مخفية. اضغط Esc للخروج.')}
  else{try{document.fullscreenElement&&document.exitFullscreen()}catch(_){}}bulkBar()};
@@ -1486,7 +1486,7 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="halt.js?v=4"></script><script src="ovx.js?v=11"></script><script src="feat.js?v=3"></script><script src="blx.js?v=3"></script><script src="revx.js?v=6"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=3"></script><script src="ido-ui.js?v=63"></script><script>/*cardfs*/(function(){
+<script src="halt.js?v=4"></script><script src="ovx.js?v=12"></script><script src="feat.js?v=3"></script><script src="blx.js?v=3"></script><script src="revx.js?v=7"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=4"></script><script src="ido-ui.js?v=64"></script><script>/*cardfs*/(function(){
 function add(){document.querySelectorAll('.cd>.ch').forEach(function(h){if(h.querySelector('.fsb'))return;var b=document.createElement('button');b.type='button';b.className='fsb';b.title='ملء الشاشة';b.setAttribute('aria-label','ملء الشاشة');b.textContent='⛶';b.onclick=function(e){e.stopPropagation();tog(h.parentElement)};h.appendChild(b)})}
 function tog(c){var on=!c.classList.contains('fs');document.querySelectorAll('.cd.fs').forEach(function(x){x.classList.remove('fs');var bb=x.querySelector('.fsb');if(bb)bb.textContent='⛶'});if(on){c.classList.add('fs');var b=c.querySelector('.fsb');if(b)b.textContent='✕ إغلاق';c.scrollTop=0;if(c.querySelector('svg')&&!c.querySelector('.fsz')){var zz=document.createElement('span');zz.className='fsz';zz.innerHTML='<button type="button" onclick="cardZ(this.closest(\'.cd\'),-.5)">－</button><b>100٪</b><button type="button" onclick="cardZ(this.closest(\'.cd\'),.5)">＋</button>';b.parentElement.insertBefore(zz,b)}if(c.querySelector('svg'))setTimeout(function(){c.dataset.z=1;cardZ(c,innerWidth<900?.5:0)},60)}else{document.querySelectorAll('.fsz').forEach(function(x){x.remove()});document.querySelectorAll('.cd').forEach(function(x){if(x.dataset.z){x.dataset.z=1;cardZ(x,0);delete x.dataset.z}})}document.documentElement.classList.toggle('fsx',on);try{if(window.redraw)setTimeout(redraw,30)}catch(_){}}
 window.cardFS=tog;

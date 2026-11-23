@@ -143,7 +143,7 @@ function dlvOpen(it){var v=it.v;ov('📎 '+T('مخرَج رفعته','Your deliv
 var UN={kpi:{num:'',pct:'%',cur:' د.إ',days:' يوم'}};
 function fv(v,u){if(v==null||v==='')return '—';var n=+v;if(isNaN(n))return e(v);var t=(Math.round(n*100)/100).toLocaleString('en-US');return t+(u=='pct'||u=='%'?'%':u=='cur'?' د.إ':u=='days'?T(' يوم',' d'):'')}
 function achv(a,t,dir){if(a==null||t==null||t===''||isNaN(+a)||isNaN(+t))return null;a=+a;t=+t;if(dir=='down'){if(a<=0)return 100;return Math.round(Math.min(200,t/a*100))}if(t==0)return 100;return Math.round(Math.min(200,a/t*100))}
-function achH(p){if(p==null)return '—';var c=p>=100?'#0a6b3d':p>=75?'#a8761a':'#c0161f';return '<b style="color:'+c+'">'+p+'%</b>'}
+function achH(p){if(p==null)return '—';var c=p>=95?'#0a6b3d':p>=80?'#a8761a':'#c0161f';return '<b style="color:'+c+'">'+p+'%</b>'}
 async function detail(key){var z=colItems().find(function(q){return q.key==key});if(!z)return null;var it=z.src||{},rows=[],ex='',td=today();
  var push=function(l,v){if(v!=null&&v!=='')rows.push([l,v])};
  push(T('المشروع','Project'),e(z.pj||''));

@@ -11,7 +11,7 @@
 .nd select,.nd input{margin-top:6px}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>إدارة المستخدمين</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -213,7 +213,7 @@ const scCh=id=>{$('scs_'+id).style.display=$('sc_'+id).value=='sector'?'block':'
 const scSave=id=>run(async()=>{const s=$('sc_'+id).value,a=[...document.querySelectorAll('.scx_'+id+':checked')].map(x=>+x.value);if(s=='sector'&&!a.length)throw new Error(t('sc_pick'));
  const {error}=await sb.rpc('admin_set_scope',{uid:id,p_scope:s||null,p_sectors:s=='sector'?a:null});if(error)throw error;const u=USERS.find(x=>x.id==id);u.view_scope=s||null;u.view_sectors=s=='sector'?a:null;const cp=!!($('scc_'+id)||{}).checked;const r2=await sb.rpc('admin_set_scope_complete',{uid:id,flag:cp&&!!s});if(r2.error)throw r2.error;u.scope_complete=cp&&!!s});
 async function load(){
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['adm.users']);
  if(!p||p.role!='admin')return gate('adminOnly');
@@ -480,4 +480,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=63"></script></body></html>
+<script src="ido-ui.js?v=64"></script></body></html>

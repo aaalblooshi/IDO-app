@@ -6,7 +6,7 @@
 .xr{display:flex;gap:9px;align-items:flex-start;padding:9px 2px;border-bottom:1px solid #f0ece2;cursor:pointer}.xr:last-child{border:0}.xr .xi{flex:1;min-width:0}.xr .xl{margin-top:3px}.xd{width:11px;height:11px;border-radius:50%;margin-top:7px;flex:none}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>أداء المستخدمين</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -154,7 +154,7 @@ function icsEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;')
 let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
 const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 async function boot(){
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const {data:p}=await sb.rpc('my_profile').single();if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
@@ -176,7 +176,7 @@ Object.assign(D,{
  s_late:['الأكثر تأخرًا','Most late'],s_pend:['الأكثر إجراءات منتظرة','Most pending actions'],s_low:['الأقل إنجازًا','Lowest completion'],s_name:['الاسم','Name'],
  byunit:['الأداء بحسب الوحدة','Performance by unit'],unit:['الوحدة','Unit'],users_h:['المستخدمون','Users'],none:['لا يوجد مستخدمون ضمن نطاقك.','No users within your scope.'],
  nounit:['بدون وحدة','No unit'],c_tasks:['المهام','Tasks'],c_late:['متأخرة','Late'],c_open:['جارية','Open'],c_pend:['بانتظار إجراءه','Awaiting his action'],c_reqs:['طلبات أنشأها','Requests created'],c_sign:['توقيعات','Signatures'],
- h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs follow-up'],h_bad:['يحتاج دعمًا','Needs support'],
+ h_ok:['على المسار','On track'],h_wa:['يحتاج متابعة','Needs follow-up'],h_bad:['يحتاج دعمًا','Needs support'],
  nudge:['🔔 تذكير','🔔 Remind'],nudgeT:['إرسال تذكير إلى','Send a reminder to'],nudgeH:['يصل التذكير داخل النظام (الإشعارات) وبالبريد الإلكتروني.','The reminder arrives in-app (Notifications) and by email.'],send:['إرسال','Send'],cancel:['إلغاء','Cancel'],sent:['تم إرسال التذكير','Reminder sent'],
  close:['إغلاق','Close'],d_tasks:['مهام المستخدم','User tasks'],d_pend:['بانتظار إجراءه','Awaiting his action'],d_cr:['ما أنشأه من طلبات','Requests he created'],d_none:['لا يوجد.','None.'],due:['الموعد','Due'],
  st_reviewed:['مراجعة','Review'],st_approved:['اعتماد','Approval'],
@@ -518,4 +518,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=63"></script></body></html>
+<script src="ido-ui.js?v=64"></script></body></html>

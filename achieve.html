@@ -3,7 +3,7 @@
 <script>function jsa(s){return JSON.stringify(String(s==null?'':s)).slice(1,-1).replace(/'/g,'\\u0027').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</script>
 <script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>سجل الإنجاز</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -345,7 +345,7 @@ async function tmAll(pub){let ok=0,bad=0;for(let i=0;i<TEAM.length;i++){const m=
  if(pub)pmDraw();toast((pub?P('نُشر ','Published '):P('حُفظ ','Saved '))+ok+(bad?P(' · تعذّر ',' · failed ')+bad:''))}
 init();
 </script>
-<script src="ido-ui.js?v=63"></script><script>(function itInit(n){if(!window.IDOTabs||!document.querySelector('#app .kg')){if(n<120)setTimeout(()=>itInit(n+1),150);return}let A=true;try{A=(localStorage.getItem('lang')||'ar')!='en'}catch(_){}
+<script src="ido-ui.js?v=64"></script><script>(function itInit(n){if(!window.IDOTabs||!document.querySelector('#app .kg')){if(n<120)setTimeout(()=>itInit(n+1),150);return}let A=true;try{A=(localStorage.getItem('lang')||'ar')!='en'}catch(_){}
 const W=['dOpen','dTasks'],D=['dDocs'],E=['dPins','kudos'];
 try{window.ACHT=IDOTabs({host:'#app',key:'ach',deep:false,count:false,items:':scope > *',always:e=>e.classList.contains('ptitle')||!!e.querySelector(':scope .ah h1'),
  tabs:[['sum',A?'📊 الملخص والمشاريع':'📊 Summary',(e,t)=>e.classList.contains('kg')||e.id=='pjs'||!!e.querySelector('#msum')],

@@ -4,7 +4,7 @@
 <script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}.p:disabled{background:#eceae4!important;color:#8b8678!important;border-color:#d9d4c4!important;cursor:default;box-shadow:none}.seg{display:flex;background:#e6ecf2;border-radius:99px;padding:3px;gap:2px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px}.seg::-webkit-scrollbar,.tchips::-webkit-scrollbar{display:none}.seg button{flex:1 0 auto;border:0!important;background:transparent!important;border-radius:99px!important;padding:5px 10px!important;font-size:13px!important;white-space:nowrap;color:#3a4652!important;box-shadow:none!important;min-height:0!important}.seg button.on{background:#fff!important;color:#1d5f8a!important;box-shadow:0 1px 4px rgba(0,0,0,.12)!important}.tchips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px;padding:1px 0 3px;flex-wrap:nowrap}.tchips button{flex:none;padding:5px 11px!important;font-size:13px!important;white-space:nowrap;min-height:0!important}.tchips button.on{background:#1d5f8a!important;border-color:#1d5f8a!important;color:#fff!important}.tchips .num{opacity:.75;font-size:12px}button.more{flex:none;width:42px;height:40px;padding:0!important;font-size:20px!important;font-weight:800}.mi{display:flex!important;gap:10px;align-items:center;width:100%;text-align:start;padding:12px 10px!important;border:0!important;border-top:1px solid var(--line)!important;border-radius:0!important;background:#fff!important;font-weight:700}.mi span{width:24px;text-align:center}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>مهامي</title><script src="halt.js?v=4"></script><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -75,7 +75,7 @@ button.p{background:var(--g);border-color:var(--g);color:#fff}button.r{color:var
 
 @media(max-width:700px){.dsk{display:none!important}}
 .sov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;display:flex;align-items:flex-end;justify-content:center}
-.sbx{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px 22px;-webkit-overflow-scrolling:touch}
+.sbx{background:#fff;width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow:auto;border-radius:18px 18px 0 0;padding:14px 14px 22px;-webkit-overflow-scrolling:touch}
 .sbx h3{margin:0 0 2px;font-size:17px;overflow-wrap:anywhere}.sbx textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:70px}
 .chp{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;font-weight:700;background:#eee;color:#555;margin-inline-end:4px;white-space:nowrap}
 .chp.r{background:#fdecee;color:#d1101d}.chp.o{background:#fbf0d9;color:#8a5a00}.chp.g{background:#e5f2ea;color:#1c7a45}.chp.b{background:#e6f2f9;color:#2a6a90}
@@ -137,7 +137,7 @@ function analyze(tasks,wmode,now){
  let a=0,ex=0,n=0,done=0,lateN=0,s=null,e=null;
  roots.forEach((r,i)=>{a+=r.a*ws[i]/W;ex+=r.ex*ws[i]/W;n+=r.n;done+=r.done;lateN+=r.lateN;if(r.s!=null)s=s==null?r.s:Math.min(s,r.s);if(r.e!=null)e=e==null?r.e:Math.max(e,r.e)});
  return {t:out,kids,a,ex,n,done,lateN,s,e,gap:ex-a}}
-const health=(gap,lateN,n)=>{const r=n?lateN/n:(lateN>0?.05:0);return (gap>=15||(r>=.2&&lateN>=3))?'bad':(gap>=5||r>=.05)?'wa':'ok'};/* متعثر: تأخر ١٥ نقطة، أو ٢٠% من المهام متأخرة مع ٣ مهام على الأقل · يحتاج متابعة: تأخر ٥ نقاط أو ٥% من المهام متأخرة */
+const health=(gap,lateN,n,ex)=>{const B=window.IDOBANDS?IDOBANDS():{g:90,a:75},r=n?lateN/n:(lateN>0?.05:0);if(ex!=null&&+ex>=5){const ps=Math.max(0,(+ex-(+gap||0)))/(+ex)*100;return ps<B.a?'bad':(ps<B.g||(r>=.2&&lateN>=3))?'wa':'ok'}return (r>=.2&&lateN>=3)?'wa':'ok'}/* متعثر: تأخر ١٥ نقطة، أو ٢٠% من المهام متأخرة مع ٣ مهام على الأقل · يحتاج متابعة: تأخر ٥ نقاط أو ٥% من المهام متأخرة */
 const hCol={ok:'#1c7a45',wa:'#a8761a',bad:'#d1101d'};
 const LBL={act:['الفعلي','Actual'],pln:['المخطط','Planned']};
 function pbar(a,ex,col){col=col||'#1c7a45';const L=k=>LBL[k][lang=='ar'?0:1];a=clamp(a,0,100);
@@ -152,7 +152,7 @@ function icsEsc(s){return String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\;')
 let ME=null,ADM=false,SECS=[1,2,3,4].map(n=>['قطاع '+n,'Sector '+n]),UN={};
 const secN=s=>{const x=SECS[(+s||0)-1];return x?(lang=='ar'?x[0]:x[1]):''};
 async function boot(){
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['tasks.others']);if(!p)return gate('needLogin');
  ME=p;ADM=p.role=='admin';
@@ -186,7 +186,7 @@ Object.assign(D,{
  closeAll:['اكتملت جميع مهام هذا المشروع','All tasks of this project are complete'],startCl:['ابدأ التقرير الختامي','Start the closure report'],openCl:['فتح التقرير الختامي','Open the closure report'],
  gGrp:['تجميع حسب','Group by'],gProj:['المشروع','Project'],gSec:['القطاع','Sector'],gUser:['المكلّف','Assignee'],gCtr:['المركز كله','Whole centre'],
  stAll:['كل الحالات','All statuses'],unas:['غير مسندة','Unassigned'],tTot:['إجمالي المهام','Total tasks'],tDn:['منجزة','Done'],tPj:['المشاريع','Projects'],avg:['متوسط الإنجاز','Avg. progress'],more:['عرض المزيد','Show more'],
- h_ok:['منتظم','On track'],h_wa:['يحتاج متابعة','Needs attention'],h_bad:['متأخر','Delayed'],
+ h_ok:['على المسار','On track'],h_wa:['يحتاج متابعة','Needs attention'],h_bad:['متعثر','Delayed'],
  legend:['اللون = حالة النشاط · الجزء الملوّن من الشريط = الفعلي · الخط الذهبي أسفل الشريط = المخطط حتى اليوم · الخط الأحمر العمودي = اليوم','Colour = status · filled part = actual · gold line under the bar = planned to date · red vertical line = today'],zi:['تكبير','Zoom in'],zo:['تصغير','Zoom out'],
  who:['المكلّف','Assignee'],c_sec:['القطاع','Sector'],c_proj:['المشروع','Project'],c_task:['النشاط','Task'],c_ps:['بداية مخططة','Planned start'],c_pe:['نهاية مخططة','Planned end'],c_as:['بداية فعلية','Actual start'],c_ae:['نهاية فعلية','Actual end'],c_late:['أيام التأخير','Days late'],c_nt:['ملاحظات','Notes']});
 const CFD={sum:1,pts:1,prio:1,deps:1,wkd:1,wbs:0,cmp:0};
@@ -271,7 +271,7 @@ function depChips(r){if(!CFG.deps||isDone(r))return '';let h='';
  if(r.blocked)h+=`<span ${OC} class="chp o" title="${esc(r.waits.map(d=>d.x.n).join('، '))}">🔒 ${t('blocked')}: ${esc(r.waits[0].x.n.slice(0,28))}${r.waits.length>1?' +'+(r.waits.length-1):''}</span>`;
  if(r.succ>0)h+=`<span ${OC} class="chp b" title="${t('blocks')}">⛓ ${t('blocks')} ${plr(r.succ,'task')}</span>`;return h}
 const pathS=r=>r.path.length?esc(r.path.join(' ‹ ')):'';
-function healthOf(a){return health(a.gap!=null?a.gap:0,a.lateN||0)}
+function healthOf(a){return health(a.gap!=null?a.gap:0,a.lateN||0,a.n,a.ex)}
 
 /* ---- filtering ---- */
 const arN=s=>String(s||'').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/ؤ/g,'و').replace(/ئ/g,'ي').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/\s+/g,' ');
@@ -453,7 +453,7 @@ function teamView(lv){
   (g[k]=g[k]||{k,nm,L:[],P:new Set()}).L.push(r);g[k].P.add(r.pr.pcode)});
  const gs=Object.values(g).sort((a,b)=>a.nm.localeCompare(b.nm,'ar'));
  const sel=`<div class="row" style="margin:0 0 8px"><span class="mut">${t('gGrp')}</span>${['project','sector','user','center'].map(k=>`<button class="${GRP==k?'p':''}" onclick="GRP='${k}';paint()">${t('g'+({project:'Proj',sector:'Sec',user:'User',center:'Ctr'})[k])}</button>`).join('')}</div>`;
- const rows=gs.map(x=>{const o=x.L.filter(r=>!isDone(r)),l=o.filter(r=>lateD(r)>0),a=x.L.reduce((s,r)=>s+r.a.a,0)/x.L.length,ex=x.L.reduce((s,r)=>s+r.a.ex,0)/x.L.length,h=health(ex-a,l.length),open=COL.has(x.k);
+ const rows=gs.map(x=>{const o=x.L.filter(r=>!isDone(r)),l=o.filter(r=>lateD(r)>0),a=x.L.reduce((s,r)=>s+r.a.a,0)/x.L.length,ex=x.L.reduce((s,r)=>s+r.a.ex,0)/x.L.length,h=health(ex-a,l.length,undefined,ex),open=COL.has(x.k);
   return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;cursor:pointer" onclick="COL.has('${jsa(x.k)}')?COL.delete('${jsa(x.k)}'):COL.add('${jsa(x.k)}');paint()"><b><span style="color:${hCol[h]}">●</span> ${open?'▾':'▸'} ${esc(x.nm)}</b><span class="mut">${t('h_'+h)}</span></div>
   <div class="mut">${plr(x.P.size,'project')} · ${plr(x.L.length,'task')} · ${t('pdone')} <b class="num">${x.L.length-o.length}</b> · ${t('g_late')} <b class="num ${l.length?'bad':''}">${l.length}</b></div>${pbar(a,ex,hCol[h])}
   ${open?grouped(x.L.slice().sort(sortP).slice(0,60)):''}</div>`}).join('');
@@ -465,7 +465,7 @@ function vProj(rs){
  const prs=PR.filter(p=>rs.some(r=>r.pr==p));
  if(!prs.length)return `<div class="card mut">${t('none')}</div>`;
  return prs.map(p=>{let vis=p.rs.filter(r=>ids.has(r.id)&&(MODE=='team'?(!FST||tabFs(r,FST)||(!r.leaf)):1)),
-  a=p.an,h=health(a.gap,a.lateN,a.n),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone),open=PEXP.has(p.pid);
+  a=p.an,h=health(a.gap,a.lateN,a.n,a.ex),cl=CLS[p.pcode],lv=p.rs.filter(r=>r.leaf),all100=lv.length&&lv.every(isDone),open=PEXP.has(p.pid);
   const my=lv.filter(r=>MODE=='me'?r.mine:1),cnt=k=>my.filter(r=>stOf(r)==k).length;
   const concerned=ADM||p.cb==ME.id||(p.pm&&p.pm==ME.full_name)||!!ME.view_scope;
   if(PSF[p.pid]){const kp=new Set();p.rs.filter(r=>r.leaf&&vis.includes(r)&&stOf(r)==PSF[p.pid]).forEach(r=>{kp.add(r);let c=r,g=0;while(c&&c.x.p&&g++<12){c=p.byId[c.x.p];if(c)kp.add(c)}});vis=vis.filter(r=>kp.has(r))}
@@ -1237,4 +1237,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=15"></script><script src="collab.js?v=2"></script><script src="ido-ui.js?v=63"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=16"></script><script src="collab.js?v=2"></script><script src="ido-ui.js?v=64"></script></body></html>

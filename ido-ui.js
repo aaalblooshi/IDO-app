@@ -538,7 +538,7 @@
   } catch (e) {}
 })();
 /* smart KPI / risk updates in My tasks (feature u_tasks) */
-(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=15';s.defer=true;document.head.appendChild(s)})();
+(function(){if(window.top!==window.self||document.querySelector('script[src^="upd.js"]'))return;var s=document.createElement('script');s.src='upd.js?v=16';s.defer=true;document.head.appendChild(s)})();
 /* keep horizontal tab and chip rows where the user left them when a page redraws */
 (function(){if(window.__hsk)return;window.__hsk=1;var M={};
 function key(e){var p=[],n=e;for(var i=0;i<3&&n&&n!==document.body;i++){p.push(n.tagName+'.'+(typeof n.className=='string'?n.className.replace(/\s*\b(on|p|active|sel)\b/g,''):'')+(n.id?'#'+n.id:''));n=n.parentElement}return p.join('<')}
@@ -548,7 +548,7 @@ var q=0;function fix(){q=0;var ks=Object.keys(M);if(!ks.length)return;var els=do
 new MutationObserver(function(){if(!q){q=1;requestAnimationFrame(fix)}}).observe(document.documentElement,{childList:true,subtree:true})})();
 /* iPhone zooms the whole page in when a field under 16px gets focus and stays zoomed, which pushes the page sideways and hides the bottom bar: keep fields at 16px on phones and stop that zoom */
 (function(){var st=document.createElement('style');st.textContent='@media (max-width:820px){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px!important}}html{-webkit-text-size-adjust:100%;text-size-adjust:100%}';(document.head||document.documentElement).appendChild(st);
- try{var m=document.querySelector('meta[name=viewport]');if(m&&!/maximum-scale/.test(m.content))m.content=m.content+',maximum-scale=1'}catch(_){}})();
+ try{var m=document.querySelector('meta[name=viewport]');if(m&&/maximum-scale/.test(m.content))m.content=m.content.replace(/,?\s*maximum-scale=[\d.]+/,'')}catch(_){}})();
 
 /* ===== IDOTabs: تحويل أقسام صفحة طويلة إلى تبويبات ===== */
 (function(){
@@ -641,7 +641,7 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
   var p=document.getElementById('hm_p');if(p){var a=p.querySelector('a[href="inbox.html"]');if(a){var c=a.querySelector('.ubdg');if(n){if(!c){c=document.createElement('span');c.className='ubdg';a.appendChild(c)}if(c.textContent!==t)c.textContent=t}else if(c)c.remove()}}}
  async function load(){if(busy||typeof sb=='undefined'||!sb||!sb.auth)return;busy=1;try{var s=await sb.auth.getSession(),u=s&&s.data&&s.data.session&&s.data.session.user;if(!u){busy=0;return}
   /* نفس تعريف «جديد» في صفحة الإشعارات: كل ما وصل بعد آخر «تعليم الكل كمقروء»، عدا ما فعلته أنت */
-  var seen=0;try{seen=+localStorage.getItem('inbox_seen_'+u.id)||0}catch(_){}var since=new Date(seen||0).toISOString();
+  var seen=0;try{seen=+localStorage.getItem('inbox_seen_'+u.id)||0}catch(_){}if(!window.__ubSrv){try{var sv=await sb.rpc('inbox_seen');if(!sv.error){window.__ubSrv=1;var m=+sv.data||0;if(m>seen){seen=m;try{localStorage.setItem('inbox_seen_'+u.id,String(m))}catch(_){}}else if(seen>m){sb.rpc('inbox_mark',{p_ms:seen}).then(function(){},function(){})}}}catch(_){}}var since=new Date(seen||0).toISOString();
   if(!window.__ubMe){var pr=await sb.from('profiles').select('full_name').eq('id',u.id).maybeSingle();window.__ubMe=(pr.data&&pr.data.full_name)||''}
   var nc=await sb.from('app_settings').select('key,value').in('key',['notif_all','notif_off']);var off='',all='1';(nc.data||[]).forEach(function(x){if(x.key=='notif_all')all=x.value;else off=x.value||''});
   if(all=='0'){N=0;paint();busy=0;return}var OF=String(off).split(',');
@@ -668,8 +668,8 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
   '#ipnl iframe{flex:1;width:100%;border:0;background:#f4f2ec}'+
   '#ipnl .ipl{position:absolute;inset:60px 0 0;display:flex;align-items:center;justify-content:center;color:#6b6f76;font:600 14px Cairo,system-ui,sans-serif;pointer-events:none}'+
   '@media(max-width:899px){#ipnl .ipb{width:100%}}html.ipon,html.ipon body{overflow:hidden}';document.head.appendChild(s)}
- function close(fromPop){var o=document.getElementById('ipnl');if(!o)return;o.remove();document.documentElement.classList.remove('ipon');if(!fromPop&&history.state&&history.state.ipnl)try{history.back()}catch(_){}try{window.dispatchEvent(new Event('idopanel-close'))}catch(_){}}
- function open(href,title){css();var o=document.getElementById('ipnl');if(o)o.remove();var ar=(document.documentElement.lang||'ar')!='en';
+ function close(fromPop){var o=document.getElementById('ipnl');if(!o)return;o.remove();document.documentElement.classList.remove('ipon');if(!fromPop&&history.state&&history.state.ipnl)try{history.back()}catch(_){}try{window.dispatchEvent(new Event('idopanel-close'))}catch(_){}try{if(window.__ipSess===false&&typeof sb!='undefined'&&sb&&sb.auth)sb.auth.getSession().then(function(r){if(r&&r.data&&r.data.session)location.reload()})}catch(_){}}
+ function open(href,title){css();try{if(typeof sb!='undefined'&&sb&&sb.auth)sb.auth.getSession().then(function(r){window.__ipSess=!!(r&&r.data&&r.data.session)})}catch(_){}var o=document.getElementById('ipnl');if(o)o.remove();var ar=(document.documentElement.lang||'ar')!='en';
   o=document.createElement('div');o.id='ipnl';o.innerHTML='<div class="ipb" role="dialog" aria-modal="true"><div class="iph"><button type="button" class="ipx" aria-label="'+(ar?'إغلاق':'Close')+'">✕</button><b></b><button type="button" class="ipk">‹ '+(ar?'رجوع':'Back')+'</button><a class="ipf" href="">'+(ar?'صفحة كاملة ↗':'Full page ↗')+'</a></div><div class="ipl">'+(ar?'جارٍ الفتح…':'Opening…')+'</div><iframe title=""></iframe></div>';
   o.querySelector('b').textContent=title||'';o.querySelector('.ipf').href=href;document.body.appendChild(o);document.documentElement.classList.add('ipon');
   var f=o.querySelector('iframe');f.onload=function(){var l=o.querySelector('.ipl');if(l)l.remove();try{var t=String(f.contentDocument.title||'').split(/\s[|—–-]\s/)[0].trim();if(t)o.querySelector('b').textContent=t;else if(!title)o.querySelector('b').textContent='';o.querySelector('.ipf').href=f.contentWindow.location.href}catch(_){}};f.src=href;
@@ -691,3 +691,33 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
   if(!href)return;e.preventDefault();e.stopImmediatePropagation();open(href,title)},true);
  window.IDOPANEL={open:open,close:close};
 }catch(_){}})();
+
+/* ===== «مطلوب منك»: الرقم نفسه في كل مكان (يحسبه رحلتي في الرئيسية) ===== */
+(function(){try{var pg=(location.pathname.split('/').pop()||'').replace('.html','');if(['inbox','control','room'].indexOf(pg)<0||window.top!==window&&pg!='inbox')return;
+ function put(){var v=null;try{v=JSON.parse(localStorage.getItem('ido_needN')||'null')}catch(_){}var el=document.getElementById('ido-needn');
+  if(!v||!v.n||Date.now()-v.at>6*3600e3){if(el)el.remove();return}
+  var main=document.querySelector('main')||document.body;if(!el){el=document.createElement('a');el.id='ido-needn';el.href='index.html#need';
+   el.style.cssText='display:flex;gap:8px;align-items:center;justify-content:space-between;max-width:1100px;margin:10px auto;padding:9px 14px;border-radius:12px;background:#fff4f4;border:1px solid #f1c4c7;color:#8a1018;text-decoration:none;font-weight:600;font-size:14px';main.insertBefore(el,main.firstChild)}
+  var ar=(document.documentElement.lang||'ar')!='en',n=v.n,w=ar?(n==1?'إجراء واحد':n==2?'إجراءان':n<=10?n+' إجراءات':n+' إجراءً'):n+' actions';
+  var mins=Math.round((Date.now()-v.at)/60000),ago=ar?(mins<1?'الآن':'قبل '+(mins<60?mins+' د':Math.round(mins/60)+' س')):(mins<1?'now':mins+' min ago');
+  el.innerHTML='<span>📌 '+(ar?'مطلوب منك: ':'Awaiting you: ')+w+(v.l?(ar?' (متأخر منها '+v.l+')':' ('+v.l+' late)'):'')+'</span><span style="font-weight:400;font-size:12px;color:#6b6f76">'+ago+(ar?' · افتح رحلتي ←':' · open my journey →')+'</span>'}
+ if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(put,400)});else setTimeout(put,400);addEventListener('storage',function(e){if(e.key=='ido_needN')put()})}catch(_){}})();
+
+/* ===== عتبات حالة المشروع والمؤشرات (موحدة، من الإعدادات) ===== */
+(function(){window.IDOBANDS=function(){var d={g:90,a:75};try{var b=JSON.parse(localStorage.getItem('ido_bands')||'null');if(b&&+b.g>0&&+b.a>0&&+b.a<+b.g)return {g:+b.g,a:+b.a}}catch(_){}return d};
+ window.IDOBAND=function(v){if(v==null||isNaN(v))return null;var b=IDOBANDS();return v>=b.g?'ok':v>=b.a?'warn':'bad'};
+ window.IDOBNAME={ok:'على المسار',warn:'يحتاج متابعة',bad:'متعثر'};
+ function ld(){try{if(typeof sb=='undefined'||!sb||!sb.from)return setTimeout(ld,1500);sb.from('app_settings').select('value').eq('key','status_bands').maybeSingle().then(function(r){try{var v=r&&r.data&&r.data.value?JSON.parse(r.data.value):{g:90,a:75};var o=localStorage.getItem('ido_bands'),n=JSON.stringify({g:+v.g||90,a:+v.a||75});localStorage.setItem('ido_bands',n);if(o!==n)document.dispatchEvent(new Event('ido-bands'))}catch(_){}},function(){})}catch(_){}}
+ setTimeout(ld,800)})();
+
+/* ===== شريط انقطاع الاتصال (بدل الدوران بلا نهاية أو «سجّل الدخول») ===== */
+(function(){try{if(window.top!==window)return;var ar=function(){return (document.documentElement.lang||'ar')!='en'};
+ function bar(on,msg){var b=document.getElementById('ido-off');if(!on){if(b)b.remove();return}
+  if(!b){b=document.createElement('div');b.id='ido-off';b.setAttribute('role','status');b.style.cssText='position:fixed;inset-inline:0;bottom:calc(env(safe-area-inset-bottom,0px) + 70px);margin:0 auto;max-width:520px;width:calc(100% - 32px);z-index:2147483000;background:#2b2f36;color:#fff;border-radius:12px;padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.25)';document.body.appendChild(b)}
+  b.innerHTML='<span>'+msg+'</span><button type="button" style="background:#fff;color:#2b2f36;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer" onclick="location.reload()">'+(ar()?'إعادة المحاولة':'Retry')+'</button>'}
+ addEventListener('offline',function(){bar(true,ar()?'لا يوجد اتصال بالإنترنت. ما تراه قد لا يكون محدّثًا.':'You are offline. What you see may be out of date.')});
+ addEventListener('online',function(){bar(false)});
+ setTimeout(function(){if(!navigator.onLine)bar(true,ar()?'لا يوجد اتصال بالإنترنت.':'You are offline.');else if((typeof sb=='undefined'||!sb)&&!/logs\.html$/.test(location.pathname)&&typeof supabase=='undefined')bar(true,ar()?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')},5000)}catch(_){}})();
+
+/* ===== التكبير بالإصبعين مسموح، والنقر المزدوج لا يكبّر بالخطأ؛ تباين أوضح للنصوص الثانوية ===== */
+(function(){try{var st=document.createElement('style');st.id='ido-a11y';st.textContent='html{touch-action:manipulation}.mut,.muted,small.mut{color:#5f6b76}@media (prefers-color-scheme:dark){html.nm .mut,html.nm .muted{color:#a7b3bf}}';(document.head||document.documentElement).appendChild(st)}catch(_){}})();

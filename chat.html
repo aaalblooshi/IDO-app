@@ -5,7 +5,7 @@
 @media (hover:none){.pr:hover:not(.on),.mi:hover:not(.on),.pm:hover,.ha button:hover{background:transparent}.pr:hover .rb:not(.on){opacity:.3}}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>التواصل</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -371,7 +371,7 @@ function drawSel(){let b=$('selbar');const cin=document.querySelector('.cin');
 async function selDel(){const L=[...(SELM||[])].map(id=>MSGS.find(x=>x.id==id)).filter(canDel);if(!L.length)return;
  const others=L.filter(m=>m.from_user!=ME.id).length;
  if(!confirm(T2('حذف '+L.length+' رسالة؟','Delete '+L.length+' message(s)?')+(others?'\n'+T2('منها '+others+' من رسائل الآخرين، وستظهر لهم «تم حذف هذه الرسالة».','Includes '+others+' from others.'):'')+(L.length<SELM.size?'\n'+T2('الرسائل التي لا تملك صلاحية حذفها لن تُحذف.','Messages you cannot delete are skipped.'):'')))return;
- const r=await sb.rpc('chat_delete_msgs',{p_ids:L.map(m=>m.id)});if(r.error)return toast(r.error.message);toast(T2('حُذفت '+(r.data||0)+' رسالة','Deleted '+(r.data||0)));SELM=null;drawSel();SIG='';await loadMsgs(false)}
+ const r=await sb.rpc('chat_delete_msgs',{p_ids:L.map(m=>m.id)});if(r.error)return toast(r.error.message);toast(T2((n=>n==1?'حُذفت رسالة واحدة':n==2?'حُذفت رسالتان':'حُذفت '+n+(n<=10?' رسائل':' رسالة'))(+r.data||0),'Deleted '+(r.data||0)));SELM=null;drawSel();SIG='';await loadMsgs(false)}
 function fwdTargets(){const out=[];const seen=new Set();
  (PROJ||[]).forEach(p=>{const k='p:'+p.pcode;if(seen.has(k))return;seen.add(k);out.push({k,t:'ch',pc:p.pcode,id:p.channel_id,name:p.name||p.pcode,ic:'📁'})});
  (GRPS||[]).forEach(g=>{out.push({k:'c:'+g.id,t:'ch',id:g.id,name:g.name,sub:g.project||g.pcode,ic:'👥'})});
@@ -629,7 +629,7 @@ async function refreshLists0(){
  if(CUR){delete UNR[keyOf(CUR)]}{const u=uSum();if(_uSum!=null&&u>_uSum)ding();_uSum=u}drawRail()}
 async function load(){
  document.querySelectorAll('[data-i]').forEach(e=>e.textContent=t(e.dataset.i));$('lb').textContent=lang=='ar'?'EN':'ع';
- if(!sb)return gate('needLogin');
+ if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  const go=q=>Promise.resolve(q).then(r=>r,e=>({error:e}));
  const [m0,us0,r,a0,g0,gn0,p0]=await Promise.all([go(sb.rpc('my_profile').single()),go(sb.from('profiles').select('id,full_name,job_title,role')),go(sb.rpc('chat_on')),go(sb.from('app_settings').select('value').eq('key','admin_identity').maybeSingle()),go(sb.from('chat_channels').select('id').eq('kind','general').limit(1)),go(sb.rpc('chat_general_on')),go(sb.from('chat_pins').select('k'))]);

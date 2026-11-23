@@ -5,7 +5,7 @@
 .roomcta{display:flex;gap:12px;align-items:center;background:#23272b;color:#fff;border-radius:16px;padding:12px 16px;margin:0 0 12px;text-decoration:none;border-inline-start:4px solid #BF9849}.roomcta .ri{font-size:24px}.roomcta .rt{flex:1;min-width:0}.roomcta b{display:block;font-size:16px}.roomcta small{color:#c5cad0;font-size:12.5px}.roomcta .rg{background:#3EA3DC;border-radius:99px;padding:5px 14px;font-weight:800;font-size:13px;flex:none}.cgrp{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 6px}.cgrp::-webkit-scrollbar{display:none}.cgrp button{flex:none;border:1px solid #dcd6c8;background:#fff;border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;font-weight:800;cursor:pointer;color:#3b3f44}.cgrp button.on{background:#0a6b3d;border-color:#0a6b3d;color:#fff}.cgrp .bd{font-style:normal}
 </style>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#23272b">
 <title>التحكم</title><!--pwa--><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><meta name="apple-mobile-web-app-title" content="التطوير المؤسسي"><!--/pwa-->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -152,6 +152,7 @@ const oaState=k=>{const o=OA[k];if(!o)return {s:'open'};const sn=o.snooze_until&
  if(o.status=='done'){const d=ageD(o.updated_at);return d<3?{s:'done',o}:{s:'open',o,back:true}}
  if(o.status=='assigned')return {s:'assigned',o};return {s:'open',o}};
 
+const bnW=n=>n==1?'بند واحد':n==2?'بندان':n+(n<=10?' بنود':' بندًا');
 /* ====== توليد البنود ====== */
 const onLeave=uid=>{const l=LEAVE.find(x=>x.user_id==uid&&x.from_date<=TODAY&&x.to_date>=TODAY);return l?{name:US[uid]||'',sub:l.substitute_id?(US[l.substitute_id]||''):'',to:l.to_date}:null};
 const SEVN={5:['حرج','Critical','#d1101d'],4:['عالٍ','High','#e0561c'],3:['متوسط','Medium','#a8761a'],2:['منخفض','Low','#6b7a8a']};
@@ -337,7 +338,7 @@ async function rmCall(items,force){RM.busy=true;try{const r=await sb.rpc('office
   toast(P('أُرسل ','Sent ')+(d.sent||0)+(d.skipped?P(' · تُخطّي '+d.skipped+' (ذُكّر خلال ١٢ ساعة)',' · skipped '+d.skipped+' (reminded within 12h)'):'')+(d.nobody?P(' · '+d.nobody+' بلا مسؤول',' · '+d.nobody+' without an owner'):'')+(d.emailed?P(' · بريد: ',' · emails: ')+d.emailed:''));
   RM.sel.clear();RM.note='';await rmLoad()}catch(e){toast(String((e&&e.message)||e))}finally{RM.busy=false;draw()}}
 function rmOne(k){rmCall([k],false)}
-function rmSend(){const it=[...RM.sel];if(!it.length)return;if(it.length>5&&!confirm(P('إرسال تذكير لـ '+it.length+' بندًا؟','Send reminders for '+it.length+' items?')))return;rmCall(it,false)}
+function rmSend(){const it=[...RM.sel];if(!it.length)return;if(it.length>5&&!confirm(P('إرسال تذكير لـ'+bnW(it.length)+'؟','Send reminders for '+it.length+' items?')))return;rmCall(it,false)}
 /* ====== إجراءات ====== */
 async function ctlRemind(tb,id){try{const r=await sb.rpc('remind_any',{tbl:tb,cid:id});if(r.error)throw r.error;toast(P('أُرسل التذكير','Reminder sent'))}catch(e){toast((e&&e.message)||String(e))}}
 async function ctlRemindTasks(pid,code){const p=PJ[code];if(!p||!p.A)return;const ids=Object.keys(p.A.owners);try{const r=await sb.rpc('remind_stale',{p_plans:[pid],p_users:ids});if(r.error){const m=String(r.error.message||'');return toast(/remind_stale|function/i.test(m)?P('ميزة التذكير غير مفعّلة بعد','Reminder feature is not enabled yet'):m)}toast(P('أُرسل التذكير إلى ','Reminder sent to ')+(r.data||0))}catch(e){toast(String((e&&e.message)||e))}}
@@ -482,7 +483,7 @@ let WKRES=null;
 
 async function apRemind(uid){const FLOW={'PMO Review':'reviewed','Awaiting Approval':'approved'},recs={charter:[CH,'charters'],plan:[PLN,'plans'],cr:[CRS,'change_requests'],closure:[CLR,'closure_reports']};const L=[];
  SGP.filter(s=>s.user_id==uid).forEach(s=>{const R=recs[s.svc];const r=R&&R[0].find(x=>x.id==s.cr_id);if(r&&!r.archived&&FLOW[r.status]==s.stage)L.push([R[1],r.id])});
- if(!L.length)return toast(P('لا شيء معلّق','Nothing pending'));if(!confirm(P('إرسال تذكير بـ'+L.length+' بنود معلّقة؟','Send reminders for '+L.length+' pending items?')))return;let n=0;
+ if(!L.length)return toast(P('لا شيء معلّق','Nothing pending'));if(!confirm(P('إرسال تذكير بـ'+bnW(L.length)+' معلّقة؟','Send reminders for '+L.length+' pending items?')))return;let n=0;
  for(const [tb,id] of L){try{const r=await sb.rpc('remind_any',{tbl:tb,cid:id});if(!r.error)n++}catch(_){}}toast(P('أُرسل ','Sent ')+n)}
 function vChk(){const bad=CHECKS.filter(c=>c.bad.length).length;
  const tr=k=>{const ds=Object.keys(CHK_H).sort().slice(-7);if(ds.length<2)return '';const v=ds.map(d=>(CHK_H[d]||{})[k]);const a=v[0],b=v[v.length-1];if(a==null||b==null)return '';return `<span class="mut" title="${ds.length}d">${b>a?'↗':b<a?'↘':'→'} ${a}→${b}</span>`};
@@ -701,7 +702,7 @@ function draw(){const a=$('app');if(!a||!LOADED)return;document.querySelectorAll
  document.querySelectorAll('#pvs .pvf').forEach(f=>f.style.display=cur&&f.id=='fr_'+cur.n?'block':'none');$('pvs').style.display=cur?'block':'none';document.body.classList.toggle('pgon',!!cur);
  if(ONLYC){const t0=a.querySelector('.tabs');if(t0)t0.style.display='none';const g0=a.querySelector('.cgrp');if(g0)g0.style.display='none';const h0=document.querySelector('.ttl,h1');if(h0&&window.self!==window.top)h0.style.display='none'}
  const tb=a.querySelector('.tabs');if(tb){tb.scrollLeft=TABSL;const on=tb.querySelector('.on');if(on){const r=on.getBoundingClientRect(),R=tb.getBoundingClientRect();if(r.left<R.left||r.right>R.right)on.scrollIntoView({inline:'center',block:'nearest'})}}}
-async function load(){try{if(window.IDOHALT&&sb)IDOHALT.load(sb,true).then(()=>{try{if(TAB=='flow')draw()}catch(_){}})}catch(_){}if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
+async function load(){try{if(window.IDOHALT&&sb)IDOHALT.load(sb,true).then(()=>{try{if(TAB=='flow')draw()}catch(_){}})}catch(_){}if(!sb)return (function(){var el=document.getElementById('app')||document.querySelector('main')||document.body;var ar=(document.documentElement.lang||'ar')!='en';el.innerHTML='<div class="card" style="text-align:center;padding:24px;max-width:560px;margin:24px auto">'+(ar?'تعذّر الاتصال بالخادم. تحقق من الشبكة ثم أعد المحاولة.':'Could not reach the server. Check your connection and retry.')+'<div style="margin-top:12px"><button class="p" onclick="location.reload()">'+(ar?'إعادة المحاولة':'Retry')+'</button></div></div>'})();const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
  let {data:p}=await sb.from('profiles').select('id,full_name,role').eq('id',session.user.id).single();p=await capAs(p,['adm.control']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  $('app').innerHTML='<div class="card mut" style="text-align:center">'+P('جارٍ جمع الصورة الكاملة…','Gathering the full picture…')+'</div>';
  const from=new Date(Date.now()-30*864e5).toISOString();
@@ -968,4 +969,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="halt.js?v=4"></script><script src="ovx.js?v=11"></script><script src="feat.js?v=3"></script><script src="revx.js?v=6"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=3"></script><script src="ido-ui.js?v=63"></script></body></html>
+<script src="halt.js?v=4"></script><script src="ovx.js?v=12"></script><script src="feat.js?v=3"></script><script src="revx.js?v=7"></script><script src="lockx.js?v=4"></script><script src="decx.js?v=4"></script><script src="ido-ui.js?v=64"></script></body></html>

@@ -1,5 +1,7 @@
 /* مراجعة الاحتساب: ما يُحسب على المشروع في المؤشرات، وقرار مكتب التطوير المؤسسي باستبعاده أو احتسابه — window.REV */
 (function(){
+function dW(n){n=+n;var a=Math.abs(n);return n+' '+(a==1?'يوم':a==2?'يومان':(a>=3&&a<=10)?'أيام':'يومًا')}
+function DW(n){return A()?(' '+dW(n)):(' '+n+' days')}
 var A=function(){return (document.documentElement.lang||'ar')!='en'},T=function(a,b){return A()?a:b};
 var e=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 function fd(d){if(!d)return '';var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(d));return m?(+m[3])+'/'+(+m[2])+'/'+m[1]:''}
@@ -44,14 +46,14 @@ function toast(m,bad){var t=document.createElement('div');t.textContent=m;t.styl
 function st(x){return x.dec=='excl'?'x':x.dec=='count'?'c':'p'}
 function stLbl(x){return x.dec=='excl'?T('مستبعد من الحساب','Excluded'):x.dec=='count'?T('يُحتسب','Counted'):x.req_at?T('طلب استبعاد بانتظار المكتب','Exclusion requested'):T('بانتظار مراجعة المكتب','Awaiting office review')}
 function detail(x){var i=x.info||{},k=x.kind;
- if(k=='scope_add')return T('أُضيفت بعد خط الأساس','Added after baseline')+(i.s?' · '+fd(i.s)+' ← '+fd(i.e):'')+(i.dur?' · '+i.dur+T(' يومًا',' days'):'');
- if(k=='scope_del')return T('كانت في خط الأساس وحُذفت','In the baseline, now removed')+(i.s?' · '+fd(i.s)+' ← '+fd(i.e):'')+(i.dur?' · '+i.dur+T(' يومًا',' days'):'');
- if(k=='scope_chg')return T('المدة ','Duration ')+i.db+' ← '+i.dc+T(' يومًا',' days')+(i.e0?' · '+T('النهاية ','end ')+fd(i.e0)+' ← '+fd(i.e):'');
+ if(k=='scope_add')return T('أُضيفت بعد خط الأساس','Added after baseline')+(i.s?' · '+fd(i.s)+' ← '+fd(i.e):'')+(i.dur?' · '+DW(i.dur):'');
+ if(k=='scope_del')return T('كانت في خط الأساس وحُذفت','In the baseline, now removed')+(i.s?' · '+fd(i.s)+' ← '+fd(i.e):'')+(i.dur?' · '+DW(i.dur):'');
+ if(k=='scope_chg')return T('المدة ','Duration ')+i.db+' ← '+DW(i.dc)+(i.e0?' · '+T('النهاية ','end ')+fd(i.e0)+' ← '+fd(i.e):'');
  if(k=='scope_ms')return T('موعده في خط الأساس ','Baseline due ')+fd(i.e)+' · '+T('الإنجاز ','progress ')+Math.round(+i.pc||0)+'%';
  if(k=='late')return T('الموعد ','Due ')+fd(i.e0||i.e)+(i.ne?' · '+T('الموعد المقترح ','Proposed ')+fd(i.ne):'')+(i.applied?' · '+T('مُدّد إلى ','Extended to ')+fd(i.applied):'');
  if(k=='q_ret')return T('أُعيد ','Returned ')+fd(i.dec_at)+(i.by?' · '+e(i.by):'')+(i.note?' · «'+e(i.note)+'»':'');
  if(k=='q_late')return T('اعتُمد ','Approved ')+fd(i.dec_at)+(i.due?' · '+T('موعده ','due ')+fd(i.due):'');
- if(k=='q_slow'||k=='q_wait')return T('رُفع ','Submitted ')+fd(i.at)+(i.dec_at?' · '+T('القرار ','decided ')+fd(i.dec_at):'')+(i.days!=null?' · '+i.days+T(' يومًا',' days'):'');
+ if(k=='q_slow'||k=='q_wait')return T('رُفع ','Submitted ')+fd(i.at)+(i.dec_at?' · '+T('القرار ','decided ')+fd(i.dec_at):'')+(i.days!=null?' · '+DW(i.days):'');
  if(k=='q_miss')return T('موعد المهمة ','Task due ')+fd(i.e);
  if(k=='kpi')return T('الفترة ','Period ')+e(i.period)+' · '+T('الفعلي ','actual ')+e(i.actual)+(i.target!=null?' / '+e(i.target):'');
  return ''}
@@ -66,7 +68,7 @@ function row(x,o){var s=st(x),i=x.info||{};var h='<div class="rvi '+s+'" data-id
  if(!o.office&&o.can){if(!x.dec&&!x.req_at)b.push('<button class="rq" data-a="req">'+T('طلب استبعاد','Request exclusion')+'</button>');else if(x.dec=='count')b.push('<button class="rq" data-a="req">'+T('طلب مراجعة مجددًا','Ask again')+'</button>')}
  b.push('<button data-a="hist">'+T('السجل','History')+'</button>');
  h+='<div class="rva">'+b.join('')+'</div>'+(S.hist[x.id]?'<ul class="rvhl">'+S.hist[x.id]+'</ul>':'')+'</div>';return h}
-function cand(k,c,o){return '<div class="rvi" data-ck="'+k+'" data-ref="'+e(c.ref)+'"><div class="rvt"><span style="font-size:18px">'+IC[k]+'</span><div class="n">'+e(c.n)+'<small>'+(k=='late'?T('موعدها ','Due ')+fd(c.e)+' · '+T('متأخرة ','late ')+c.days+T(' يومًا',' days')+' · '+T('الإنجاز ','progress ')+Math.round(+c.pc||0)+'%':k=='q_ret'?T('أُعيد ','Returned ')+fd(c.at)+(c.by?' · '+e(c.by):'')+(c.note?' · «'+e(c.note)+'»':''):k=='q_late'?T('اعتُمد ','Approved ')+fd(c.at)+' · '+T('موعده ','due ')+fd(c.due):k=='q_slow'?T('رُفع ','Submitted ')+fd(c.at)+' · '+T('القرار بعد ','decided after ')+c.days+T(' يومًا',' days'):k=='q_wait'?T('رُفع ','Submitted ')+fd(c.at)+' · '+T('ينتظر منذ ','waiting ')+c.days+T(' يومًا',' days'):T('موعد المهمة ','Task due ')+fd(c.e))+'</small></div></div><div class="rva">'+
+function cand(k,c,o){return '<div class="rvi" data-ck="'+k+'" data-ref="'+e(c.ref)+'"><div class="rvt"><span style="font-size:18px">'+IC[k]+'</span><div class="n">'+e(c.n)+'<small>'+(k=='late'?T('موعدها ','Due ')+fd(c.e)+' · '+T('متأخرة ','late ')+DW(c.days)+' · '+T('الإنجاز ','progress ')+Math.round(+c.pc||0)+'%':k=='q_ret'?T('أُعيد ','Returned ')+fd(c.at)+(c.by?' · '+e(c.by):'')+(c.note?' · «'+e(c.note)+'»':''):k=='q_late'?T('اعتُمد ','Approved ')+fd(c.at)+' · '+T('موعده ','due ')+fd(c.due):k=='q_slow'?T('رُفع ','Submitted ')+fd(c.at)+' · '+T('القرار بعد ','decided after ')+DW(c.days):k=='q_wait'?T('رُفع ','Submitted ')+fd(c.at)+' · '+T('ينتظر منذ ','waiting ')+DW(c.days):T('موعد المهمة ','Task due ')+fd(c.e))+'</small></div></div><div class="rva">'+
  (o.office?'<button class="ok" data-c="excl">'+(k=='late'?T('عذر التأخير وتمديد الموعد','Excuse and extend'):T('استبعاد من الحساب','Exclude'))+'</button>':'')+(!o.office&&o.can?'<button class="rq" data-c="req">'+(k=='late'?T('طلب عذر وتمديد','Request excuse'):T('طلب استبعاد','Request exclusion'))+'</button>':'')+'</div></div>'}
 async function rpc(n,a){var c=client();if(!c)throw new Error('no client');var r=await c.rpc(n,a);if(r.error)throw r.error;return r.data}
 function err(x){return String((x&&x.message)||x).replace(/^.*?:\s*(?=[؀-ۿ])/,'')}
@@ -82,14 +84,14 @@ async function request(kind,pc,ref,label,office,host){var late=kind=='late';var 
 async function hist(id,host){if(S.hist[id]){delete S.hist[id];host(true);return}try{var h=await rpc('rev_hist',{p_id:id});S.hist[id]=(h||[]).map(function(x){return '<li>'+fd(x.at)+' · '+e(x.by||'')+' · '+(x.act=='request'?T('طلب استبعاد','Request'):x.dec=='excl'?T('استبعاد','Excluded'):T('احتساب','Counted'))+(x.reason?' — «'+e(x.reason)+'»':'')+'</li>'}).join('')||'<li>'+T('لا يوجد','None')+'</li>';host(true)}catch(z){toast(err(z),true)}}
 /* ===== التفاصيل وأثر القرار ===== */
 var GN={ok:['ملتزم','On track'],wa:['يحتاج متابعة','Needs follow-up'],bad:['خارج الحد','Off track'],na:['لا بيانات','No data']};
-function band(s){return s==null?'na':s>=90?'ok':s>=75?'wa':'bad'}
+function band(s){return s==null?'na':s>=95?'ok':s>=80?'wa':'bad'}
 function n1(v){return v==null||v===''?'—':String(Math.round(+v*10)/10)}
 function dd(a,b){var x=a&&String(a).slice(0,10),y=b&&String(b).slice(0,10);if(!x||!y)return null;return Math.round((Date.parse(y)-Date.parse(x))/864e5)}
 function story(D){var i=D.info||{},t=D.task||{},b=D.base||{},k=D.kind,td=new Date().toISOString().slice(0,10),late=t.e&&t.e<td&&(+t.pc||0)<100?dd(t.e,td):0,nm='«'+e(D.label||t.n||'')+'»';
- if(k=='scope_ms')return T('المعلم '+nm+' كان مقررًا إنجازه في '+fd(i.e||b.e)+' حسب خط الأساس، ','Milestone '+nm+' was due on '+fd(i.e||b.e)+' in the baseline, ')+(t.e&&t.e!=(i.e||b.e)?T('وموعده الحالي في الخطة '+fd(t.e)+'، ','now planned for '+fd(t.e)+', '):'')+T('ونسبة إنجازه '+Math.round(+t.pc||+i.pc||0)+'٪','progress '+Math.round(+t.pc||+i.pc||0)+'%')+(late?T('، أي متأخر '+late+' يومًا.',', '+late+' days late.'):'.')+'<br>'+T('يدخل في مؤشر «إنجاز المعالم في موعدها» ضمن الالتزام بالنطاق.','It counts in “milestones delivered on time” within scope adherence.');
- if(k=='scope_add')return T('أُضيفت المهمة '+nm+' إلى الخطة بعد اعتماد خط الأساس','Task '+nm+' was added after the baseline')+(i.dur?T(' بمدة '+i.dur+' يومًا',' ('+i.dur+' days)'):'')+(i.by?T('، أضافها '+e(i.by),', by '+e(i.by)):'')+'. '+T('تُحسب تضخّمًا في النطاق وزيادة في الجهد.','It counts as scope creep and extra effort.');
+ if(k=='scope_ms')return T('المعلم '+nm+' كان مقررًا إنجازه في '+fd(i.e||b.e)+' حسب خط الأساس، ','Milestone '+nm+' was due on '+fd(i.e||b.e)+' in the baseline, ')+(t.e&&t.e!=(i.e||b.e)?T('وموعده الحالي في الخطة '+fd(t.e)+'، ','now planned for '+fd(t.e)+', '):'')+T('ونسبة إنجازه '+Math.round(+t.pc||+i.pc||0)+'٪','progress '+Math.round(+t.pc||+i.pc||0)+'%')+(late?T('، أي متأخر '+dW(late)+'.',', '+late+' days late.'):'.')+'<br>'+T('يدخل في مؤشر «إنجاز المعالم في موعدها» ضمن الالتزام بالنطاق.','It counts in “milestones delivered on time” within scope adherence.');
+ if(k=='scope_add')return T('أُضيفت المهمة '+nm+' إلى الخطة بعد اعتماد خط الأساس','Task '+nm+' was added after the baseline')+(i.dur?T(' بمدة '+dW(i.dur),' ('+i.dur+' days)'):'')+(i.by?T('، أضافها '+e(i.by),', by '+e(i.by)):'')+'. '+T('تُحسب تضخّمًا في النطاق وزيادة في الجهد.','It counts as scope creep and extra effort.');
  if(k=='scope_del')return T('كانت المهمة '+nm+' في خط الأساس وحُذفت من الخطة','Task '+nm+' was in the baseline and has been removed')+(i.by?T('، حذفها '+e(i.by),', by '+e(i.by)):'')+'. '+T('تُحسب نطاقًا محذوفًا.','It counts as removed scope.');
- if(k=='scope_chg')return T('تغيّرت مدة المهمة '+nm+' من '+i.db+' إلى '+i.dc+' يومًا','Duration of '+nm+' changed from '+i.db+' to '+i.dc+' days')+(i.e0?T(' (النهاية '+fd(i.e0)+' ← '+fd(i.e)+')',' (end '+fd(i.e0)+' → '+fd(i.e)+')'):'')+(i.by?T('، غيّرها '+e(i.by),', by '+e(i.by)):'')+'. '+T('يتجاوز التغيير 25٪ فيُحسب على ثبات النطاق ونمو الجهد.','Over 25%, so it affects scope stability and effort.');
+ if(k=='scope_chg')return T('تغيّرت مدة المهمة '+nm+' من '+i.db+' إلى '+dW(i.dc),'Duration of '+nm+' changed from '+i.db+' to '+i.dc+' days')+(i.e0?T(' (النهاية '+fd(i.e0)+' ← '+fd(i.e)+')',' (end '+fd(i.e0)+' → '+fd(i.e)+')'):'')+(i.by?T('، غيّرها '+e(i.by),', by '+e(i.by)):'')+'. '+T('يتجاوز التغيير 25٪ فيُحسب على ثبات النطاق ونمو الجهد.','Over 25%, so it affects scope stability and effort.');
  if(k=='late')return T('المهمة '+nm+' متأخرة عن موعدها '+fd(i.e0||i.e)+'. ','Task '+nm+' is late against '+fd(i.e0||i.e)+'. ')+(i.ne?T('الموعد المقترح: '+fd(i.ne)+'.','Proposed date: '+fd(i.ne)+'.'):'');
  return detail({kind:k,info:i})}
 function impact(D){var N=D.now||{},X=D.excl||{},L=[];['scope','qual'].forEach(function(g){var a=N[g],b=X[g];if(!a||!a.on)return;var ch=[];var K=a.keys||{};Object.keys(a.m||{}).forEach(function(k){var m0=a.m[k]||{},m1=(b&&b.m&&b.m[k])||{};if(n1(m0.s)!=n1(m1.s)||n1(m0.v)!=n1(m1.v))ch.push([K[k]||k,m0,m1])});
@@ -106,9 +108,9 @@ async function why(id,host,office,can){css();var w=document.createElement('div')
   (t.path&&t.path.length?'<dt>'+T('ضمن','Under')+'</dt><dd>'+e(t.path.join(' › '))+'</dd>':'')+
   '<dt>'+T('المكلّف','Assignee')+'</dt><dd>'+e(t.w||'—')+'</dd>'+
   (b?'<dt>'+T('في خط الأساس','In the baseline')+'</dt><dd>'+fd(b.s)+' ← '+fd(b.e)+'</dd>':'')+
-  '<dt>'+T('في الخطة الحالية','Current plan')+'</dt><dd>'+fd(t.s)+' ← '+fd(t.e)+(b&&b.e&&t.e&&b.e!=t.e?' <span class="rv-dn">('+(dd(b.e,t.e)>0?'+':'')+dd(b.e,t.e)+T(' يومًا',' d')+')</span>':'')+'</dd>'+
+  '<dt>'+T('في الخطة الحالية','Current plan')+'</dt><dd>'+fd(t.s)+' ← '+fd(t.e)+(b&&b.e&&t.e&&b.e!=t.e?' <span class="rv-dn">('+(dd(b.e,t.e)>0?'+':'')+DW(dd(b.e,t.e))+')</span>':'')+'</dd>'+
   (t.as||t.ae?'<dt>'+T('الفعلي','Actual')+'</dt><dd>'+(t.as?T('بدأت ','started ')+fd(t.as):'')+(t.ae?' · '+T('انتهت ','finished ')+fd(t.ae):'')+'</dd>':'')+
-  '<dt>'+T('الإنجاز','Progress')+'</dt><dd>'+Math.round(+t.pc||0)+'٪'+(late?' · <span class="rv-dn">'+T('متأخرة '+late+' يومًا','late '+late+' d')+'</span>':'')+'</dd>'+
+  '<dt>'+T('الإنجاز','Progress')+'</dt><dd>'+Math.round(+t.pc||0)+'٪'+(late?' · <span class="rv-dn">'+T('متأخرة '+dW(late),'late '+late+' d')+'</span>':'')+'</dd>'+
   (t.ms=='1'||t.ms===true?'<dt>'+T('النوع','Type')+'</dt><dd>🚩 '+T('معلم','Milestone')+'</dd>':'')+
   '</dl>'+(D.plan?'<div class="rva"><button type="button" data-op="plan">📋 '+T('فتح الخطة','Open the plan')+'</button><button type="button" data-op="pj">📁 '+T('ملف المشروع','Project file')+'</button></div>':'')+'</div>'}
  h+='<h5>'+T('أثر القرار على المؤشرات','Effect of the decision')+'</h5>';
