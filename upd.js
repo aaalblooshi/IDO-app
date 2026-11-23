@@ -29,7 +29,7 @@ function row(x,i){const s=SL[st(x)],via=x.via=='pm'?' · '+P(['لا مسؤول �
  return '<div class="upr"><span class="upi">'+KI[x.kind]+'</span><div class="upn"><b>'+E(title(x))+'</b><small>'+E(x.pname)+' · '+E(sub)+E(via)+'</small></div><span class="ups" style="color:'+s[2]+';background:'+s[3]+'">'+P(s)+(x.due?' · '+fdt(x.due):'')+'</span><div class="upb">'
   +(x.kind=='risk'?'<button class="upq" onclick="IDOUPD.same('+i+')" title="'+P(['لم يتغير شيء: تُسجَّل المراجعة ويُحدَّد موعد المراجعة القادمة','Nothing changed: logs the review and sets the next date'])+'">✔ '+P(['لم يتغير','No change'])+'</button>':'')
   +(x.kind=='appr'?'<button class="upgo" onclick="IDOUPD.appr('+i+')">'+P(['مراجعة واعتماد','Review & approve'])+'</button>':'<button class="upgo" onclick="IDOUPD.open('+i+')">'+P(['حدّث','Update'])+'</button>')+'</div></div>'}
-let OPEN=false;try{OPEN=localStorage.getItem('updOpen2')==='1'}catch(_){}
+let OPEN=false;try{OPEN=false/* مطوية دائمًا عند فتح الصفحة */}catch(_){}
 let UPO=false;
 function html(){const A=sorted();if(!A.length)return '';window.__UPL=A;const L=A.filter(x=>x.near!==false),U=A.filter(x=>x.near===false);
  const SP=sumParts(L),c=SP.c,parts=SP.parts,late=L.filter(x=>st(x)=='late').length;
