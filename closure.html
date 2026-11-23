@@ -543,7 +543,7 @@ const W=[
 ["f_rby", "Preparation", "الإعداد"],
 ["f_pstatus", "Project status", "حالة المشروع"],
 ["ps_completed", "Completed", "مكتمل"],
-["ps_cancelled", "Cancelled or stopped", "ملغى أو موقوف"],
+["ps_cancelled", "Cancelled or stopped", "ملغى أو متوقف"],
 ["badDates", "End date must be after the start date.", "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء."],
 ["f_summary", "Overall summary of the project achievement", "ملخص الإنجاز العام للمشروع"],
 ["f_outs", "State the outputs achieved by the project", "اذكر المخرجات المتحققة من المشروع"],
@@ -562,7 +562,7 @@ const W=[
 ["d_u", "How it can be used", "كيفية الاستفادة منه"],
 ["f_less", "Lessons learned from implementing the project (areas for future improvement)", "ما هي الدروس المستفادة من تنفيذ المشروع؟ (جوانب للتحسين في المستقبل)"],
 ["f_orgchg", "Does it require adding or amending the organizational structure, work procedures or any tasks and responsibilities?", "هل يتطلب إضافة أو تعديل في الهيكل التنظيمي أو إجراءات العمل أو أي مهام ومسؤوليات؟"],
-["cancelHint", "These questions apply only when the project status is “Cancelled or stopped”.", "تنطبق هذه الأسئلة فقط عندما تكون حالة المشروع «ملغى أو موقوف»."],
+["cancelHint", "These questions apply only when the project status is “Cancelled or stopped”.", "تنطبق هذه الأسئلة فقط عندما تكون حالة المشروع «ملغى أو متوقف»."],
 ["f_c_reason", "If the project is cancelled, state the reasons for the decision to cancel or stop the work", "في حال إلغاء المشروع، يرجى تحديد الأسباب التي أدت لقرار إلغاء أو وقف العمل بالمشروع"],
 ["f_c_fin", "If the project is cancelled, explain the financial obligations resulting from the decision", "في حال إلغاء المشروع، يرجى توضيح الالتزامات المالية المترتبة لقرار الإلغاء أو وقف العمل بالمشروع"],
 ["f_c_done", "If the project is cancelled, explain the work completed and the remaining work", "في حال إلغاء المشروع، يرجى توضيح الأعمال التي تم إنجازها والأعمال المتبقية"],
@@ -611,7 +611,7 @@ const defLists=()=>({
  goals:GA.map((a,i)=>['الهدف '+a,'Goal '+(i+1)]),
  ptype:[['strategic','استراتيجي','Strategic'],['operational','تشغيلي','Operational']],
  prio:[['Low','منخفضة','Low'],['Medium','متوسطة','Medium'],['High','عالية','High'],['Critical','حرجة','Critical']],
- pstat:[['completed','مكتمل','Completed'],['cancelled','ملغى أو موقوف','Cancelled or stopped']]});
+ pstat:[['completed','مكتمل','Completed'],['cancelled','ملغى أو متوقف','Cancelled or stopped']]});
 function applyLists(){let u={};try{u=JSON.parse(SET.opt_lists||'{}')||{}}catch(_){}
  if(!u.goals&&SET.opt_goals){try{const g=JSON.parse(SET.opt_goals);if(Array.isArray(g)&&g.length)u.goals=g}catch(_){}}
  const d=defLists();LST={};for(const k in d)LST[k]=Array.isArray(u[k])&&u[k].length?u[k]:d[k];
@@ -1738,7 +1738,7 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="docassign.js?v=1"></script><script src="hub.js?v=5"></script><script src="ido-ui.js?v=58"></script><script>/*archmode: the document archive loads a record here (hidden) and receives its export instead of a download*/(function(){try{
+<script src="docassign.js?v=1"></script><script src="hub.js?v=5"></script><script src="ido-ui.js?v=59"></script><script>/*archmode: the document archive loads a record here (hidden) and receives its export instead of a download*/(function(){try{
 if(!/[?&]arch=1/.test(location.search)||window.parent===window)return;window.ARCH=1;
 var id=+((location.search.match(/[?&]aid=(\d+)/)||[])[1]||0),sent=0;
 function post(o){if(sent)return;sent=1;try{window.parent.postMessage(Object.assign({t:'ido-arch',id:id,svc:'closure'},o),location.origin)}catch(e){}}

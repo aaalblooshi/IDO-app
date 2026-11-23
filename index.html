@@ -537,6 +537,8 @@ async function load0(){
     const why=AX.reason({svc:k,ftr:r.ftr,st:st,byMe:r.created_by==me.id,pmMe:pmMe,sigs:my,createdSigned:csg.has(r.id),office:of,behalf:of||edK(k,k=='charter'?r.code:(r.pcd||'')),consult:k=='plan'&&CX.ci.has(r.id),esc:CX.esc.has(k+'|'+r.id)&&AX.escOk(me),del:CX.del.has(k+'|'+r.id)&&AX.delOk(me)}),act=!!why;if(why=='consult')roles.add('pt');
     return {k,p:s.p,id:r.id,code:r.code,pc:k=='charter'?r.code:(r.pcd||''),name:r.pn||'',pmn:r.pmn||'',st,stage:stOf(k,st),act,why,roles,pmMe,owMe,crMe:r.created_by==me.id,own:mine||owMe||my.length>0||act,bh,at:r.stage_at||r.created_at}})}));
   E.items=res.flat();
+  /* خطط المشاريع: نسخة واحدة لكل مشروع (الأحدث أو التي تتطلب إجراءً)، بدل ظهور كل المراجعات والنسخ الملغاة */
+  try{const g={};E.items.forEach(x=>{if(x.k=='plan'&&x.pc)(g[x.pc]=g[x.pc]||[]).push(x)});const drop=new Set();Object.values(g).forEach(L=>{if(L.length<2)return;const keep=L.slice().sort((a,b)=>((b.act?1:0)-(a.act?1:0))||((a.st=='Cancelled'?1:0)-(b.st=='Cancelled'?1:0))||(b.id-a.id))[0];L.forEach(x=>{if(x!==keep&&!x.act)drop.add(x)})});if(drop.size)E.items=E.items.filter(x=>!drop.has(x))}catch(_){}
   try{const c=await pCons;if(!c.error)(c.data||[]).forEach(z=>{const it=E.items.find(x=>x.k=='plan'&&x.id==z.plan_id);if(it){it.own=true;it.cons=true;it.roles.add('pt')}})}catch(_){}
   try{const l=await pLinks;if(!l.error)(l.data||[]).forEach(z=>{const it=E.items.find(x=>x.k==z.svc&&x.id==z.id);if(it){it.own=true;it.roles.add(z.kind=='participant'?'pt':'fl')}})}catch(_){}
   /* المهام: ذكيًا من الخطط المعتمدة */
@@ -564,7 +566,7 @@ async function load0(){
    E.items=E.items.filter(i=>!(i.k=='tasks'&&i.id==z.pid&&i.tid==z.tid));
    E.items.push({k:'tasks',p:'tasks.html?unit=1',id:z.pid,tid:z.tid,tpath:[{n:z.n||'—',w:'🏢'}],tpn:z.pname||'',tw:z.w||'',ts:z.s||'',te:z.e||'',tas:'',tpc:pc,code:'',pc:z.pcode||'',name:'🏢 '+(z.n||'—')+' — '+(z.pname||'')+(z.w?'':' · '+P(['بانتظار تحديد المكلّف','awaiting assignee'])),st:'',stage:stg,act:!z.w,roles:new Set(['uh','tk']),own:false,oth:true,at:null,late:stg==4?td-e0:0,tdue:e0,tstart:s0,unit:true})})}}catch(_){}
   {const seen=new Set();E.items=E.items.filter(i=>{const k=i.k+'|'+i.id+'|'+(i.tid||'');if(seen.has(k))return false;seen.add(k);return true})}
-   /* المشاريع الموقوفة أو الملغاة: مهامها لا تظهر، وطلباتها مجمّدة بلا إجراء مطلوب (عدا التقرير الختامي) */
+   /* المشاريع المتوقفة أو الملغاة: مهامها لا تظهر، وطلباتها مجمّدة بلا إجراء مطلوب (عدا التقرير الختامي) */
    try{if(window.IDOHALT){await pHalt;E.items=E.items.filter(i=>!(i.k=='tasks'&&IDOHALT.frozen(i.pc)));E.items.forEach(i=>{if(i.k!='tasks'&&IDOHALT.blocks(i.pc,i.k)){i.halt=true;i.act=false;i.why=null}})}}catch(_){}
   if(!E.scope)E.scope=E.items.some(i=>i.oth)?'all':'mine';
   /* مدد مخصصة لكل طلب */
@@ -1348,4 +1350,4 @@ setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</scrip
   var st=function(y){y0=y;dy=0;bx.style.transition='none'},mv=function(y){if(y0==null)return;dy=Math.max(0,y-y0);bx.style.transform='translateY('+dy+'px)'},en=function(){if(y0==null)return;y0=null;if(dy>70)close();else{bx.style.transition='transform .15s';bx.style.transform=''}};
   tp.addEventListener('touchstart',function(e){st(e.touches[0].clientY)},{passive:true});tp.addEventListener('touchmove',function(e){mv(e.touches[0].clientY)},{passive:true});tp.addEventListener('touchend',en);
   bx.addEventListener('touchstart',function(e){if(bx.scrollTop<=0)st(e.touches[0].clientY)},{passive:true});bx.addEventListener('touchmove',function(e){if(y0!=null&&bx.scrollTop<=0)mv(e.touches[0].clientY)},{passive:true});bx.addEventListener('touchend',en);
-  var esc=function(e){if(e.key=='Escape'){close();document.removeEventListener('keydown',esc)}};document.addEventListener('keydown',esc)}})();</script><script src="ido-ui.js?v=58"></script></body></html>
+  var esc=function(e){if(e.key=='Escape'){close();document.removeEventListener('keydown',esc)}};document.addEventListener('keydown',esc)}})();</script><script src="ido-ui.js?v=59"></script></body></html>

@@ -35,17 +35,17 @@
   function close() { var o = document.getElementById('xlw'); if (o) o.remove(); }
   function busy(m) { box('<h3>⏳ ' + esc(m) + '</h3>'); }
   function fail(m) { box('<h3>⚠️ ' + T('تعذّر', 'Failed') + '</h3><p>' + esc(m) + '</p><div class="rw"><button onclick="IDOXL.close()">' + T('إغلاق', 'Close') + '</button></div>'); }
-  function errMsg(e) { var m = (e && (e.message || e.error_description)) || String(e); if (/feature off/.test(m)) return T('هذه الخاصية موقوفة من الإعدادات.', 'This feature is turned off in settings.'); if (/not allowed/.test(m)) return T('لا تملك الصلاحية.', 'Not allowed.'); return m; }
+  function errMsg(e) { var m = (e && (e.message || e.error_description)) || String(e); if (/feature off/.test(m)) return T('هذه الخاصية متوقفة من الإعدادات.', 'This feature is turned off in settings.'); if (/not allowed/.test(m)) return T('لا تملك الصلاحية.', 'Not allowed.'); return m; }
 
   /* ---------- التنزيل ---------- */
   async function download(pcode) {
     await cfg(); var M = await me(); if (!M) return fail(T('سجّل الدخول أولًا.', 'Sign in first.'));
-    if (pcode ? !on('projtasks') : !on('mytasks')) return fail(T('هذه الخاصية موقوفة من الإعدادات.', 'This feature is turned off in settings.'));
+    if (pcode ? !on('projtasks') : !on('mytasks')) return fail(T('هذه الخاصية متوقفة من الإعدادات.', 'This feature is turned off in settings.'));
     busy(T('جارٍ تجهيز الملف…', 'Preparing the file…'));
     var r = await SB().rpc('xl_tasks', { p_pcode: pcode || null });
     if (r.error) return fail(errMsg(r.error));
     var rows = r.data || [];
-    if (!rows.length) return fail(pcode ? T('لا توجد مهام في خطة معتمدة لهذا المشروع، أو أن المشروع موقوف.', 'No tasks in an approved plan for this project.') : T('لا توجد مهام مسندة إليك في خطط معتمدة.', 'No tasks assigned to you in approved plans.'));
+    if (!rows.length) return fail(pcode ? T('لا توجد مهام في خطة معتمدة لهذا المشروع، أو أن المشروع متوقف.', 'No tasks in an approved plan for this project.') : T('لا توجد مهام مسندة إليك في خطط معتمدة.', 'No tasks assigned to you in approved plans.'));
     var kind = pcode ? 'project' : 'mytasks', stamp = new Date().toISOString(), fn = (pcode ? T('متابعة-خطة-', 'plan-followup-') + pcode : T('تحديث-مهامي', 'my-tasks-update')) + '-' + today() + '.xlsx';
     try { await loadExcelJS(); await buildExcelJS(rows, kind, pcode, M, stamp, fn); close(); done(T('تم تنزيل الملف', 'File downloaded'), T('عدّل الأعمدة المعلّمة ✏️ فقط، ثم ارفع الملف من «رفع ملف التحديث». صلاحية الملف ', 'Edit the ✏️ columns only, then upload it. The file is valid for ') + CFG.maxage + T(' أيام.', ' days.')); }
     catch (e) {
@@ -205,7 +205,7 @@
   /* ---------- التحديث السريع ---------- */
   var Q = null;
   async function quick(onDone) {
-    await cfg(); if (!on('quick')) return fail(T('هذه الخاصية موقوفة من الإعدادات.', 'This feature is turned off in settings.'));
+    await cfg(); if (!on('quick')) return fail(T('هذه الخاصية متوقفة من الإعدادات.', 'This feature is turned off in settings.'));
     busy(T('جارٍ تحميل مهامك…', 'Loading your tasks…'));
     var r = await SB().rpc('xl_tasks', { p_pcode: null }); if (r.error) return fail(errMsg(r.error));
     Q = { rows: (r.data || []).filter(function (x) { return x.can && x.pc < 100; }), ch: {}, onDone: onDone };

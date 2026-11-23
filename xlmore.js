@@ -70,7 +70,7 @@
   function idx(aoa) { var o = {}; (aoa && aoa[0] || []).forEach(function (k, i) { o[String(k == null ? '' : k).trim()] = i; }); return o; }
   function num(v) { if (v == null || String(v).trim() === '') return null; var s = String(v).replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }).replace(/[,٬\s]/g, '').replace('٫', '.'); var n = Number(s); return isFinite(n) ? n : NaN; }
   function txt(v) { return H().cellText(v).trim(); }
-  async function gate(k) { var h = H(); var c = await h.cfg(); window.__xlMax = +c.maxage || 7; if (c[k] === false) { h.fail(h.T('هذه الخاصية موقوفة من الإعدادات.', 'This feature is turned off in settings.')); return null; } var M = await h.me(); if (!M) { h.fail(h.T('سجّل الدخول أولًا.', 'Sign in first.')); return null; } return M; }
+  async function gate(k) { var h = H(); var c = await h.cfg(); window.__xlMax = +c.maxage || 7; if (c[k] === false) { h.fail(h.T('هذه الخاصية متوقفة من الإعدادات.', 'This feature is turned off in settings.')); return null; } var M = await h.me(); if (!M) { h.fail(h.T('سجّل الدخول أولًا.', 'Sign in first.')); return null; } return M; }
 
   /* =====================================================================
      1) الملف الشامل للمشروع: المهام + قراءات المؤشرات + المخاطر

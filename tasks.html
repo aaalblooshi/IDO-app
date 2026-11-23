@@ -232,7 +232,7 @@ async function reload(){try{pcrMine(true)}catch(_){}try{uibLoad().then(()=>{if((
   if(Object.keys(TACC).length){try{const mp=await sb.rpc('my_plans');(mp.data||[]).forEach(p=>{const k=p.pcode||p.code;if(TACC[k]&&(!best[k]||p.id>best[k].id))best[k]={id:p.id,code:p.code,status:'Approved',created_by:p.created_by,pn:p.pname,sc:p.sector,pt:p.ptype,pm:p.pm,pc:p.pcode,wm:p.wmode,tasks:p.tasks}})}catch(_){}}
   rows=Object.values(best).map(p=>({id:p.id,code:p.code,pcode:p.pc||p.code,pname:(((p.tasks||[]).some(x=>x&&x.spr))?'🔄 ':'')+(p.pn||''),sc:p.sc,pt:p.pt,wm:p.wm,pm:p.pm,cb:p.created_by,tasks:p.tasks||[]}))}
  try{const {data}=await sb.from('closure_reports').select('id,status,archived,pc:data->>pcode');CLS={};(data||[]).filter(c=>!c.archived).forEach(c=>{if(c.pc&&(!CLS[c.pc]||c.id>CLS[c.pc].id))CLS[c.pc]=c})}catch(_){CLS={}}
- /* مهام المشاريع الموقوفة أو الملغاة لا تظهر */
+ /* مهام المشاريع المتوقفة أو الملغاة لا تظهر */
  try{if(window.IDOHALT){await IDOHALT.load(sb,true);const nh=rows.length;rows=rows.filter(p=>!IDOHALT.frozen(p.pcode||p.pc||p.code||''));window.HALTN=nh-rows.length}}catch(_){}
  PR=rows.map(mkProject).sort((a,b)=>a.pname.localeCompare(b.pname,'ar'));
  ALLR=[];PR.forEach(p=>p.rs.forEach(r=>ALLR.push(r)));
@@ -1226,4 +1226,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=3"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=58"></script></body></html>
+<script src="netdiag.js?v=6"></script><script src="bkd.js?v=1"></script><script src="xlupd.js?v=3"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=59"></script></body></html>

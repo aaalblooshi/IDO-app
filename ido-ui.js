@@ -659,7 +659,7 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
  var cur=(location.pathname.split('/').pop()||'index.html');
  var SKIP=/^(index\.html|\.\/?|)$/;
  function css(){if(document.getElementById('ipcss'))return;var s=document.createElement('style');s.id='ipcss';s.textContent=
-  '#ipnl{position:fixed;inset:0;z-index:95;background:rgba(20,30,40,.45);display:flex;justify-content:flex-start}'+
+  '#ipnl{position:fixed;inset:0;z-index:2147483100;background:rgba(20,30,40,.45);display:flex;justify-content:flex-start}'+
   '#ipnl .ipb{background:#f4f2ec;width:min(1180px,96vw);height:100%;display:flex;flex-direction:column;box-shadow:0 0 60px rgba(0,0,0,.25);animation:ipin .18s ease}'+
   '@keyframes ipin{from{transform:translateX(-30px);opacity:.6}to{transform:none;opacity:1}}'+
   '#ipnl .iph{display:flex;align-items:center;gap:8px;padding:10px 14px;background:#fff;border-bottom:1px solid #e4dfd4;padding-top:calc(10px + env(safe-area-inset-top,0px))}'+

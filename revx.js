@@ -3,7 +3,7 @@
 var A=function(){return (document.documentElement.lang||'ar')!='en'},T=function(a,b){return A()?a:b};
 var e=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
 function fd(d){if(!d)return '';var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(d));return m?(+m[3])+'/'+(+m[2])+'/'+m[1]:''}
-function client(){return window.sb||null}
+function client(){try{return window.sb||(typeof sb!=='undefined'?sb:null)}catch(_){return window.sb||null}}
 var KN={scope_add:['مهمة مضافة بعد خط الأساس','Task added after baseline'],scope_del:['مهمة محذوفة من خط الأساس','Task removed from baseline'],scope_chg:['تغيّر كبير في المدة','Large duration change'],scope_ms:['معلم متأخر عن خط الأساس','Baseline milestone late'],late:['تأخير مهمة','Task delay'],q_ret:['مخرَج أُعيد للتعديل','Deliverable returned'],q_miss:['مهمة مستحقة بلا مخرَج معتمد','Due task without approved deliverable'],q_late:['مخرَج اعتُمد بعد موعده','Deliverable approved late'],kpi:['قراءة مؤشر','KPI reading'],q_slow:['مخرَج تأخر اعتماده','Slow approval'],q_wait:['مخرَج معلّق أكثر من 7 أيام','Pending over 7 days']};
 var IC={scope_add:'➕',scope_del:'➖',scope_chg:'↔️',scope_ms:'🚩',late:'⏰',q_ret:'↩️',q_miss:'📭',q_late:'🐢',kpi:'📈',q_slow:'⏳',q_wait:'📥'};
 var S={pc:null,d:null,f:'pend',q:null,qf:'',hist:{}};
