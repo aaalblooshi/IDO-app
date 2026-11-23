@@ -121,8 +121,8 @@ function progOpen(it){var g=it.g;var o=ov('📊 '+T('اعتماد نسبة إن�
 function fuOpen(it){var z=it.z,v=function(x){return x==null?'—':typeof x=='object'?e(JSON.stringify(x)):e(x)};
  ov('⏳ '+T('طلبك لدى المكتب','Your request'),it.pj,'<div class="nd-pc">'+dl([[T('الطلب','Request'),e(it.t)],[T('المشروع','Project'),e(it.pj)],[T('أُرسل','Sent'),e(fd(z.at))],z.src=='lock'?[T('القيمة الحالية','Current value'),v(z.old_v)]:['',''],z.src=='lock'?[T('القيمة المطلوبة','Requested value'),v(z.new_v)]:['',''],[T('الحالة','Status'),e(it.sub.split(' · ').slice(1).join(' · '))]])+'<div style="color:#6b6f76;font-size:13px">'+T('يصلك إشعار عند قرار المكتب، ويبقى الطلب هنا للمتابعة.','You are notified when the office decides.')+'</div></div>','<a href="myprojects.html?pc='+encodeURIComponent(it.pc)+'">'+T('ملف المشروع','Project file')+'</a>')}
 var LD={};function need(src,v){if(LD[src])return LD[src];LD[src]=new Promise(function(ok){if(document.querySelector('script[src^="'+src+'"]'))return ok();var s=document.createElement('script');s.src=src+'?v='+v;s.onload=ok;s.onerror=ok;document.head.appendChild(s)});return LD[src]}
-async function revWhy(id){await need('revx.js',5);if(window.REV&&REV.why)REV.why(id,function(){refresh()},true,true);else decOpen('rev')}
-async function decOpen(k){await need('revx.js',5);await need('lockx.js',3);await need('decx.js',2);if(window.DEC){DEC.open(k);var t=setInterval(function(){if(!document.getElementById('decov')){clearInterval(t);refresh()}},800)}else alert(T('تعذّر فتح قرارات المكتب','Could not open office decisions'))}
+async function revWhy(id){await need('revx.js',6);if(window.REV&&REV.why)REV.why(id,function(){refresh()},true,true);else decOpen('rev')}
+async function decOpen(k){await need('revx.js',6);await need('lockx.js',3);await need('decx.js',2);if(window.DEC){DEC.open(k);var t=setInterval(function(){if(!document.getElementById('decov')){clearInterval(t);refresh()}},800)}else alert(T('تعذّر فتح قرارات المكتب','Could not open office decisions'))}
 
 /* ---------- التحميل ---------- */
 var RT=null;async function refresh(){if(S.busy)return;S.busy=true;try{await gather()}catch(x){console.error(x)}S.busy=false;paint()}

@@ -1321,7 +1321,7 @@ var d0=window.draw;if(typeof d0=='function'){window.draw=function(){d0.apply(thi
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="jmap.js?v=8"></script><script src="needx.js?v=2"></script><script>/*moresheet*/(function(){
+<script src="jmap.js?v=8"></script><script src="needx.js?v=3"></script><script>/*moresheet*/(function(){
  function ls(k){try{return localStorage.getItem(k)}catch(e){return null}}
  window.moreSheet=function(){var ex=document.getElementById('msw');if(ex){ex.remove();return}var ar=(typeof lang!='undefined'?lang:(ls('lang')||'ar'))=='ar',T=function(a,e){return ar?a:e};
   var adm=ls('hdrRole')==='admin',head=ls('hdrHead')==='1',perf=ls('hdrPerf')==='1',caps=[];try{caps=JSON.parse(ls('hdrCaps')||'[]')||[]}catch(e){}
