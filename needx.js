@@ -16,7 +16,7 @@ function markDone(it,how){if(!it)return;DONE=DONE.filter(function(d){return d.ke
 var OPENED={};
 
 function css(){if(document.getElementById('needcss'))return;var s=document.createElement('style');s.id='needcss';s.textContent=
- '#updhome{display:none!important}'+
+ '#updhome,#needw{display:none!important}'+
  '.nd{background:#fff;border:1px solid #e6dcc4;border-inline-start:5px solid #BF9849;border-radius:18px;padding:12px 14px 10px;margin:0 0 14px;box-sizing:border-box}'+
  '.nd-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.nd-h>b{font-size:17px;color:#14324a}.nd-sum{color:#5b6470;font-size:13px;flex:1;min-width:160px}'+
  '.nd-t{display:inline-flex;gap:4px;flex-wrap:wrap}.nd-t button{font:inherit;font-size:13px;font-weight:700;border:1px solid #ddd5c3;background:#fff;border-radius:99px;padding:5px 12px;cursor:pointer;color:#33383e}.nd-t button.on{background:#14324a;border-color:#14324a;color:#fff}.nd-t i{font-style:normal;opacity:.8;margin-inline-start:3px}'+
@@ -85,7 +85,7 @@ function html(){var L=S.tab=='fu'?S.F:S.L,lim=window.innerWidth>=900?8:4,late=S.
  if(L.length>lim)h+='<button type="button" class="nd-more" data-nall>'+(S.all?T('عرض أقل','Show less'):T('عرض الكل (','Show all (')+L.length+')')+'</button>';return h}
 function host(){var m=document.getElementById('cmmain');if(!m||!m.parentNode)return null;var w=document.getElementById('needw');if(!w){w=document.createElement('section');w.id='needw';w.className='nd';w.setAttribute('aria-label',T('مطلوب منك','Needs you'))}
  if(w.nextSibling!==m)m.parentNode.insertBefore(w,m);var vis=getComputedStyle(m).display!='none'&&!m.hidden,dv=vis?'':'none';if(w.style.display!==dv)w.style.display=dv;return w}
-function paint(){var w=host();if(!w)return;var h=html();if(w.__h!==h){w.innerHTML=h;w.__h=h}}
+function paint(){return;var w=host();if(!w)return;var h=html();if(w.__h!==h){w.innerHTML=h;w.__h=h}}
 document.addEventListener('click',function(ev){var t=ev.target;if(!t.closest)return;var w=t.closest('#needw');if(!w)return;
  var b=t.closest('[data-nt]');if(b){S.tab=b.dataset.nt;S.all=false;paint();return}
  if(t.closest('[data-nall]')){S.all=!S.all;paint();return}
@@ -127,12 +127,12 @@ async function decOpen(k){await need('revx.js',6);await need('lockx.js',4);await
 
 /* عمود «المخرجات والطلبات» في رحلتي */
 function colItems(){var td=today(),R=[];
- S.L.filter(function(it){return it.kind=='dap'}).forEach(function(it){var d=it.d;R.push({key:it.key,state:'act',late:it.late,ic:'📎',t:it.t,pj:it.pj,pc:it.pc,tag:T('✅ بانتظار اعتمادك','✅ Awaiting your approval'),sub:T('مخرَج من ','Deliverable from ')+(d.by||''),run:function(){dapOpen(it)}})});
- S.DM.forEach(function(v){var st=v.st=='returned'?'act':v.st=='approved'?'done':'wait',w=v.at?td-dn(v.at):0;
-  R.push({key:'dm|'+v.id,state:st,late:st=='act'||(st=='wait'&&w>=5),ic:'📎',t:v.dl||v.n||v.file||'—',pj:v.pname||v.pcode,pc:v.pcode,
-   tag:st=='act'?T('↩ أُعيد إليك للتعديل','↩ Returned to you'):st=='wait'?T('⏳ عند ','⏳ With ')+(v.appr||'')+(w>0?T(' منذ ',' for ')+DY(w):''):T('✅ اعتمده ','✅ Approved by ')+(v.dec_name||''),
-   sub:T('مخرَج: ','Deliverable: ')+(v.dl?v.n:T('مهمة','task')),v:v,run:function(it){if(st=='act')dretOpen({pid:v.pid,tid:v.tid,pj:it.pj,t:it.t,v:{file:v.file,ver:v.ver,decided_name:v.dec_name,dec_note:v.dec_note}});else dlvOpen(it)}})});
- S.F.forEach(function(it){R.push({key:it.key,state:it.pend?'wait':'done',late:false,ic:'🏢',t:it.t,pj:it.pj,pc:it.pc,tag:it.pend?T('⏳ عند مكتب التطوير المؤسسي','⏳ With the office'):(it.z.status=='approved'||it.z.status=='excl'?T('✅ وافق المكتب','✅ Approved'):T('✖ لم يوافق المكتب','✖ Not approved')),sub:it.sub.split(' · ')[0],run:function(){fuOpen(it)}})});
+ S.L.forEach(function(it){var dt=dueTxt(it);R.push({key:it.key,state:'act',late:!!it.late,ic:it.ic,kl:it.kl,t:it.t,pj:it.pj,pc:it.pc,tag:(it.late?'⏱ ':'')+(dt||it.go),sub:it.kl+(it.sub?' · '+it.sub:''),go:it.go,run:function(){OPENED[it.key]=1;it.run(it)}})});
+ S.DM.forEach(function(v){if(v.st=='returned')return;var st=v.st=='approved'?'done':'wait',w=v.at?td-dn(v.at):0;
+  R.push({key:'dm|'+v.id,state:st,late:st=='wait'&&w>=5,ic:'📎',kl:T('مخرَج رفعته','Your deliverable'),t:v.dl||v.n||v.file||'—',pj:v.pname||v.pcode,pc:v.pcode,
+   tag:st=='wait'?T('⏳ عند ','⏳ With ')+(v.appr||'')+(w>0?T(' منذ ',' for ')+DY(w):''):T('✅ اعتمده ','✅ Approved by ')+(v.dec_name||''),
+   sub:T('مخرَج رفعته','Your deliverable')+(v.dl?' · '+v.n:''),v:v,run:function(it){dlvOpen(it)}})});
+ S.F.forEach(function(it){R.push({key:it.key,state:it.pend?'wait':'done',late:false,ic:'🏢',kl:T('طلبك لدى المكتب','Your office request'),t:it.t,pj:it.pj,pc:it.pc,tag:it.pend?T('⏳ عند مكتب التطوير المؤسسي','⏳ With the office'):(it.z.status=='approved'||it.z.status=='excl'?T('✅ وافق المكتب','✅ Approved'):T('✖ لم يوافق المكتب','✖ Not approved')),sub:it.sub.split(' · ')[0],run:function(){fuOpen(it)}})});
  return R}
 function dlvOpen(it){var v=it.v;ov('📎 '+T('مخرَج رفعته','Your deliverable'),it.pj,'<div class="nd-pc">'+dl([[T('المخرَج','Deliverable'),e(v.dl||'—')],[T('المهمة','Task'),e(v.n)],[T('المشروع','Project'),e(it.pj)],[T('الملف','File'),e(v.file||'')],[T('الإصدار','Version'),e(v.ver||'1')],[T('رُفع','Uploaded'),e(fd(v.at))],[T('المعتمِد','Approver'),e(v.appr||'')],[T('الحالة','Status'),e(it.tag)]])+(v.dec_note?'<div style="background:#faf8f3;border-radius:10px;padding:8px 10px">'+T('ملاحظة المعتمِد: ','Approver note: ')+e(v.dec_note)+'</div>':'')+'</div>',
   '<a href="tasks.html#t='+encodeURIComponent(v.pid+'|'+v.tid)+'">'+T('فتح المهمة','Open the task')+'</a>')}
