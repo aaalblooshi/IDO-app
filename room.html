@@ -19,6 +19,16 @@
 .stg .av{font-size:11.5px;color:#8a8f96}.stg .d{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:5px}.stg .d i{width:8px;height:11px;border-radius:2px}.stg .d em{font-style:normal;font-size:11px;color:#8a8f96}
 .dflt{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 12px;background:#eaf1f8;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1;font-size:13px}
 @media(max-width:700px){.stg{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stg button+button::before{display:none}}
+.glx{position:relative;border-radius:16px;overflow:hidden;background:#0b1424;touch-action:none}
+.glx canvas{display:block;width:100%;cursor:grab}
+.glx-tb{position:absolute;top:10px;inset-inline-start:10px;display:flex;gap:6px;flex-wrap:wrap;z-index:2}
+.glx-tb button,.glx-cap button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid rgba(255,255,255,.28);background:rgba(15,28,48,.75);color:#fff;border-radius:99px;padding:6px 12px;cursor:pointer;backdrop-filter:blur(4px)}
+.glx-tb button:hover,.glx-cap button:hover{background:rgba(191,152,73,.85)}
+.glx-cap{position:absolute;bottom:12px;inset-inline-start:12px;max-width:min(420px,calc(100% - 24px));background:rgba(10,20,36,.88);color:#fff;border:1px solid rgba(191,152,73,.6);border-radius:14px;padding:10px 12px;z-index:2;line-height:1.6}
+.glx-cap small{display:block;color:#e6d6aa;font-size:12px}.glx-cap b{display:block;font-size:16px}.glx-cap span{display:block;font-size:13px;color:#d4dde8}.glx-cap div{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.glx-help{position:absolute;top:52px;inset-inline-start:10px;max-width:min(430px,calc(100% - 20px));background:rgba(255,255,255,.97);color:#1b1d1f;border-radius:14px;padding:10px 14px;z-index:3;font-size:13px;line-height:1.8;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.glx-help ul{margin:4px 0 0;padding-inline-start:18px}
+@media(max-width:640px){.glx-tb button{font-size:11.5px;padding:5px 9px}}
 </style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
@@ -350,7 +360,7 @@ main.wrap{max-width:1440px;padding-top:0}
 <!-- ============ MAP ============ -->
 <section class="view" id="v-map" role="tabpanel">
  <div class="wall">
-  <div class="cd s12"><div class="ch"><h2>خريطة المحفظة</h2><span class="tg">سبعة عروض للمحفظة نفسها · اضغط أي مشروع لفتحه</span></div>
+  <div class="cd s12"><div class="ch"><h2>خريطة المحفظة</h2><span class="tg">ثمانية عروض للمحفظة نفسها · اضغط أي مشروع لفتحه</span></div>
    <div class="cb" style="padding-bottom:6px"><div class="vsw" id="vsw"></div></div>
    <div class="cb" style="padding-top:4px"><div id="mapBox"><div id="mapSvg"></div><div class="mtip" id="mtip"></div></div><div id="mapLeg" class="chips" style="margin-top:8px;font-size:12px;color:var(--mut)"></div><div id="mapIns"></div></div></div>
  </div>
@@ -751,10 +761,84 @@ function drawBrief(){const bad=PJ.filter(p=>p.status=='bad').sort((a,b)=>(a.h??0
 window.copyBrief=()=>{try{navigator.clipboard.writeText(briefText()).then(()=>toast('نُسخ الموجز'),()=>toast('تعذّر النسخ'))}catch(_){toast('تعذّر النسخ')}};
 
 /* ===================== MAP ===================== */
-const VIEWS=[['radar','الرادار','القرب من المركز = الأحرج'],['matrix','مصفوفة الأداء','الإنجاز مقابل المؤشرات'],['tree','الخريطة','الحجم والأداء معًا'],['road','المواعيد','متى ينتهي كل مشروع: المخطط والمتوقع'],['net','شبكة الاعتماديات','من يعطّل من'],['flow','التدفق','القطاعات إلى الحالات'],['heat','المصفوفة','القطاع × المحور']];
+const VIEWS=[['galaxy','المجرّة ✦','ثلاثي الأبعاد: القرب من النواة = الأفضل'],['radar','الرادار','القرب من المركز = الأحرج'],['matrix','مصفوفة الأداء','الإنجاز مقابل المؤشرات'],['tree','الخريطة','الحجم والأداء معًا'],['road','المواعيد','متى ينتهي كل مشروع: المخطط والمتوقع'],['net','شبكة الاعتماديات','من يعطّل من'],['flow','التدفق','القطاعات إلى الحالات'],['heat','المصفوفة','القطاع × المحور']];
 window.setView=v=>{S.view=v;if(S.tab!='map')go('map');else drawMap()};
-function drawMap(){$('vsw').innerHTML=VIEWS.map(([k,n,d])=>`<button class="vb${S.view==k?' on':''}" type="button" onclick="setView('${k}')"><b>${n}</b><small>${d}</small></button>`).join('');
- const r={radar:vRadar,matrix:vMatrix,tree:vTree,road:vRoad,net:vNet,flow:vFlow,heat:vHeat}[S.view]();$('mapSvg').innerHTML=r.svg;$('mapLeg').innerHTML=r.leg||stLeg();$('mapIns').innerHTML=r.ins?`<div class="insight"><i>💡</i><span>${r.ins}</span></div>`:'';bindHits()}
+/* ===== المجرّة: عرض ثلاثي الأبعاد تفاعلي للمحفظة (Canvas بدون مكتبات) ===== */
+const GX={raf:0,yaw:-.6,pitch:.42,zoom:1.2,auto:true,drag:null,pts:[],tour:null,t0:0,hover:null};
+function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null),ns=Math.max(1,SEC.length);
+ return run.map(p=>{const si=Math.max(0,SEC.findIndex(s=>s.id==p.sec)),k=p.c&&p.c.k!=null?p.c.k:null,rad=Math.max(4,Math.min(100,100-p.ps)),
+  ang=(si/ns)*Math.PI*2+((hashS(p.pc)%100)/100-.5)*(Math.PI*2/ns)*.7+rad/100*1.1,y=k==null?0:(k-75)*1.1,
+  pend=AL.filter(a=>a.pc==p.pc&&(a.cat=='lock'||a.cat=='rev'||a.cat=='appr')).length;
+  return {p,x:Math.cos(ang)*rad*1.6,z:Math.sin(ang)*rad*1.6,y,r:3+Math.min(6,Math.sqrt(p.size||6)*.75),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info}})}
+function hashS(s){let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;return h}
+function vGalaxy(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null).length,oth=PJ.length-run;
+ return {svg:`<div class="glx" id="glx"><canvas id="glxC" aria-label="مجرّة المحفظة: عرض ثلاثي الأبعاد للمشاريع الجارية"></canvas>
+  <div class="glx-tb"><button type="button" id="glxTour">▶ جولة الاجتماع</button><button type="button" id="glxRot">⏸ إيقاف الدوران</button><button type="button" id="glxRst">↺ إعادة الضبط</button><button type="button" id="glxHelp">ⓘ كيف أقرأها؟</button></div>
+  <div class="glx-cap" id="glxCap" hidden></div><div class="glx-help" id="glxH" hidden><b>كيف تُقرأ المجرّة؟</b><ul>
+  <li><b>النواة الذهبية</b> = المشروع المثالي. كلما <b>اقترب</b> المشروع منها كان الإنجاز أقرب للمتوقع.</li>
+  <li><b>البعد عن النواة</b> = مقدار التأخر في الإنجاز عن المتوقع (كل حلقة 25 نقطة).</li>
+  <li><b>الارتفاع</b>: النجوم <b>فوق</b> القرص مؤشراتها جيدة، و<b>تحته</b> مؤشراتها متعثرة. الخط الرأسي يوضح المسافة.</li>
+  <li><b>الأذرع</b> = القطاعات، و<b>حجم النجمة</b> = حجم المشروع (عدد المهام)، و<b>لونها</b> = حالته.</li>
+  <li><b>حلقة حمراء</b> = مخاطر عالية، و<b>حلقة بيضاء متقطعة تدور</b> = قرار معلّق عند المكتب.</li>
+  <li>اسحب للتدوير، ومرّر أو اقرص للتكبير، واضغط أي نجمة لفتح المشروع.</li></ul></div></div>`,
+  leg:stLeg()+`<span>· ${run} مشروعًا جاريًا في المجرّة${oth?` · ${oth} خارجها (قيد الإعداد أو منجزة أو متوقفة)`:''}</span>`,
+  ins:glxIns()}}
+function glxIns(){const D=glxData();if(!D.length)return 'لا توجد مشاريع جارية بخطة معتمدة لعرضها.';const far=D.slice().sort((a,b)=>(b.x*b.x+b.z*b.z)-(a.x*a.x+a.z*a.z))[0],low=D.filter(d=>d.k!=null&&d.k<60).length,pend=D.filter(d=>d.pend).length;
+ return `أبعد مشروع عن النواة «${esc(far.p.n)}» (الإنجاز ${far.p.act??'—'}٪ من ${far.p.exp??'—'}٪ المتوقع)${low?` · ${low} تحت القرص بمؤشرات متعثرة`:''}${pend?` · ${pend} بقرارات معلّقة عند المكتب`:''}.`}
+function glxStop(){cancelAnimationFrame(GX.raf);GX.raf=0;GX.tour=null}
+function glxStart(){const cv=$('glxC');if(!cv)return;GX.pts=glxData();GX.pts.slice().sort((a,b)=>(a.p.ps-b.p.ps)||(b.pend-a.pend)).slice(0,4).forEach(d=>d.lab=1);const box=$('glx');
+ const fit=()=>{const w=box.clientWidth,h=Math.max(w<640?460:360,Math.min(620,Math.round(w*.62))),dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';GX.dp=dp;GX.w=w;GX.h=h};fit();
+ if(!GX.ro){GX.ro=new ResizeObserver(()=>{if($('glxC'))fit()});}GX.ro.disconnect();GX.ro.observe(box);
+ const pos=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
+ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);GX.drag={x:e.clientX,y:e.clientY,yaw:GX.yaw,pitch:GX.pitch,mv:0};GX.tour=null;$('glxCap').hidden=true};
+ cv.onpointermove=e=>{if(GX.drag){const dx=e.clientX-GX.drag.x,dy=e.clientY-GX.drag.y;GX.drag.mv=Math.max(GX.drag.mv,Math.abs(dx)+Math.abs(dy));GX.yaw=GX.drag.yaw+dx*.008;GX.pitch=Math.max(-.2,Math.min(1.35,GX.drag.pitch+dy*.006));return}const [x,y]=pos(e);GX.hover=glxPick(x,y);cv.style.cursor=GX.hover?'pointer':'grab';glxTip(GX.hover,x,y)};
+ cv.onpointerup=e=>{const d=GX.drag;GX.drag=null;if(d&&d.mv<6){const [x,y]=pos(e),h=glxPick(x,y);if(h)openProject(h.p.pc)}};
+ cv.onpointerleave=()=>{GX.hover=null;glxTip(null)};
+ cv.onwheel=e=>{e.preventDefault();GX.zoom=Math.max(.55,Math.min(2.6,GX.zoom*(e.deltaY>0?.9:1.1)))};
+ let pd=null;cv.addEventListener('touchmove',e=>{if(e.touches.length==2){e.preventDefault();const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pd)GX.zoom=Math.max(.55,Math.min(2.6,GX.zoom*d/pd));pd=d;GX.drag=null}},{passive:false});cv.addEventListener('touchend',()=>pd=null);
+ $('glxRot').onclick=()=>{GX.auto=!GX.auto;$('glxRot').textContent=GX.auto?'⏸ إيقاف الدوران':'▶ تشغيل الدوران'};
+ $('glxRst').onclick=()=>{GX.yaw=-.6;GX.pitch=.42;GX.zoom=1.2;GX.tour=null;$('glxCap').hidden=true};
+ $('glxHelp').onclick=()=>{$('glxH').hidden=!$('glxH').hidden};
+ $('glxTour').onclick=()=>glxTour();
+ if(matchMedia('(prefers-reduced-motion: reduce)').matches)GX.auto=false;$('glxRot').textContent=GX.auto?'⏸ إيقاف الدوران':'▶ تشغيل الدوران';
+ cancelAnimationFrame(GX.raf);const loop=t=>{if(!$('glxC')){GX.raf=0;return}glxFrame(t);GX.raf=requestAnimationFrame(loop)};GX.raf=requestAnimationFrame(loop)}
+function glxProj(x,y,z){const cy=Math.cos(GX.yaw),sy=Math.sin(GX.yaw),cp=Math.cos(GX.pitch),sp=Math.sin(GX.pitch);
+ let X=x*cy-z*sy,Z=x*sy+z*cy;let Y=y*cp-Z*sp;Z=y*sp+Z*cp;const D=420,s=D/(D+Z)*GX.zoom*Math.min(GX.w,GX.h*1.4)/420;return [GX.w/2+X*s,GX.h*.54-Y*s,s,Z]}
+function glxPick(x,y){let best=null,bd=1e9;GX.pts.forEach(d=>{if(!d.sx)return;const dd=Math.hypot(d.sx-x,d.sy-y);if(dd<Math.max(12,d.sr+6)&&dd<bd){bd=dd;best=d}});return best}
+function glxTip(d,x,y){const tip=$('mtip');if(!tip)return;if(!d){tip.style.display='none';return}const p=d.p;
+ tip.innerHTML=`<b>${esc(p.n)}</b><br>${esc(secName(p.sec))}<br>الإنجاز ${p.act??'—'}٪ من ${p.exp??'—'}٪ المتوقع${d.k!=null?` · المؤشرات ${d.k}`:' · بلا قراءات مؤشرات'}${d.risk?` · ${d.risk} خطر عالٍ`:''}${d.pend?` · ${d.pend} قرار معلّق`:''}`;
+ tip.style.display='block';tip.style.left=Math.max(0,Math.min(GX.w-260,x-120))+'px';tip.style.top=(y+18)+'px'}
+function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=GX.dp;g.setTransform(dp,0,0,dp,0,0);
+ if(GX.auto&&!GX.drag&&!GX.tour)GX.yaw+=.0016;
+ if(GX.tour){const T=GX.tour,k=Math.min(1,(t-T.t0)/1400),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.yaw=T.fy+(T.ty-T.fy)*e;GX.pitch=T.fp+(T.tp-T.fp)*e;GX.zoom=T.fz+(T.tz-T.fz)*e}
+ const bg=g.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#1b2b44');bg.addColorStop(1,'#0b1424');g.fillStyle=bg;g.fillRect(0,0,W,H);
+ g.setLineDash([]);for(let i=0;i<90;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;g.fillStyle='rgba(255,255,255,'+(.15+(i%5)*.06)+')';g.beginPath();g.arc(sx,sy,.8,0,7);g.fill()}
+ /* القرص: حلقات كل 25 نقطة */
+ [25,50,75,100].forEach((rr,i)=>{g.beginPath();for(let a=0;a<=64;a++){const an=a/64*Math.PI*2,[px,py]=glxProj(Math.cos(an)*rr*1.6,0,Math.sin(an)*rr*1.6);a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle='rgba(191,152,73,'+(.38-i*.07)+')';g.lineWidth=1;g.stroke();
+  const [lx,ly]=glxProj(rr*1.6,0,0);g.fillStyle='rgba(230,214,170,.7)';g.font='11px system-ui';g.textAlign='center';g.fillText(rr==25?'تأخر 25':rr==50?'50':rr==75?'75':'100 نقطة',lx,ly+14)});
+ /* أذرع القطاعات */
+ const ns=Math.max(1,SEC.length);SEC.forEach((s,i)=>{const a0=i/ns*Math.PI*2;g.beginPath();for(let r=4;r<=104;r+=4){const an=a0+r/100*1.1,[px,py]=glxProj(Math.cos(an)*r*1.6,0,Math.sin(an)*r*1.6);r==4?g.moveTo(px,py):g.lineTo(px,py)}g.strokeStyle='rgba(120,170,220,.22)';g.lineWidth=2;g.stroke();
+  const an=a0+1.2,[lx,ly]=glxProj(Math.cos(an)*118*1.6,0,Math.sin(an)*118*1.6);g.fillStyle='rgba(190,215,240,.85)';g.font='bold 12px system-ui';g.fillText(s.n,lx,ly)});
+ /* النواة */
+ const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/600)*.08,cg=g.createRadialGradient(cx,cy,0,cx,cy,34*cs*pul);cg.addColorStop(0,'rgba(255,236,170,.95)');cg.addColorStop(.35,'rgba(191,152,73,.55)');cg.addColorStop(1,'rgba(191,152,73,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,34*cs*pul,0,7);g.fill();
+ /* النجوم مرتبة حسب العمق */
+ GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z),[bx,by]=glxProj(d.x,0,d.z);d.sx=sx;d.sy=sy;d.sr=d.r*s;d.dz=z;d.bx=bx;d.by=by});
+ GX.pts.slice().sort((a,b)=>b.dz-a.dz).forEach(d=>{const sel=GX.hover===d||(GX.tour&&GX.tour.d===d);
+  g.beginPath();g.moveTo(d.bx,d.by);g.lineTo(d.sx,d.sy);g.strokeStyle=d.y>=0?'rgba(127,181,149,.45)':'rgba(230,120,120,.45)';g.setLineDash([3,3]);g.lineWidth=1;g.stroke();g.setLineDash([]);
+  g.beginPath();g.ellipse(d.bx,d.by,3,1.5,0,0,7);g.fillStyle='rgba(255,255,255,.25)';g.fill();
+  const rg=g.createRadialGradient(d.sx,d.sy,0,d.sx,d.sy,d.sr*2);rg.addColorStop(0,d.col+'aa');rg.addColorStop(1,d.col+'00');g.fillStyle=rg;g.beginPath();g.arc(d.sx,d.sy,d.sr*2,0,7);g.fill();
+  g.beginPath();g.arc(d.sx,d.sy,d.sr,0,7);g.fillStyle=d.col;g.fill();g.lineWidth=sel?3:1.2;g.strokeStyle=sel?'#fff':'rgba(255,255,255,.7)';g.stroke();
+  if(d.risk){g.beginPath();g.arc(d.sx,d.sy,d.sr+4,0,7);g.strokeStyle='#ff4d5a';g.lineWidth=2;g.stroke()}
+  if(d.pend){const a=t/700;g.beginPath();g.arc(d.sx,d.sy,d.sr+8,a,a+Math.PI*1.4);g.strokeStyle='rgba(255,255,255,.85)';g.setLineDash([4,4]);g.lineWidth=1.5;g.stroke();g.setLineDash([])}
+  if(sel||d.lab){g.font=(sel?'bold 13px':'11.5px')+' system-ui';g.textAlign='center';g.fillStyle='rgba(255,255,255,'+(sel?1:.8)+')';g.fillText(d.p.n.length>26?d.p.n.slice(0,25)+'…':d.p.n,d.sx,d.sy-d.sr-8)}});
+ if(!GX.pts.length){g.fillStyle='#cfd8e3';g.font='14px system-ui';g.textAlign='center';g.fillText('لا توجد مشاريع جارية بخطة معتمدة',W/2,H/2+50)}}
+function glxTour(){const L=GX.pts.slice().sort((a,b)=>{const r={bad:0,warn:1,ok:2,info:3};return (r[a.p.status]??3)-(r[b.p.status]??3)||(a.p.ps-b.p.ps)||(b.pend-a.pend)}).slice(0,5);if(!L.length)return;GX.auto=false;$('glxRot').textContent='▶ تشغيل الدوران';let i=0;
+ const step=()=>{if(!$('glxC'))return;if(i>=L.length){GX.tour=null;$('glxCap').hidden=true;GX.zoom=1.2;return}const d=L[i],ty=-Math.PI/2-Math.atan2(d.z,d.x),fy=GX.yaw,ny=fy+((((ty-fy)%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI);
+  GX.tour={d,t0:performance.now(),fy,ty:ny,fp:GX.pitch,tp:.5,fz:GX.zoom,tz:1.7};const p=d.p,why=[];if(p.ps!=null&&p.act!=null)why.push(`الإنجاز ${p.act}٪ من ${p.exp}٪ المتوقع`);if(d.k!=null)why.push(d.k<60?`المؤشرات متعثرة (${d.k})`:`المؤشرات ${d.k}`);if(d.risk)why.push(`${d.risk} خطر عالٍ`);if(d.pend)why.push(`${d.pend} قرار معلّق عند المكتب`);
+  const cap=$('glxCap');cap.hidden=false;cap.innerHTML=`<small>${i+1} من ${L.length} · ${esc(secName(p.sec))}</small><b>${esc(p.n)}</b><span>${why.join(' · ')}</span><div><button type="button" id="glxOpen">فتح المشروع</button><button type="button" id="glxNext">${i+1<L.length?'التالي ›':'إنهاء'}</button><button type="button" id="glxEnd">إيقاف الجولة</button></div>`;
+  $('glxOpen').onclick=()=>openProject(p.pc);$('glxNext').onclick=()=>{i++;step()};$('glxEnd').onclick=()=>{i=L.length;step()}};step()}
+function drawMap(){glxStop();$('vsw').innerHTML=VIEWS.map(([k,n,d])=>`<button class="vb${S.view==k?' on':''}" type="button" onclick="setView('${k}')"><b>${n}</b><small>${d}</small></button>`).join('');
+ const r=({galaxy:vGalaxy,radar:vRadar,matrix:vMatrix,tree:vTree,road:vRoad,net:vNet,flow:vFlow,heat:vHeat}[S.view]||vRadar)();$('mapSvg').innerHTML=r.svg;$('mapLeg').innerHTML=r.leg||stLeg();$('mapIns').innerHTML=r.ins?`<div class="insight"><i>💡</i><span>${r.ins}</span></div>`:'';bindHits();if(S.view=='galaxy')glxStart()}
 const stLeg=()=>['ok','warn','bad','pipe','done','halt'].map(k=>`<span style="display:flex;gap:4px;align-items:center"><span class="led" style="background:${SCOL[k]}"></span>${SNAME[k]}</span>`).join('');
 const hit=(p,inner)=>`<g class="hit" data-pc="${esc(p.pc)}" tabindex="0" role="button" aria-label="${esc(p.n)}">${inner}</g>`;
 function bindHits(){const tip=$('mtip'),box=$('mapBox');box.querySelectorAll('.hit').forEach(g=>{const p=pj(g.dataset.pc);if(!p)return;g.onclick=()=>openProject(p.pc);g.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();openProject(p.pc)}};
