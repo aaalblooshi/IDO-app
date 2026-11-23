@@ -8,7 +8,7 @@ var S={scope:null,qual:null,dl:null},ED={scope:false,qual:false,rs:{scope:false,
 function col(g){return g=='ok'?['#0a6b3d','#e5f2ea']:g=='wa'?['#a8761a','#fff4dc']:g=='bad'?['#d1101d','#fdecee']:['#7a8a99','#eef0f2']}
 function gOf(D,s){var t=(D&&D.thr)||{g:90,a:75};return s==null?'na':s>=t.g?'ok':s>=t.a?'wa':'bad'}
 function fd(d){if(!d)return '';var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(d);return m?(+m[3])+'/'+(+m[2])+'/'+m[1]:''}
-function redraw(){try{drawHub()}catch(_){}}
+function redraw(){try{if(typeof drawHub=='function')drawHub();else if(typeof window.draw=='function')window.draw();else location.reload()}catch(e){console.error(e);try{alert((document.documentElement.lang=='en'?'Could not refresh: ':'تعذّر التحديث: ')+(e&&e.message||e))}catch(_){}}}
 async function load(pc){PC=pc;var r=await Promise.all([sb.rpc('scope_get',{pc:pc}).then(function(x){return x},function(){return {}}),sb.rpc('qual_get',{pc:pc}).then(function(x){return x},function(){return {}}),sb.rpc('deliv_project',{p_pc:pc}).then(function(x){return x},function(){return {}})]);
  S.scope=r[0]&&!r[0].error?r[0].data:null;S.qual=r[1]&&!r[1].error?r[1].data:null;S.dl=r[2]&&!r[2].error?r[2].data:null}
 function spark(D,h){h=(h||[]).filter(function(x){return x.s!=null});if(h.length<2)return '';var W=520,H=90,n=h.length,X=function(i){return 12+i*(W-24)/(n-1)},Y=function(v){return H-14-(v/100)*(H-28)},p='',t=D.thr||{g:90,a:75};

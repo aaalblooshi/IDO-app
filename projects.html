@@ -444,7 +444,7 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="lockx.js?v=2"></script><script>
+<script src="lockx.js?v=3"></script><script>
 let LKG=null;
 function lkBlock(pc,cf){if(LKG===null){LKG=false;(async()=>{try{const r=await sb.rpc('lock_state');LKG=r.data||false}catch(_){LKG=false}if(LKG&&LKG.office)drawList()})();return ''}if(!LKG||!LKG.office)return '';
  return `<div style="margin:6px 0 10px;padding:8px;border:1px dashed #e4dfd4;border-radius:10px"><b>🔒 ${lang=='ar'?'القفل بعد الاعتماد':'Lock after approval'}</b><div class="mut">${lang=='ar'?'عند القفل يُرسل أي تعديل طلبًا لاعتماد المكتب. «من الإعداد العام» يتبع إعدادات النظام.':'When locked, edits become requests for the office.'}</div>
