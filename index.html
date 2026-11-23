@@ -332,7 +332,7 @@ async function loadMine0(){
  try{
   const {data:{session}}=await sb.auth.getSession();
   if(!session){MINE={state:'login'};try{localStorage.removeItem('hdrRole')}catch(e){}return drawMine()}
-  let {data:me}=await sb.from('profiles').select('*').eq('id',session.user.id).single();me=await capAs(me,[]);
+  let {data:me}=await sb.rpc('my_profile').single();me=await capAs(me,[]);
   if(!me)throw new Error('no profile');
   try{const {data:ep}=await sb.rpc('my_perms');if(ep&&me.role!='admin'){const sv0=ep.svc||{},pg0=ep.pages||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false).map(k=>k+'.html').concat(Object.keys(pg0).filter(k=>pg0[k]===false).map(k=>k+'.html'));applySvc()}else if(!ep){const {data:rr}=await sb.from('app_roles').select('perms').eq('key',me.role_key||me.role).maybeSingle();const sv0=((rr||{}).perms||{}).svc||{};ROLEOFF=Object.keys(sv0).filter(k=>sv0[k]===false&&me.role!='admin').map(k=>k+'.html');applySvc()}}catch(e){}
   try{const {data:co}=await sb.rpc('chat_on');if(!co){ROLEOFF=ROLEOFF.concat(['chat.html']);applySvc()}else{const {data:un}=await sb.rpc('chat_unread');const n=(un||[]).reduce((x,y)=>x+(+y.n||0),0);if(n)document.querySelectorAll('a[href="chat.html"]').forEach(a=>{if(!a.dataset.b){a.dataset.b=1;a.insertAdjacentHTML('beforeend',' <b style="background:#d1101d;color:#fff;border-radius:99px;padding:0 6px;font-size:11px">'+n+'</b>')}})}}catch(e){}
@@ -517,7 +517,7 @@ async function load(){let tm;try{return await Promise.race([load0(),new Promise(
 async function load0(){
  if(!sb)return;try{
   const {data:{session}}=await sb.auth.getSession();if(!session)return;E.sess=true;
-  const me=(typeof ME0!='undefined'&&ME0)||(await sb.from('profiles').select('*').eq('id',session.user.id).single()).data;E.me=me;if(!me)return;
+  const me=(typeof ME0!='undefined'&&ME0)||(await sb.rpc('my_profile').single()).data;E.me=me;if(!me)return;
   if(E.tu==null){try{E.tu=localStorage.getItem('jnTU')=='1';E.td=localStorage.getItem('jnTD')=='1'}catch(_){E.tu=E.td=false}}
   E.role='all';
   const adm=me.role=='admin';E.scope=E.scope||(()=>{try{return localStorage.getItem('jnScope')}catch(_){return null}})()||(adm?'all':'');

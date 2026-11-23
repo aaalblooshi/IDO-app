@@ -300,7 +300,7 @@
   X.usersDownload = async function () {
     var h = H(), T = h.T; var M = await gate('users'); if (!M) return; if (M.role != 'admin') return h.fail(T('للأدمن الكامل فقط.', 'Full admins only.'));
     h.busy(T('جارٍ تجهيز ملف المستخدمين…', 'Preparing…'));
-    var [pr, o] = await Promise.all([h.SB().from('profiles').select('id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section').order('full_name'), orgLists()]);
+    var [pr, o] = await Promise.all([h.SB().rpc('profiles_dir').select('id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section').order('full_name'), orgLists()]);
     var U = (pr.data || []), L = unitOpts(o), lab = function (u) { var k = u.org_sector ? u.org_sector + ':' + (u.org_dept || '') + ':' + (u.org_section || '') : ''; var x = L.find(function (z) { return z.k == k; }) || L.find(function (z) { return z.k == (u.org_sector ? u.org_sector + ':' + (u.org_dept || '') + ':' : ''); }); return x ? x.l : ''; };
     var KU = ['uid', 'oname', 'ojob', 'ounit', 'email', 'name', 'job', 'unit'];
     var spec = { title: T('المستخدمون', 'Users'), keys: KU, head: { uid: 'uid', oname: 'oname', ojob: 'ojob', ounit: 'ounit', email: ['✏️ البريد (للجدد فقط)', '✏️ Email (new only)'], name: ['✏️ الاسم', '✏️ Name'], job: ['✏️ المسمى الوظيفي', '✏️ Job title'], unit: ['✏️ الوحدة', '✏️ Unit'] },
@@ -318,7 +318,7 @@
     h.busy(T('جارٍ قراءة الملف…', 'Reading…')); var B; try { B = await readBook(f); } catch (e) { return h.fail(e.message || T('تعذّر قراءة الملف.', 'Could not read the file.')); }
     var bad = checkMeta(B.meta, 'users', '', M); if (bad) return h.fail(bad);
     var a = B.sheets.uid; if (!a) return h.fail(T('ورقة المستخدمين غير موجودة.', 'Users sheet missing.'));
-    var [pr, o] = await Promise.all([h.SB().from('profiles').select('id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section'), orgLists()]);
+    var [pr, o] = await Promise.all([h.SB().rpc('profiles_dir').select('id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section'), orgLists()]);
     var U = pr.data || [], L = unitOpts(o), I = idx(a), res = [], pay = [], emails = {};
     var uk = function (l) { l = String(l || '').trim(); var x = L.find(function (z) { return z.l == l; }); return x ? x.k : null; };
     for (var i = 2; i < a.length; i++) { var x = a[i]; if (!x) continue; var id = String(x[I.uid] || '').trim(), name = txt(x[I.name]).slice(0, 120), job = txt(x[I.job]).slice(0, 120), unitL = txt(x[I.unit]), em = txt(x[I.email]).toLowerCase();

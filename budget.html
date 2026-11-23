@@ -114,7 +114,7 @@ const fd=s=>s?String(s).slice(0,10).split('-').reverse().join('/'):'—';
 const ym=(y,m)=>y+'-'+String(m).padStart(2,'0')+'-01';
 const numIn=v=>{const x=String(v||'').replace(/[,\s]/g,'').replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c));return x===''?null:(isNaN(+x)?NaN:+x)};
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- const [m,us]=await Promise.all([sb.from('profiles').select('*').eq('id',session.user.id).single(),sb.from('profiles').select('id,full_name')]);ME=m.data;(us.data||[]).forEach(u=>US[u.id]=u);
+ const [m,us]=await Promise.all([sb.rpc('my_profile').single(),sb.from('profiles').select('id,full_name')]);ME=m.data;(us.data||[]).forEach(u=>US[u.id]=u);
  PC=new URLSearchParams(location.search).get('pc')||'';try{const o=await sb.rpc('fin_office');FOFF=o.data===true}catch(_){}try{const r=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();OPTL=r.data&&r.data.value?JSON.parse(r.data.value):null}catch(_){}if(FOFF)await loadFS();await loadS();if(PC){OPEN=PC;await loadP(PC)}draw()}
 async function loadS(){const r=await sb.rpc('fin_summary',{p_asof:null});S=(r.data||[]).sort((a,b)=>String(a.pname).localeCompare(String(b.pname),'ar'));CAN=S.some(x=>x.can_edit);
  const codes=S.map(x=>x.pcode);MS={};if(codes.length){const q=await sb.from('project_spend').select('pcode,d,amount').eq('kind','month').in('pcode',codes).eq('d',ym(FY,FM));(q.data||[]).forEach(x=>MS[x.pcode]=x.amount)}}

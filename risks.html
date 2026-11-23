@@ -123,7 +123,7 @@ const catN=k=>{const c=CAT.find(x=>x[0]==k);return c?P([c[1],c[2]]):''};
 const strN=k=>{const c=STR.find(x=>x[0]==k);return c?P([c[1],c[2]]):''};
 const stO=k=>STS.find(x=>x[0]==k)||STS[0];
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- const [m,us]=await Promise.all([sb.from('profiles').select('*').eq('id',session.user.id).single(),sb.from('profiles').select('id,full_name,job_title')]);
+ const [m,us]=await Promise.all([sb.rpc('my_profile').single(),sb.from('profiles').select('id,full_name,job_title')]);
  ME=m.data;(us.data||[]).forEach(u=>US[u.id]=u);
  try{const o=await sb.rpc('risk_office');OFF=o.data===true}catch(_){}
  PC=new URLSearchParams(location.search).get('pc')||'';
@@ -662,4 +662,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="hub.js?v=5"></script><script src="ovx.js?v=11"></script><script src="collab.js?v=1"></script><script src="ido-ui.js?v=63"></script></body></html>
+<script src="hub.js?v=5"></script><script src="ovx.js?v=11"></script><script src="collab.js?v=2"></script><script src="ido-ui.js?v=63"></script></body></html>

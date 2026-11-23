@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>function jsa(s){return JSON.stringify(String(s==null?'':s)).slice(1,-1).replace(/'/g,'\\u0027').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</script>
+<script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -95,7 +96,7 @@ const D={hacc:['👤 حسابي','👤 My account'],hso:['تسجيل الخرو�
  needLogin:['سجّل الدخول لعرض الصفحة.','Sign in to view this page.'],adminOnly:['هذه الصفحة لمن يملك صلاحية «البريد الإلكتروني» أو «إعدادات النظام».','This page needs the Email or System settings permission.']};
 const err=e=>{const m=String((e&&e.message)||e||'');toast(P('تعذّر التنفيذ: ','Failed: ')+(/could not find|does not exist|schema cache/i.test(m)?P('يلزم تشغيل ملف SQL ‏oct65 أولًا','Run the oct65 SQL first'):/mail_url missing/.test(m)?P('رابط سكربت البريد غير مضبوط في الإعدادات','Mail script URL not set'):/no email/.test(m)?P('لا يوجد بريد في ملفك','No email on your profile'):/not allowed/.test(m)?P('ليست لديك الصلاحية','Not allowed'):m))};
 const fdt=s=>{const d=new Date(s);if(isNaN(d))return'';return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')};
-const Q=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){return null}};
+const Q=async(tb,c,f)=>{try{let r=(tb=='profiles'?sb.rpc('profiles_dir'):sb.from(tb)).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){return null}};
 
 /* الأحداث: المفتاح، الاسم، متى، من يستلم، هل يُحتسب في تنبيهات الأدوار */
 const EVG=[
@@ -128,7 +129,7 @@ const PH=[['{svc}','نوع النموذج'],['{project}','اسم المشروع'
 let ME=null,TAB='ev',TPL={g:{},ev:{}},EVON={},ST=null,ROLES=[],USERS=[],CRON=null,LOG=null,OPEN='',UQ='',UEDIT=null;
 const tplOf=k=>TPL.ev[k]||(TPL.ev[k]={});
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['adm.mail','adm.settings']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
+ let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['adm.mail','adm.settings']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  try{const h=(location.hash||'').slice(1);if(['ev','rcp','cron','look','log'].includes(h))TAB=h}catch(_){}
  await reload()}
 async function reload(){
@@ -198,7 +199,7 @@ function cronTxt(s){const m=/^(\d+)\s+(\d+)\s+(\*|\d+)\s+\*\s+(\*|[\d,\-]+)$/.ex
 function vCron(){if(!CRON)return `<div class="mut">${P('جارٍ التحميل…','Loading…')}</div>`;if(CRON.error)return `<div class="card"><p>${P('الجدولة غير متاحة: ','Scheduling unavailable: ')}${esc(CRON.error)}</p></div>`;
  return `<div class="card"><h2>${P('الرسائل المجدولة','Scheduled jobs')}<small>${P('صيغة الوقت (cron) بتوقيت UTC، أي أقل من الإمارات بأربع ساعات. مثال: «0 5 * * 0» = الأحد ٩ صباحًا بتوقيت الإمارات.','Cron in UTC (UAE = UTC+4). e.g. “0 5 * * 0” = Sunday 9am UAE.')}</small></h2>
  ${CRON.map(j=>{const n=JN[j.name]||[j.name,''];return `<div class="lg"><div class="ih2"><label class="sw" style="margin:0"><input type="checkbox" id="ca_${j.id}" ${j.active?'checked':''}></label><b style="flex:1">${esc(n[0])}</b><span class="mut" dir="ltr">${esc(j.name)}</span></div>
- <div class="mut">${esc(n[1])}</div><div class="row" style="margin-top:6px"><input id="cs_${j.id}" dir="ltr" value="${esc(j.schedule)}" style="width:160px" oninput="$('ct_${j.id}').textContent=cronTxt(this.value)"><span id="ct_${j.id}" class="mut">${esc(cronTxt(j.schedule))}</span><button class="p" onclick="cronSave(${j.id},'${esc(j.name)}')">${P('حفظ','Save')}</button></div>
+ <div class="mut">${esc(n[1])}</div><div class="row" style="margin-top:6px"><input id="cs_${j.id}" dir="ltr" value="${esc(j.schedule)}" style="width:160px" oninput="$('ct_${j.id}').textContent=cronTxt(this.value)"><span id="ct_${j.id}" class="mut">${esc(cronTxt(j.schedule))}</span><button class="p" onclick="cronSave(${j.id},'${jsa(j.name)}')">${P('حفظ','Save')}</button></div>
  ${j.last?`<div class="mut" style="margin-top:4px">${P('آخر تشغيل: ','Last run: ')}${fdt(j.last.at)} · <span class="${j.last.status=='succeeded'?'':'ch2 r'}">${esc(j.last.status)}</span>${j.last.msg?' · '+esc(j.last.msg):''}</div>`:''}</div>`}).join('')||`<div class="mut">—</div>`}</div>`}
 async function cronSave(id,name){try{const r=await sb.rpc('mail_cron_set',{p_name:name,p_schedule:$('cs_'+id).value,p_active:$('ca_'+id).checked});if(r.error)throw r.error;toast(P('حُفظت الجدولة','Saved'));loadCron()}catch(e){err(e)}}
 

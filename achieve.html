@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>function jsa(s){return JSON.stringify(String(s==null?'':s)).slice(1,-1).replace(/'/g,'\\u0027').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</script>
+<script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -200,7 +201,7 @@ function mSum(){if(!MF)return `<span class="mut">${P('اضغط أي شهر لع�
 function roleChips(p){return (p.pm?`<span class="pill pm">${P('مدير المشروع','Project manager')}</span>`:'')+(p.own?`<span class="pill ow">${P('مالك المشروع','Project owner')}</span>`:'')+(!p.pm&&!p.own?`<span class="pill">${P('عضو فريق','Team member')}</span>`:'')}
 function projCards(){const L=(R.projects||[]).slice().sort((a,b)=>(b.pm-a.pm)||(b.od||0)-(a.od||0)||(b.open+b.done)-(a.open+a.done));
  if(!L.length)return `<p class="mut">${P('لا مشاريع في هذه الفترة.','No projects in this period.')}</p>`;
- return `<div class="pjg">${L.map(p=>{const t=p.done+p.open,pc=t?Math.round(p.done/t*100):0;return `<button class="pjc" onclick="pjOpen('${esc(p.pc)}')"><div class="pjn">${esc(p.name||p.pc)}</div><div class="pjr">${roleChips(p)}</div>
+ return `<div class="pjg">${L.map(p=>{const t=p.done+p.open,pc=t?Math.round(p.done/t*100):0;return `<button class="pjc" onclick="pjOpen('${jsa(p.pc)}')"><div class="pjn">${esc(p.name||p.pc)}</div><div class="pjr">${roleChips(p)}</div>
   <div class="pjb"><i style="width:${pc}%"></i></div><div class="pjs"><span>✅ ${p.done} ${P('منجزة','done')}</span><span>⏳ ${p.open} ${P('جارية','open')}</span>${p.od?`<span class="lt">⚠ ${p.od} ${P('متأخرة','overdue')}</span>`:''}</div></button>`}).join('')}</div>`}
 function pjOpen(pc){const p=(R.projects||[]).find(x=>x.pc==pc)||{pc},dn=(R.tasks||[]).filter(x=>x.pc==pc),op=(R.opl||[]).filter(x=>x.pc==pc),self=R.can&&R.can.self;
  const row=(x,d)=>`<tr class="clk" onclick="tkOpen('${d?'d':'o'}',${(d?R.tasks:R.opl).indexOf(x)})"><td>${esc(x.n)}</td><td class="num">${fd(d?x.de:x.e)}</td><td>${d?(x.late?`<span class="pill late">+${x.late} ${P('يوم','d')}</span>`:'<span class="pill pm">✓</span>'):(x.od?`<span class="pill late">${P('متأخرة','late')} ${x.od} ${P('يوم','d')}</span>`:`<span class="pill">${Math.round(x.pct)}%</span>`)}</td></tr>`;

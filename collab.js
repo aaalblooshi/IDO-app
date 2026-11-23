@@ -5,6 +5,7 @@
   var AR = function () { return (document.documentElement.lang || 'ar') != 'en'; };
   var T = function (a, e) { return AR() ? a : e; };
   var E = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  function J(x){return JSON.stringify(String(x==null?'':x)).slice(1,-1).replace(/'/g,'\\u0027').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
   var SB = function () { try { return Function('return typeof sb!="undefined"?sb:null')() || window.sb; } catch (e) { return window.sb; } };
   var ME = null, USERS = null, S = {}, N = 0;
   var CSS = '.icw{display:grid;gap:12px}.icw h5{margin:0 0 6px;font-size:14px;display:flex;align-items:center;gap:6px}.icw .icn{font-size:12px;font-weight:700;color:#5b6570}'
@@ -43,7 +44,7 @@
       + (s.talk ? '<textarea id="' + id + '_t" maxlength="4000" placeholder="' + T('اكتب تعليقًا أو سؤالًا للفريق…', 'Write a comment or question…') + '"></textarea><div class="icf"><button class="p" onclick="IDOCOL._send(\'' + id + '\')">' + T('إرسال', 'Send') + '</button><span class="mut" style="font-size:12px">' + T('يصل للمكلّف والمشاركين ومدير المشروع ضمن «نشاط المشاريع».', 'Reaches the owner, collaborators and the PM via project activity.') + '</span></div>' : '') + '</div>';
     if (s.files) {
       h += '<div><h5>📎 ' + T('الملفات', 'Files') + ' <span class="icn">(' + s.fil.length + ')</span></h5>'
-        + (s.fil.length ? '<div class="ifl">' + s.fil.map(function (f) { return '<div><a href="#" onclick="IDOCOL._get(\'' + E(f.path) + '\',this.textContent);return false">📄 ' + E(f.title || f.path.split('/').pop().replace(/^\d{10,}_/, '')) + '</a><small class="mut">' + E(f.by_name || '') + ' · <span class="num">' + TM(f.at) + '</span></small>' + ((f.mine || s.full) ? '<button class="icd" style="color:#c0161f!important;background:none!important;border:0!important" onclick="IDOCOL._df(\'' + id + '\',' + f.id + ')">' + T('حذف', 'Delete') + '</button>' : '') + '</div>'; }).join('') + '</div>' : '<div class="mut" style="font-size:13px">' + T('لا ملفات بعد.', 'No files yet.') + '</div>')
+        + (s.fil.length ? '<div class="ifl">' + s.fil.map(function (f) { return '<div><a href="#" onclick="IDOCOL._get(\'' + J(f.path) + '\',this.textContent);return false">📄 ' + E(f.title || f.path.split('/').pop().replace(/^\d{10,}_/, '')) + '</a><small class="mut">' + E(f.by_name || '') + ' · <span class="num">' + TM(f.at) + '</span></small>' + ((f.mine || s.full) ? '<button class="icd" style="color:#c0161f!important;background:none!important;border:0!important" onclick="IDOCOL._df(\'' + id + '\',' + f.id + ')">' + T('حذف', 'Delete') + '</button>' : '') + '</div>'; }).join('') + '</div>' : '<div class="mut" style="font-size:13px">' + T('لا ملفات بعد.', 'No files yet.') + '</div>')
         + (s.talk ? '<div class="icf" style="margin-top:6px"><input type="text" id="' + id + '_ft" placeholder="' + T('عنوان الملف (اختياري)', 'File title (optional)') + '"><input type="file" id="' + id + '_f"><button onclick="IDOCOL._up(\'' + id + '\')">' + T('رفع', 'Upload') + '</button></div>' : '') + '</div>';
     }
     el.innerHTML = h + '</div>';

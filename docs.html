@@ -113,7 +113,7 @@ const fd=s=>s?String(s).slice(0,10).split('-').reverse().join('/'):'—';
 const kb=n=>n==null?'':n>1048576?(n/1048576).toFixed(1)+' MB':Math.max(1,Math.round(n/1024))+' KB';
 const safe=s=>String(s||'').replace(/[\\/:*?"<>|\n\r\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0,80)||'—';
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- const m=await sb.from('profiles').select('*').eq('id',session.user.id).single();let me=m.data;try{me=await capAs(me,['off.review.charter','off.review.plan','off.review.cr','off.review.closure'])}catch(_){}
+ const m=await sb.rpc('my_profile').single();let me=m.data;try{me=await capAs(me,['off.review.charter','off.review.plan','off.review.cr','off.review.closure'])}catch(_){}
  OK=me&&me.role=='admin';if(!OK){$('app').innerHTML='<div class="card lock"><p>'+P(['أرشيف الوثائق متاح لمكتب التطوير المؤسسي والأدمن فقط.','The document archive is for the Development Office and admins only.'])+'</p></div>';return}
  $('app').innerHTML='<div class="card"><div class="mut">'+P(['جارٍ تحميل الوثائق…','Loading documents…'])+'</div></div>';
  const q=(t,c)=>sb.from(t).select(c).limit(5000);

@@ -75,7 +75,7 @@ async function pvView(id){const r=await sb.from('plan_versions').select('version
 async function load(){
  if(!sb)return gate('needLogin');
  const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['adm.projects']);
+ let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['adm.projects']);
  if(!p||p.role!='admin')return gate('adminOnly');ME=p;await reload()}
 async function reload(){
  const pr=await sb.from('profiles').select('id,full_name');US={};(pr.data||[]).forEach(x=>US[x.id]=x.full_name);

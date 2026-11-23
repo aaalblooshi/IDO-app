@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl"><head><script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
+<html lang="ar" dir="rtl"><head><script>function jsa(s){return JSON.stringify(String(s==null?'':s)).slice(1,-1).replace(/'/g,'\\u0027').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}</script>
+<script>/*nightmode*/try{if(false)document.documentElement.classList.add('nm')}catch(e){}</script><style>/*nightmode*/@media(max-width:899px){html.nm{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.96);background:#fff}html.nm img,html.nm video,html.nm canvas,html.nm .av,html.nm .logo{filter:invert(1) hue-rotate(180deg) brightness(1.1) contrast(1.04)}}</style>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#23272b">
@@ -165,11 +166,20 @@ function capOf(u,k,dr){
  return {v,base,src,ov,adm:isA}}
 const capsCnt=u=>UC.filter(x=>x.user_id==u.id&&act(x));
 
-const Qy=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){return null}};
+const Qy=async(tb,c,f)=>{try{let r=(tb=='profiles'?sb.rpc('profiles_dir'):sb.from(tb)).select(c);if(f)r=f(r);const x=await r;if(x.error)throw x.error;return x.data||[]}catch(e){return null}};
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['adm.roles','adm.users']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
+ let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['adm.roles','adm.users']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  try{const h=(location.hash||'').slice(1);const m=/^(ov|roles|users|units|proj|rev|pv|log|set|new)(?:=(.+))?$/.exec(h);if(m){TAB=m[1]=='new'?'users':m[1];if(m[1]=='new')window._nuQ=1;if(m[1]=='users'&&m[2]&&!/^[0-9a-f-]{36}$/.test(decodeURIComponent(m[2]))){Q=decodeURIComponent(m[2]);m[2]=''}if(m[2]&&m[1]=='users')OPU=decodeURIComponent(m[2]);if(m[2]&&m[1]=='pv')PVU=decodeURIComponent(m[2])}}catch(_){}
- await reload()}
+ await reload();pendCard()}
+async function pendCard(){try{const r=await sb.rpc('admin_pending_users');let box=document.getElementById('pendbox');const L=(r&&!r.error&&r.data)||[];
+ if(!L.length){if(box)box.remove();return}
+ if(!box){box=document.createElement('div');box.id='pendbox';box.className='card';box.style.cssText='border:1px solid #e8c56a;background:#fff8e6;margin:12px auto;max-width:1100px';const ap=$('app');ap.parentNode.insertBefore(box,ap)}
+ box.innerHTML='<b>'+(L.length==1?'حساب جديد بانتظار التفعيل':L.length==2?'حسابان جديدان بانتظار التفعيل':L.length+' حسابات جديدة بانتظار التفعيل')+'</b><div class="mut" style="font-size:12.5px;margin:4px 0 8px">أنشأها أصحابها من شاشة الدخول. لا يستطيع صاحب الحساب الدخول حتى تفعّله.</div>'+
+ L.map(u=>'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid #f0dfb0"><b style="flex:1;min-width:160px">'+esc(u.full_name||'')+'</b><span dir="ltr" class="mut">'+esc(u.email||'')+'</span><span class="mut" style="font-size:12px">'+new Date(u.created_at).toLocaleDateString('ar-AE-u-nu-latn')+'</span><button class="p" data-pa="'+esc(u.id)+'">تفعيل</button><button data-pr="'+esc(u.id)+'">رفض وحذف</button></div>').join('');
+ box.querySelectorAll('[data-pa],[data-pr]').forEach(b=>b.onclick=async()=>{const id=b.dataset.pa||b.dataset.pr,ok=!!b.dataset.pa;
+  if(!ok&&!b.dataset.sure){b.dataset.sure=1;b.textContent='اضغط مرة أخرى للتأكيد';return}
+  b.disabled=true;const x=await sb.rpc('admin_activate_user',{p_id:id,p_ok:ok});if(x.error){toast('تعذّر التنفيذ: '+x.error.message);b.disabled=false;return}
+  toast(ok?'تم تفعيل الحساب':'تم حذف الطلب');await reload();pendCard()})}catch(_){}}
 async function reload(){
  const [r,u,ur,uc,g,gm,ss]=await Promise.all([Qy('app_roles','*',q=>q.order('sort').order('name_ar')),Qy('profiles','id,full_name,job_title,email,role,role_key,org_sector,org_dept,org_section,view_units,head_units,view_scope,view_sectors,scope_perf,scope_complete,perf_scope,perf_sectors,perf_depts',q=>q.order('full_name')),Qy('user_roles','*'),Qy('user_caps','*'),Qy('user_groups','*',q=>q.order('id')),Qy('user_group_members','*'),Qy('app_settings','key,value',q=>q.in('key',['opt_lists','unit_view_level','approve_guard']))]);
  const RX=async(f)=>{try{const x=await sb.rpc(f);return x.error?[]:(x.data||[])}catch(_){return []}};[PROJS,AGR,GGR]=await Promise.all([RX('perm_projects'),RX('perm_all_grants'),RX('perm_group_grants')]);BLK=(await Qy('project_blocks','pcode,user_id'))||[];
@@ -195,7 +205,7 @@ function grantsEd(path,dirty){const arr=gP(path)||[];const used=new Set(arr.map(
   <button class="r" onclick="${path}.splice(${i},1);${dirty};draw()">✕</button></div>`).join('')+
  `<select style="width:auto;margin-top:6px" onchange="if(this.value){${path}.push({pcode:this.value,lvl:'view',svcs:null});${dirty};draw()}"><option value="">＋ ${P('منح مشروع','Grant a project')}</option>${PROJS.filter(x=>!used.has(x.pcode)).map(x=>`<option value="${esc(x.pcode)}">${esc(x.name||x.pcode)} — ${esc(x.pcode)}${x.secret?' 🔒':''}</option>`).join('')}</select>`}
 function secretEd(path,dirty){const arr=gP(path)||[];const sp=PROJS.filter(x=>x.secret);if(!CANSEC())return `<div class="mut">${P('تحتاج صلاحية «يرى المشاريع السرية» لإدارة الاستثناءات.','You need “Sees secret projects” to manage exceptions.')}</div>`;
- return sp.length?sp.map(x=>`<label class="sw"><input type="checkbox" ${arr.includes(x.pcode)?'checked':''} onchange="this.checked?${path}.push('${esc(x.pcode)}'):${path}.splice(${path}.indexOf('${esc(x.pcode)}'),1);${dirty}">🔒 ${esc(x.name||x.pcode)} <span class="mut">${esc(x.pcode)}${x.own_only?' · '+P('المكلّف يرى مهامه فقط','assignees see own tasks only'):''}</span></label>`).join(''):`<div class="mut">${P('لا توجد مشاريع سرية.','No secret projects.')}</div>`}
+ return sp.length?sp.map(x=>`<label class="sw"><input type="checkbox" ${arr.includes(x.pcode)?'checked':''} onchange="this.checked?${path}.push('${jsa(x.pcode)}'):${path}.splice(${path}.indexOf('${jsa(x.pcode)}'),1);${dirty}">🔒 ${esc(x.name||x.pcode)} <span class="mut">${esc(x.pcode)}${x.own_only?' · '+P('المكلّف يرى مهامه فقط','assignees see own tasks only'):''}</span></label>`).join(''):`<div class="mut">${P('لا توجد مشاريع سرية.','No secret projects.')}</div>`}
 const lvU=(u,lv)=>{const m={section:P('قسمه','own section'),dept:P('إدارته','own dept'),sector:P('قطاعه','own sector')}[nlv(lv)];const c=ucode(u,nlv(lv)=='section'?'exact':nlv(lv));return m+(c?' ('+ukLab(c)+')':P(' — بلا وحدة محددة',' — no unit set'))};
 function sumU(u,d){if(capOf(u,'svc.cr',d).adm)return P('أدمن كامل: يرى ويعدّل كل شيء، ومنه المشاريع السرية.','Full admin: sees and edits everything.');
  const uu=Object.assign({},u,{org_sector:d.scope.org_sector,org_dept:d.scope.org_dept,org_section:d.scope.org_section});
@@ -390,7 +400,7 @@ function userEd(){const u=UMAP[OPU],d=UD,r=RO[d.role],isA=r&&r.base=='admin';con
  <div class="card"><h2>${P('مشاريع بعينها','Specific projects')}</h2>
  <label>${P('منح على مشاريع (اطلاع أو تعديل، لخدمات محددة أو كلها)','Project grants (view/edit, chosen services or all)')}</label><div>${grantsEd('UD.acc.grants','dty()')}</div>
  <label>${P('مستثنى من سرية هذه المشاريع','Excepted from these secret projects')}</label><div>${secretEd('UD.acc.secret','dty()')}</div>
- ${BLK.some(b=>b.user_id==u.id)?`<label>${P('محجوب عن','Blocked from')}</label><div>${BLK.filter(b=>b.user_id==u.id).map(b=>`<span class="ch2 r">${esc(pjName(b.pcode))} <a href="javascript:void 0" style="color:inherit;text-decoration:none" onclick="unblock('${esc(b.pcode)}')">✕</a></span>`).join('')}</div>`:''}</div>
+ ${BLK.some(b=>b.user_id==u.id)?`<label>${P('محجوب عن','Blocked from')}</label><div>${BLK.filter(b=>b.user_id==u.id).map(b=>`<span class="ch2 r">${esc(pjName(b.pcode))} <a href="javascript:void 0" style="color:inherit;text-decoration:none" onclick="unblock('${jsa(b.pcode)}')">✕</a></span>`).join('')}</div>`:''}</div>
  <div class="bar"><button id="svb" class="${d.dirty?'p':''}" onclick="saveU()">${P('حفظ صلاحيات المستخدم','Save user access')}</button><input id="u_note" placeholder="${P('سبب التغيير (يظهر في السجل)','Reason (shown in history)')}" style="flex:1;min-width:150px"><button onclick="openU('${u.id}')">${P('تراجع عن التعديلات','Discard')}</button></div>`}
 async function saveU(){const u=UMAP[OPU],d=UD;const note=($('u_note')||{}).value||'';
  const caps=Object.entries(d.caps).map(([k,o])=>({cap:k,mode:o.mode,val:o.mode=='deny'?null:String(o.val),exp:o.exp?o.exp+'T23:59:59+04:00':null,note:o.note||null}));
@@ -728,4 +738,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="xlupd.js?v=15"></script><script src="xlmore.js?v=4"></script><script src="ido-ui.js?v=63"></script></body></html>
+<script src="xlupd.js?v=15"></script><script src="xlmore.js?v=5"></script><script src="ido-ui.js?v=63"></script></body></html>

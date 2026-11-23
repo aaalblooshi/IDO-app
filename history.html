@@ -105,7 +105,7 @@ const FN={status:['الحالة','Status'],archived:['الأرشفة','Archived'
 const STN={Draft:'مسودة','Returned to PM':'أُعيد لمدير المشروع','PMO Review':'مراجعة المكتب','Awaiting Approval':'بانتظار الاعتماد',Approved:'معتمد',Rejected:'مرفوض',Cancelled:'ملغى',pending:'معلّق',approved:'معتمد',rejected:'مرفوض',signed:'موقّع',superseded:'مستبدل'};
 let ME=null,L=null,F={q:'',tbl:'',days:'7',mine:false},US={};
 async function load(){if(!sb)return gate('needLogin');const {data:{session}}=await sb.auth.getSession();if(!session)return gate('needLogin');
- let {data:p}=await sb.from('profiles').select('*').eq('id',session.user.id).single();p=await capAs(p,['off.undo']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
+ let {data:p}=await sb.rpc('my_profile').single();p=await capAs(p,['off.undo']);if(!p||p.role!='admin')return gate('adminOnly');ME=p;
  try{const h=decodeURIComponent((location.hash||'').slice(1));const m=/^q=(.+)$/.exec(h);if(m){F.q=m[1];F.days='365'}}catch(_){}
  const u=await sb.from('profiles').select('id,full_name');(u.data||[]).forEach(x=>US[x.id]=x.full_name);draw();fetchL()}
 async function fetchL(){L=null;draw();const from=F.days?new Date(Date.now()-(+F.days)*864e5).toISOString():null;
