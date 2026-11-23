@@ -126,13 +126,16 @@ async function revWhy(id){await need('revx.js',6);if(window.REV&&REV.why)REV.why
 async function decOpen(k){await need('revx.js',6);await need('lockx.js',4);await need('decx.js',3);if(window.DEC){DEC.open(k);var t=setInterval(function(){if(!document.getElementById('decov')){clearInterval(t);refresh()}},800)}else alert(T('تعذّر فتح قرارات المكتب','Could not open office decisions'))}
 
 /* عمود «المخرجات والطلبات» في رحلتي */
+function hrefOf(it){var pc=encodeURIComponent(it.pc||'');switch(it.kind){case 'kpi':return 'kpis.html?pc='+pc;case 'risk':case 'act':return 'risks.html?pc='+pc;case 'appr':return 'kpis.html?pc='+pc+'#appr';case 'dap':return 'tasks.html#appr';
+ case 'dret':return 'tasks.html#t='+encodeURIComponent(it.pid+'|'+it.tid);case 'rev':return 'control.html#rev';case 'lock':return 'control.html#lock';case 'prog':return 'control.html';default:return pc?'myprojects.html?pc='+pc:'#'}}
 function colItems(){var td=today(),R=[];
- S.L.forEach(function(it){var dt=dueTxt(it);R.push({key:it.key,state:'act',late:!!it.late,ic:it.ic,kl:it.kl,t:it.t,pj:it.pj,pc:it.pc,tag:(it.late?'⏱ ':'')+(dt||it.go),sub:it.kl+(it.sub?' · '+it.sub:''),go:it.go,run:function(){OPENED[it.key]=1;it.run(it)}})});
+ S.L.forEach(function(it){var dt=dueTxt(it);R.push({key:it.key,kind:it.kind,state:'act',late:!!it.late,ic:it.ic,kl:it.kl,kc:it.kc,t:it.t,pj:it.pj,pc:it.pc,due:dt,sub:it.sub||'',go:it.go,href:hrefOf(it),run:function(){OPENED[it.key]=1;it.run(it)}})});
  S.DM.forEach(function(v){if(v.st=='returned')return;var st=v.st=='approved'?'done':'wait',w=v.at?td-dn(v.at):0;
-  R.push({key:'dm|'+v.id,state:st,late:st=='wait'&&w>=5,ic:'📎',kl:T('مخرَج رفعته','Your deliverable'),t:v.dl||v.n||v.file||'—',pj:v.pname||v.pcode,pc:v.pcode,
-   tag:st=='wait'?T('⏳ عند ','⏳ With ')+(v.appr||'')+(w>0?T(' منذ ',' for ')+DY(w):''):T('✅ اعتمده ','✅ Approved by ')+(v.dec_name||''),
-   sub:T('مخرَج رفعته','Your deliverable')+(v.dl?' · '+v.n:''),v:v,run:function(it){dlvOpen(it)}})});
- S.F.forEach(function(it){R.push({key:it.key,state:it.pend?'wait':'done',late:false,ic:'🏢',kl:T('طلبك لدى المكتب','Your office request'),t:it.t,pj:it.pj,pc:it.pc,tag:it.pend?T('⏳ عند مكتب التطوير المؤسسي','⏳ With the office'):(it.z.status=='approved'||it.z.status=='excl'?T('✅ وافق المكتب','✅ Approved'):T('✖ لم يوافق المكتب','✖ Not approved')),sub:it.sub.split(' · ')[0],run:function(){fuOpen(it)}})});
+  R.push({key:'dm|'+v.id,kind:'dm',state:st,late:st=='wait'&&w>=5,ic:'📎',kl:T('مخرَج رفعته','Your deliverable'),kc:'#5b6b7d',t:v.dl||v.n||v.file||'—',pj:v.pname||v.pcode,pc:v.pcode,
+   due:st=='wait'?(w>0?T('ينتظر منذ ','Waiting ')+DY(w):T('رُفع اليوم','Uploaded today')):'',sub:v.dl?T('المهمة: ','Task: ')+v.n:'',
+   go:st=='wait'?T('⏳ عند ','⏳ With ')+(v.appr||''):T('✅ اعتمده ','✅ Approved by ')+(v.dec_name||''),wait:true,href:'tasks.html#t='+encodeURIComponent(v.pid+'|'+v.tid),v:v,run:function(it){dlvOpen(it)}})});
+ S.F.forEach(function(it){R.push({key:it.key,kind:'fu',state:it.pend?'wait':'done',late:false,ic:'🏢',kl:T('طلبك لدى المكتب','Your office request'),kc:'#5b6b7d',t:it.t,pj:it.pj,pc:it.pc,due:it.since?T('منذ ','Since ')+fd(it.since):'',sub:it.sub.split(' · ')[0],
+  go:it.pend?T('⏳ عند مكتب التطوير المؤسسي','⏳ With the office'):(it.z.status=='approved'||it.z.status=='excl'?T('✅ وافق المكتب','✅ Approved'):T('✖ لم يوافق المكتب','✖ Not approved')),wait:true,href:hrefOf(it),run:function(){fuOpen(it)}})});
  return R}
 function dlvOpen(it){var v=it.v;ov('📎 '+T('مخرَج رفعته','Your deliverable'),it.pj,'<div class="nd-pc">'+dl([[T('المخرَج','Deliverable'),e(v.dl||'—')],[T('المهمة','Task'),e(v.n)],[T('المشروع','Project'),e(it.pj)],[T('الملف','File'),e(v.file||'')],[T('الإصدار','Version'),e(v.ver||'1')],[T('رُفع','Uploaded'),e(fd(v.at))],[T('المعتمِد','Approver'),e(v.appr||'')],[T('الحالة','Status'),e(it.tag)]])+(v.dec_note?'<div style="background:#faf8f3;border-radius:10px;padding:8px 10px">'+T('ملاحظة المعتمِد: ','Approver note: ')+e(v.dec_note)+'</div>':'')+'</div>',
   '<a href="tasks.html#t='+encodeURIComponent(v.pid+'|'+v.tid)+'">'+T('فتح المهمة','Open the task')+'</a>')}

@@ -451,4 +451,4 @@ function lkBlock(pc,cf){if(LKG===null){LKG=false;(async()=>{try{const r=await sb
  <label style="margin-top:6px">${lang=='ar'?'الموازنة المعتمدة وخطة الصرف':'Budget'}</label>${LOCK.sel('lkb',cf.lock_bud??null,LKG.g&&LKG.g.bud)}
  <label>${lang=='ar'?'مستهدفات المؤشرات وأوزانها':'KPI targets'}</label>${LOCK.sel('lkt',cf.lock_tgt??null,LKG.g&&LKG.g.tgt)}<div class="mut" id="lkm" data-pc="${esc(pc)}" style="margin-top:4px"></div></div>`}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||(t.id!='lkb'&&t.id!='lkt'))return;const pc=($('lkm')||{}).dataset?.pc;if(!pc)return;const v=t.value===''?null:t.value=='1';const ok=await LOCK.set(pc,t.id=='lkb'?'bud':'tgt',v);if(ok){CFG[pc]=Object.assign(CFG[pc]||{pcode:pc},t.id=='lkb'?{lock_bud:v}:{lock_tgt:v});$('lkm').textContent=lang=='ar'?'✓ حُفظ':'✓ Saved'}});
-</script><script src="ido-ui.js?v=60"></script></body></html>
+</script><script src="ido-ui.js?v=61"></script></body></html>
