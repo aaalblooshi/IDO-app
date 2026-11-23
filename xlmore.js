@@ -81,7 +81,7 @@
     if (f == 'quarterly') { m = +p.slice(6) - 1; if (!m) { m = 4; y--; } return y + '-Q' + m; }
     if (f == 'semiannual') { m = +p.slice(6) - 1; if (!m) { m = 2; y--; } return y + '-H' + m; }
     if (f == 'annual') return String(y - 1); return null; }
-  async function feats() { if (!window.IDOFEAT) { await new Promise(function (ok) { var sc = document.createElement('script'); sc.src = 'feat.js?v=2'; sc.onload = ok; sc.onerror = ok; document.head.appendChild(sc); }); } try { if (window.IDOFEAT) await IDOFEAT.load(); } catch (e) { } return function (k, pc) { return window.IDOFEAT ? !!IDOFEAT.on(k, pc) : true; }; }
+  async function feats() { if (!window.IDOFEAT) { await new Promise(function (ok) { var sc = document.createElement('script'); sc.src = 'feat.js?v=3'; sc.onload = ok; sc.onerror = ok; document.head.appendChild(sc); }); } try { if (window.IDOFEAT) await IDOFEAT.load(); } catch (e) { } return function (k, pc) { return window.IDOFEAT ? !!IDOFEAT.on(k, pc) : true; }; }
   /* نفس قاعدة صفحة المؤشرات: الإنجاز والحالة */
   function kAch(FO, k, v) { if (!v || v.actual == null) return null; if (v.appr === false && FO('k_appr', k.pcode)) return null; var t = v.target != null ? +v.target : (k.target != null ? +k.target : null), a = +v.actual; if (t == null) return null; if (k.direction == 'down') { if (a <= 0) return t >= 0 ? 100 : null; return Math.max(0, Math.min(200, t / a * 100)); } if (t == 0) return a >= 0 ? 100 : 0; return Math.max(0, Math.min(200, a / t * 100)); }
   function kOff(FO, k, a) { if (a == null) return false; if (k.thr_g != null && FO('k_thr', k.pcode)) { var g = +k.thr_g, y = k.thr_a != null ? +k.thr_a : g - 15; return a < y; } return a < 80; }
