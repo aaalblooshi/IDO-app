@@ -128,7 +128,7 @@ async function load(){if(!sb)return (function(){var el=document.getElementById('
  ME=m.data;(us.data||[]).forEach(u=>US[u.id]=u);
  try{const o=await sb.rpc('risk_office');OFF=o.data===true}catch(_){}
  PC=new URLSearchParams(location.search).get('pc')||'';
- if(PC)await loadP();else await loadOv();draw()}
+ if(PC)await loadP();else await loadOv();draw();{const hr=(location.hash.match(/r=(\d+)/)||[])[1];if(hr&&PC&&typeof edOpen=='function'&&R.some(r=>r.id==hr))setTimeout(()=>edOpen(+hr),250)}}
 async function loadP(){const [a,b,c,g,n]=await Promise.all([sb.from('project_risks').select('*').eq('pcode',PC).order('rno'),sb.from('risk_changes').select('*').eq('pcode',PC).order('id',{ascending:false}).limit(300),sb.from('risk_access').select('*').eq('pcode',PC),sb.rpc('risk_can_grant',{pc:PC}),sb.from('charters').select('code,data->>pname').eq('code',PC).order('id',{ascending:false}).limit(1)]);
  R=a.data||[];CH=b.data||[];ACC=c.data||[];CANG=g.data===true;PN=(n.data&&n.data[0]&&n.data[0].pname)||PC;OV=null;
  try{const pq=await sb.from('plans').select('id,status,archived,act:data->>_active,tasks:data->tasks').or('code.eq.'+PC+',data->>pcode.eq.'+PC).eq('archived',false).order('id',{ascending:false});const L=(pq.data||[]);const pl=L.find(x=>x.status=='Approved'||x.act=='true')||L[0];TK=(pl&&pl.tasks)||[]}catch(_){TK=[]}
@@ -431,7 +431,7 @@ async function xlIn(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)retu
  if(!confirm(P(['سيُعالج '+rows.length+' صفًا. متابعة؟','Process '+rows.length+' rows?'])))return;
  const r=await sb.rpc('risk_import',{p_rows:rows,p_note:P(['رفع من Excel','Excel upload'])});if(r.error)return toast(t('err')+r.error.message);const d=r.data||{};
  alert(P(['اكتمل الرفع:\n• جديد: '+d.created+'\n• محدّث: '+d.updated+'\n• بلا تغيير: '+d.skipped+(d.pending?'\n• بانتظار اعتماد المكتب: '+d.pending:'')+((d.errors||[]).length?'\n• أخطاء: '+d.errors.map(e=>'صف '+e.row+': '+e.err).join('، '):''),'Done:\n• new: '+d.created+'\n• updated: '+d.updated+'\n• unchanged: '+d.skipped+(d.pending?'\n• awaiting approval: '+d.pending:'')+((d.errors||[]).length?'\n• errors: '+d.errors.map(e=>'row '+e.row+': '+e.err).join(', '):'')]));
- if(PC)await loadP();else await loadOv();draw()}
+ if(PC)await loadP();else await loadOv();draw();{const hr=(location.hash.match(/r=(\d+)/)||[])[1];if(hr&&PC&&typeof edOpen=='function'&&R.some(r=>r.id==hr))setTimeout(()=>edOpen(+hr),250)}}
 
 load();
 </script><script>/*pwareg*/
