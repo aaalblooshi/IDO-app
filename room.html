@@ -800,18 +800,23 @@ function drawBrief(){const bad=PJ.filter(p=>p.status=='bad').sort((a,b)=>(a.h??0
 window.copyBrief=()=>{try{navigator.clipboard.writeText(briefText()).then(()=>toast('نُسخ الموجز'),()=>toast('تعذّر النسخ'))}catch(_){toast('تعذّر النسخ')}};
 
 /* ===================== MAP ===================== */
-const VIEWS=[['galaxy','مرصد المشاريع ✦','ثلاثي الأبعاد: القرب من النواة = الأفضل'],['river','مسار الإنجاز','كيف تغيّر وضع كل مشروع عبر الأسابيع'],['radar','الرادار','القرب من المركز = الأحرج'],['matrix','مصفوفة الأداء','الإنجاز مقابل المؤشرات'],['tree','الخريطة','الحجم والأداء معًا'],['road','المواعيد','متى ينتهي كل مشروع: المخطط والمتوقع'],['net','شبكة الاعتماديات','من يعطّل من'],['flow','التدفق','القطاعات إلى الحالات'],['heat','المصفوفة','القطاع × المحور'],['city','خارطة الإنجاز ✦','الارتفاع = الإنجاز · الإطار = المخطط'],['terrain','ملامح الإنجاز ✦','القمم على المسار والمنخفضات متعثرة'],['globe','الأهداف المؤسسية ✦','كل رقعة هدف استراتيجي وكل دائرة مشروع'],['stage','العرض التفاعلي 🎬','عرض شامل لكل القطاعات والمشاريع']];
+const VIEWS=[['galaxy','مرصد المشاريع ✦','القطاعات كواكب والمشاريع أقمار: القريب منضبط والبعيد متأخر'],['river','مسار الإنجاز','كيف تغيّر وضع كل مشروع عبر الأسابيع'],['radar','الرادار','القرب من المركز = الأحرج'],['matrix','مصفوفة الأداء','الإنجاز مقابل المؤشرات'],['tree','الخريطة','الحجم والأداء معًا'],['road','المواعيد','متى ينتهي كل مشروع: المخطط والمتوقع'],['net','شبكة الاعتماديات','من يعطّل من'],['flow','التدفق','القطاعات إلى الحالات'],['heat','المصفوفة','القطاع × المحور'],['city','خارطة الإنجاز ✦','الارتفاع = الإنجاز · الإطار = المخطط'],['terrain','ملامح الإنجاز ✦','القمم على المسار والمنخفضات متعثرة'],['globe','الأهداف المؤسسية ✦','كل رقعة هدف استراتيجي وكل دائرة مشروع'],['stage','العرض التفاعلي 🎬','عرض شامل لكل القطاعات والمشاريع']];
 window.setView=v=>{S.view=v;if(S.tab!='map')go('map');else drawMap()};
 /* ===== المجرّة: عرض ثلاثي الأبعاد تفاعلي للمحفظة (Canvas بلا مكتبات) ===== */
-const GX={raf:0,yaw:-.6,pitch:.5,zoom:1.15,auto:true,drag:null,pts:[],tour:null,hover:null,sel:null,sec:'all',fo:'all',q:'',riv:null,anim:null,net:false,hold:0,nL:0};
+const GX={raf:0,yaw:-.6,pitch:.55,zoom:1,auto:true,drag:null,pts:[],tour:null,hover:null,sel:null,sec:'all',fo:'all',q:'',riv:null,anim:null,net:false,hold:0,nL:0};
 const GZ=[[25,'على المسار','#0a6b3d'],[40,'يحتاج متابعة','#b7791f'],[100,'متعثر','#d1101d']];
 const nP=n=>cnt(n,'مشروع واحد','مشروعان','مشاريع','مشروعًا'),nR=n=>cnt(n,'خطر عالٍ واحد','خطران عاليان','مخاطر عالية','خطرًا عاليًا'),nD=n=>cnt(n,'قرار معلّق','قراران معلّقان','قرارات معلّقة','قرارًا معلّقًا'),nK=n=>cnt(n,'مؤشر واحد','مؤشران','مؤشرات','مؤشرًا'),nT=n=>cnt(n,'مهمة واحدة','مهمتان','مهام','مهمة'),nPt=n=>cnt(n,'نقطة واحدة','نقطتين','نقاط','نقطة'),nW=n=>cnt(n,'أسبوع','أسبوعين','أسابيع','أسبوعًا');
 function hashS(s){let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;return h}
 function glxPend(pc){return AL.filter(a=>a.pc==pc&&(a.cat=='lock'||a.cat=='rev'||a.cat=='appr'||a.cat=='scope'))}
-function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null),ns=Math.max(1,SEC.length);
- return run.map(p=>{const si=Math.max(0,SEC.findIndex(s=>s.id==p.sec)),k=p.c&&p.c.k!=null?p.c.k:null,dist=Math.max(3,Math.min(100,100-p.ps)),
-  ang=(si/ns)*Math.PI*2+((hashS(p.pc)%100)/100-.5)*(Math.PI*2/ns)*.7+dist/100*1.1,pend=glxPend(p.pc);
-  return {p,ang,dist,x:Math.cos(ang)*dist*1.6,z:Math.sin(ang)*dist*1.6,y:k==null?0:(k-75)*1.1,r:3+Math.min(6,Math.sqrt(p.size||6)*.75),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info,zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2}})}
+function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null);
+ const secs=SEC.filter(s=>run.some(p=>p.sec==s.id)).map(s=>({id:s.id,n:s.n}));if(run.some(p=>!secs.some(z=>z.id==p.sec)))secs.push({id:'__o',n:'بلا قطاع'});
+ const ns=Math.max(1,secs.length),R0=95,dR=ns<=3?70:ns<=5?58:48;GX.span=R0+(ns-1)*dR+90;
+ GX.planets=secs.map((s,i)=>{const L=run.filter(p=>s.id=='__o'?!secs.some(z=>z.id==p.sec&&z.id!='__o'):p.sec==s.id),R=R0+i*dR,a=i*2.39996+.6;
+  const ok=L.filter(p=>p.status=='ok').length,wn=L.filter(p=>p.status=='warn').length;return {id:s.id,n:s.n,L,R,a,x:R*Math.cos(a),z:R*Math.sin(a),ok,wn,bd:L.length-ok-wn,r:9+Math.sqrt(L.length)*3.2}});
+ const out=[];GX.planets.forEach(P=>{const n=P.L.length;P.L.slice().sort((a,b)=>String(a.pc).localeCompare(String(b.pc))).forEach((p,j)=>{const k=p.c&&p.c.k!=null?p.c.k:null,dist=Math.max(0,Math.min(100,100-p.ps)),
+   b=j/Math.max(1,n)*Math.PI*2+(hashS(p.pc)%100)/100*.5,rr=P.r+10+dist*.62,pend=glxPend(p.pc);
+   out.push({p,P,ang:b,dist,x:P.x+rr*Math.cos(b),y:rr*.22*Math.sin(b+1.1),z:P.z+rr*Math.sin(b),r:4+Math.min(6,Math.sqrt(p.size||6)*.8),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info,zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2})})});
+ return out}
 function glxGraph(P){const M={};P.forEach(d=>{M[d.p.pc]=d;d.up=[];d.dn=[];d.casc=new Set();d.ce=[]});let n=0;
  (X.links||[]).forEach(l=>{const a=M[l.f],b=M[l.t];if(!a||!b||a===b)return;if(!b.up.includes(a)){b.up.push(a);a.dn.push(b);n++}});
  P.forEach(d=>{const q=[d],seen=new Set();while(q.length){const c=q.shift();c.dn.forEach(x=>{d.ce.push([c,x]);if(x!==d&&!seen.has(x)){seen.add(x);q.push(x)}})}d.casc=seen;d.cSec=new Set([...seen].map(x=>x.p.sec)).size;d.cW=[...seen].reduce((a,x)=>a+(x.p.w||1),0)});GX.nL=n;return P}
@@ -824,30 +829,30 @@ function vGalaxy(){const D=glxGraph(glxData()),oth=PJ.length-D.length;
    <span class="glx-seg" role="group" aria-label="زاوية النظر"><button type="button" data-gv="persp" class="on">منظور</button><button type="button" data-gv="top">من أعلى</button><button type="button" data-gv="side">من الجانب</button></span></div>
   <div class="glx-fo" role="group" aria-label="تمييز">${[['all','الكل'],['warn','تحتاج متابعة أو متعثرة'],['bad','متعثرة'],['pend','بقرار معلّق'],['risk','بمخاطر عالية'],['kpi','مؤشراتها متعثرة']].map(([k,t])=>{const n=k=='all'?D.length:D.filter(d=>{const o=GX.fo;GX.fo=k;const v=glxVis(d);GX.fo=o;return v}).length;return `<button type="button" data-gf="${k}" class="${GX.fo==k?'on':''}">${t} <i>${n}</i></button>`}).join('')}</div>
   <div class="glx-ct"><button type="button" id="glxTour">▶ الجولة</button><button type="button" id="glxRot">⏸ إيقاف الدوران</button><button type="button" id="glxNm">🏷 إظهار الأسماء</button><button type="button" id="glxNet" ${GX.nL?'':'disabled title="لا توجد روابط بين المشاريع بعد"'}>🕸 الاعتماديات${GX.nL?' '+GX.nL:''}</button><button type="button" id="glxRst" title="إعادة الضبط">↺</button><button type="button" id="glxHelp">ⓘ كيف أقرأها؟</button></div>
-  <div class="glx-zl">${GZ.map(([r,t,c],i)=>`<span><i style="background:${c}"></i>${t} <b>${D.filter(d=>d.zone==i).length}</b></span>`).join('')}<span class="glx-ax">↑ المؤشرات أفضل · ↓ متعثرة</span></div>
+  <div class="glx-zl">${GZ.map(([r,t,c],i)=>`<span><i style="background:${c}"></i>${t} <b>${D.filter(d=>d.zone==i).length}</b></span>`).join('')}<span class="glx-ax">اضغط كوكبًا للاقتراب من قطاعه</span></div>
   <div class="glx-cap" id="glxCap" hidden></div><div class="glx-help" id="glxH" hidden><b>كيف يُقرأ مرصد المشاريع؟</b><ul>
-  <li><b>النواة الذهبية</b> = مشروع إنجازه مطابق للمتوقع. كل ما <b>ابتعد</b> المشروع عنها زاد تأخره عن المتوقع.</li>
-  <li>الحلقات الثلاث = مراحل الحالة: <b style="color:#0a6b3d">على المسار</b> ثم <b style="color:#b7791f">يحتاج متابعة</b> ثم <b style="color:#d1101d">متعثر</b>.</li>
-  <li><b>الارتفاع</b>: فوق القرص مؤشراته جيدة، وتحته متعثرة؛ الخط المنقّط يوضح المسافة. «من الجانب» يُظهر الارتفاع بوضوح، و«من أعلى» يقرأ المسافة فقط.</li>
-  <li><b>الأذرع</b> = القطاعات، <b>حجم النجمة</b> = عدد المهام، <b>الذيل الباهت</b> = مكانه قبل 4 أسابيع.</li>
-  <li><b>حلقة حمراء</b> = مخاطر عالية، <b>حلقة بيضاء تدور</b> = قرار معلّق عند المكتب.</li>
-  <li><b>الاعتماديات</b>: عند اختيار مشروع تظهر خيوط ما يعتمد عليه (متقطعة) وما سيتأثر به (برتقالية إن كان متأخرًا)، وزر «🕸 الاعتماديات» يُظهر الشبكة كاملة. تأتي من «روابط المشاريع».</li><li><b>الجولة</b> تمر على كل المشاريع الظاهرة من الأبعد عن النواة إلى الأقرب.</li><li>اضغط نجمة لتفاصيلها، واضغطها مرتين لفتح المشروع. اسحب للتدوير ومرّر أو اقرص للتكبير، والأسهم في لوحة المفاتيح تدوّر أيضًا.</li></ul></div></div>
+  <li><b>الكواكب</b> = القطاعات تدور حول «المركز»، والرقم داخل الكوكب عدد مشاريعه، وحلقته الملونة توزيع حالاتها.</li>
+  <li><b>الأقمار</b> = المشاريع. <b>بُعد القمر عن كوكبه</b> = تأخره عن المخطط: القريب منضبط والبعيد متأخر. لونه = حالته، وحجمه = عدد مهامه.</li>
+  <li>اضغط <b>كوكبًا</b> للاقتراب من قطاعه وتظهر حلقتا «على المسار» و«يحتاج متابعة» حوله، واضغطه مرة أخرى للعودة.</li>
+  <li>اضغط <b>قمرًا</b> لتفاصيله، ومرتين لفتح المشروع. تظهر خيوط ما يعتمد عليه (متقطعة) وما سيتأثر به (برتقالية إن كان متأخرًا).</li>
+  <li><b>حلقة حمراء</b> = مخاطر عالية، <b>قوس ذهبي يدور</b> = قرار معلّق عند المكتب.</li>
+  <li><b>الجولة</b> تمر على المشاريع من الأبعد عن المخطط. اسحب للتدوير، ومرّر أو اقرص للتكبير.</li></ul></div></div>
   <aside class="glx-sd" id="glxSd" aria-live="polite"></aside></div>`,
   leg:stLeg()+`<span>· المشاريع الجارية في المرصد: ${D.length}${oth?` · خارجه: ${oth} (قيد الإعداد أو منجزة أو متوقفة)`:''}</span>`,
   ins:glxIns(D)}}
 function glxIns(D){if(!D.length)return 'لا توجد مشاريع جارية بخطة معتمدة لعرضها.';const far=D.slice().sort((a,b)=>b.dist-a.dist)[0],low=D.filter(d=>d.k!=null&&d.k<60).length,pend=D.filter(d=>d.pend.length).length,z2=D.filter(d=>d.zone==2).length;
- return `أبعد مشروع عن النواة «${esc(far.p.n)}» (الإنجاز ${far.p.act??'—'}٪ من ${far.p.exp??'—'}٪ المتوقع)${z2?` · ${nP(z2)} في منطقة التعثر`:''}${low?` · ${nP(low)} بمؤشرات متعثرة`:''}${pend?` · ${nP(pend)} ${pend==1?'عليه':pend==2?'عليهما':'عليها'} قرار معلّق عند المكتب`:''}.`}
+ return `أبعد مشروع عن الخطة «${esc(far.p.n)}» (الإنجاز ${far.p.act??'—'}٪ من ${far.p.exp??'—'}٪ المتوقع)${z2?` · ${nP(z2)} في منطقة التعثر`:''}${low?` · ${nP(low)} بمؤشرات متعثرة`:''}${pend?` · ${nP(pend)} ${pend==1?'عليه':pend==2?'عليهما':'عليها'} قرار معلّق عند المكتب`:''}.`}
 function glxStop(){try{window.V3&&V3.stop()}catch(_){}cancelAnimationFrame(GX.raf);GX.raf=0;GX.tour=null;GX.anim=null}
 async function glxRiv(){if(GX.riv)return;try{const r=await sb.rpc('room_river',{p_weeks:8});GX.riv=r.error?{}:r.data||{}}catch(_){GX.riv={}}GX.pts.forEach(glxTrail);glxSide()}
-function glxTrail(d){const h=GX.riv&&GX.riv[d.p.pc];if(!h||!h.length){d.tr=null;return}const o=h.find(x=>x[2]>0)||h[0],r0=o[2]>0?Math.min(100,o[1]/o[2]*100):null;if(r0==null){d.tr=null;return}const d0=Math.max(3,Math.min(100,100-r0)),a0=d.ang-(d.dist-d0)/100*1.1;d.tr={x:Math.cos(a0)*d0*1.6,z:Math.sin(a0)*d0*1.6,dd:Math.round(d.dist-d0),w:Math.round((new Date()-new Date(o[0]))/6048e5)}}
+function glxTrail(d){const h=GX.riv&&GX.riv[d.p.pc];if(!h||!h.length){d.tr=null;return}const o=h.find(x=>x[2]>0)||h[0],r0=o[2]>0?Math.min(100,o[1]/o[2]*100):null;if(r0==null){d.tr=null;return}const d0=Math.max(0,Math.min(100,100-r0));d.tr={dd:Math.round(d.dist-d0),w:Math.round((new Date()-new Date(o[0]))/6048e5)}}
 function glxStart(){const cv=$('glxC');if(!cv)return;GX.pts=glxGraph(glxData());GX.bgk='';if(GX.sel)GX.sel=GX.pts.find(d=>d.p.pc==GX.sel.p.pc)||null;const box=$('glx');
  GX.pts.slice().sort((a,b)=>b.dist-a.dist).slice(0,3).forEach(d=>d.lab=1);
- const fit=()=>{const w=box.clientWidth,h=w<640?Math.max(380,Math.min(560,Math.round(innerHeight*.58))):Math.max(420,Math.min(640,Math.round(w*.66))),dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';GX.dp=dp;GX.w=w;GX.h=h};fit();if(GX.w<640&&!GX.mz){GX.mz=1;GX.zoom=1.5;GX.auto=false}
+ const fit=()=>{const w=box.clientWidth,h=w<640?Math.max(380,Math.min(560,Math.round(innerHeight*.58))):Math.max(420,Math.min(640,Math.round(w*.66))),dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';GX.dp=dp;GX.w=w;GX.h=h};fit();if(GX.w<640&&!GX.mz){GX.mz=1;GX.zoom=1.15;GX.auto=false}
  if(!GX.ro)GX.ro=new ResizeObserver(()=>{const b=$('glx');if(!b||!$('glxC'))return;if(Math.abs(b.clientWidth-GX.w)<24)return;cancelAnimationFrame(GX.rof);GX.rof=requestAnimationFrame(()=>{if($('glxC'))GX.fit&&GX.fit()})});GX.fit=fit;GX.ro.disconnect();GX.ro.observe(box);
  const pos=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
  cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);GX.hold=Date.now();GX.drag={x:e.clientX,y:e.clientY,yaw:GX.yaw,pitch:GX.pitch,mv:0};GX.tour=null;GX.anim=null};
- cv.onpointermove=e=>{if(GX.drag){const dx=e.clientX-GX.drag.x,dy=e.clientY-GX.drag.y;GX.drag.mv=Math.max(GX.drag.mv,Math.abs(dx)+Math.abs(dy));if(GX.drag.mv>4){GX.yaw=GX.drag.yaw+dx*.008;GX.pitch=Math.max(.02,Math.min(1.55,GX.drag.pitch+dy*.006))}return}const [x,y]=pos(e);const h=glxPick(x,y);if(h!==GX.hover){GX.hover=h;glxListHi()}cv.style.cursor=h?'pointer':'grab';glxTip(h,x,y)};
- cv.onpointerup=e=>{const d=GX.drag;GX.drag=null;GX.hold=Date.now();if(d&&d.mv<6){const [x,y]=pos(e),h=glxPick(x,y);if(h){if(GX.sel===h&&Date.now()-(GX.lc||0)<450)openProject(h.p.pc);else glxSelect(h,false)}else{GX.sel=null;glxSide()}GX.lc=Date.now()}};
+ cv.onpointermove=e=>{if(GX.drag){const dx=e.clientX-GX.drag.x,dy=e.clientY-GX.drag.y;GX.drag.mv=Math.max(GX.drag.mv,Math.abs(dx)+Math.abs(dy));if(GX.drag.mv>4){GX.yaw=GX.drag.yaw+dx*.008;GX.pitch=Math.max(.02,Math.min(1.55,GX.drag.pitch+dy*.006))}return}const [x,y]=pos(e);const h=glxPick(x,y);if(h!==GX.hover){GX.hover=h;glxListHi()}cv.style.cursor=h||glxPickP(x,y)?'pointer':'grab';glxTip(h,x,y)};
+ cv.onpointerup=e=>{const d=GX.drag;GX.drag=null;GX.hold=Date.now();if(d&&d.mv<6){const [x,y]=pos(e),h=glxPick(x,y);if(h){if(GX.sel===h&&Date.now()-(GX.lc||0)<450)openProject(h.p.pc);else glxSelect(h,false)}else{const P=glxPickP(x,y);GX.sel=null;if(P){GX.sec=GX.sec==P.id?'all':P.id;const se=$('glxSec');if(se)se.value=GX.sec}glxSide()}GX.lc=Date.now()}};
  cv.onpointerleave=()=>{GX.hover=null;glxTip(null);glxListHi()};
  cv.onwheel=e=>{e.preventDefault();GX.zoom=Math.max(.55,Math.min(3,GX.zoom*(e.deltaY>0?.9:1.1)))};
  cv.onkeydown=e=>{const k={ArrowLeft:[-.12,0],ArrowRight:[.12,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]}[e.key];if(k){e.preventDefault();GX.yaw+=k[0];GX.pitch=Math.max(.02,Math.min(1.55,GX.pitch+k[1]))}if(e.key=='+'||e.key=='=')GX.zoom=Math.min(3,GX.zoom*1.1);if(e.key=='-')GX.zoom=Math.max(.55,GX.zoom/1.1);if(e.key=='Escape'){GX.sel=null;glxSide()}};
@@ -858,14 +863,15 @@ function glxStart(){const cv=$('glxC');if(!cv)return;GX.pts=glxGraph(glxData());
  $('glxSec').value=GX.sec;$('glxSec').onchange=e=>{GX.sec=e.target.value;glxSide()};
  $('glxQ').onchange=e=>{const q=e.target.value.trim();const d=GX.pts.find(x=>x.p.n==q)||GX.pts.find(x=>x.p.n.includes(q));if(d)glxSelect(d,true)};
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)GX.auto=false;glxRotTxt();glxSide();glxRiv();
- cancelAnimationFrame(GX.raf);const loop=t=>{if(!$('glxC')){GX.raf=0;return}const mv=GX.anim||GX.tour||GX.drag||(GX.auto&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000);if(!document.hidden&&(mv||t-(GX.lt||0)>(GX.pts.some(d=>d.pend.length)||GX.sel?90:400))){glxFrame(t);GX.lt=t}GX.raf=requestAnimationFrame(loop)};GX.raf=requestAnimationFrame(loop)}
+ cancelAnimationFrame(GX.raf);const loop=t=>{if(!$('glxC')){GX.raf=0;return}const mv=GX.anim||GX.tour||GX.drag||GX.moving||(GX.auto&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000);if(!document.hidden&&(mv||t-(GX.lt||0)>(GX.pts.some(d=>d.pend.length)||GX.sel?90:400))){glxFrame(t);GX.lt=t}GX.raf=requestAnimationFrame(loop)};GX.raf=requestAnimationFrame(loop)}
 function glxRotTxt(){const b=$('glxRot');if(b)b.textContent=GX.auto?'⏸ إيقاف الدوران':'▶ تشغيل الدوران'}
 function glxAnim(ty,tp,tz){const fy=GX.yaw,ny=fy+((((ty-fy)%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI);GX.anim={t0:performance.now(),fy,ty:ny,fp:GX.pitch,tp,fz:GX.zoom,tz}}
-function glxView(v){$('glx').querySelectorAll('[data-gv]').forEach(b=>b.classList.toggle('on',b.dataset.gv==v));GX.auto=v=='persp'&&GX.auto;glxRotTxt();glxAnim(v=='top'?GX.yaw:-.6,v=='top'?1.52:v=='side'?.04:.5,1.15)}
-function glxSelect(d,fly){GX.sel=d;if(fly){GX.auto=false;glxRotTxt();glxAnim(-Math.PI/2-d.ang,Math.max(.25,Math.min(.9,GX.pitch)),GX.w<640?2.1:1.6)}glxSide()}
-function glxProj(x,y,z){const cy=Math.cos(GX.yaw),sy=Math.sin(GX.yaw),cp=Math.cos(GX.pitch),sp=Math.sin(GX.pitch);
- let X=x*cy-z*sy,Z=x*sy+z*cy;let Y=y*cp-Z*sp;Z=y*sp+Z*cp;const Dd=420,s=Dd/(Dd+Z)*GX.zoom*Math.min(GX.w,GX.h*1.4)/420;return [GX.w/2+X*s,GX.h*.52-Y*s,s,Z]}
-function glxPick(x,y){let best=null,bd=1e9;GX.pts.forEach(d=>{if(d.sx==null||!glxVis(d))return;const dd=Math.hypot(d.sx-x,d.sy-y);if(dd<Math.max(GX.w<640?24:12,d.sr+(GX.w<640?12:6))&&dd<bd){bd=dd;best=d}});return best}
+function glxView(v){$('glx').querySelectorAll('[data-gv]').forEach(b=>b.classList.toggle('on',b.dataset.gv==v));GX.auto=v=='persp'&&GX.auto;glxRotTxt();glxAnim(v=='top'?GX.yaw:-.6,v=='top'?1.45:v=='side'?.12:.55,GX.w<640?1.15:1)}
+function glxSelect(d,fly){GX.sel=d;if(fly){GX.auto=false;glxRotTxt();glxAnim(GX.yaw,Math.max(.35,Math.min(.9,GX.pitch)),GX.zoom)}glxSide()}
+function glxProj(x,y,z){x-=GX.tx||0;z-=GX.tz||0;const cy=Math.cos(GX.yaw),sy=Math.sin(GX.yaw),cp=Math.cos(GX.pitch),sp=Math.sin(GX.pitch),SP=GX.span||300;
+ const X=x*cy-z*sy,Zr=x*sy+z*cy,Y=y*cp+Zr*sp,Z=Zr*cp-y*sp,Dd=SP*2.6,s=Dd/(Dd+Z)*GX.zoom*(GX.zf||1)*Math.min(GX.w,GX.h*1.45)/(SP*1.6);return [GX.w/2+X*s,GX.h*.5-Y*s,s,Z]}
+function glxPick(x,y){let best=null,bd=1e9;const ph=GX.w<640;GX.pts.forEach(d=>{if(d.sx==null||!glxVis(d))return;const dd=Math.hypot(d.sx-x,d.sy-y);if(dd<Math.max(ph?22:12,d.sr+(ph?10:5))&&dd<bd){bd=dd;best=d}});return best}
+function glxPickP(x,y){let b=null;(GX.planets||[]).forEach(P=>{if(P.sx!=null&&Math.hypot(P.sx-x,P.sy-y)<Math.max(GX.w<640?24:16,P.sr+6))b=P});return b}
 function glxTip(d,x,y){const tip=$('mtip');if(!tip)return;if(!d){tip.style.display='none';return}const p=d.p;
  tip.innerHTML=`<b>${esc(p.n)}</b><br>${esc(secName(p.sec))} · ${SNAME[p.status]}<br>الإنجاز ${p.act??'—'}٪ من ${p.exp??'—'}٪ المتوقع${d.k!=null?` · المؤشرات ${d.k}`:' · بلا قراءات مؤشرات'}${d.risk?` · ${nR(d.risk)}`:''}${d.pend.length?` · ${nD(d.pend.length)}`:''}<br><small>اضغط للتفاصيل · مرتين لفتح المشروع</small>`;
  tip.style.display='block';tip.style.left=Math.max(0,Math.min(GX.w-260,x-120))+'px';tip.style.top=(y+18)+'px'}
@@ -874,7 +880,7 @@ function glxSide(){const el=$('glxSd');if(!el)return;const V=GX.pts.filter(glxVi
  if(d){const p=d.p,kp=p.kp||[],kb=kp.filter(k=>kSt(k)=='bad').length,kw=kp.filter(k=>kSt(k)=='warn').length,lt=p.late||0,tr=d.tr;
   const SV=V.slice().sort((a,b)=>b.dist-a.dist),si=SV.indexOf(d);h+=`<div class="glx-card"><div class="glx-ch"><span class="glx-st" style="background:${d.col}">${SNAME[p.status]}</span><button type="button" data-gx="x" aria-label="إغلاق">✕</button></div>${SV.length>1?`<div class="glx-step"><button type="button" data-gs="-1" ${si<=0?'disabled':''}>‹ الأبعد</button><span>${si+1} من ${SV.length}</span><button type="button" data-gs="1" ${si>=SV.length-1?'disabled':''}>الأقرب ›</button></div>`:''}<b class="glx-nm">${esc(p.n)}</b><small>${esc(secName(p.sec))}${p.pm?' · مدير المشروع: '+esc(p.pm):''}</small>
    <div class="glx-m"><span>الإنجاز الفعلي مقابل المتوقع</span><b>${p.act??'—'}٪ <small>من ${p.exp??'—'}٪</small></b>${glxBar(p.act,p.exp,d.col)}</div>
-   <div class="glx-m"><span>البعد عن النواة</span><b>${nPt(Math.round(d.dist))}</b>${tr?`<small class="${tr.dd>0?'dn':'up'}">${tr.dd==0?'ثابت':(tr.dd>0?'ابتعد ':'اقترب ')+nPt(Math.abs(tr.dd))} خلال ${nW(Math.max(1,tr.w))}</small>`:''}</div>
+   <div class="glx-m"><span>البعد عن الخطة</span><b>${nPt(Math.round(d.dist))}</b>${tr?`<small class="${tr.dd>0?'dn':'up'}">${tr.dd==0?'ثابت':(tr.dd>0?'ابتعد ':'اقترب ')+nPt(Math.abs(tr.dd))} خلال ${nW(Math.max(1,tr.w))}</small>`:''}</div>
    <div class="glx-m"><span>المؤشرات</span><b>${d.k!=null?d.k+'/100':'بلا قراءات'}</b><small>${kp.length?nK(kp.length)+(kb?` · ${kb} متأخر`:'')+(kw?` · ${kw} يحتاج متابعة`:''):'لا مؤشرات مفعّلة'}</small></div>
    <div class="glx-m"><span>المخاطر</span><b>${(p.rk||[]).length?cnt((p.rk||[]).length,'خطر واحد','خطران','مخاطر','خطرًا'):'لا مخاطر'}</b><small>${d.risk?nR(d.risk):'لا مخاطر عالية'}${p.rOver?' · '+cnt(p.rOver,'مراجعة متأخرة','مراجعتان متأخرتان','مراجعات متأخرة','مراجعة متأخرة'):''}</small></div>
    <div class="glx-m"><span>المهام</span><b>${nT(p.tasks||0)}</b><small>${lt?cnt(lt,'مهمة واحدة متأخرة','مهمتان متأخرتان','مهام متأخرة','مهمة متأخرة')+(p.oldest?' · أقدمها متأخرة '+lateTxt(p.oldest):''):'لا مهام متأخرة'}</small></div>
@@ -888,13 +894,13 @@ function glxSide(){const el=$('glxSd');if(!el)return;const V=GX.pts.filter(glxVi
  else{const z=[0,1,2].map(i=>V.filter(x=>x.zone==i).length);
   h+=`<div class="glx-card"><b class="glx-nm">نظرة عامة</b><small>${GX.fo!='all'||GX.sec!='all'?'المطابقة للتمييز: ':'المشاريع الجارية: '}${V.length}</small><div class="glx-zs">${GZ.map(([r,t,c],i)=>`<div style="--c:${c}"><b>${z[i]}</b><span>${t}</span></div>`).join('')}</div><small class="glx-hint">اختر نجمة أو مشروعًا من القائمة لعرض تفاصيله.</small></div>`+glxSmart(V)}
  const L=V.slice().sort((a,b)=>b.dist-a.dist);
- h+=`<div class="glx-ls"><b>المشاريع من الأبعد عن النواة</b>${L.map(x=>`<button type="button" data-gp="${esc(x.p.pc)}" class="${x===d?'on':''}"><i style="background:${x.col}"></i><span>${esc(x.p.n)}</span><em>${x.p.ps}</em>${x.pend.length?'<u title="قرار معلّق">⏳</u>':''}${x.risk?'<u title="مخاطر عالية">⚠</u>':''}</button>`).join('')||'<small>لا شيء مطابق</small>'}</div>`;
+ h+=`<div class="glx-ls"><b>المشاريع من الأبعد عن المخطط</b>${L.map(x=>`<button type="button" data-gp="${esc(x.p.pc)}" class="${x===d?'on':''}"><i style="background:${x.col}"></i><span>${esc(x.p.n)}</span><em>${x.p.ps}</em>${x.pend.length?'<u title="قرار معلّق">⏳</u>':''}${x.risk?'<u title="مخاطر عالية">⚠</u>':''}</button>`).join('')||'<small>لا شيء مطابق</small>'}</div>`;
  el.innerHTML=h;
  el.querySelectorAll('[data-gp]').forEach(b=>{const x=GX.pts.find(q=>q.p.pc==b.dataset.gp);b.onclick=()=>glxSelect(x,true);b.onmouseenter=()=>{GX.hover=x};b.onmouseleave=()=>{GX.hover=null}});
  el.querySelectorAll('[data-gs]').forEach(b=>b.onclick=()=>{const SV=GX.pts.filter(glxVis).sort((a,b)=>b.dist-a.dist),i=SV.indexOf(GX.sel),n=SV[i+(+b.dataset.gs)];if(n)glxSelect(n,true)});
  el.querySelectorAll('[data-gx]').forEach(b=>b.onclick=()=>{const a=b.dataset.gx;if(a=='x'){GX.sel=null;glxSide()}else if(a=='open')openProject(d.p.pc);else if(a=='fly')glxSelect(d,true);else if(a=='river'){RV.focus=d.p.pc;setView('river')}})}
 function glxSmart(V){if(!V.length)return '';const ins=[];
- const far=V.slice().sort((a,b)=>b.dist-a.dist)[0];ins.push([far.col,`الأبعد عن النواة «${esc(far.p.n)}»: أنجز ${far.p.act??'—'}٪ والمتوقع ${far.p.exp??'—'}٪.`]);
+ const far=V.slice().sort((a,b)=>b.dist-a.dist)[0];ins.push([far.col,`الأبعد عن الخطة «${esc(far.p.n)}»: أنجز ${far.p.act??'—'}٪ والمتوقع ${far.p.exp??'—'}٪.`]);
  const hub=V.filter(d=>d.casc.size).sort((a,b)=>b.casc.size-a.casc.size)[0];if(hub)ins.push(['#5cc8ff',`«${esc(hub.p.n)}» أكثر المشاريع تأثيرًا في غيره: يعتمد عليه ${nP(hub.casc.size)}.`]);
  const ch=V.filter(d=>d.casc.size&&d.p.status!='ok').sort((a,b)=>b.casc.size-a.casc.size)[0];if(ch&&ch!==hub)ins.push(['#ff8a5c',`أخطر نقطة اختناق «${esc(ch.p.n)}» (${SNAME[ch.p.status]}) وقد يمتد أثره إلى ${nP(ch.casc.size)}.`]);
  const bys=SEC.map(s=>{const L=V.filter(d=>d.p.sec==s.id);return {s,n:L.length,b:L.filter(d=>d.p.status=='bad').length}}).filter(x=>x.n);const ws=bys.sort((a,b)=>b.b/b.n-a.b/a.n)[0];if(ws&&ws.b)ins.push([SCOL.bad,`${esc(ws.s.n)} يسجّل أعلى نسبة تعثّر: ${ws.b} من ${ws.n}.`]);
@@ -902,38 +908,55 @@ function glxSmart(V){if(!V.length)return '';const ins=[];
  const pd=V.filter(d=>d.pend.length).length;if(pd)ins.push(['#e9c46a',`${nP(pd)} ${pd==1?'عليه':pd==2?'عليهما':'عليها'} قرار معلّق عند المكتب.`]);
  const R=V.filter(d=>d.p.status!='ok').sort((a,b)=>b.casc.size-a.casc.size||b.dist-a.dist).slice(0,5);
  return `<div class="glx-card"><b class="glx-nm">قراءة ذكية</b><ul class="glx-in">${ins.map(([c,t])=>`<li><i style="background:${c}"></i><span>${t}</span></li>`).join('')}</ul></div>`+
-  (R.length?`<div class="glx-card"><b class="glx-nm">رادار المخاطر</b><small>المشاريع المتعثرة أو التي تحتاج متابعة، مرتبة حسب أثرها على غيرها ثم بعدها عن النواة</small><div class="glx-rr">${R.map(d=>`<button type="button" data-gp="${esc(d.p.pc)}"><span><b>${esc(d.p.n)}</b><small>${esc(secName(d.p.sec))} · ${SNAME[d.p.status]} · ${d.p.ps}٪ من المخطط</small></span><em style="color:${d.col}">${d.casc.size?d.casc.size+'<small>متأثر</small>':'—'}</em></button>`).join('')}</div></div>`:'')}
+  (R.length?`<div class="glx-card"><b class="glx-nm">رادار المخاطر</b><small>المشاريع المتعثرة أو التي تحتاج متابعة، مرتبة حسب أثرها على غيرها ثم بعدها عن الخطة</small><div class="glx-rr">${R.map(d=>`<button type="button" data-gp="${esc(d.p.pc)}"><span><b>${esc(d.p.n)}</b><small>${esc(secName(d.p.sec))} · ${SNAME[d.p.status]} · ${d.p.ps}٪ من المخطط</small></span><em style="color:${d.col}">${d.casc.size?d.casc.size+'<small>متأثر</small>':'—'}</em></button>`).join('')}</div></div>`:'')}
 function risky2(d){return d&&d.p.status!='ok'}
 function glxListHi(){const el=$('glxSd');if(!el)return;el.querySelectorAll('[data-gp]').forEach(b=>b.classList.toggle('hv',!!GX.hover&&b.dataset.gp==GX.hover.p.pc))}
-function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=GX.dp;g.setTransform(dp,0,0,dp,0,0);g.setLineDash([]);
- if(GX.anim){const T=GX.anim,k=Math.min(1,(t-T.t0)/1200),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.yaw=T.fy+(T.ty-T.fy)*e;GX.pitch=T.fp+(T.tp-T.fp)*e;GX.zoom=T.fz+(T.tz-T.fz)*e;if(k>=1)GX.anim=null}
- else if(GX.auto&&!GX.drag&&!GX.tour&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000)GX.yaw+=.0016;
- const bk=W+'x'+H+'x'+dp;if(GX.bgk!==bk){const oc=document.createElement('canvas');oc.width=W*dp;oc.height=H*dp;const o=oc.getContext('2d');o.setTransform(dp,0,0,dp,0,0);const bg=o.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#1b2b44');bg.addColorStop(1,'#0b1424');o.fillStyle=bg;o.fillRect(0,0,W,H);for(let i=0;i<70;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;o.fillStyle='rgba(255,255,255,'+(.1+(i%5)*.04)+')';o.beginPath();o.arc(sx,sy,.8,0,7);o.fill()}GX.bgc=oc;GX.bgk=bk}
+function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=GX.dp,ph=W<640;g.setTransform(dp,0,0,dp,0,0);g.setLineDash([]);
+ if(GX.anim){const T=GX.anim,k=Math.min(1,(t-T.t0)/1100),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.yaw=T.fy+(T.ty-T.fy)*e;GX.pitch=T.fp+(T.tp-T.fp)*e;GX.zoom=T.fz+(T.tz-T.fz)*e;if(k>=1)GX.anim=null}
+ else if(GX.auto&&!GX.drag&&!GX.tour&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000)GX.yaw+=.0012;
+ // camera follows the focused sector (selected project or chosen sector)
+ const FP=GX.sel?GX.sel.P:GX.sec!='all'?(GX.planets||[]).find(P=>P.id==GX.sec):null,gx=FP?FP.x:0,gz=FP?FP.z:0,gzf=FP?(ph?2.3:2.0):1;
+ GX.tx=(GX.tx||0)+(gx-(GX.tx||0))*.12;GX.tz=(GX.tz||0)+(gz-(GX.tz||0))*.12;GX.zf=(GX.zf||1)+(gzf-(GX.zf||1))*.12;GX.moving=Math.abs(gx-GX.tx)+Math.abs(gz-GX.tz)+Math.abs(gzf-GX.zf)>.5;
+ const bk=W+'x'+H+'x'+dp;if(GX.bgk!==bk){const oc=document.createElement('canvas');oc.width=W*dp;oc.height=H*dp;const o=oc.getContext('2d');o.setTransform(dp,0,0,dp,0,0);const bg=o.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#16243a');bg.addColorStop(1,'#070d18');o.fillStyle=bg;o.fillRect(0,0,W,H);for(let i=0;i<80;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;o.fillStyle='rgba(255,255,255,'+(.08+(i%5)*.05)+')';o.beginPath();o.arc(sx,sy,i%7?.7:1.2,0,7);o.fill()}GX.bgc=oc;GX.bgk=bk}
  g.setTransform(1,0,0,1,0,0);g.drawImage(GX.bgc,0,0);g.setTransform(dp,0,0,dp,0,0);
- const ring=(rr,fill,stroke,lw)=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(Math.cos(an)*rr*1.6,0,Math.sin(an)*rr*1.6);a?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||1;g.stroke()}};
- ring(100,'rgba(209,16,29,.07)','rgba(209,16,29,.35)',1);ring(GZ[1][0],'rgba(183,121,31,.10)','rgba(230,170,70,.55)',1.2);ring(GZ[0][0],'rgba(10,107,61,.16)','rgba(80,190,120,.6)',1.2);
- [[GZ[0][0],'على المسار','#7fd3a0'],[GZ[1][0],'يحتاج متابعة','#f0c070'],[100,'متعثر','#ff8a8a']].forEach(([rr,tx,c])=>{const [lx,ly]=glxProj(-rr*1.6*.72,0,-rr*1.6*.72);g.fillStyle=c;g.font='bold 11px system-ui';g.textAlign='center';g.fillText(tx,lx,ly)});
- const ns=Math.max(1,SEC.length);SEC.forEach((s,i)=>{if(!GX.pts.some(d=>d.p.sec==s.id))return;const a0=i/ns*Math.PI*2,on=GX.sec=='all'||GX.sec==s.id;g.beginPath();for(let r=4;r<=104;r+=4){const an=a0+r/100*1.1,[px,py]=glxProj(Math.cos(an)*r*1.6,0,Math.sin(an)*r*1.6);r==4?g.moveTo(px,py):g.lineTo(px,py)}g.strokeStyle=on?'rgba(140,190,240,.35)':'rgba(140,190,240,.08)';g.lineWidth=2;g.stroke();
-  const an=a0+1.22,[lx,ly]=glxProj(Math.cos(an)*116*1.6,0,Math.sin(an)*116*1.6);g.globalAlpha=on?1:.35;g.font='bold '+(GX.w<640?13:12.5)+'px system-ui';g.textAlign='center';const tw=g.measureText(s.n).width;g.fillStyle='rgba(10,20,36,.75)';g.beginPath();g.roundRect?g.roundRect(lx-tw/2-7,ly-14,tw+14,20,10):g.rect(lx-tw/2-7,ly-14,tw+14,20);g.fill();g.fillStyle='#e6eef7';g.fillText(s.n,lx,ly+1);g.globalAlpha=1});
- const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/600)*.08,cg=g.createRadialGradient(cx,cy,0,cx,cy,30*cs*pul);cg.addColorStop(0,'rgba(255,236,170,.95)');cg.addColorStop(.35,'rgba(191,152,73,.55)');cg.addColorStop(1,'rgba(191,152,73,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,30*cs*pul,0,7);g.fill();
- const [ux,uy]=glxProj(0,34,0);g.strokeStyle='rgba(255,236,170,.35)';g.lineWidth=1;g.beginPath();g.moveTo(cx,cy);g.lineTo(ux,uy);g.stroke();g.fillStyle='rgba(255,236,170,.7)';g.font='11px system-ui';g.fillText('مؤشرات أفضل ↑',ux,uy-4);
- GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z),[bx,by]=glxProj(d.x,0,d.z);d.sx=sx;d.sy=sy;d.sr=d.r*s;d.dz=z;d.bx=bx;d.by=by;if(d.tr){const [tx,ty]=glxProj(d.tr.x,0,d.tr.z);d.tx=tx;d.ty=ty}});
+ const pill=(x,y,txt,o)=>{o=o||{};g.font=(o.b?'bold ':'')+(o.fs||(ph?13:12))+'px system-ui';g.textAlign='center';g.textBaseline='middle';const w=g.measureText(txt).width+14,h=(o.fs||(ph?13:12))+9;g.fillStyle=o.bg||'rgba(8,14,26,.85)';g.beginPath();g.roundRect?g.roundRect(x-w/2,y-h/2,w,h,h/2):g.rect(x-w/2,y-h/2,w,h);g.fill();g.fillStyle=o.fg||'#e8eef6';g.fillText(txt,x,y+.5);g.textBaseline='alphabetic'};
+ const PL=GX.planets||[];
+ // orbits
+ PL.forEach(P=>{const on=!FP||FP===P;g.beginPath();for(let a=0;a<=96;a++){const an=a/96*Math.PI*2,[px,py]=glxProj(P.R*Math.cos(an),0,P.R*Math.sin(an));a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle=on&&FP?'rgba(92,200,255,.45)':'rgba(147,170,200,.16)';g.lineWidth=on&&FP?1.4:1;g.stroke()});
+ // the centre
+ const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/700)*.06,cr=26*cs*pul,cg=g.createRadialGradient(cx,cy,0,cx,cy,cr*1.6);cg.addColorStop(0,'rgba(255,248,225,1)');cg.addColorStop(.3,'rgba(255,210,122,.85)');cg.addColorStop(.6,'rgba(255,194,75,.25)');cg.addColorStop(1,'rgba(255,194,75,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,cr*1.6,0,7);g.fill();
+ if(!FP)pill(cx,cy+cr+12,'المركز',{fg:'#ffe3a3',bg:'rgba(8,14,26,.6)',fs:ph?12:11.5});
+ // project positions
+ GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z);d.sx=sx;d.sy=sy;d.sr=Math.max(ph?5:4,d.r*s);d.dz=z;const [bx,by]=glxProj(d.P.x,0,d.P.z);d.px=bx;d.py=by});
+ // focused sector: status rings around its planet
+ if(FP){[[FP.r+10+(100-BND.g)*.62,'#3fbf7f','على المسار'],[FP.r+10+(100-BND.a)*.62,'#f0b54a','يحتاج متابعة']].forEach(([rr,c])=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(FP.x+rr*Math.cos(an),0,FP.z+rr*Math.sin(an));a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle=c;g.globalAlpha=.55;g.setLineDash([3,5]);g.lineWidth=1.2;g.stroke();g.setLineDash([]);g.globalAlpha=1})}
  const REL=glxRel(GX.sel),SD=GX.sel,risky=SD&&SD.p.status!='ok';
  const lnk=(a,b,col,w,dash)=>{g.beginPath();g.moveTo(a.sx,a.sy);const mx=(a.sx+b.sx)/2,my=Math.min(a.sy,b.sy)-Math.abs(a.sx-b.sx)*.12-10;g.quadraticCurveTo(mx,my,b.sx,b.sy);g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);
   const t2=.55,ax=(1-t2)*(1-t2)*a.sx+2*(1-t2)*t2*mx+t2*t2*b.sx,ay=(1-t2)*(1-t2)*a.sy+2*(1-t2)*t2*my+t2*t2*b.sy,an=Math.atan2(b.sy-my,b.sx-mx);g.beginPath();g.moveTo(ax,ay);g.lineTo(ax-7*Math.cos(an-.45),ay-7*Math.sin(an-.45));g.lineTo(ax-7*Math.cos(an+.45),ay-7*Math.sin(an+.45));g.closePath();g.fillStyle=col;g.fill()};
- if(SD){SD.up.forEach(u=>lnk(u,SD,'rgba(232,238,248,.75)',1.6,[5,4]));SD.ce.forEach(([a,b])=>lnk(a,b,risky?'rgba(255,138,92,.95)':'rgba(111,168,255,.9)',2.2))}
- else if(GX.net)GX.pts.forEach(d=>d.dn.forEach(x=>{if(glxVis(d)||glxVis(x))lnk(d,x,d.p.sec==x.p.sec?'rgba(180,200,225,.45)':'rgba(92,200,255,.6)',1.3)}));
- GX.pts.slice().sort((a,b)=>b.dz-a.dz).forEach(d=>{const vis=glxVis(d)&&(!REL||REL.has(d)),sel=GX.sel===d,hv=GX.hover===d||(GX.tour&&GX.tour.d===d);g.globalAlpha=vis?1:.14;
+ // draw planets and moons together, far to near
+ const items=[];PL.forEach(P=>{const [px,py,ps,pz]=glxProj(P.x,0,P.z);P.sx=px;P.sy=py;P.sr=P.r*ps;items.push({P,z:pz})});GX.pts.forEach(d=>items.push({d,z:d.dz}));
+ // tether lines planet → moon (thin), helps read distance = deviation
+ GX.pts.forEach(d=>{if(!glxVis(d)||(REL&&!REL.has(d))||(FP&&d.P!==FP&&!REL))return;g.beginPath();g.moveTo(d.px,d.py);g.lineTo(d.sx,d.sy);g.strokeStyle='rgba(180,200,225,.12)';g.lineWidth=1;g.stroke()});
+ if(SD){SD.up.forEach(u=>lnk(u,SD,'rgba(232,238,248,.8)',1.6,[5,4]));SD.ce.forEach(([a,b])=>lnk(a,b,risky?'rgba(255,138,92,.95)':'rgba(111,168,255,.9)',2.2))}
+ else if(GX.net)GX.pts.forEach(d=>d.dn.forEach(x=>{if(glxVis(d)||glxVis(x))lnk(d,x,d.P===x.P?'rgba(180,200,225,.5)':'rgba(92,200,255,.65)',1.3)}));
+ const NM=window.V3NM&&V3NM(),LB=[];
+ items.sort((a,b)=>b.z-a.z).forEach(it=>{
+  if(it.P){const P=it.P,on=!FP||FP===P,tot=Math.max(1,P.L.length);g.globalAlpha=on?1:.35;
+   // ring = status mix of the sector
+   let a0=-Math.PI/2;[[P.ok,'#2fa866'],[P.wn,'#e0a030'],[P.bd,'#d9475a']].forEach(([n,c])=>{if(!n)return;const a1=a0+n/tot*Math.PI*2;g.beginPath();g.arc(P.sx,P.sy,P.sr,a0,a1);g.strokeStyle=c;g.lineWidth=Math.max(3,P.sr*.28);g.stroke();a0=a1});
+   g.beginPath();g.arc(P.sx,P.sy,P.sr*.78,0,7);g.fillStyle='#14223a';g.fill();g.strokeStyle=on&&FP?'#5cc8ff':'#2a3a57';g.lineWidth=1.2;g.stroke();
+   g.fillStyle='#e8eef6';g.font='bold '+Math.max(10,Math.min(15,P.sr*.7))+'px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText(String(P.L.length),P.sx,P.sy+.5);g.textBaseline='alphabetic';
+   LB.push([P.sx,P.sy+P.sr+14,P.n+' · '+Math.round(P.ok/tot*100)+'٪ على المسار',{b:1,fs:ph?12.5:12,bg:'rgba(8,14,26,.8)'},on?1:.4]);g.globalAlpha=1;return}
+  const d=it.d,vis=glxVis(d)&&(!REL||REL.has(d))&&(!FP||d.P===FP||REL),sel=GX.sel===d,hv=GX.hover===d||(GX.tour&&GX.tour.d===d);g.globalAlpha=vis?1:.16;
   if(REL&&risky&&SD.casc.has(d)){const a=(t/900)%1;g.beginPath();g.arc(d.sx,d.sy,d.sr+5+a*10,0,7);g.strokeStyle='rgba(255,138,92,'+(1-a)*.8+')';g.lineWidth=2;g.stroke()}
-  if(d.tr&&vis&&Math.abs(d.tr.dd)>=2){const gr=g.createLinearGradient(d.tx,d.ty,d.bx,d.by);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,d.tr.dd>0?'rgba(255,120,120,.7)':'rgba(120,220,160,.7)');g.strokeStyle=gr;g.lineWidth=3;g.beginPath();g.moveTo(d.tx,d.ty);g.lineTo(d.bx,d.by);g.stroke()}
-  g.beginPath();g.moveTo(d.bx,d.by);g.lineTo(d.sx,d.sy);g.strokeStyle=d.y>=0?'rgba(127,211,160,.5)':'rgba(255,130,130,.5)';g.setLineDash([3,3]);g.lineWidth=1;g.stroke();g.setLineDash([]);
-  g.beginPath();g.ellipse(d.bx,d.by,3,1.5,0,0,7);g.fillStyle='rgba(255,255,255,.3)';g.fill();
-  const rg=g.createRadialGradient(d.sx,d.sy,0,d.sx,d.sy,d.sr*2.2);rg.addColorStop(0,d.col+'aa');rg.addColorStop(1,d.col+'00');g.fillStyle=rg;g.beginPath();g.arc(d.sx,d.sy,d.sr*2.2,0,7);g.fill();
-  g.beginPath();g.arc(d.sx,d.sy,d.sr,0,7);g.fillStyle=d.col;g.fill();g.lineWidth=sel||hv?3:1.2;g.strokeStyle=sel?'#ffe49a':hv?'#fff':'rgba(255,255,255,.7)';g.stroke();
-  if(d.risk){g.beginPath();g.arc(d.sx,d.sy,d.sr+4,0,7);g.strokeStyle='#ff4d5a';g.lineWidth=2;g.stroke()}
-  if(d.pend.length){const a=t/700;g.beginPath();g.arc(d.sx,d.sy,d.sr+8,a,a+Math.PI*1.4);g.strokeStyle='rgba(255,255,255,.9)';g.setLineDash([4,4]);g.lineWidth=1.5;g.stroke();g.setLineDash([])}
-  if(vis&&(sel||hv||(window.V3NM&&V3NM())||(REL&&REL.has(d)))){const nm=d.p.n.length>28?d.p.n.slice(0,27)+'…':d.p.n;g.font=(sel||hv?'bold '+(GX.w<640?15:13.5)+'px':(GX.w<640?'bold 13px':'bold 12px'))+' system-ui';g.textAlign='center';const tw=g.measureText(nm).width,hh=sel||hv?22:19,yy=d.sy-d.sr-hh-6;g.fillStyle=sel?'#ffe49a':'rgba(10,20,36,.85)';g.beginPath();g.roundRect?g.roundRect(d.sx-tw/2-8,yy,tw+16,hh,hh/2):g.rect(d.sx-tw/2-8,yy,tw+16,hh);g.fill();g.fillStyle=sel?'#14324a':'#fff';g.fillText(nm,d.sx,yy+hh-6)}
+  const rg=g.createRadialGradient(d.sx,d.sy,0,d.sx,d.sy,d.sr*2.3);rg.addColorStop(0,d.col+'88');rg.addColorStop(1,d.col+'00');g.fillStyle=rg;g.beginPath();g.arc(d.sx,d.sy,d.sr*2.3,0,7);g.fill();
+  g.beginPath();g.arc(d.sx,d.sy,d.sr,0,7);g.fillStyle=d.col;g.fill();g.lineWidth=sel?3:hv?2.5:1;g.strokeStyle=sel?'#ffe49a':hv?'#fff':'rgba(255,255,255,.55)';g.stroke();
+  if(d.risk){g.beginPath();g.arc(d.sx,d.sy,d.sr+3.5,0,7);g.strokeStyle='#ff4d5a';g.lineWidth=2;g.stroke()}
+  if(d.pend.length){const a=t/700;g.beginPath();g.arc(d.sx,d.sy,d.sr+7,a,a+Math.PI*1.3);g.strokeStyle='rgba(255,236,170,.95)';g.setLineDash([3,3]);g.lineWidth=1.5;g.stroke();g.setLineDash([])}
+  if(vis&&(sel||hv||NM||(REL&&REL.has(d))))LB.push([d.sx,d.sy-d.sr-14,(d.p.n.length>28?d.p.n.slice(0,27)+'…':d.p.n)+((sel||hv)?' · '+d.p.ps+'٪':''),{b:1,fs:sel||hv?(ph?14:13):(ph?12.5:11.5),bg:sel?'#ffe49a':'rgba(8,14,26,.88)',fg:sel?'#14324a':'#fff'},1,sel||hv?2:0]);
   g.globalAlpha=1});
+ // labels last, without overlaps (selected/hovered first)
+ const done=[];LB.sort((a,b)=>(b[5]||0)-(a[5]||0)).forEach(([x,y,tx,o,al,pr])=>{g.font=(o.b?'bold ':'')+o.fs+'px system-ui';const w=g.measureText(tx).width+16,h=o.fs+10,r=[x-w/2,y-h/2,x+w/2,y+h/2];if(!pr&&done.some(q=>r[0]<q[2]&&r[2]>q[0]&&r[1]<q[3]&&r[3]>q[1]))return;g.globalAlpha=al;pill(x,y,tx,o);g.globalAlpha=1;done.push(r)});
  if(!GX.pts.length){g.fillStyle='#cfd8e3';g.font='14px system-ui';g.textAlign='center';g.fillText('لا توجد مشاريع جارية بخطة معتمدة',W/2,H/2+50)}}
 function glxTour(){const L=GX.pts.filter(glxVis).sort((a,b)=>b.dist-a.dist||(b.pend.length-a.pend.length));if(!L.length)return;GX.auto=false;glxRotTxt();let i=0;
  const step=()=>{if(!$('glxC'))return;if(i>=L.length){GX.tour=null;$('glxCap').hidden=true;glxView('persp');return}const d=L[i];GX.tour={d};glxSelect(d,true);const p=d.p,why=[];if(p.act!=null)why.push(`الإنجاز ${p.act}٪ من ${p.exp}٪ المتوقع`);if(d.k!=null)why.push(d.k<60?`المؤشرات متعثرة (${d.k})`:`المؤشرات ${d.k}`);if(d.risk)why.push(nR(d.risk));if(d.pend.length)why.push(nD(d.pend.length)+' عند المكتب');if(p.fcLate)why.push('الانتهاء المتوقع بعد موعده '+lateTxt(p.fcLate));
