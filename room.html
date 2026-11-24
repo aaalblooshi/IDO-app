@@ -31,7 +31,7 @@
 .glx-seg button{font:inherit;font-size:12px;font-weight:700;border:0;background:none;color:#cfd8e3;padding:6px 10px;cursor:pointer}.glx-seg button.on{background:#BF9849;color:#fff}
 .glx-fo{position:absolute;top:50px;inset-inline:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}
 .glx-fo button,.glx-ct button,.glx-cap button{font:inherit;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.22);background:rgba(15,28,48,.7);color:#e6edf5;border-radius:99px;padding:4px 10px;cursor:pointer}
-.glx-fo button i{font-style:normal;opacity:.75;margin-inline-start:3px}.glx-fo button.on{background:#fff;color:#14324a;border-color:#fff}
+.glx-fo button i{font-style:normal;opacity:.75;margin-inline-start:3px}.glx-fo button.on,.glx-ct button.on{background:#fff;color:#14324a;border-color:#fff}.glx-ct button:disabled{opacity:.45;cursor:default}
 .glx-ct{position:absolute;bottom:10px;inset-inline-end:10px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}
 .glx-ct button:hover,.glx-cap button:hover,.glx-fo button:hover{border-color:#BF9849}
 .glx-zl{position:absolute;bottom:10px;inset-inline-start:10px;display:flex;gap:10px;flex-wrap:wrap;z-index:1;color:#dfe7ef;font-size:12px;background:rgba(10,20,36,.6);border-radius:10px;padding:5px 9px}
@@ -52,6 +52,10 @@
 .glx-ac{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.glx-ac button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid #cfd9e3;background:#fff;color:#1d5f8a;border-radius:99px;padding:6px 12px;cursor:pointer}.glx-ac button:first-child{background:#14324a;color:#fff;border-color:#14324a}
 .glx-zs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.glx-zs div{border-radius:10px;padding:8px;text-align:center;background:color-mix(in srgb,var(--c) 10%,#fff)}.glx-zs b{display:block;font-size:20px;color:var(--c)}.glx-zs span{font-size:11.5px;color:#33383e}
 .glx-hint{margin-top:8px;color:#8a8f96!important}
+.glx-im{margin-top:8px;border:1px solid #cfe0f5;background:#f3f8fe;border-radius:12px;padding:9px 10px}.glx-im.hot{border-color:#f5c2b0;background:#fff4ef}.glx-im>b{display:block;font-size:13px;color:#14324a}.glx-im.hot>b{color:#b8431c}.glx-im>span{display:block;font-size:13px;line-height:1.7;color:#23272b}.glx-im>small{display:block;font-size:12px;color:#5c6168;margin-top:6px}
+.glx-tg{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}.glx-tg button{font:inherit;font-size:12px;border:1px solid #d6dde6;background:#fff;border-radius:99px;padding:4px 10px;cursor:pointer;display:inline-flex;gap:5px;align-items:center;max-width:100%}.glx-tg i{width:8px;height:8px;border-radius:50%;flex:none}
+.glx-in{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}.glx-in li{display:flex;gap:8px;font-size:13px;line-height:1.7;color:#23272b}.glx-in i{width:8px;height:8px;border-radius:50%;flex:none;margin-top:8px}
+.glx-rr{display:flex;flex-direction:column;gap:5px;margin-top:6px}.glx-rr button{display:flex;justify-content:space-between;gap:8px;align-items:center;font:inherit;text-align:start;border:1px solid #e6e2d9;background:#fff;border-radius:10px;padding:7px 9px;cursor:pointer;color:inherit}.glx-rr button:hover{border-color:#14324a}.glx-rr b{display:block;font-size:13px}.glx-rr small{display:block;font-size:11.5px;color:#5c6168}.glx-rr em{font-style:normal;font-weight:800;font-size:16px;text-align:center}.glx-rr em small{font-weight:600;font-size:10.5px}
 .glx-ls{border:1px solid var(--line,#e6e2d9);border-radius:14px;padding:8px;background:#fff}.glx-ls>b{display:block;font-size:13px;margin:2px 4px 6px}
 .glx-ls button{display:flex;align-items:center;gap:7px;width:100%;font:inherit;font-size:12.5px;text-align:start;border:0;background:none;border-radius:8px;padding:6px;cursor:pointer;color:#1b1d1f}
 .glx-ls button:hover,.glx-ls button.hv{background:#f4f2ec}.glx-ls button.on{background:#14324a;color:#fff}.glx-ls i{width:9px;height:9px;border-radius:50%;flex:none}.glx-ls span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.glx-ls em{font-style:normal;font-weight:800;font-variant-numeric:tabular-nums}.glx-ls u{text-decoration:none}
@@ -486,7 +490,7 @@ const fmt=x=>{x=+x;return Math.abs(x)>=100?Math.round(x).toLocaleString('en'):(M
 const lateTxt=n=>n>365?'بأكثر من سنة':'بـ '+cnt(n,'يوم واحد','يومين','أيام','يومًا');
 const W0={a:35,k:30,r:20,d:15};
 let ME=null,D=null,OP={services:[],tasks:[]},X={},BND={g:90,a:75},PJ=[],SEC=[],STEPS=[],AL=[],PEOPLE=[],HIST=[],FUT=[],H={},LOADING=false;
-window.__room={PJ:()=>PJ,SEC:()=>SEC,BND:()=>BND,AL:()=>AL,HIST:()=>HIST,sb:()=>sb,CUR:()=>CUR,briefText:()=>briefText,openProject:()=>openProject,secName:()=>secName,drawMap:()=>drawMap,kSt:()=>kSt};
+window.__room={PJ:()=>PJ,SEC:()=>SEC,BND:()=>BND,AL:()=>AL,HIST:()=>HIST,sb:()=>sb,CUR:()=>CUR,briefText:()=>briefText,openProject:()=>openProject,secName:()=>secName,drawMap:()=>drawMap,kSt:()=>kSt,X:()=>X};
 const S={tab:'pulse',view:'radar',stF:'all',pjS:'',pjF:'all',peF:'all',sel:new Set(),selMode:false,stSel:new Set(),tm:0,show:false,rot:null,gm:'dial',sm:'tank',watch:new Set(),done:{}};
 try{S.gm=localStorage.getItem('crGM')||'dial';S.sm=localStorage.getItem('crSM')||'tank'}catch(_){}
 window.S=S;S.inc=['a'];S.per=8;S.hp=7;let HEAT=null,HISTR=null,TGT=75;
@@ -799,7 +803,7 @@ window.copyBrief=()=>{try{navigator.clipboard.writeText(briefText()).then(()=>to
 const VIEWS=[['galaxy','مرصد المشاريع ✦','ثلاثي الأبعاد: القرب من النواة = الأفضل'],['river','مسار الإنجاز','كيف تغيّر وضع كل مشروع عبر الأسابيع'],['radar','الرادار','القرب من المركز = الأحرج'],['matrix','مصفوفة الأداء','الإنجاز مقابل المؤشرات'],['tree','الخريطة','الحجم والأداء معًا'],['road','المواعيد','متى ينتهي كل مشروع: المخطط والمتوقع'],['net','شبكة الاعتماديات','من يعطّل من'],['flow','التدفق','القطاعات إلى الحالات'],['heat','المصفوفة','القطاع × المحور'],['city','خارطة الإنجاز ✦','الارتفاع = الإنجاز · الإطار = المخطط'],['terrain','ملامح الإنجاز ✦','القمم على المسار والمنخفضات متعثرة'],['globe','الأهداف المؤسسية ✦','كل رقعة هدف استراتيجي وكل دائرة مشروع'],['stage','العرض التفاعلي 🎬','عرض شامل لكل القطاعات والمشاريع']];
 window.setView=v=>{S.view=v;if(S.tab!='map')go('map');else drawMap()};
 /* ===== المجرّة: عرض ثلاثي الأبعاد تفاعلي للمحفظة (Canvas بلا مكتبات) ===== */
-const GX={raf:0,yaw:-.6,pitch:.5,zoom:1.15,auto:true,drag:null,pts:[],tour:null,hover:null,sel:null,sec:'all',fo:'all',q:'',riv:null,anim:null};
+const GX={raf:0,yaw:-.6,pitch:.5,zoom:1.15,auto:true,drag:null,pts:[],tour:null,hover:null,sel:null,sec:'all',fo:'all',q:'',riv:null,anim:null,net:false,hold:0,nL:0};
 const GZ=[[25,'على المسار','#0a6b3d'],[40,'يحتاج متابعة','#b7791f'],[100,'متعثر','#d1101d']];
 const nP=n=>cnt(n,'مشروع واحد','مشروعان','مشاريع','مشروعًا'),nR=n=>cnt(n,'خطر عالٍ واحد','خطران عاليان','مخاطر عالية','خطرًا عاليًا'),nD=n=>cnt(n,'قرار معلّق','قراران معلّقان','قرارات معلّقة','قرارًا معلّقًا'),nK=n=>cnt(n,'مؤشر واحد','مؤشران','مؤشرات','مؤشرًا'),nT=n=>cnt(n,'مهمة واحدة','مهمتان','مهام','مهمة'),nPt=n=>cnt(n,'نقطة واحدة','نقطتين','نقاط','نقطة'),nW=n=>cnt(n,'أسبوع','أسبوعين','أسابيع','أسبوعًا');
 function hashS(s){let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;return h}
@@ -808,14 +812,18 @@ function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null
  return run.map(p=>{const si=Math.max(0,SEC.findIndex(s=>s.id==p.sec)),k=p.c&&p.c.k!=null?p.c.k:null,dist=Math.max(3,Math.min(100,100-p.ps)),
   ang=(si/ns)*Math.PI*2+((hashS(p.pc)%100)/100-.5)*(Math.PI*2/ns)*.7+dist/100*1.1,pend=glxPend(p.pc);
   return {p,ang,dist,x:Math.cos(ang)*dist*1.6,z:Math.sin(ang)*dist*1.6,y:k==null?0:(k-75)*1.1,r:3+Math.min(6,Math.sqrt(p.size||6)*.75),k,pend,risk:p.rHigh||0,col:SCOL[p.status]||C.info,zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2}})}
+function glxGraph(P){const M={};P.forEach(d=>{M[d.p.pc]=d;d.up=[];d.dn=[];d.casc=new Set();d.ce=[]});let n=0;
+ (X.links||[]).forEach(l=>{const a=M[l.f],b=M[l.t];if(!a||!b||a===b)return;if(!b.up.includes(a)){b.up.push(a);a.dn.push(b);n++}});
+ P.forEach(d=>{const q=[d],seen=new Set();while(q.length){const c=q.shift();c.dn.forEach(x=>{d.ce.push([c,x]);if(x!==d&&!seen.has(x)){seen.add(x);q.push(x)}})}d.casc=seen;d.cSec=new Set([...seen].map(x=>x.p.sec)).size;d.cW=[...seen].reduce((a,x)=>a+(x.p.w||1),0)});GX.nL=n;return P}
+function glxRel(d){if(!d)return null;const r=new Set([d]);d.up.forEach(x=>r.add(x));d.casc.forEach(x=>r.add(x));return r.size>1?r:null}
 function glxVis(d){if(GX.sec!='all'&&d.p.sec!=GX.sec)return false;if(GX.fo=='bad'&&d.zone<2)return false;if(GX.fo=='warn'&&d.zone<1)return false;if(GX.fo=='pend'&&!d.pend.length)return false;if(GX.fo=='risk'&&!d.risk)return false;if(GX.fo=='kpi'&&!(d.k!=null&&d.k<60))return false;return true}
-function vGalaxy(){const D=glxData(),oth=PJ.length-D.length;
+function vGalaxy(){const D=glxGraph(glxData()),oth=PJ.length-D.length;
  return {svg:`<div class="glx2"><div class="glx" id="glx"><canvas id="glxC" tabindex="0" aria-label="مرصد المشاريع: عرض ثلاثي الأبعاد للمشاريع الجارية"></canvas>
   <div class="glx-tb"><input id="glxQ" list="glxL" placeholder="ابحث عن مشروع…" aria-label="ابحث عن مشروع"><datalist id="glxL">${D.map(d=>`<option value="${esc(d.p.n)}">`).join('')}</datalist>
    <select id="glxSec" aria-label="القطاع"><option value="all">كل القطاعات</option>${SEC.filter(s=>D.some(d=>d.p.sec==s.id)).map(s=>`<option value="${esc(s.id)}">${esc(s.n)}</option>`).join('')}</select>
    <span class="glx-seg" role="group" aria-label="زاوية النظر"><button type="button" data-gv="persp" class="on">منظور</button><button type="button" data-gv="top">من أعلى</button><button type="button" data-gv="side">من الجانب</button></span></div>
   <div class="glx-fo" role="group" aria-label="تمييز">${[['all','الكل'],['warn','تحتاج متابعة أو متعثرة'],['bad','متعثرة'],['pend','بقرار معلّق'],['risk','بمخاطر عالية'],['kpi','مؤشراتها متعثرة']].map(([k,t])=>{const n=k=='all'?D.length:D.filter(d=>{const o=GX.fo;GX.fo=k;const v=glxVis(d);GX.fo=o;return v}).length;return `<button type="button" data-gf="${k}" class="${GX.fo==k?'on':''}">${t} <i>${n}</i></button>`}).join('')}</div>
-  <div class="glx-ct"><button type="button" id="glxTour">▶ الجولة</button><button type="button" id="glxRot">⏸ إيقاف الدوران</button><button type="button" id="glxNm">🏷 إظهار الأسماء</button><button type="button" id="glxRst" title="إعادة الضبط">↺</button><button type="button" id="glxHelp">ⓘ كيف أقرأها؟</button></div>
+  <div class="glx-ct"><button type="button" id="glxTour">▶ الجولة</button><button type="button" id="glxRot">⏸ إيقاف الدوران</button><button type="button" id="glxNm">🏷 إظهار الأسماء</button><button type="button" id="glxNet" ${GX.nL?'':'disabled title="لا توجد روابط بين المشاريع بعد"'}>🕸 الاعتماديات${GX.nL?' '+GX.nL:''}</button><button type="button" id="glxRst" title="إعادة الضبط">↺</button><button type="button" id="glxHelp">ⓘ كيف أقرأها؟</button></div>
   <div class="glx-zl">${GZ.map(([r,t,c],i)=>`<span><i style="background:${c}"></i>${t} <b>${D.filter(d=>d.zone==i).length}</b></span>`).join('')}<span class="glx-ax">↑ المؤشرات أفضل · ↓ متعثرة</span></div>
   <div class="glx-cap" id="glxCap" hidden></div><div class="glx-help" id="glxH" hidden><b>كيف يُقرأ مرصد المشاريع؟</b><ul>
   <li><b>النواة الذهبية</b> = مشروع إنجازه مطابق للمتوقع. كل ما <b>ابتعد</b> المشروع عنها زاد تأخره عن المتوقع.</li>
@@ -823,7 +831,7 @@ function vGalaxy(){const D=glxData(),oth=PJ.length-D.length;
   <li><b>الارتفاع</b>: فوق القرص مؤشراته جيدة، وتحته متعثرة؛ الخط المنقّط يوضح المسافة. «من الجانب» يُظهر الارتفاع بوضوح، و«من أعلى» يقرأ المسافة فقط.</li>
   <li><b>الأذرع</b> = القطاعات، <b>حجم النجمة</b> = عدد المهام، <b>الذيل الباهت</b> = مكانه قبل 4 أسابيع.</li>
   <li><b>حلقة حمراء</b> = مخاطر عالية، <b>حلقة بيضاء تدور</b> = قرار معلّق عند المكتب.</li>
-  <li><b>الجولة</b> تمر على كل المشاريع الظاهرة من الأبعد عن النواة إلى الأقرب.</li><li>اضغط نجمة لتفاصيلها، واضغطها مرتين لفتح المشروع. اسحب للتدوير ومرّر أو اقرص للتكبير، والأسهم في لوحة المفاتيح تدوّر أيضًا.</li></ul></div></div>
+  <li><b>الاعتماديات</b>: عند اختيار مشروع تظهر خيوط ما يعتمد عليه (متقطعة) وما سيتأثر به (برتقالية إن كان متأخرًا)، وزر «🕸 الاعتماديات» يُظهر الشبكة كاملة. تأتي من «روابط المشاريع».</li><li><b>الجولة</b> تمر على كل المشاريع الظاهرة من الأبعد عن النواة إلى الأقرب.</li><li>اضغط نجمة لتفاصيلها، واضغطها مرتين لفتح المشروع. اسحب للتدوير ومرّر أو اقرص للتكبير، والأسهم في لوحة المفاتيح تدوّر أيضًا.</li></ul></div></div>
   <aside class="glx-sd" id="glxSd" aria-live="polite"></aside></div>`,
   leg:stLeg()+`<span>· المشاريع الجارية في المرصد: ${D.length}${oth?` · خارجه: ${oth} (قيد الإعداد أو منجزة أو متوقفة)`:''}</span>`,
   ins:glxIns(D)}}
@@ -832,29 +840,29 @@ function glxIns(D){if(!D.length)return 'لا توجد مشاريع جارية ب
 function glxStop(){try{window.V3&&V3.stop()}catch(_){}cancelAnimationFrame(GX.raf);GX.raf=0;GX.tour=null;GX.anim=null}
 async function glxRiv(){if(GX.riv)return;try{const r=await sb.rpc('room_river',{p_weeks:8});GX.riv=r.error?{}:r.data||{}}catch(_){GX.riv={}}GX.pts.forEach(glxTrail);glxSide()}
 function glxTrail(d){const h=GX.riv&&GX.riv[d.p.pc];if(!h||!h.length){d.tr=null;return}const o=h.find(x=>x[2]>0)||h[0],r0=o[2]>0?Math.min(100,o[1]/o[2]*100):null;if(r0==null){d.tr=null;return}const d0=Math.max(3,Math.min(100,100-r0)),a0=d.ang-(d.dist-d0)/100*1.1;d.tr={x:Math.cos(a0)*d0*1.6,z:Math.sin(a0)*d0*1.6,dd:Math.round(d.dist-d0),w:Math.round((new Date()-new Date(o[0]))/6048e5)}}
-function glxStart(){const cv=$('glxC');if(!cv)return;GX.pts=glxData();if(GX.sel)GX.sel=GX.pts.find(d=>d.p.pc==GX.sel.p.pc)||null;const box=$('glx');
+function glxStart(){const cv=$('glxC');if(!cv)return;GX.pts=glxGraph(glxData());GX.bgk='';if(GX.sel)GX.sel=GX.pts.find(d=>d.p.pc==GX.sel.p.pc)||null;const box=$('glx');
  GX.pts.slice().sort((a,b)=>b.dist-a.dist).slice(0,3).forEach(d=>d.lab=1);
  const fit=()=>{const w=box.clientWidth,h=w<640?Math.max(380,Math.min(560,Math.round(innerHeight*.58))):Math.max(420,Math.min(640,Math.round(w*.66))),dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';GX.dp=dp;GX.w=w;GX.h=h};fit();if(GX.w<640&&!GX.mz){GX.mz=1;GX.zoom=1.5;GX.auto=false}
  if(!GX.ro)GX.ro=new ResizeObserver(()=>{const b=$('glx');if(!b||!$('glxC'))return;if(Math.abs(b.clientWidth-GX.w)<24)return;cancelAnimationFrame(GX.rof);GX.rof=requestAnimationFrame(()=>{if($('glxC'))GX.fit&&GX.fit()})});GX.fit=fit;GX.ro.disconnect();GX.ro.observe(box);
  const pos=e=>{const r=cv.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top]};
- cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);GX.drag={x:e.clientX,y:e.clientY,yaw:GX.yaw,pitch:GX.pitch,mv:0};GX.tour=null;GX.anim=null};
+ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);GX.hold=Date.now();GX.drag={x:e.clientX,y:e.clientY,yaw:GX.yaw,pitch:GX.pitch,mv:0};GX.tour=null;GX.anim=null};
  cv.onpointermove=e=>{if(GX.drag){const dx=e.clientX-GX.drag.x,dy=e.clientY-GX.drag.y;GX.drag.mv=Math.max(GX.drag.mv,Math.abs(dx)+Math.abs(dy));if(GX.drag.mv>4){GX.yaw=GX.drag.yaw+dx*.008;GX.pitch=Math.max(.02,Math.min(1.55,GX.drag.pitch+dy*.006))}return}const [x,y]=pos(e);const h=glxPick(x,y);if(h!==GX.hover){GX.hover=h;glxListHi()}cv.style.cursor=h?'pointer':'grab';glxTip(h,x,y)};
- cv.onpointerup=e=>{const d=GX.drag;GX.drag=null;if(d&&d.mv<6){const [x,y]=pos(e),h=glxPick(x,y);if(h){if(GX.sel===h&&Date.now()-(GX.lc||0)<450)openProject(h.p.pc);else glxSelect(h,false)}else{GX.sel=null;glxSide()}GX.lc=Date.now()}};
+ cv.onpointerup=e=>{const d=GX.drag;GX.drag=null;GX.hold=Date.now();if(d&&d.mv<6){const [x,y]=pos(e),h=glxPick(x,y);if(h){if(GX.sel===h&&Date.now()-(GX.lc||0)<450)openProject(h.p.pc);else glxSelect(h,false)}else{GX.sel=null;glxSide()}GX.lc=Date.now()}};
  cv.onpointerleave=()=>{GX.hover=null;glxTip(null);glxListHi()};
  cv.onwheel=e=>{e.preventDefault();GX.zoom=Math.max(.55,Math.min(3,GX.zoom*(e.deltaY>0?.9:1.1)))};
  cv.onkeydown=e=>{const k={ArrowLeft:[-.12,0],ArrowRight:[.12,0],ArrowUp:[0,-.08],ArrowDown:[0,.08]}[e.key];if(k){e.preventDefault();GX.yaw+=k[0];GX.pitch=Math.max(.02,Math.min(1.55,GX.pitch+k[1]))}if(e.key=='+'||e.key=='=')GX.zoom=Math.min(3,GX.zoom*1.1);if(e.key=='-')GX.zoom=Math.max(.55,GX.zoom/1.1);if(e.key=='Escape'){GX.sel=null;glxSide()}};
  let pd=null;cv.addEventListener('touchmove',e=>{if(e.touches.length==2){e.preventDefault();const dd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pd)GX.zoom=Math.max(.55,Math.min(3,GX.zoom*dd/pd));pd=dd;GX.drag=null}},{passive:false});cv.addEventListener('touchend',()=>pd=null);
- $('glxRot').onclick=()=>{GX.auto=!GX.auto;glxRotTxt()};const nmT=()=>{const b=$('glxNm');if(b)b.textContent=window.V3NM&&V3NM()?'🏷 إخفاء الأسماء':'🏷 إظهار الأسماء'};nmT();$('glxNm').onclick=()=>{if(window.V3NMset)V3NMset(!V3NM());nmT()};$('glxRst').onclick=()=>glxView('persp');$('glxHelp').onclick=()=>{$('glxH').hidden=!$('glxH').hidden};$('glxTour').onclick=()=>glxTour();
+ $('glxRot').onclick=()=>{GX.auto=!GX.auto;glxRotTxt()};const nmT=()=>{const b=$('glxNm');if(b)b.textContent=window.V3NM&&V3NM()?'🏷 إخفاء الأسماء':'🏷 إظهار الأسماء'};nmT();$('glxNm').onclick=()=>{if(window.V3NMset)V3NMset(!V3NM());nmT()};$('glxRst').onclick=()=>{GX.sel=null;GX.net=false;glxNetTxt();glxSide();glxView('persp')};const glxNetTxt=()=>{const b=$('glxNet');if(b){b.classList.toggle('on',GX.net);b.setAttribute('aria-pressed',GX.net)}};$('glxNet').onclick=()=>{GX.net=!GX.net;glxNetTxt()};$('glxHelp').onclick=()=>{$('glxH').hidden=!$('glxH').hidden};$('glxTour').onclick=()=>glxTour();
  $('glx').querySelectorAll('[data-gv]').forEach(b=>b.onclick=()=>glxView(b.dataset.gv));
  $('glx').querySelectorAll('[data-gf]').forEach(b=>b.onclick=()=>{GX.fo=b.dataset.gf;$('glx').querySelectorAll('[data-gf]').forEach(x=>x.classList.toggle('on',x===b));glxSide()});
  $('glxSec').value=GX.sec;$('glxSec').onchange=e=>{GX.sec=e.target.value;glxSide()};
  $('glxQ').onchange=e=>{const q=e.target.value.trim();const d=GX.pts.find(x=>x.p.n==q)||GX.pts.find(x=>x.p.n.includes(q));if(d)glxSelect(d,true)};
  if(matchMedia('(prefers-reduced-motion: reduce)').matches)GX.auto=false;glxRotTxt();glxSide();glxRiv();
- cancelAnimationFrame(GX.raf);const loop=t=>{if(!$('glxC')){GX.raf=0;return}const mv=GX.anim||GX.tour||GX.drag||(GX.auto&&!GX.sel&&!GX.hover);if(!document.hidden&&(mv||t-(GX.lt||0)>120)){glxFrame(t);GX.lt=t}GX.raf=requestAnimationFrame(loop)};GX.raf=requestAnimationFrame(loop)}
+ cancelAnimationFrame(GX.raf);const loop=t=>{if(!$('glxC')){GX.raf=0;return}const mv=GX.anim||GX.tour||GX.drag||(GX.auto&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000);if(!document.hidden&&(mv||t-(GX.lt||0)>(GX.pts.some(d=>d.pend.length)||GX.sel?90:400))){glxFrame(t);GX.lt=t}GX.raf=requestAnimationFrame(loop)};GX.raf=requestAnimationFrame(loop)}
 function glxRotTxt(){const b=$('glxRot');if(b)b.textContent=GX.auto?'⏸ إيقاف الدوران':'▶ تشغيل الدوران'}
 function glxAnim(ty,tp,tz){const fy=GX.yaw,ny=fy+((((ty-fy)%(2*Math.PI))+3*Math.PI)%(2*Math.PI)-Math.PI);GX.anim={t0:performance.now(),fy,ty:ny,fp:GX.pitch,tp,fz:GX.zoom,tz}}
 function glxView(v){$('glx').querySelectorAll('[data-gv]').forEach(b=>b.classList.toggle('on',b.dataset.gv==v));GX.auto=v=='persp'&&GX.auto;glxRotTxt();glxAnim(v=='top'?GX.yaw:-.6,v=='top'?1.52:v=='side'?.04:.5,1.15)}
-function glxSelect(d,fly){GX.sel=d;if(fly){GX.auto=false;glxRotTxt();glxAnim(-Math.PI/2-d.ang,Math.max(.25,Math.min(.9,GX.pitch)),1.6)}glxSide()}
+function glxSelect(d,fly){GX.sel=d;if(fly){GX.auto=false;glxRotTxt();glxAnim(-Math.PI/2-d.ang,Math.max(.25,Math.min(.9,GX.pitch)),GX.w<640?2.1:1.6)}glxSide()}
 function glxProj(x,y,z){const cy=Math.cos(GX.yaw),sy=Math.sin(GX.yaw),cp=Math.cos(GX.pitch),sp=Math.sin(GX.pitch);
  let X=x*cy-z*sy,Z=x*sy+z*cy;let Y=y*cp-Z*sp;Z=y*sp+Z*cp;const Dd=420,s=Dd/(Dd+Z)*GX.zoom*Math.min(GX.w,GX.h*1.4)/420;return [GX.w/2+X*s,GX.h*.52-Y*s,s,Z]}
 function glxPick(x,y){let best=null,bd=1e9;GX.pts.forEach(d=>{if(d.sx==null||!glxVis(d))return;const dd=Math.hypot(d.sx-x,d.sy-y);if(dd<Math.max(GX.w<640?24:12,d.sr+(GX.w<640?12:6))&&dd<bd){bd=dd;best=d}});return best}
@@ -872,32 +880,51 @@ function glxSide(){const el=$('glxSd');if(!el)return;const V=GX.pts.filter(glxVi
    <div class="glx-m"><span>المهام</span><b>${nT(p.tasks||0)}</b><small>${lt?cnt(lt,'مهمة واحدة متأخرة','مهمتان متأخرتان','مهام متأخرة','مهمة متأخرة')+(p.oldest?' · أقدمها متأخرة '+lateTxt(p.oldest):''):'لا مهام متأخرة'}</small></div>
    <div class="glx-m"><span>الانتهاء المتوقع</span><b>${p.fc&&p.fc.f?fdt(p.fc.f):p.fc&&p.fc.stall?'متوقف التقدّم':'—'}</b><small>${p.fcLate?'بعد موعده '+lateTxt(p.fcLate):p.ed?'في موعده ('+fdt(dd(p.ed))+')':''}</small></div>
    ${p.idle!=null&&p.idle>=14?`<div class="glx-m"><span>آخر تحديث</span><b>قبل ${cnt(p.idle,'يوم','يومين','أيام','يومًا')}</b></div>`:''}
+   ${d.up.length||d.dn.length?`<div class="glx-im ${risky2(d)?'hot':''}"><b>${risky2(d)?'⚡ الأثر المتسلسل':'🛡 مشروع داعم'}</b><span>${!d.casc.size?'لا تعتمد عليه مشاريع أخرى، فأثر أي تأخير فيه يبقى داخله.':risky2(d)?`تأخره قد يؤخر ${nP(d.casc.size)} في ${cnt(d.cSec,'قطاع واحد','قطاعين','قطاعات','قطاعًا')}.`:`يسير جيدًا، ويعتمد عليه ${nP(d.casc.size)} في ${cnt(d.cSec,'قطاع واحد','قطاعين','قطاعات','قطاعًا')}؛ حمايته أولوية.`}</span>
+    ${d.up.length?`<small>يعتمد على:</small><div class="glx-tg">${d.up.map(x=>`<button type="button" data-gp="${esc(x.p.pc)}"><i style="background:${x.col}"></i>${esc(x.p.n)}</button>`).join('')}</div>`:''}
+    ${d.dn.length?`<small>تعتمد عليه مباشرة:</small><div class="glx-tg">${d.dn.map(x=>`<button type="button" data-gp="${esc(x.p.pc)}"><i style="background:${x.col}"></i>${esc(x.p.n)}</button>`).join('')}</div>`:''}</div>`:''}
    ${d.pend.length?`<div class="glx-pd"><b>⏳ ${nD(d.pend.length)} عند المكتب</b>${d.pend.slice(0,3).map(a=>`<small>• ${esc(String(a.t||'').replace(/<[^>]+>/g,'').slice(0,110))}</small>`).join('')}</div>`:''}
    <div class="glx-ac"><button type="button" data-gx="open">فتح المشروع</button><button type="button" data-gx="river">مسار الإنجاز</button><button type="button" data-gx="fly">تقريب</button></div></div>`}
  else{const z=[0,1,2].map(i=>V.filter(x=>x.zone==i).length);
-  h+=`<div class="glx-card"><b class="glx-nm">نظرة عامة</b><small>${GX.fo!='all'||GX.sec!='all'?'المطابقة للتمييز: ':'المشاريع الجارية: '}${V.length}</small><div class="glx-zs">${GZ.map(([r,t,c],i)=>`<div style="--c:${c}"><b>${z[i]}</b><span>${t}</span></div>`).join('')}</div><small class="glx-hint">اختر نجمة أو مشروعًا من القائمة لعرض تفاصيله.</small></div>`}
+  h+=`<div class="glx-card"><b class="glx-nm">نظرة عامة</b><small>${GX.fo!='all'||GX.sec!='all'?'المطابقة للتمييز: ':'المشاريع الجارية: '}${V.length}</small><div class="glx-zs">${GZ.map(([r,t,c],i)=>`<div style="--c:${c}"><b>${z[i]}</b><span>${t}</span></div>`).join('')}</div><small class="glx-hint">اختر نجمة أو مشروعًا من القائمة لعرض تفاصيله.</small></div>`+glxSmart(V)}
  const L=V.slice().sort((a,b)=>b.dist-a.dist);
  h+=`<div class="glx-ls"><b>المشاريع من الأبعد عن النواة</b>${L.map(x=>`<button type="button" data-gp="${esc(x.p.pc)}" class="${x===d?'on':''}"><i style="background:${x.col}"></i><span>${esc(x.p.n)}</span><em>${x.p.ps}</em>${x.pend.length?'<u title="قرار معلّق">⏳</u>':''}${x.risk?'<u title="مخاطر عالية">⚠</u>':''}</button>`).join('')||'<small>لا شيء مطابق</small>'}</div>`;
  el.innerHTML=h;
  el.querySelectorAll('[data-gp]').forEach(b=>{const x=GX.pts.find(q=>q.p.pc==b.dataset.gp);b.onclick=()=>glxSelect(x,true);b.onmouseenter=()=>{GX.hover=x};b.onmouseleave=()=>{GX.hover=null}});
  el.querySelectorAll('[data-gs]').forEach(b=>b.onclick=()=>{const SV=GX.pts.filter(glxVis).sort((a,b)=>b.dist-a.dist),i=SV.indexOf(GX.sel),n=SV[i+(+b.dataset.gs)];if(n)glxSelect(n,true)});
  el.querySelectorAll('[data-gx]').forEach(b=>b.onclick=()=>{const a=b.dataset.gx;if(a=='x'){GX.sel=null;glxSide()}else if(a=='open')openProject(d.p.pc);else if(a=='fly')glxSelect(d,true);else if(a=='river'){RV.focus=d.p.pc;setView('river')}})}
+function glxSmart(V){if(!V.length)return '';const ins=[];
+ const far=V.slice().sort((a,b)=>b.dist-a.dist)[0];ins.push([far.col,`الأبعد عن النواة «${esc(far.p.n)}»: أنجز ${far.p.act??'—'}٪ والمتوقع ${far.p.exp??'—'}٪.`]);
+ const hub=V.filter(d=>d.casc.size).sort((a,b)=>b.casc.size-a.casc.size)[0];if(hub)ins.push(['#5cc8ff',`«${esc(hub.p.n)}» أكثر المشاريع تأثيرًا في غيره: يعتمد عليه ${nP(hub.casc.size)}.`]);
+ const ch=V.filter(d=>d.casc.size&&d.p.status!='ok').sort((a,b)=>b.casc.size-a.casc.size)[0];if(ch&&ch!==hub)ins.push(['#ff8a5c',`أخطر نقطة اختناق «${esc(ch.p.n)}» (${SNAME[ch.p.status]}) وقد يمتد أثره إلى ${nP(ch.casc.size)}.`]);
+ const bys=SEC.map(s=>{const L=V.filter(d=>d.p.sec==s.id);return {s,n:L.length,b:L.filter(d=>d.p.status=='bad').length}}).filter(x=>x.n);const ws=bys.sort((a,b)=>b.b/b.n-a.b/a.n)[0];if(ws&&ws.b)ins.push([SCOL.bad,`${esc(ws.s.n)} يسجّل أعلى نسبة تعثّر: ${ws.b} من ${ws.n}.`]);
+ const tw=V.reduce((a,d)=>a+(d.p.w||1),0),rw=V.filter(d=>d.p.status!='ok').reduce((a,d)=>a+(d.p.w||1),0);if(tw)ins.push([SCOL.warn,`${Math.round(rw/tw*100)}٪ من أوزان المحفظة في مشاريع تحتاج متابعة أو متعثرة.`]);
+ const pd=V.filter(d=>d.pend.length).length;if(pd)ins.push(['#e9c46a',`${nP(pd)} ${pd==1?'عليه':pd==2?'عليهما':'عليها'} قرار معلّق عند المكتب.`]);
+ const R=V.filter(d=>d.p.status!='ok').sort((a,b)=>b.casc.size-a.casc.size||b.dist-a.dist).slice(0,5);
+ return `<div class="glx-card"><b class="glx-nm">قراءة ذكية</b><ul class="glx-in">${ins.map(([c,t])=>`<li><i style="background:${c}"></i><span>${t}</span></li>`).join('')}</ul></div>`+
+  (R.length?`<div class="glx-card"><b class="glx-nm">رادار المخاطر</b><small>المشاريع المتعثرة أو التي تحتاج متابعة، مرتبة حسب أثرها على غيرها ثم بعدها عن النواة</small><div class="glx-rr">${R.map(d=>`<button type="button" data-gp="${esc(d.p.pc)}"><span><b>${esc(d.p.n)}</b><small>${esc(secName(d.p.sec))} · ${SNAME[d.p.status]} · ${d.p.ps}٪ من المخطط</small></span><em style="color:${d.col}">${d.casc.size?d.casc.size+'<small>متأثر</small>':'—'}</em></button>`).join('')}</div></div>`:'')}
+function risky2(d){return d&&d.p.status!='ok'}
 function glxListHi(){const el=$('glxSd');if(!el)return;el.querySelectorAll('[data-gp]').forEach(b=>b.classList.toggle('hv',!!GX.hover&&b.dataset.gp==GX.hover.p.pc))}
 function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=GX.dp;g.setTransform(dp,0,0,dp,0,0);g.setLineDash([]);
  if(GX.anim){const T=GX.anim,k=Math.min(1,(t-T.t0)/1200),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.yaw=T.fy+(T.ty-T.fy)*e;GX.pitch=T.fp+(T.tp-T.fp)*e;GX.zoom=T.fz+(T.tz-T.fz)*e;if(k>=1)GX.anim=null}
- else if(GX.auto&&!GX.drag&&!GX.tour&&!GX.sel&&!GX.hover)GX.yaw+=.0016;
- const bg=g.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#1b2b44');bg.addColorStop(1,'#0b1424');g.fillStyle=bg;g.fillRect(0,0,W,H);
- for(let i=0;i<90;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;g.fillStyle='rgba(255,255,255,'+(.12+(i%5)*.05)+')';g.beginPath();g.arc(sx,sy,.8,0,7);g.fill()}
+ else if(GX.auto&&!GX.drag&&!GX.tour&&!GX.sel&&!GX.hover&&Date.now()-GX.hold>5000)GX.yaw+=.0016;
+ const bk=W+'x'+H+'x'+dp;if(GX.bgk!==bk){const oc=document.createElement('canvas');oc.width=W*dp;oc.height=H*dp;const o=oc.getContext('2d');o.setTransform(dp,0,0,dp,0,0);const bg=o.createRadialGradient(W/2,H*.5,10,W/2,H*.5,Math.max(W,H)*.75);bg.addColorStop(0,'#1b2b44');bg.addColorStop(1,'#0b1424');o.fillStyle=bg;o.fillRect(0,0,W,H);for(let i=0;i<70;i++){const sx=((Math.sin(i*12.9898)*43758.5453)%1+1)%1*W,sy=((Math.sin(i*78.233)*12345.678)%1+1)%1*H;o.fillStyle='rgba(255,255,255,'+(.1+(i%5)*.04)+')';o.beginPath();o.arc(sx,sy,.8,0,7);o.fill()}GX.bgc=oc;GX.bgk=bk}
+ g.setTransform(1,0,0,1,0,0);g.drawImage(GX.bgc,0,0);g.setTransform(dp,0,0,dp,0,0);
  const ring=(rr,fill,stroke,lw)=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(Math.cos(an)*rr*1.6,0,Math.sin(an)*rr*1.6);a?g.lineTo(px,py):g.moveTo(px,py)}g.closePath();if(fill){g.fillStyle=fill;g.fill()}if(stroke){g.strokeStyle=stroke;g.lineWidth=lw||1;g.stroke()}};
  ring(100,'rgba(209,16,29,.07)','rgba(209,16,29,.35)',1);ring(GZ[1][0],'rgba(183,121,31,.10)','rgba(230,170,70,.55)',1.2);ring(GZ[0][0],'rgba(10,107,61,.16)','rgba(80,190,120,.6)',1.2);
  [[GZ[0][0],'على المسار','#7fd3a0'],[GZ[1][0],'يحتاج متابعة','#f0c070'],[100,'متعثر','#ff8a8a']].forEach(([rr,tx,c])=>{const [lx,ly]=glxProj(-rr*1.6*.72,0,-rr*1.6*.72);g.fillStyle=c;g.font='bold 11px system-ui';g.textAlign='center';g.fillText(tx,lx,ly)});
  const ns=Math.max(1,SEC.length);SEC.forEach((s,i)=>{if(!GX.pts.some(d=>d.p.sec==s.id))return;const a0=i/ns*Math.PI*2,on=GX.sec=='all'||GX.sec==s.id;g.beginPath();for(let r=4;r<=104;r+=4){const an=a0+r/100*1.1,[px,py]=glxProj(Math.cos(an)*r*1.6,0,Math.sin(an)*r*1.6);r==4?g.moveTo(px,py):g.lineTo(px,py)}g.strokeStyle=on?'rgba(140,190,240,.35)':'rgba(140,190,240,.08)';g.lineWidth=2;g.stroke();
-  const an=a0+1.22,[lx,ly]=glxProj(Math.cos(an)*116*1.6,0,Math.sin(an)*116*1.6);g.fillStyle=on?'rgba(200,225,245,.95)':'rgba(200,225,245,.3)';g.font='bold 12px system-ui';g.textAlign='center';g.fillText(s.n,lx,ly)});
+  const an=a0+1.22,[lx,ly]=glxProj(Math.cos(an)*116*1.6,0,Math.sin(an)*116*1.6);g.globalAlpha=on?1:.35;g.font='bold '+(GX.w<640?13:12.5)+'px system-ui';g.textAlign='center';const tw=g.measureText(s.n).width;g.fillStyle='rgba(10,20,36,.75)';g.beginPath();g.roundRect?g.roundRect(lx-tw/2-7,ly-14,tw+14,20,10):g.rect(lx-tw/2-7,ly-14,tw+14,20);g.fill();g.fillStyle='#e6eef7';g.fillText(s.n,lx,ly+1);g.globalAlpha=1});
  const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/600)*.08,cg=g.createRadialGradient(cx,cy,0,cx,cy,30*cs*pul);cg.addColorStop(0,'rgba(255,236,170,.95)');cg.addColorStop(.35,'rgba(191,152,73,.55)');cg.addColorStop(1,'rgba(191,152,73,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,30*cs*pul,0,7);g.fill();
  const [ux,uy]=glxProj(0,34,0);g.strokeStyle='rgba(255,236,170,.35)';g.lineWidth=1;g.beginPath();g.moveTo(cx,cy);g.lineTo(ux,uy);g.stroke();g.fillStyle='rgba(255,236,170,.7)';g.font='11px system-ui';g.fillText('مؤشرات أفضل ↑',ux,uy-4);
  GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z),[bx,by]=glxProj(d.x,0,d.z);d.sx=sx;d.sy=sy;d.sr=d.r*s;d.dz=z;d.bx=bx;d.by=by;if(d.tr){const [tx,ty]=glxProj(d.tr.x,0,d.tr.z);d.tx=tx;d.ty=ty}});
- const anyF=GX.fo!='all'||GX.sec!='all';
- GX.pts.slice().sort((a,b)=>b.dz-a.dz).forEach(d=>{const vis=glxVis(d),sel=GX.sel===d,hv=GX.hover===d||(GX.tour&&GX.tour.d===d);g.globalAlpha=vis?1:.14;
+ const REL=glxRel(GX.sel),SD=GX.sel,risky=SD&&SD.p.status!='ok';
+ const lnk=(a,b,col,w,dash)=>{g.beginPath();g.moveTo(a.sx,a.sy);const mx=(a.sx+b.sx)/2,my=Math.min(a.sy,b.sy)-Math.abs(a.sx-b.sx)*.12-10;g.quadraticCurveTo(mx,my,b.sx,b.sy);g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);
+  const t2=.55,ax=(1-t2)*(1-t2)*a.sx+2*(1-t2)*t2*mx+t2*t2*b.sx,ay=(1-t2)*(1-t2)*a.sy+2*(1-t2)*t2*my+t2*t2*b.sy,an=Math.atan2(b.sy-my,b.sx-mx);g.beginPath();g.moveTo(ax,ay);g.lineTo(ax-7*Math.cos(an-.45),ay-7*Math.sin(an-.45));g.lineTo(ax-7*Math.cos(an+.45),ay-7*Math.sin(an+.45));g.closePath();g.fillStyle=col;g.fill()};
+ if(SD){SD.up.forEach(u=>lnk(u,SD,'rgba(232,238,248,.75)',1.6,[5,4]));SD.ce.forEach(([a,b])=>lnk(a,b,risky?'rgba(255,138,92,.95)':'rgba(111,168,255,.9)',2.2))}
+ else if(GX.net)GX.pts.forEach(d=>d.dn.forEach(x=>{if(glxVis(d)||glxVis(x))lnk(d,x,d.p.sec==x.p.sec?'rgba(180,200,225,.45)':'rgba(92,200,255,.6)',1.3)}));
+ GX.pts.slice().sort((a,b)=>b.dz-a.dz).forEach(d=>{const vis=glxVis(d)&&(!REL||REL.has(d)),sel=GX.sel===d,hv=GX.hover===d||(GX.tour&&GX.tour.d===d);g.globalAlpha=vis?1:.14;
+  if(REL&&risky&&SD.casc.has(d)){const a=(t/900)%1;g.beginPath();g.arc(d.sx,d.sy,d.sr+5+a*10,0,7);g.strokeStyle='rgba(255,138,92,'+(1-a)*.8+')';g.lineWidth=2;g.stroke()}
   if(d.tr&&vis&&Math.abs(d.tr.dd)>=2){const gr=g.createLinearGradient(d.tx,d.ty,d.bx,d.by);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(1,d.tr.dd>0?'rgba(255,120,120,.7)':'rgba(120,220,160,.7)');g.strokeStyle=gr;g.lineWidth=3;g.beginPath();g.moveTo(d.tx,d.ty);g.lineTo(d.bx,d.by);g.stroke()}
   g.beginPath();g.moveTo(d.bx,d.by);g.lineTo(d.sx,d.sy);g.strokeStyle=d.y>=0?'rgba(127,211,160,.5)':'rgba(255,130,130,.5)';g.setLineDash([3,3]);g.lineWidth=1;g.stroke();g.setLineDash([]);
   g.beginPath();g.ellipse(d.bx,d.by,3,1.5,0,0,7);g.fillStyle='rgba(255,255,255,.3)';g.fill();
@@ -905,7 +932,7 @@ function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=G
   g.beginPath();g.arc(d.sx,d.sy,d.sr,0,7);g.fillStyle=d.col;g.fill();g.lineWidth=sel||hv?3:1.2;g.strokeStyle=sel?'#ffe49a':hv?'#fff':'rgba(255,255,255,.7)';g.stroke();
   if(d.risk){g.beginPath();g.arc(d.sx,d.sy,d.sr+4,0,7);g.strokeStyle='#ff4d5a';g.lineWidth=2;g.stroke()}
   if(d.pend.length){const a=t/700;g.beginPath();g.arc(d.sx,d.sy,d.sr+8,a,a+Math.PI*1.4);g.strokeStyle='rgba(255,255,255,.9)';g.setLineDash([4,4]);g.lineWidth=1.5;g.stroke();g.setLineDash([])}
-  if(vis&&(sel||hv||(window.V3NM&&V3NM()))){const nm=d.p.n.length>28?d.p.n.slice(0,27)+'…':d.p.n;g.font=(sel||hv?'bold '+(GX.w<640?15:13)+'px':(GX.w<640?'13px':'11.5px'))+' system-ui';g.textAlign='center';const tw=g.measureText(nm).width;g.fillStyle='rgba(10,20,36,.7)';g.fillRect(d.sx-tw/2-5,d.sy-d.sr-24,tw+10,17);g.fillStyle='#fff';g.fillText(nm,d.sx,d.sy-d.sr-11)}
+  if(vis&&(sel||hv||(window.V3NM&&V3NM())||(REL&&REL.has(d)))){const nm=d.p.n.length>28?d.p.n.slice(0,27)+'…':d.p.n;g.font=(sel||hv?'bold '+(GX.w<640?15:13.5)+'px':(GX.w<640?'bold 13px':'bold 12px'))+' system-ui';g.textAlign='center';const tw=g.measureText(nm).width,hh=sel||hv?22:19,yy=d.sy-d.sr-hh-6;g.fillStyle=sel?'#ffe49a':'rgba(10,20,36,.85)';g.beginPath();g.roundRect?g.roundRect(d.sx-tw/2-8,yy,tw+16,hh,hh/2):g.rect(d.sx-tw/2-8,yy,tw+16,hh);g.fill();g.fillStyle=sel?'#14324a':'#fff';g.fillText(nm,d.sx,yy+hh-6)}
   g.globalAlpha=1});
  if(!GX.pts.length){g.fillStyle='#cfd8e3';g.font='14px system-ui';g.textAlign='center';g.fillText('لا توجد مشاريع جارية بخطة معتمدة',W/2,H/2+50)}}
 function glxTour(){const L=GX.pts.filter(glxVis).sort((a,b)=>b.dist-a.dist||(b.pend.length-a.pend.length));if(!L.length)return;GX.auto=false;glxRotTxt();let i=0;
