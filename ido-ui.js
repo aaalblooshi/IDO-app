@@ -171,7 +171,7 @@
   function fsBar() {
     var b = document.getElementById('idofsx'); if (b) return b;
     b = document.createElement('div'); b.id = 'idofsx';
-    b.innerHTML = '<button type="button">' + svg('x') + '<span>' + T('إغلاق', 'Close') + '</span></button><span class="idofsh">' + T('أدر الجوال أفقيًا لعرض أوسع', 'Rotate your phone for a wider view') + '</span>';
+    b.innerHTML = '<button type="button">' + svg('x') + '<span>' + T('إغلاق', 'Close') + '</span></button><span class="idofsh">' + T('أدر الهاتف أفقيًا لعرض أوسع', 'Rotate your phone for a wider view') + '</span>';
     b.firstChild.onclick = fsClose; document.body.appendChild(b); return b;
   }
   function fsClose() {

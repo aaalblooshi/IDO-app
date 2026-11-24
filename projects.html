@@ -287,7 +287,7 @@ load();
    m.querySelector('#hm_l').onclick=function(){try{toggleLang()}catch(e){}setTimeout(sync,60)};
    m.querySelector('#hm_o').onclick=function(){try{localStorage.removeItem('hdrRole');localStorage.removeItem('hdrScope')}catch(e){}try{sb.auth.signOut().then(function(){location.href='./'})}catch(e){location.href='./'}};
    m.querySelector('#hm_m').onclick=function(e){e.stopPropagation();var p=document.getElementById('hm_p');p.hidden=!p.hidden};
-   document.addEventListener('click',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
+   document.addEventListener('pointerdown',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest('#hm_m')))p.hidden=true},true);
   }
   var lo=hin.querySelector('img.logo');if(lo&&!lo.getAttribute('data-home')){lo.setAttribute('data-home','1');lo.style.cursor='pointer';lo.onclick=function(){location.href='index.html'}}
   built=1;sync();try{setHH()}catch(e){}
@@ -452,4 +452,4 @@ function lkBlock(pc,cf){if(LKG===null){LKG=false;(async()=>{try{const r=await sb
  <label style="margin-top:6px">${lang=='ar'?'الموازنة المعتمدة وخطة الصرف':'Budget'}</label>${LOCK.sel('lkb',cf.lock_bud??null,LKG.g&&LKG.g.bud)}
  <label>${lang=='ar'?'مستهدفات المؤشرات وأوزانها':'KPI targets'}</label>${LOCK.sel('lkt',cf.lock_tgt??null,LKG.g&&LKG.g.tgt)}<div class="mut" id="lkm" data-pc="${esc(pc)}" style="margin-top:4px"></div></div>`}
 document.addEventListener('change',async e=>{const t=e.target;if(!t||(t.id!='lkb'&&t.id!='lkt'))return;const pc=($('lkm')||{}).dataset?.pc;if(!pc)return;const v=t.value===''?null:t.value=='1';const ok=await LOCK.set(pc,t.id=='lkb'?'bud':'tgt',v);if(ok){CFG[pc]=Object.assign(CFG[pc]||{pcode:pc},t.id=='lkb'?{lock_bud:v}:{lock_tgt:v});$('lkm').textContent=lang=='ar'?'✓ حُفظ':'✓ Saved'}});
-</script><script src="ido-ui.js?v=65"></script></body></html>
+</script><script src="ido-ui.js?v=66"></script></body></html>

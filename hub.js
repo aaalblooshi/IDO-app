@@ -67,16 +67,27 @@
     h.style.display = '';
     try { var cs = getComputedStyle(m), cw = m.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); if (cw > 200) h.style.maxWidth = Math.round(cw) + 'px'; } catch (_) { }
     document.body.classList.toggle('hubrec', isDoc && !!pc);
-    if (key === LAST && !force && h.childNodes.length) return; LAST = key;
+    if (key === LAST && !force && h.childNodes.length) { place(h); return; } LAST = key;
     h.innerHTML = L(pc).map(function (x) {
       if (x[0] == 'sep') return '<i></i>';
       var on = x[3] == f && !(x[3] == 'myprojects' && pc && location.hash == '#plan');
       return '<a class="' + (x[0] == 'hp' ? 'hp ' : '') + (on ? 'on' : '') + '" href="' + x[2] + '"' + (x[4] ? ' data-doc="' + x[3] + '"' : '') + '>' + x[1] + '</a>';
     }).join('');
-    h.__sc = 0; var o = h.querySelector('.on');
-    if (o) { try { var hr = h.getBoundingClientRect(), or = o.getBoundingClientRect(); if (or.left < hr.left || or.right > hr.right) h.scrollLeft += (or.left + or.width / 2) - (hr.left + hr.width / 2); } catch (_) { } }
+    place(h);
     if (pc) nameOf(pc);
   }
+  /* keep the bar where the person left it when moving between its pages, and only slide it when the current item is out of view.
+     iPhone can ignore an early scroll before the fonts settle, so this is re-checked until the person scrolls the bar themselves */
+  function setSL(h, v) { h.__prog = 1; h.scrollLeft = v; setTimeout(function () { h.__prog = 0; }, 80); }
+  function place(h) {
+    if (!h || h.__us || !h.isConnected || h.scrollWidth <= h.clientWidth + 2) return;
+    if (!h.__rs) { h.__rs = 1; h.addEventListener('scroll', function () { if (h.__prog) return; h.__us = 1; try { sessionStorage.setItem('hubn_sl', String(h.scrollLeft)); } catch (_) { } }, { passive: true });
+      var sv = null; try { sv = sessionStorage.getItem('hubn_sl'); } catch (_) { } if (sv !== null && !isNaN(+sv)) setSL(h, +sv); }
+    var o = h.querySelector('.on'); if (!o) return;
+    try { var hr = h.getBoundingClientRect(), or = o.getBoundingClientRect(); if (or.left < hr.left + 2 || or.right > hr.right - 2) setSL(h, h.scrollLeft + (or.left + or.width / 2) - (hr.left + hr.width / 2)); } catch (_) { }
+  }
+  document.addEventListener('click', function (e) { var h = document.getElementById('hubn'); if (h && e.target.closest && e.target.closest('#hubn a')) { try { sessionStorage.setItem('hubn_sl', String(h.scrollLeft)); } catch (_) { } } }, true);
+  try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { place(document.getElementById('hubn')); }); } catch (_) { }
   async function onClick(ev) {
     var a = ev.target.closest && ev.target.closest('a[data-doc]'); if (!a) return;
     ev.preventDefault(); var k = a.getAttribute('data-doc'), pc = curPc(); if (!pc) return;

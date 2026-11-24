@@ -322,7 +322,7 @@ load();
    m.querySelector('#hm_l').onclick=function(){try{toggleLang()}catch(e){}setTimeout(sync,60)};
    m.querySelector('#hm_o').onclick=function(){try{localStorage.removeItem('hdrRole');localStorage.removeItem('hdrScope')}catch(e){}try{sb.auth.signOut().then(function(){location.href='./'})}catch(e){location.href='./'}};
    m.querySelector('#hm_m').onclick=function(e){e.stopPropagation();var p=document.getElementById('hm_p');p.hidden=!p.hidden};
-   document.addEventListener('click',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
+   document.addEventListener('pointerdown',function(e){var p=document.getElementById('hm_p');if(p&&!p.hidden&&!p.contains(e.target)&&!(e.target.closest&&e.target.closest('#hm_m')))p.hidden=true},true);
   }
   var lo=hin.querySelector('img.logo');if(lo&&!lo.getAttribute('data-home')){lo.setAttribute('data-home','1');lo.style.cursor='pointer';lo.onclick=function(){location.href='index.html'}}
   built=1;sync();try{setHH()}catch(e){}
@@ -480,4 +480,4 @@ var n=0;(function w(){if(typeof sb!=='undefined'&&sb&&sb.auth){pull();try{sb.aut
 function paint(){try{document.querySelectorAll('a[href="inbox.html"]').forEach(function(a){var b=a.querySelector('.eb');if(!N){if(b)b.remove();return}if(!b){b=document.createElement('b');b.className='eb';a.appendChild(b)}b.textContent=N})}catch(e){}}
 function load(){try{if(typeof sb==='undefined'||!sb||!sb.auth)return;sb.auth.getSession().then(function(r){var u=r&&r.data&&r.data.session&&r.data.session.user;if(!u)return;var q=ad===null?sb.from('profiles').select('role').eq('id',u.id).single().then(function(p){ad=!!(p&&p.data&&p.data.role=='admin')}):Promise.resolve();return q.then(function(){if(!ad)return;return sb.from('escalations').select('id',{count:'exact',head:true}).eq('status','pending').then(function(c){N=(c&&c.count)||0;paint()})})}).catch(function(){})}catch(e){}}
 setTimeout(load,900);setInterval(load,60000);setInterval(paint,2000)})();</script>
-<script src="ido-ui.js?v=65"></script></body></html>
+<script src="ido-ui.js?v=66"></script></body></html>
