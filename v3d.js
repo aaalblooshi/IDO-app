@@ -72,7 +72,8 @@ function css(){if($i('v3css'))return;const st=document.createElement('style');st
 .v3s-ch{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}.v3s-ch span{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);border-radius:99px;padding:3px 11px;font-size:clamp(12.5px,1.5vw,15px);color:#fff}
 .v3s-n{color:#14324a;font-weight:800;font-size:13px;background:#fff;border-radius:99px;padding:6px 10px}
 .v3s-pg{position:absolute;bottom:0;inset-inline:0;height:4px;background:#d3dbe4;z-index:2}.v3s-pg i{display:block;height:100%;background:#14324a;transition:width .4s}
-@media(max-width:640px){.v3s-txt{bottom:calc(70px + env(safe-area-inset-bottom,0px))}.v3s-txt>div{padding:10px 12px}.v3s-ch{gap:4px}.v3s-ch span{padding:2px 8px}.v3s-top b{display:none}.v3s-top{justify-content:flex-end}}
+@media(max-width:640px){.v3s-txt{bottom:calc(118px + env(safe-area-inset-bottom,0px))}.v3s-sp b{min-width:70px;font-size:12px}.v3s-ctl{gap:6px}.v3s-ctl button{padding:7px 11px}.v3s-txt>div{padding:10px 12px}.v3s-ch{gap:4px}.v3s-ch span{padding:2px 8px}.v3s-top b{display:none}.v3s-top{justify-content:flex-end}}
+.v3s-sp{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #d3dbe4;border-radius:99px;padding:2px}.v3s-sp button{border:0!important;padding:6px 10px!important}.v3s-sp button:disabled{opacity:.35;cursor:default}.v3s-sp b{color:#14324a;font-size:13px;min-width:92px;text-align:center}
 .v3s-dots{display:flex;gap:5px}.v3s-dots i{width:8px;height:8px;border-radius:50%;background:#c3ccd6}.v3s-dots i.on{background:#14324a;width:20px;border-radius:5px}
 `;document.head.appendChild(st)}
 
@@ -358,9 +359,9 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
  SC.push({k:'end',g:'الختام',h:'الخلاصة',p:String(brief||`${T0.ok} على المسار، ${T0.wn} تحتاج متابعة، ${T0.bd} متعثرة.`).replace(/<[^>]+>/g,''),cam:{yaw:-.62,pitch:.95,zoom:.8},ms:14000});
  const groups=[...new Set(SC.map(s=>s.g))];
  const o=document.createElement('div');o.className='v3s';o.setAttribute('role','dialog');o.setAttribute('aria-label','العرض التفاعلي');
- o.innerHTML=`<div class="v3s-top"><b>🎬 العرض التفاعلي</b><span style="display:flex;gap:6px"><select id="v3sj" aria-label="انتقل إلى">${groups.map(g=>`<optgroup label="${E(g)}">${SC.map((s,j)=>s.g==g?`<option value="${j}">${E(s.k=='sec'?'▸ '+s.d.s.n:s.k=='focus'?'   '+s.h:s.h)}</option>`:'').join('')}</optgroup>`).join('')}</select><button type="button" id="v3sx">✕ إنهاء</button></span></div><canvas id="v3sc"></canvas><div class="v3s-txt"><div id="v3st"></div></div><div class="v3s-ctl"><button type="button" id="v3sp">‹ السابق</button><button type="button" id="v3sg">⏸ إيقاف</button><button type="button" id="v3sn">التالي ›</button><span class="v3s-n" id="v3sn2"></span></div><div class="v3s-pg"><i id="v3spg"></i></div>`;
+ o.innerHTML=`<div class="v3s-top"><b>🎬 العرض التفاعلي</b><span style="display:flex;gap:6px"><select id="v3sj" aria-label="انتقل إلى">${groups.map(g=>`<optgroup label="${E(g)}">${SC.map((s,j)=>s.g==g?`<option value="${j}">${E(s.k=='sec'?'▸ '+s.d.s.n:s.k=='focus'?'   '+s.h:s.h)}</option>`:'').join('')}</optgroup>`).join('')}</select><button type="button" id="v3sx">✕ إنهاء</button></span></div><canvas id="v3sc"></canvas><div class="v3s-txt"><div id="v3st"></div></div><div class="v3s-ctl"><button type="button" id="v3sp">‹ السابق</button><button type="button" id="v3sg">⏸ إيقاف</button><button type="button" id="v3sn">التالي ›</button><span class="v3s-sp"><button type="button" id="v3s-" title="أبطأ" aria-label="إبطاء العرض">🐢 أبطأ</button><b id="v3sv"></b><button type="button" id="v3s+" title="أسرع" aria-label="تسريع العرض">🐇 أسرع</button></span><span class="v3s-n" id="v3sn2"></span></div><div class="v3s-pg"><i id="v3spg"></i></div>`;
  document.body.appendChild(o);try{o.requestFullscreen&&o.requestFullscreen().catch(()=>{})}catch(_){}
- const cv=$i('v3sc'),c=mkCam({span:L.span,cy:.42});let T=null,M=null,i=0,play=true,timer=null,raf=0;
+ const cv=$i('v3sc'),c=mkCam({span:L.span,cy:.42});let T=null,M=null,i=0,play=true,timer=null,raf=0;const SPD=[1/3,1/2,1,2,3],SPN=['أبطأ ×3','أبطأ ×2','السرعة ×1','أسرع ×2','أسرع ×3'];let spi=2;try{const v=+localStorage.getItem('ido_v3sp');if(v>=0&&v<=4&&localStorage.getItem('ido_v3sp')!==null)spi=v}catch(_){}
  const fit=()=>{const w=cv.clientWidth,h=cv.clientHeight,dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;c.w=w;c.h=h;c.dp=dp};fit();addEventListener('resize',fit);
  loadGoals().then(()=>{M=globeModel()});
  const chips=F=>F&&F.length?`<div class="v3s-ch">${F.map(([t,col])=>`<span${col?` style="border-color:${col};box-shadow:inset 3px 0 0 ${col}"`:''}>${E(t)}</span>`).join('')}</div>`:'';
@@ -368,14 +369,16 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
   let F=s.F;if(s.goals&&M)F=M.G.filter(x=>x.L.length).sort((a,b)=>(a.v??0)-(b.v??0)).map(x=>[`${x.n}: ${x.v??'—'}٪ · ${nP(x.L.length)}`,bandCol(x.v)]);
   $i('v3st').innerHTML=s.k=='title'?`<h3>${E(s.h)}</h3><p class="v3s-big">${E(s.big)}</p><p>${E(s.p)}</p>`:`${s.sub?`<small>${E(s.sub)}</small>`:''}<h3>${E(s.h)}</h3><p>${E(s.p)}</p>${chips(F)}`;
   if(s.k=='terrain'&&!T)T=terrainGrid(L,p=>p.ps);
-  c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,1500,s.cam.x||0,s.cam.z||0);
-  clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},s.ms||9000)};
+  c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,Math.max(500,1500/Math.max(1,SPD[spi])),s.cam.x||0,s.cam.z||0);
+  clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},(s.ms||9000)/SPD[spi])};
  const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=.0006;const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
   if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:worst(items,3),stage:1});
   else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
- const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}};addEventListener('keydown',kd);
+ const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}if(e.key=='+'||e.key=='=')$i('v3s+').click();if(e.key=='-')$i('v3s-').click()};addEventListener('keydown',kd);
+ const spT=()=>{$i('v3sv').textContent=SPN[spi];$i('v3s-').disabled=spi==0;$i('v3s+').disabled=spi==SPD.length-1};spT();
+ const spSet=d=>{spi=Math.max(0,Math.min(SPD.length-1,spi+d));try{localStorage.setItem('ido_v3sp',String(spi))}catch(_){}spT();if(play)show(i)};$i('v3s-').onclick=()=>spSet(-1);$i('v3s+').onclick=()=>spSet(1);
  $i('v3sj').onchange=e=>show(+e.target.value);
  $i('v3sx').onclick=end;$i('v3sn').onclick=()=>show(i+1);$i('v3sp').onclick=()=>show(i-1);$i('v3sg').onclick=()=>{play=!play;$i('v3sg').textContent=play?'⏸ إيقاف':'▶ تشغيل';if(play)show(i);else clearTimeout(timer)};
  show(0)}
