@@ -1,4 +1,4 @@
-/* v3d.js — عروض غرفة التحكم ثلاثية الأبعاد: مدينة المحفظة، التضاريس، الكرة المؤسسية، والمسرح التفاعلي.
+/* v3d.js — عروض غرفة التحكم ثلاثية الأبعاد: خارطة الإنجاز، ملامح الإنجاز، الأهداف المؤسسية، والعرض التفاعلي.
    الإصدار 2: إسقاط متعامد (بدون تشويه منظوري) والكاميرا دائمًا من الأعلى، وألوان فاتحة هادئة، وعناصر قابلة للضغط.
    يقرأ بيانات الغرفة عبر window.__room. */
 (function(){
@@ -61,12 +61,18 @@ function css(){if($i('v3css'))return;const st=document.createElement('style');st
 .v3s-top b{font-size:14px;color:#14324a;background:rgba(255,255,255,.9);border-radius:99px;padding:5px 12px}
 .v3s-top button{font:inherit;font-weight:700;border:1px solid #d3dbe4;background:#fff;color:#14324a;border-radius:99px;padding:6px 12px;cursor:pointer}
 .v3s-txt{position:absolute;inset-inline:0;bottom:calc(84px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;padding:0 16px;z-index:2;pointer-events:none}
-.v3s-txt div{max-width:860px;background:rgba(20,50,74,.94);border-radius:16px;padding:14px 18px;text-align:center;box-shadow:0 10px 30px rgba(20,50,74,.3)}
+.v3s-txt>div{max-width:900px;max-height:52vh;overflow:auto;pointer-events:auto;background:rgba(20,50,74,.94);border-radius:16px;padding:14px 18px;text-align:center;box-shadow:0 10px 30px rgba(20,50,74,.3)}
 .v3s-txt h3{margin:0 0 4px;font-size:clamp(18px,3.2vw,30px);line-height:1.35}
 .v3s-txt p{margin:0;font-size:clamp(14px,2.1vw,19px);color:#dbe5ee;line-height:1.6}
 .v3s-big{font-size:clamp(54px,11vw,120px)!important;font-weight:800;color:#ffe49a!important;line-height:1.05!important}
 .v3s-ctl{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom,0px));inset-inline:0;display:flex;justify-content:center;align-items:center;gap:8px;z-index:2;flex-wrap:wrap}
 .v3s-ctl button{font:inherit;font-size:14px;font-weight:700;border:1px solid #d3dbe4;background:#fff;color:#14324a;border-radius:99px;padding:8px 14px;cursor:pointer}
+.v3s-top select{font:inherit;font-size:13px;font-weight:700;border:1px solid #d3dbe4;background:#fff;color:#14324a;border-radius:99px;padding:6px 10px;max-width:46vw}
+.v3s-txt small{display:block;color:#bcd0e2;font-size:13px;margin-bottom:2px}
+.v3s-ch{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}.v3s-ch span{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);border-radius:99px;padding:3px 11px;font-size:clamp(12.5px,1.5vw,15px);color:#fff}
+.v3s-n{color:#14324a;font-weight:800;font-size:13px;background:#fff;border-radius:99px;padding:6px 10px}
+.v3s-pg{position:absolute;bottom:0;inset-inline:0;height:4px;background:#d3dbe4;z-index:2}.v3s-pg i{display:block;height:100%;background:#14324a;transition:width .4s}
+@media(max-width:640px){.v3s-txt{bottom:calc(70px + env(safe-area-inset-bottom,0px))}.v3s-txt>div{padding:10px 12px}.v3s-ch{gap:4px}.v3s-ch span{padding:2px 8px}.v3s-top b{display:none}.v3s-top{justify-content:flex-end}}
 .v3s-dots{display:flex;gap:5px}.v3s-dots i{width:8px;height:8px;border-radius:50%;background:#c3ccd6}.v3s-dots i.on{background:#14324a;width:20px;border-radius:5px}
 `;document.head.appendChild(st)}
 
@@ -100,7 +106,7 @@ function layout(){const P=pjs(),S=secs().filter(s=>P.some(p=>p.sec==s.id)).map(s
    items.push({p,x,z,fp,h:Math.max(4,(p.act||0)*1.15),hp:p.exp!=null?Math.max(0,p.exp*1.15):null,pend:pendOf(p.pc),risk:p.rHigh||0,col:colOf(p),dist:d})})});
  const span=Math.max(300,Math.max(cols,rows)*(sz+gap));return {D,items,span,P}}
 
-/* ================== 1) مدينة المحفظة ================== */
+/* ================== 1) خارطة الإنجاز ================== */
 function drawCity(g,c,L,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640;bg(g,W,H);
  // الأحياء: ألواح بيضاء مرفوعة قليلًا
  const plates=L.D.map(d=>({d,z:proj(c,d.cx,0,d.cz)[3]})).sort((a,b)=>b.z-a.z);
@@ -137,7 +143,7 @@ function drawCity(g,c,L,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640;bg(g,W,H);
 function labels(g,LB){const done=[];LB.sort((a,b)=>b.pr-a.pr).forEach(l=>{g.font=(l.o.bold?'700 ':'500 ')+(l.o.size||12)+'px '+FONT;const w=g.measureText(l.t).width+14,h=(l.o.size||12)+9,r=[l.x-w/2-2,l.y-h-2,l.x+w/2+2,l.y+2];if(l.pr<3&&done.some(d=>r[0]<d[2]&&r[2]>d[0]&&r[1]<d[3]&&r[3]>d[1]))return;pill(g,l.x,l.y,l.t,l.o);done.push(r)})}
 function cityLegend(){return `<span><i style="background:${COL.ok}"></i>على المسار</span><span><i style="background:${COL.warn}"></i>يحتاج متابعة</span><span><i style="background:${COL.bad}"></i>متعثر</span><span>┆ الإطار المنقّط = المخطط حتى اليوم</span><span><i style="background:#c99a2e;border-radius:50%"></i>قرار معلّق</span><span><i style="background:#d9475a;border-radius:50%"></i>مخاطر عالية</span>`}
 
-/* ================== 2) التضاريس ================== */
+/* ================== 2) ملامح الإنجاز ================== */
 function terrainGrid(L,psOf,N){N=N||(innerWidth<640?24:32);const ext=L.span*.56,stp=2*ext/N,sig=Math.max(38,L.span/10),Z=[],B=bands();
  const pts=L.items.map(b=>({x:b.x,z:b.z,w:1+Math.sqrt(b.p.tasks||4)*.3,v:psOf(b.p)})).filter(q=>q.v!=null);
  for(let i=0;i<=N;i++){const row=[];for(let j=0;j<=N;j++){const x=-ext+j*stp,z=-ext+i*stp;let sw=0,sv=0;pts.forEach(q=>{const d2=(q.x-x)**2+(q.z-z)**2,k=q.w*Math.exp(-d2/(2*sig*sig));sw+=k;sv+=k*q.v});
@@ -166,7 +172,7 @@ function drawTerrain(g,c,L,T,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640,{Z,N}=T,Q=[
  // أسماء القطاعات
  L.D.forEach(d=>{const on=!o.sec||o.sec=='all'||o.sec==d.s.id,x=d.cx,z=d.cz+d.half;const [px,py]=proj(c,x,tAt(T,x,z),z);g.globalAlpha=on?1:.4;pill(g,px,py+24,d.s.n,{bold:true,size:ph?13:12.5,bg:'#14324a',fg:'#fff'});g.globalAlpha=1})}
 
-/* ================== 3) الكرة المؤسسية ================== */
+/* ================== 3) الأهداف المؤسسية ================== */
 let GOALS=null,PGOAL=null;
 async function loadGoals(){if(GOALS)return;GOALS=[];PGOAL={};try{const sb=G('sb');const [a,b]=await Promise.all([sb.from('app_settings').select('key,value').in('key',['opt_lists','opt_goals']),sb.from('charters').select('code,goal:data->>goal').eq('archived',false)]);
  let u={};(a.data||[]).forEach(r=>{try{if(r.key=='opt_lists')u=Object.assign({},JSON.parse(r.value||'{}'),u);if(r.key=='opt_goals'&&!u.goals){const gg=JSON.parse(r.value||'[]');if(Array.isArray(gg)&&gg.length)u.goals=gg}}catch(_){}});
@@ -216,7 +222,7 @@ function projCard(p,extra){const pend=pendOf(p.pc),B=bands(),a=p.act!=null?Math.
 const V={cur:null};
 function stop(){if(V.cur){cancelAnimationFrame(V.cur.raf);if(V.cur.ro)V.cur.ro.disconnect();V.cur=null}}
 function shell(id,tools,leg,help){css();return `<div class="v3"><div class="v3-box" id="v3b"><canvas id="v3c" tabindex="0" aria-label="${E(id)}"></canvas><div class="v3-tb">${tools}</div><div class="v3-lg">${leg}</div></div><aside class="v3-sd" id="v3sd"><div class="v3-card v3-help">${help}</div></aside></div>`}
-const camTools=(globe)=>`<span class="sp"></span><button type="button" id="v3nm">${nmTxt()}</button>${globe?`<button type="button" id="v3rot">⏸ إيقاف الدوران</button>`:`<button type="button" class="ic" id="v3l" title="تدوير" aria-label="تدوير لليمين">⟳</button><button type="button" class="ic" id="v3r" title="تدوير" aria-label="تدوير لليسار">⟲</button>`}<button type="button" class="ic" id="v3zi" aria-label="تكبير">＋</button><button type="button" class="ic" id="v3zo" aria-label="تصغير">－</button><button type="button" class="ic" id="v3rst" title="إعادة الضبط" aria-label="إعادة الضبط">↺</button><button type="button" id="v3stage">🎬 المسرح</button>`;
+const camTools=(globe)=>`<span class="sp"></span><button type="button" id="v3nm">${nmTxt()}</button>${globe?`<button type="button" id="v3rot">⏸ إيقاف الدوران</button>`:`<button type="button" class="ic" id="v3l" title="تدوير" aria-label="تدوير لليمين">⟳</button><button type="button" class="ic" id="v3r" title="تدوير" aria-label="تدوير لليسار">⟲</button>`}<button type="button" class="ic" id="v3zi" aria-label="تكبير">＋</button><button type="button" class="ic" id="v3zo" aria-label="تصغير">－</button><button type="button" class="ic" id="v3rst" title="إعادة الضبط" aria-label="إعادة الضبط">↺</button><button type="button" id="v3stage">🎬 العرض التفاعلي</button>`;
 function boot(kind,draw,cfg){stop();const cv=$i('v3c');if(!cv)return;const box=$i('v3b');const c=mkCam(cfg.cam);const st={c,kind,draw,cfg,raf:0,lt:0,items:cfg.items||(()=>[])};V.cur=st;
  const fit=()=>{const w=box.clientWidth,h=w<640?Math.max(400,Math.min(560,Math.round(innerHeight*.6))):Math.max(460,Math.min(680,Math.round(w*.62)));const dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';c.w=w;c.h=h;c.dp=dp;c.dirty=1};fit();
  if(c.w<640){c.auto=false;c.zoom*=cfg.phZoom||1}
@@ -251,16 +257,16 @@ function liH(p,cls){return `<button type="button" class="v3-li${cls?' '+cls:''}"
 function listH(L,title){return `<div class="v3-card"><b style="display:block;margin-bottom:6px">${title}</b>${L.map(b=>liH(b.p)).join('')||'<div class="v3-help">لا مشاريع تطابق الاختيار</div>'}</div>`}
 function worst(items,n){return new Set(items.slice().sort((a,b)=>(a.p.ps??0)-(b.p.ps??0)).slice(0,n))}
 
-/* ---- فلاتر المدينة والتضاريس ---- */
+/* ---- فلاتر الخارطة وملامح الإنجاز ---- */
 let CF={sec:'all',fo:'all'};
 function vis(b){if(CF.sec!='all'&&b.dist&&b.dist.s.id!=CF.sec)return false;if(CF.fo=='bad'&&b.p.status!='bad')return false;if(CF.fo=='warn'&&b.p.status=='ok')return false;if(CF.fo=='pend'&&!pendOf(b.p.pc).length)return false;if(CF.fo=='risk'&&!b.p.rHigh)return false;return true}
 function filt(L){return `<select id="v3sec" aria-label="القطاع"><option value="all">كل القطاعات</option>${L.D.map(d=>`<option value="${E(d.s.id)}" ${CF.sec==d.s.id?'selected':''}>${E(d.s.n)}</option>`).join('')}</select>${[['all','الكل'],['warn','تحتاج متابعة أو متعثرة'],['bad','المتعثرة'],['pend','بقرار معلّق'],['risk','بمخاطر عالية']].map(([k,t])=>`<button type="button" data-v3f="${k}" class="${CF.fo==k?'on':''}">${t}</button>`).join('')}`}
 function bindFilt(L){const fly=()=>{const st=V.cur;if(!st)return;const d=L.D.find(x=>x.s.id==CF.sec);if(d)anim(st.c,st.c.yaw,st.c.pitch,Math.min(2.2,Math.max(1.2,L.span/(d.size*2.2))),800,d.cx,d.cz);else anim(st.c,st.c.yaw,st.c.pitch,st.cfg.cam.zoom*(st.c.w<640?st.cfg.phZoom||1:1),800,0,0)};
  const s=$i('v3sec');if(s)s.onchange=e=>{CF.sec=e.target.value;fly();if(V.cur){V.cur.c.dirty=1;side()}};document.querySelectorAll('[data-v3f]').forEach(b=>b.onclick=()=>{CF.fo=b.dataset.v3f;document.querySelectorAll('[data-v3f]').forEach(x=>x.classList.toggle('on',x===b));if(V.cur){V.cur.c.dirty=1;side()}})}
 
-/* ---- المدينة ---- */
-function cityHTML(){const L=layout();return {svg:shell('مدينة المحفظة',filt(L)+camTools(false),cityLegend(),
- `<b>كيف تُقرأ المدينة؟</b><br>كل <b>حي</b> قطاع، وكل <b>مبنى</b> مشروع جارٍ. <b>ارتفاع المبنى</b> = نسبة الإنجاز الفعلية، و<b>الإطار المنقّط</b> = الارتفاع المخطط حتى اليوم؛ فإذا كان الإطار أعلى من المبنى فالمشروع متأخر. <b>اللون</b> = الحالة، والرقم فوق المبنى = نسبة الإنجاز إلى المخطط.<br>اضغط مبنى لتفاصيله، واسحب لتدوير المدينة، واقرص أو استخدم ＋ و－ للتكبير.`),ins:cityIns(L)}}
+/* ---- الخارطة ---- */
+function cityHTML(){const L=layout();return {svg:shell('خارطة الإنجاز',filt(L)+camTools(false),cityLegend(),
+ `<b>كيف تُقرأ الخارطة؟</b><br>كل <b>حي</b> قطاع، وكل <b>مبنى</b> مشروع جارٍ. <b>ارتفاع المبنى</b> = نسبة الإنجاز الفعلية، و<b>الإطار المنقّط</b> = الارتفاع المخطط حتى اليوم؛ فإذا كان الإطار أعلى من المبنى فالمشروع متأخر. <b>اللون</b> = الحالة، والرقم فوق المبنى = نسبة الإنجاز إلى المخطط.<br>اضغط مبنى لتفاصيله، واسحب لتدوير الخارطة، واقرص أو استخدم ＋ و－ للتكبير.`),ins:cityIns(L)}}
 function cityIns(L){const b=L.items.filter(x=>x.p.status=='bad'),p=L.items.filter(x=>x.pend.length);const wd=L.D.filter(d=>d.v!=null).sort((a,b)=>a.v-b.v)[0];
  return `${nP(L.items.length)} جارية في ${L.D.length} ${L.D.length<=2?'قطاع':'قطاعات'}${b.length?` · ${b.length==1?'مشروع متعثر':b.length==2?'مشروعان متعثران':b.length+' مشاريع متعثرة'}`:''}${p.length?` · ${nP(p.length)} بقرار معلّق`:''}${wd&&L.D.length>1?` · أضعف قطاع: ${E(wd.s.n)} (${wd.v}٪)`:''}`}
 function cityStart(){const L=layout();const lab=worst(L.items,3);
@@ -269,13 +275,13 @@ function cityStart(){const L=layout();const lab=worst(L.items,3);
    side:()=>listH(L.items.filter(vis).sort((a,b)=>(a.p.ps??0)-(b.p.ps??0)),'المشاريع من الأحرج إلى الأفضل')});
  bindFilt(L)}
 
-/* ---- التضاريس ---- */
+/* ---- ملامح الإنجاز ---- */
 let TW=0,RVD=null;
 const wkT=w=>w?'قبل '+(w==1?'أسبوع':w==2?'أسبوعين':w+' أسابيع'):'اليوم';
 function psAt(p,w){if(!w||!RVD||!RVD[p.pc])return p.ps;const a=RVD[p.pc],r=a[a.length-1-w];if(!r)return null;const ac=+r[1],pl=+r[2];if(!(pl>=5))return 100;return Math.max(0,Math.min(100,Math.round(ac/pl*100)))}
-function terrainHTML(){const L=layout();return {svg:shell('التضاريس',filt(L)+`<label>الأسبوع <input type="range" id="v3w" min="0" max="8" step="1" value="${8-TW}" aria-label="الأسبوع"><span id="v3wl">${wkT(TW)}</span></label><button type="button" id="v3play">▶ تشغيل</button>`+camTools(false),
+function terrainHTML(){const L=layout();return {svg:shell('ملامح الإنجاز',filt(L)+`<label>الأسبوع <input type="range" id="v3w" min="0" max="8" step="1" value="${8-TW}" aria-label="الأسبوع"><span id="v3wl">${wkT(TW)}</span></label><button type="button" id="v3play">▶ تشغيل</button>`+camTools(false),
  `<span><i style="background:#4fb07c"></i>قمم = على المسار</span><span><i style="background:#eab04e"></i>سهول = يحتاج متابعة</span><span><i style="background:#d9475a"></i>منخفضات = متعثر</span><span><i style="background:#dfe5ec"></i>لا مشاريع</span>`,
- `<b>كيف تُقرأ التضاريس؟</b><br>الأرض مقسّمة إلى القطاعات نفسها في المدينة. <b>الارتفاع واللون</b> = أداء المشاريع في تلك البقعة مقارنة بالمخطط. مستوى سطح الأرض = حد التعثر (${bands().a}٪): القمم الخضراء على المسار، والمنخفضات الحمراء متعثرة. الدبوس = مشروع والرقم فيه نسبته إلى المخطط.<br>حرّك شريط <b>الأسبوع</b> أو اضغط «تشغيل» لترى كيف تغيّرت الأرض خلال ثمانية أسابيع.`),ins:terrIns(L)}}
+ `<b>كيف تُقرأ ملامح الإنجاز؟</b><br>الأرض مقسّمة إلى القطاعات نفسها في الخارطة. <b>الارتفاع واللون</b> = أداء المشاريع في تلك البقعة مقارنة بالمخطط. مستوى سطح الأرض = حد التعثر (${bands().a}٪): القمم الخضراء على المسار، والمنخفضات الحمراء متعثرة. الدبوس = مشروع والرقم فيه نسبته إلى المخطط.<br>حرّك شريط <b>الأسبوع</b> أو اضغط «تشغيل» لترى كيف تغيّرت الأرض خلال ثمانية أسابيع.`),ins:terrIns(L)}}
 function secAvg(d,w){const L=d.L.map(q=>({v:psAt(q,w),w:q.w||1})).filter(x=>x.v!=null);const sw=L.reduce((s,x)=>s+x.w,0);return sw?Math.round(L.reduce((s,x)=>s+x.v*x.w,0)/sw):null}
 function terrIns(L){const D=L.D.map(d=>({d,v:secAvg(d,TW)})).filter(x=>x.v!=null).sort((a,b)=>a.v-b.v);if(!D.length)return '';return `${wkT(TW)}: الأدنى ${E(D[0].d.s.n)} (${D[0].v}٪)${D.length>1?` · الأعلى ${E(D[D.length-1].d.s.n)} (${D[D.length-1].v}٪)`:''}`}
 async function terrainStart(){const L=layout();let T=terrainGrid(L,p=>psAt(p,TW));L.items.forEach(b=>b.v=psAt(b.p,TW));const lab=worst(L.items,3);
@@ -293,7 +299,7 @@ async function terrainStart(){const L=layout();let T=terrainGrid(L,p=>psAt(p,TW)
 
 /* ---- الكرة ---- */
 let GSEL=null;
-function globeHTML(){return {svg:shell('الكرة المؤسسية',camTools(true),
+function globeHTML(){return {svg:shell('الأهداف المؤسسية',camTools(true),
  `<span>كل رقعة = هدف استراتيجي</span><span>كل دائرة = مشروع</span><span><i style="background:${COL.ok}"></i>على المسار</span><span><i style="background:${COL.warn}"></i>يحتاج متابعة</span><span><i style="background:${COL.bad}"></i>متعثر</span>`,
  `<b>كيف تُقرأ الكرة؟</b><br>كل <b>رقعة ملوّنة</b> هدف من أهداف المركز الاستراتيجية، وحجمها بحسب عدد مشاريعه، ولون حدودها = متوسط أداء مشاريعه إلى المخطط. كل <b>دائرة</b> مشروع واحد (عددها = عدد المشاريع الجارية)، ولونها حالته.<br>اضغط دائرة لتفاصيل المشروع، أو اضغط هدفًا من القائمة لتدور الكرة إليه وتظهر مشاريعه.`),ins:''}}
 async function globeStart(){const box=$i('v3sd');if(box)box.insertAdjacentHTML('afterbegin','<div class="v3-card v3-help" id="v3ld">جارٍ تحميل الأهداف…</div>');await loadGoals();const ld=$i('v3ld');if(ld)ld.remove();if(!$i('v3c'))return;const M=globeModel();const items=()=>M.G.flatMap(x=>x.lights);GSEL=null;
@@ -305,44 +311,77 @@ async function globeStart(){const box=$i('v3sd');if(box)box.insertAdjacentHTML('
   bindSide:el=>el.querySelectorAll('[data-v3g]').forEach(b=>b.onclick=()=>{const k=+b.dataset.v3g;GSEL=k<0||M.G[k]===GSEL?null:M.G[k];V.cur.c.auto=false;if(GSEL)face(GSEL.c,Math.min(1.6,1/(GSEL.R*1.6)+.4));else anim(V.cur.c,V.cur.c.yaw,V.cur.c.pitch,1,700);V.cur.c.dirty=1;side()})});
  const ins=$i('mapIns');if(ins){const w=M.G.filter(x=>x.v!=null&&x.i).sort((a,b)=>a.v-b.v),un=M.G.find(x=>x.i===0);ins.innerHTML=`<div class="insight"><i>💡</i><span>${nP(M.P.length)} جارية على ${M.G.filter(x=>x.i&&x.L.length).length} من ${M.G.filter(x=>x.i).length} أهداف${w.length>1?` · الأضعف: ${E(w[0].n)} (${w[0].v}٪) · الأقوى: ${E(w[w.length-1].n)} (${w[w.length-1].v}٪)`:''}${un?' · '+nP(un.L.length)+' بلا هدف في الميثاق':''}</span></div>`}}
 
-/* ================== 4) المسرح التفاعلي ================== */
+/* ================== 4) العرض التفاعلي ================== */
+const nD=n=>plr(n,'يوم واحد','يومان','أيام','يومًا'),nT=n=>plr(n,'مهمة واحدة','مهمتان','مهام','مهمة'),nK=n=>plr(n,'مؤشر واحد','مؤشران','مؤشرات','مؤشرًا'),nR=n=>plr(n,'خطر واحد','خطران','مخاطر','خطرًا');
+const fD=x=>{if(!x)return '';const d=x instanceof Date?x:new Date(String(x).slice(0,10)+'T00:00:00');return isNaN(d)?'':d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()};
+function pFacts(p,pend){const a=p.act!=null?Math.round(p.act):null,e=p.exp!=null?Math.round(p.exp):null,F=[];
+ F.push([SNM[p.status]||'—',colOf(p)]);
+ if(a!=null)F.push([`الإنجاز ${a}٪ من ${e??0}٪ مخطط`]);if(p.ps!=null)F.push([`النسبة إلى المخطط ${p.ps}٪`]);
+ F.push([`المهام: ${p.tasks||0}`+(p.late?` · ${p.late} متأخرة`:'')]);
+ const kp=p.kp||[];if(kp.length)F.push([`المؤشرات: ${kp.length}`+((p.kOff||0)+(p.kWarn||0)?` · ${(p.kOff||0)+(p.kWarn||0)} خارج المستهدف`:'')]);
+ const rk=p.rk||[];if(rk.length)F.push([`المخاطر: ${rk.length}`+(p.rHigh?` · ${p.rHigh} عالية`:''),p.rHigh?COL.bad:null]);
+ if(pend.length)F.push([`${nDc(pend.length)} عند المكتب`,'#c99a2e']);
+ if(p.ed)F.push([`الانتهاء المخطط ${fD(p.ed)}`]);
+ if(p.fc&&p.fc.stall)F.push(['لا تقدّم ملحوظ مؤخرًا',COL.bad]);else if(p.fc&&p.fc.f)F.push([`الانتهاء المتوقع ${fD(p.fc.f)}`+(p.fcLate?` (بعد الموعد بـ${nD(p.fcLate)})`:''),p.fcLate?COL.warn:null]);
+ if(p.pm)F.push([`مدير المشروع: ${p.pm}`]);
+ if(p.idle!=null&&p.idle<999)F.push([p.idle<1?'حُدّث اليوم':`آخر تحديث قبل ${nD(p.idle)}`,p.idle>14?COL.warn:null]);
+ return F}
+function pStory(p,pend){const a=p.act!=null?Math.round(p.act):null,e=p.exp!=null?Math.round(p.exp):null,s=[];
+ if(a==null)return 'لا توجد قراءة إنجاز كافية لهذا المشروع بعد.';
+ if(p.status=='ok')s.push(a>=(e??0)?`يسير على المسار: أنجز ${a}٪ والمخطط حتى اليوم ${e??0}٪.`:`ضمن المسار: أنجز ${a}٪ والمخطط ${e??0}٪.`);
+ else if(p.status=='warn')s.push(`يحتاج متابعة: أنجز ${a}٪ والمخطط حتى اليوم ${e??0}٪.`);
+ else s.push(`متعثر: أنجز ${a}٪ فقط والمخطط حتى اليوم ${e??0}٪.`);
+ if(p.late)s.push(`عليه ${nT(p.late)} متأخرة${p.oldest?`، أقدمها متأخرة ${nD(p.oldest)}`:''}.`);
+ if(p.rHigh)s.push(`لديه ${nR(p.rHigh)} عالية التقييم.`);
+ if(pend.length)s.push(`وينتظر ${nDc(pend.length)} من المكتب.`);
+ if(p.fcLate)s.push(`وبالوتيرة الحالية سينتهي بعد موعده بـ${nD(p.fcLate)}.`);
+ return s.join(' ')}
 function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G('HIST')||[];const P=items.map(b=>b.p);
- const ok=P.filter(p=>p.status=='ok').length,wn=P.filter(p=>p.status=='warn').length,bd=P.filter(p=>p.status=='bad').length;
- const pendAll=P.flatMap(p=>pendOf(p.pc).map(a=>({a,p})));
- const bads=items.filter(b=>b.p.status=='bad').sort((a,b)=>(a.p.ps??0)-(b.p.ps??0)).slice(0,5);
- const D2=L.D.filter(d=>d.v!=null).sort((a,b)=>a.v-b.v);
+ const cnt=A=>({ok:A.filter(p=>p.status=='ok').length,wn:A.filter(p=>p.status=='warn').length,bd:A.filter(p=>p.status=='bad').length});
+ const T0=cnt(P),pendAll=P.flatMap(p=>pendOf(p.pc).map(a=>({a,p}))),D2=L.D.filter(d=>d.v!=null).sort((a,b)=>a.v-b.v);
  let v=null;try{v=cur?cur():null}catch(_){}const dlt=hist.length>1&&hist[hist.length-1]!=null&&hist[hist.length-2]!=null?hist[hist.length-1]-hist[hist.length-2]:0;
- const SC=[];
- SC.push({k:'title',h:'حالة المحفظة اليوم',big:v!=null?v:'—',p:`الأداء العام للمركز من 100${dlt?` · ${dlt<0?'تراجع':'تحسّن'} ${Math.abs(dlt)} عن الأسبوع الماضي`:''}`,cam:{yaw:-.62,pitch:.75,zoom:.8}});
- SC.push({k:'city',h:'مدينة المحفظة',p:`${nP(P.length)} جارية في ${L.D.length} ${L.D.length<=2?'قطاع':'قطاعات'}: ${ok} على المسار، و${wn} تحتاج متابعة، و${bd} متعثرة.`,cam:{yaw:-.5,pitch:.72,zoom:.9}});
- bads.forEach((b,i)=>{const why=[];if(b.p.act!=null)why.push(`أنجز ${Math.round(b.p.act)}٪ والمخطط ${Math.round(b.p.exp||0)}٪`);if(b.p.late)why.push(`${b.p.late==1?'مهمة متأخرة':b.p.late==2?'مهمتان متأخرتان':b.p.late+' مهام متأخرة'}`);if(b.p.rHigh)why.push('مخاطر عالية');if(b.pend.length)why.push(nDc(b.pend.length)+' عند المكتب');
-  SC.push({k:'focus',b,h:`${i+1}/${bads.length} · ${b.p.n}`,p:`${secN(b.p.sec)} · ${why.join(' · ')}${b.p.pm?' · مدير المشروع: '+b.p.pm:''}`,cam:{yaw:-.62-i*.3,pitch:.85,zoom:1.6,x:b.x,z:b.z}})});
- if(pendAll.length)SC.push({k:'dec',h:'قرارات تنتظر المكتب',p:`${nDc(pendAll.length)} على ${nP(new Set(pendAll.map(x=>x.p.pc)).size)}، وهي المباني ذات الشارة الذهبية.`,cam:{yaw:-1,pitch:.7,zoom:.95},hl:'pend'});
- if(D2.length)SC.push({k:'terrain',h:'التضاريس: أين ينخفض الأداء؟',p:`الأدنى قطاع ${D2[0].s.n} (${D2[0].v}٪ من المخطط)${D2.length>1?`، والأعلى ${D2[D2.length-1].s.n} (${D2[D2.length-1].v}٪).`:'.'}`,cam:{yaw:-.62,pitch:.85,zoom:.95}});
- SC.push({k:'globe',h:'المساهمة في الأهداف الاستراتيجية',p:'كل رقعة هدف استراتيجي، وكل دائرة مشروع بلون حالته.',cam:{yaw:.3,pitch:.12,zoom:1}});
+ const SC=[],grp=[];
+ SC.push({k:'title',g:'البداية',h:'حالة المحفظة اليوم',big:v!=null?v:'—',p:`الأداء العام للمركز من 100${dlt?` · ${dlt<0?'تراجع':'تحسّن'} ${Math.abs(dlt)} عن الأسبوع الماضي`:''}`,cam:{yaw:-.62,pitch:.75,zoom:.8},ms:7000});
+ SC.push({k:'city',g:'البداية',h:'خارطة الإنجاز: نظرة عامة',p:`${nP(P.length)} جارية في ${L.D.length} ${L.D.length<=2?'قطاع':'قطاعات'}: ${T0.ok} على المسار، و${T0.wn} تحتاج متابعة، و${T0.bd} متعثرة. كل مبنى مشروع، وارتفاعه إنجازه، والإطار المنقّط المخطط حتى اليوم.`,cam:{yaw:-.5,pitch:.72,zoom:.9},ms:9000});
+ L.D.slice().sort((a,b)=>(a.v??0)-(b.v??0)).forEach((d,di)=>{const A=d.L,c=cnt(A),late=A.reduce((s,p)=>s+(p.late||0),0),rh=A.reduce((s,p)=>s+(p.rHigh||0),0),pd=A.reduce((s,p)=>s+pendOf(p.pc).length,0);
+  const zoom=Math.max(.95,Math.min(1.45,L.span/(d.size*2.4)));
+  const F=[[`${nP(A.length)}`],[`الأداء ${d.v??'—'}٪ من المخطط`,bandCol(d.v)],[`${c.ok} على المسار`,COL.ok],[`${c.wn} تحتاج متابعة`,COL.warn],[`${c.bd} متعثرة`,COL.bad]];if(late)F.push([`${nT(late)} متأخرة`]);if(rh)F.push([`${nR(rh)} عالية`,COL.bad]);if(pd)F.push([`${nDc(pd)} عند المكتب`,'#c99a2e']);
+  const w=A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0))[0],bst=A.slice().sort((a,b)=>(b.ps??0)-(a.ps??0))[0];
+  SC.push({k:'sec',d,g:d.s.n,h:`القطاع ${di+1} من ${L.D.length}: ${d.s.n}`,p:A.length>1?`الأضعف «${w.n}» (${w.ps}٪)، والأفضل «${bst.n}» (${bst.ps}٪). سنمر على مشاريعه واحدًا واحدًا.`:`مشروع واحد: «${A[0].n}».`,F,cam:{yaw:-.62-di*.45,pitch:.8,zoom,x:d.cx,z:d.cz},ms:10000});
+  A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0)).forEach((p,pi)=>{const b=items.find(x=>x.p===p),pend=pendOf(p.pc);
+   SC.push({k:'focus',b,g:d.s.n,h:p.n,sub:`${d.s.n} · المشروع ${pi+1} من ${A.length}`,p:pStory(p,pend),F:pFacts(p,pend),cam:{yaw:-.62-di*.45-(pi%2?.25:-.25),pitch:.85,zoom:Math.min(1.6,zoom*1.15),x:b.x,z:b.z},ms:11000})})});
+ if(pendAll.length){const byK={};pendAll.forEach(x=>{const k=x.a.cat=='lock'?'تعديل قيم مقفلة':x.a.cat=='rev'?'مراجعة احتساب':x.a.cat=='appr'?'اعتماد':'تغيير نطاق';byK[k]=(byK[k]||0)+1});
+  SC.push({k:'dec',g:'الختام',h:'قرارات تنتظر المكتب',p:`${nDc(pendAll.length)} على ${nP(new Set(pendAll.map(x=>x.p.pc)).size)}، وهي المباني ذات الشارة الذهبية.`,F:Object.entries(byK).map(([k,n])=>[`${k}: ${n}`,'#c99a2e']),cam:{yaw:-1,pitch:.7,zoom:.95},hl:'pend',ms:9000})}
+ if(D2.length)SC.push({k:'terrain',g:'الختام',h:'ملامح الإنجاز',p:`الأدنى قطاع ${D2[0].s.n} (${D2[0].v}٪ من المخطط)${D2.length>1?`، والأعلى ${D2[D2.length-1].s.n} (${D2[D2.length-1].v}٪).`:'.'}`,F:D2.map(d=>[`${d.s.n}: ${d.v}٪`,bandCol(d.v)]),cam:{yaw:-.62,pitch:.85,zoom:.95},ms:9000});
+ SC.push({k:'globe',g:'الختام',h:'الأهداف المؤسسية',p:'كل رقعة هدف استراتيجي، وكل دائرة مشروع بلون حالته.',goals:1,cam:{yaw:.3,pitch:.12,zoom:1},ms:11000});
  let brief='';try{const f=G('briefText');brief=f?f():''}catch(_){}
- SC.push({k:'end',h:'الخلاصة',p:String(brief||`${ok} على المسار، ${wn} تحتاج متابعة، ${bd} متعثرة.`).replace(/<[^>]+>/g,''),cam:{yaw:-.62,pitch:.95,zoom:.8}});
- const o=document.createElement('div');o.className='v3s';o.setAttribute('role','dialog');o.setAttribute('aria-label','المسرح التفاعلي');
- o.innerHTML=`<div class="v3s-top"><b>🎬 المسرح التفاعلي</b><button type="button" id="v3sx">✕ إنهاء</button></div><canvas id="v3sc"></canvas><div class="v3s-txt"><div id="v3st"></div></div><div class="v3s-ctl"><button type="button" id="v3sp">‹ السابق</button><button type="button" id="v3sg">⏸ إيقاف</button><button type="button" id="v3sn">التالي ›</button><div class="v3s-dots" id="v3sd2">${SC.map(()=>'<i></i>').join('')}</div></div>`;
+ SC.push({k:'end',g:'الختام',h:'الخلاصة',p:String(brief||`${T0.ok} على المسار، ${T0.wn} تحتاج متابعة، ${T0.bd} متعثرة.`).replace(/<[^>]+>/g,''),cam:{yaw:-.62,pitch:.95,zoom:.8},ms:14000});
+ const groups=[...new Set(SC.map(s=>s.g))];
+ const o=document.createElement('div');o.className='v3s';o.setAttribute('role','dialog');o.setAttribute('aria-label','العرض التفاعلي');
+ o.innerHTML=`<div class="v3s-top"><b>🎬 العرض التفاعلي</b><span style="display:flex;gap:6px"><select id="v3sj" aria-label="انتقل إلى">${groups.map(g=>`<optgroup label="${E(g)}">${SC.map((s,j)=>s.g==g?`<option value="${j}">${E(s.k=='sec'?'▸ '+s.d.s.n:s.k=='focus'?'   '+s.h:s.h)}</option>`:'').join('')}</optgroup>`).join('')}</select><button type="button" id="v3sx">✕ إنهاء</button></span></div><canvas id="v3sc"></canvas><div class="v3s-txt"><div id="v3st"></div></div><div class="v3s-ctl"><button type="button" id="v3sp">‹ السابق</button><button type="button" id="v3sg">⏸ إيقاف</button><button type="button" id="v3sn">التالي ›</button><span class="v3s-n" id="v3sn2"></span></div><div class="v3s-pg"><i id="v3spg"></i></div>`;
  document.body.appendChild(o);try{o.requestFullscreen&&o.requestFullscreen().catch(()=>{})}catch(_){}
- const cv=$i('v3sc'),c=mkCam({span:L.span,cy:.45});let T=null,M=null,i=0,play=true,timer=null,raf=0;
+ const cv=$i('v3sc'),c=mkCam({span:L.span,cy:.42});let T=null,M=null,i=0,play=true,timer=null,raf=0;
  const fit=()=>{const w=cv.clientWidth,h=cv.clientHeight,dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;c.w=w;c.h=h;c.dp=dp};fit();addEventListener('resize',fit);
  loadGoals().then(()=>{M=globeModel()});
- const show=k=>{i=Math.max(0,Math.min(SC.length-1,k));const s=SC[i];o.querySelectorAll('#v3sd2 i').forEach((d,j)=>d.classList.toggle('on',j==i));
-  $i('v3st').innerHTML=s.k=='title'?`<h3>${E(s.h)}</h3><p class="v3s-big">${E(s.big)}</p><p>${E(s.p)}</p>`:`<h3>${E(s.h)}</h3><p>${E(s.p)}</p>`;
+ const chips=F=>F&&F.length?`<div class="v3s-ch">${F.map(([t,col])=>`<span${col?` style="border-color:${col};box-shadow:inset 3px 0 0 ${col}"`:''}>${E(t)}</span>`).join('')}</div>`:'';
+ const show=k=>{i=Math.max(0,Math.min(SC.length-1,k));const s=SC[i];$i('v3sn2').textContent=(i+1)+' / '+SC.length;$i('v3spg').style.width=((i+1)/SC.length*100)+'%';const sj=$i('v3sj');if(sj)sj.value=String(i);
+  let F=s.F;if(s.goals&&M)F=M.G.filter(x=>x.L.length).sort((a,b)=>(a.v??0)-(b.v??0)).map(x=>[`${x.n}: ${x.v??'—'}٪ · ${nP(x.L.length)}`,bandCol(x.v)]);
+  $i('v3st').innerHTML=s.k=='title'?`<h3>${E(s.h)}</h3><p class="v3s-big">${E(s.big)}</p><p>${E(s.p)}</p>`:`${s.sub?`<small>${E(s.sub)}</small>`:''}<h3>${E(s.h)}</h3><p>${E(s.p)}</p>${chips(F)}`;
   if(s.k=='terrain'&&!T)T=terrainGrid(L,p=>p.ps);
   c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,1500,s.cam.x||0,s.cam.z||0);
-  clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},s.k=='title'?6000:s.k=='end'?12000:8000)};
- const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=.0008;const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
+  clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},s.ms||9000)};
+ const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=.0006;const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
   if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:worst(items,3),stage:1});
-  else drawCity(g,c,L,t,{sel:s.b||null,vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):null,labels:s.b?new Set([s.b]):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3),stage:1});
+  else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
- const kd=e=>{if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}};addEventListener('keydown',kd);
+ const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}};addEventListener('keydown',kd);
+ $i('v3sj').onchange=e=>show(+e.target.value);
  $i('v3sx').onclick=end;$i('v3sn').onclick=()=>show(i+1);$i('v3sp').onclick=()=>show(i-1);$i('v3sg').onclick=()=>{play=!play;$i('v3sg').textContent=play?'⏸ إيقاف':'▶ تشغيل';if(play)show(i);else clearTimeout(timer)};
  show(0)}
-function stageHTML(){css();const P=pjs(),bd=P.filter(p=>p.status=='bad').length;return {svg:`<div class="v3-card" style="max-width:760px;margin:0 auto;text-align:center;padding:22px"><div style="font-size:44px">🎬</div><h3 style="margin:6px 0">المسرح التفاعلي</h3><p class="v3-help" style="font-size:14px">عرض جاهز لاجتماعات الإدارة العليا يتنقل وحده بين مشاهد قصيرة، مع تعليق عربي في سطر واحد لكل مشهد:</p>
- <ol style="text-align:start;display:inline-block;margin:6px auto 14px;line-height:2;color:#3b4148"><li>الأداء العام للمركز واتجاهه</li><li>مدينة المحفظة: صورة كل المشاريع</li><li>المشاريع المتعثرة واحدًا واحدًا${bd?` (${Math.min(5,bd)})`:''}</li><li>القرارات المعلّقة عند المكتب</li><li>التضاريس: أضعف القطاعات وأقواها</li><li>الكرة: المساهمة في الأهداف الاستراتيجية</li><li>الخلاصة</li></ol>
+function stageHTML(){css();const P=pjs(),L=layout();const mins=Math.max(1,Math.round((7+9+L.D.length*10+P.length*11+30)/60));return {svg:`<div class="v3-card" style="max-width:760px;margin:0 auto;text-align:center;padding:22px"><div style="font-size:44px">🎬</div><h3 style="margin:6px 0">العرض التفاعلي</h3><p class="v3-help" style="font-size:14px">عرض شامل يمر على كل القطاعات وكل المشاريع الجارية بالتفصيل، ويتنقل وحده مع تعليق عربي لكل مشهد:</p>
+ <ol style="text-align:start;display:inline-block;margin:6px auto 14px;line-height:2;color:#3b4148"><li>الأداء العام للمركز واتجاهه</li><li>نظرة عامة على خارطة الإنجاز</li><li>كل قطاع (${L.D.length}): أداؤه وحالات مشاريعه ومهامه المتأخرة ومخاطره</li><li>كل مشروع (${P.length}): الإنجاز مقابل المخطط، والمهام والمؤشرات والمخاطر، والقرارات المعلّقة، والانتهاء المتوقع</li><li>القرارات المعلّقة عند المكتب</li><li>ملامح الإنجاز والأهداف المؤسسية</li><li>الخلاصة</li></ol>
+ <p class="v3-help">المدة التقريبية: ${mins} ${mins==1?'دقيقة':mins==2?'دقيقتان':mins<=10?'دقائق':'دقيقة'} · يمكن الإيقاف والتنقل أو القفز إلى أي قطاع أو مشروع من القائمة أعلى الشاشة.</p>
  <div><button type="button" id="v3go" style="font:inherit;font-size:16px;font-weight:800;border:0;background:#14324a;color:#fff;border-radius:99px;padding:12px 26px;cursor:pointer">▶ ابدأ العرض</button></div><p class="v3-help" style="margin-top:10px">ملء الشاشة · المسافة أو الأسهم للتنقل · Esc للإنهاء</p></div>`,ins:''}}
 function stageStart(){const b=$i('v3go');if(b)b.onclick=()=>stage()}
 
