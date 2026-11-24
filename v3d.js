@@ -384,11 +384,13 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
   else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length)):new Set(),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
- const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}if(e.key=='+'||e.key=='=')$i('v3s+').click();if(e.key=='-')$i('v3s-').click()};addEventListener('keydown',kd);
+ const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape'){const P2=o.querySelector('.v3s-pn');if(P2&&!P2.hidden){P2.querySelector('[data-pnx]').click();return}end();return}if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}if(e.key=='+'||e.key=='=')$i('v3s+').click();if(e.key=='-')$i('v3s-').click()};addEventListener('keydown',kd);
  const spT=()=>{$i('v3sv').textContent=SPN[spi];$i('v3s-').disabled=spi==0;$i('v3s+').disabled=spi==SPD.length-1};spT();
  const spSet=d=>{spi=Math.max(0,Math.min(SPD.length-1,spi+d));try{localStorage.setItem('ido_v3sp',String(spi))}catch(_){}spT();if(play)show(i)};$i('v3s-').onclick=()=>spSet(-1);$i('v3s+').onclick=()=>spSet(1);
  $i('v3sj').onchange=e=>show(+e.target.value);
- const pause=()=>{if(!play)return;play=false;clearTimeout(timer);$i('v3sg').textContent='▶ تشغيل'};
+ let AP=false;const pause=auto=>{if(!play)return;play=false;AP=!!auto;clearTimeout(timer);$i('v3sg').textContent='▶ تشغيل'};
+ const resume=()=>{play=true;AP=false;$i('v3sg').textContent='⏸ إيقاف';clearTimeout(timer);const s=SC[i];timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},(s.ms||9000)/SPD[spi])};
+ const pnClose=()=>{pn.hidden=true;if(AP)resume()};
  const pn=document.createElement('div');pn.className='v3s-pn';pn.hidden=true;o.appendChild(pn);
  const kS=G('kSt');const toP=pc=>{const j=SC.findIndex(z=>z.k=='focus'&&z.b.p.pc==pc);if(j>=0){pn.hidden=true;show(j)}};
  const pRow=(p,sub)=>`<div class="v3s-r"><i style="background:${colOf(p)}"></i><div><b>${E(p.n)}</b><small>${E(sub||(secN(p.sec)+' · '+(p.ps!=null?p.ps+'٪ من المخطط':'')))}</small></div><span><button type="button" data-go="${E(p.pc)}">عرض</button><a href="myprojects.html?pc=${encodeURIComponent(p.pc)}" target="_blank" rel="noopener">↗</a></span></div>`;
@@ -405,14 +407,14 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
   else if(a.t=='sd'){const L=d.L.filter(q=>pendOf(q.pc).length);h=d.s.n+' · بانتظار المكتب';b=L.map(q=>pRow(q,pendOf(q.pc).map(x=>CATN(x.cat)).join('، '))).join('')||none('لا شيء.')}
   else if(a.t=='ad'){const L=pendAll.filter(x=>CATN(x.a.cat)==a.k);h='بانتظار المكتب · '+a.k;b=L.map(x=>pRow(x.p,x.a.t||'')).join('')||none('لا شيء.')}
   else if(a.t=='gp'){const L=a.g.L.slice().sort((x,y)=>(x.ps??0)-(y.ps??0));h=a.g.n;b=`<div class="v3s-e" style="text-align:start">الأداء ${a.g.v??'—'}٪ من المخطط · ${a.g.share}٪ من أوزان المحفظة</div>`+(L.map(q=>pRow(q)).join('')||none('لا مشاريع.'))}
-  pause();pn.innerHTML=`<div class="v3s-ph"><b>${E(h)}</b><button type="button" data-pnx="1">✕ إغلاق</button></div><div class="v3s-pb">${b}</div><div class="v3s-pf">العرض متوقف. اضغط «▶ تشغيل» للمتابعة.</div>`;pn.hidden=false};
+  pause(true);pn.innerHTML=`<div class="v3s-ph"><b>${E(h)}</b><button type="button" data-pnx="1">✕ إغلاق</button></div><div class="v3s-pb">${b}</div><div class="v3s-pf">${AP?'العرض متوقف مؤقتًا، ويكمل وحده عند إغلاق هذه اللوحة.':'العرض متوقف. اضغط «▶ تشغيل» للمتابعة.'}</div>`;pn.hidden=false};
  o.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;const ci=t.closest('[data-ci]');if(ci){const a=(CF[+ci.dataset.ci]||[])[2];if(a)det(a);return}
-  if(t.closest('[data-pnx]')){pn.hidden=true;return}const go=t.closest('[data-go]');if(go){toP(go.dataset.go);return}});
+  if(t.closest('[data-pnx]')){pnClose();return}const go=t.closest('[data-go]');if(go){const ap=AP;toP(go.dataset.go);if(ap)resume();return}});
  cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const s=SC[i];let hit=null;
   if(s.k=='globe'&&M)M.G.forEach(g=>g.lights.forEach(l=>{if(l.bb&&x>=l.bb[0]&&x<=l.bb[2]&&y>=l.bb[1]&&y<=l.bb[3])hit=l}));
   else items.forEach(b=>{if(b.bb&&x>=b.bb[0]-6&&x<=b.bb[2]+6&&y>=b.bb[1]-6&&y<=b.bb[3]+6&&(!hit||(b.dz??0)<(hit.dz??0)))hit=b});
-  if(hit)det({t:'proj',p:hit.p});else pause()});
- $i('v3sx').onclick=end;$i('v3sn').onclick=()=>show(i+1);$i('v3sp').onclick=()=>show(i-1);$i('v3sg').onclick=()=>{play=!play;$i('v3sg').textContent=play?'⏸ إيقاف':'▶ تشغيل';if(play)show(i);else clearTimeout(timer)};
+  if(hit)det({t:'proj',p:hit.p});else if(!pn.hidden)pnClose();else pause()});
+ $i('v3sx').onclick=end;$i('v3sn').onclick=()=>show(i+1);$i('v3sp').onclick=()=>show(i-1);$i('v3sg').onclick=()=>{AP=false;play=!play;$i('v3sg').textContent=play?'⏸ إيقاف':'▶ تشغيل';if(play)show(i);else clearTimeout(timer)};
  show(0)}
 function stageHTML(){css();const P=pjs(),L=layout();const mins=Math.max(1,Math.round((7+9+L.D.length*10+P.length*11+30)/60));return {svg:`<div class="v3-card" style="max-width:760px;margin:0 auto;text-align:center;padding:22px"><div style="font-size:44px">🎬</div><h3 style="margin:6px 0">العرض التفاعلي</h3><p class="v3-help" style="font-size:14px">عرض شامل يمر على كل القطاعات وكل المشاريع الجارية بالتفصيل، ويتنقل وحده مع تعليق عربي لكل مشهد:</p>
  <ol style="text-align:start;display:inline-block;margin:6px auto 14px;line-height:2;color:#3b4148"><li>الأداء العام للمركز واتجاهه</li><li>نظرة عامة على خارطة الإنجاز</li><li>كل قطاع (${L.D.length}): أداؤه وحالات مشاريعه ومهامه المتأخرة ومخاطره</li><li>كل مشروع (${P.length}): الإنجاز مقابل المخطط، والمهام والمؤشرات والمخاطر، والقرارات المعلّقة، والانتهاء المتوقع</li><li>القرارات المعلّقة عند المكتب</li><li>ملامح الإنجاز والأهداف المؤسسية</li><li>الخلاصة</li></ol>
