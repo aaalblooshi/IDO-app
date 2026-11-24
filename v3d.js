@@ -21,6 +21,10 @@ const hashS=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;
 const openP=pc=>{const f=G('openProject');if(f)f(pc)};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const short=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s};
+let NM=false;try{NM=localStorage.getItem('ido_names')=='1'}catch(_){}
+window.V3NM=()=>NM;
+window.V3NMset=v=>{NM=!!v;try{localStorage.setItem('ido_names',NM?'1':'0')}catch(_){}};
+const nmTxt=()=>NM?'🏷 إخفاء الأسماء':'🏷 إظهار الأسماء';
 const FONT='"IBM Plex Sans Arabic","Noto Kufi Arabic",system-ui,sans-serif';
 
 /* ---------- CSS ---------- */
@@ -127,7 +131,7 @@ function drawCity(g,c,L,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640;bg(g,W,H);
   const badge=(col,ch)=>{g.beginPath();g.arc(bx,topY-26,8,0,7);g.fillStyle=col;g.fill();g.strokeStyle='#fff';g.lineWidth=1.6;g.stroke();g.fillStyle='#fff';g.font='800 10px '+FONT;g.textAlign='center';g.textBaseline='middle';g.fillText(ch,bx,topY-25.5);g.textBaseline='alphabetic';bx+=18};
   if(vis&&b.pend.length)badge('#c99a2e','!');if(vis&&b.risk)badge('#d9475a','▲');
   // النسبة فوق كل مبنى
-  if(vis){const showName=sel||hv||top3.has(b);LB.push({x:cx,y:topY-((b.pend.length||b.risk)?38:5),t:showName?short(b.p.n,ph?22:30)+' · '+b.p.ps+'٪':b.p.ps+'٪',o:{bold:showName,size:showName?(ph?13:12.5):(ph?12:11),bd:sel||hv?'#14324a':null},pr:sel||hv?3:showName?2:1})}
+  if(vis){const showName=sel||hv||NM||(o.stage&&top3.has(b));LB.push({x:cx,y:topY-((b.pend.length||b.risk)?38:5),t:showName?short(b.p.n,ph?22:30)+' · '+b.p.ps+'٪':b.p.ps+'٪',o:{bold:showName,size:showName?(ph?13:12.5):(ph?12:11),bd:sel||hv?'#14324a':null},pr:3})}
   g.globalAlpha=1});
  labels(g,LB)}
 function labels(g,LB){const done=[];LB.sort((a,b)=>b.pr-a.pr).forEach(l=>{g.font=(l.o.bold?'700 ':'500 ')+(l.o.size||12)+'px '+FONT;const w=g.measureText(l.t).width+14,h=(l.o.size||12)+9,r=[l.x-w/2-2,l.y-h-2,l.x+w/2+2,l.y+2];if(l.pr<3&&done.some(d=>r[0]<d[2]&&r[2]>d[0]&&r[1]<d[3]&&r[3]>d[1]))return;pill(g,l.x,l.y,l.t,l.o);done.push(r)})}
@@ -158,7 +162,7 @@ function drawTerrain(g,c,L,T,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640,{Z,N}=T,Q=[
   g.save();g.shadowColor='rgba(20,40,60,.25)';g.shadowBlur=5;g.beginPath();g.arc(x1,y1,sel||hv?r+3:r,0,7);g.fillStyle=bandCol(v);g.fill();g.restore();g.strokeStyle=sel||hv?'#14324a':'#fff';g.lineWidth=sel||hv?3:2;g.beginPath();g.arc(x1,y1,sel||hv?r+3:r,0,7);g.stroke();
   g.fillStyle='#fff';g.font='800 '+(ph?10.5:10)+'px '+FONT;g.textAlign='center';g.textBaseline='middle';g.fillText(v==null?'—':String(v),x1,y1+.5);g.textBaseline='alphabetic';
   b.sx=x1;b.sy=y1;b.bb=vis?[x1-r-4,y1-r-4,x1+r+4,y1+r+4]:null;
-  if(vis&&(sel||hv||(o.labels&&o.labels.has(b))))pill(g,x1,y1-r-5,short(b.p.n,ph?22:30),{bold:true,size:ph?13:12,bd:sel||hv?'#14324a':null});g.globalAlpha=1});
+  if(vis&&(sel||hv||NM||(o.stage&&o.labels&&o.labels.has(b))))pill(g,x1,y1-r-5,short(b.p.n,ph?22:30),{bold:true,size:ph?13:12,bd:sel||hv?'#14324a':null});g.globalAlpha=1});
  // أسماء القطاعات
  L.D.forEach(d=>{const on=!o.sec||o.sec=='all'||o.sec==d.s.id,x=d.cx,z=d.cz+d.half;const [px,py]=proj(c,x,tAt(T,x,z),z);g.globalAlpha=on?1:.4;pill(g,px,py+24,d.s.n,{bold:true,size:ph?13:12.5,bg:'#14324a',fg:'#fff'});g.globalAlpha=1})}
 
@@ -196,7 +200,7 @@ function drawGlobe(g,c,M,t,o){o=o||{};const W=c.w,H=c.h,ph=W<640;bg(g,W,H);const
  LT.sort((a,b)=>b.dz-a.dz).forEach(l=>{if(l.dz>-.04){l.bb=null;return}const vis=o.vis?o.vis(l):true,sel=o.sel===l,hv=o.hover===l,on=!o.goal||o.goal===l.goal;g.globalAlpha=(vis&&on?1:.25)*Math.min(1,-l.dz*4+.2);const r=sel||hv?rM+3:rM;
   g.save();g.shadowColor='rgba(20,40,60,.3)';g.shadowBlur=4;g.beginPath();g.arc(l.sx,l.sy,r,0,7);g.fillStyle=colOf(l.p);g.fill();g.restore();g.lineWidth=sel||hv?3:2;g.strokeStyle=sel||hv?'#14324a':'#fff';g.beginPath();g.arc(l.sx,l.sy,r,0,7);g.stroke();
   l.bb=vis&&on?[l.sx-r-5,l.sy-r-5,l.sx+r+5,l.sy+r+5]:null;
-  if(sel||hv)pill(g,l.sx,l.sy-r-6,short(l.p.n,ph?22:30)+' · '+l.p.ps+'٪',{bold:true,size:ph?13:12.5,bd:'#14324a'});g.globalAlpha=1});
+  if(sel||hv||NM)pill(g,l.sx,l.sy-r-6,short(l.p.n,ph?22:30)+' · '+l.p.ps+'٪',{bold:sel||hv,size:ph?13:12,bd:sel||hv?'#14324a':null});g.globalAlpha=1});
  // أسماء الأهداف
  M.G.forEach(x=>{const [px,py,z]=rot(x.c);if(z>-.15)return;const on=!o.goal||o.goal===x;const [,,ze]=rot(offs(x.c,Math.PI/2,x.R));const top=rot(offs(x.c,0,x.R));g.globalAlpha=(on?1:.4)*Math.min(1,-z*3);
   const ly=Math.min(py,top[1],rot(offs(x.c,Math.PI,x.R))[1])-6;pill(g,px,ly,short(x.n,ph?20:28)+(x.v!=null?' · '+x.v+'٪':''),{bold:true,size:ph?12.5:12,bg:'#14324a',fg:'#fff'});g.globalAlpha=1})}
@@ -212,7 +216,7 @@ function projCard(p,extra){const pend=pendOf(p.pc),B=bands(),a=p.act!=null?Math.
 const V={cur:null};
 function stop(){if(V.cur){cancelAnimationFrame(V.cur.raf);if(V.cur.ro)V.cur.ro.disconnect();V.cur=null}}
 function shell(id,tools,leg,help){css();return `<div class="v3"><div class="v3-box" id="v3b"><canvas id="v3c" tabindex="0" aria-label="${E(id)}"></canvas><div class="v3-tb">${tools}</div><div class="v3-lg">${leg}</div></div><aside class="v3-sd" id="v3sd"><div class="v3-card v3-help">${help}</div></aside></div>`}
-const camTools=(globe)=>`<span class="sp"></span>${globe?`<button type="button" id="v3rot">⏸ إيقاف الدوران</button>`:`<button type="button" class="ic" id="v3l" title="تدوير" aria-label="تدوير لليمين">⟳</button><button type="button" class="ic" id="v3r" title="تدوير" aria-label="تدوير لليسار">⟲</button>`}<button type="button" class="ic" id="v3zi" aria-label="تكبير">＋</button><button type="button" class="ic" id="v3zo" aria-label="تصغير">－</button><button type="button" class="ic" id="v3rst" title="إعادة الضبط" aria-label="إعادة الضبط">↺</button><button type="button" id="v3stage">🎬 المسرح</button>`;
+const camTools=(globe)=>`<span class="sp"></span><button type="button" id="v3nm">${nmTxt()}</button>${globe?`<button type="button" id="v3rot">⏸ إيقاف الدوران</button>`:`<button type="button" class="ic" id="v3l" title="تدوير" aria-label="تدوير لليمين">⟳</button><button type="button" class="ic" id="v3r" title="تدوير" aria-label="تدوير لليسار">⟲</button>`}<button type="button" class="ic" id="v3zi" aria-label="تكبير">＋</button><button type="button" class="ic" id="v3zo" aria-label="تصغير">－</button><button type="button" class="ic" id="v3rst" title="إعادة الضبط" aria-label="إعادة الضبط">↺</button><button type="button" id="v3stage">🎬 المسرح</button>`;
 function boot(kind,draw,cfg){stop();const cv=$i('v3c');if(!cv)return;const box=$i('v3b');const c=mkCam(cfg.cam);const st={c,kind,draw,cfg,raf:0,lt:0,items:cfg.items||(()=>[])};V.cur=st;
  const fit=()=>{const w=box.clientWidth,h=w<640?Math.max(400,Math.min(560,Math.round(innerHeight*.6))):Math.max(460,Math.min(680,Math.round(w*.62)));const dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;cv.style.width=w+'px';cv.style.height=h+'px';c.w=w;c.h=h;c.dp=dp;c.dirty=1};fit();
  if(c.w<640){c.auto=false;c.zoom*=cfg.phZoom||1}
@@ -232,7 +236,7 @@ function boot(kind,draw,cfg){stop();const cv=$i('v3c');if(!cv)return;const box=$
  btn('v3l',()=>{c.auto=false;anim(c,c.yaw+Math.PI/4,c.pitch,c.zoom,500,c.tx,c.tz)});btn('v3r',()=>{c.auto=false;anim(c,c.yaw-Math.PI/4,c.pitch,c.zoom,500,c.tx,c.tz)});
  btn('v3zi',()=>anim(c,c.yaw,c.pitch,Math.min(3.5,c.zoom*1.3),300,c.tx,c.tz));btn('v3zo',()=>anim(c,c.yaw,c.pitch,Math.max(.5,c.zoom/1.3),300,c.tx,c.tz));
  btn('v3rst',()=>{c.sel=null;if(cfg.reset)cfg.reset();const k=cfg.cam;anim(c,k.yaw,k.pitch,k.zoom*(c.w<640?cfg.phZoom||1:1),800,0,0);side()});btn('v3stage',()=>stage());
- const syncRot=()=>{const r=$i('v3rot');if(r)r.textContent=c.auto?'⏸ إيقاف الدوران':'▶ دوران تلقائي'};btn('v3rot',()=>{c.auto=!c.auto;syncRot()});syncRot();
+ btn('v3nm',()=>{window.V3NMset(!NM);const b=$i('v3nm');if(b)b.textContent=nmTxt();c.dirty=1});const syncRot=()=>{const r=$i('v3rot');if(r)r.textContent=c.auto?'⏸ إيقاف الدوران':'▶ دوران تلقائي'};btn('v3rot',()=>{c.auto=!c.auto;syncRot()});syncRot();
  const loop=t=>{if(!$i('v3c')){st.raf=0;return}const mv=step(c,t)||c.drag||c.dirty;if(!document.hidden&&(mv||t-st.lt>500)){const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);draw(g,c,t);st.lt=t;c.dirty=0}st.raf=requestAnimationFrame(loop)};st.raf=requestAnimationFrame(loop);
  side();return st}
 function select(b,fly){const st=V.cur;if(!st)return;st.c.sel=b;st.c.auto=false;const r=$i('v3rot');if(r)r.textContent='▶ دوران تلقائي';if(fly&&st.cfg.fly)st.cfg.fly(b);st.c.dirty=1;side();if(innerWidth<900){const el=$i('v3sd');if(el&&el.firstElementChild)setTimeout(()=>el.firstElementChild.scrollIntoView({block:'nearest',behavior:'smooth'}),60)}}
@@ -330,8 +334,8 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
   c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,1500,s.cam.x||0,s.cam.z||0);
   clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},s.k=='title'?6000:s.k=='end'?12000:8000)};
  const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=.0008;const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
-  if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:worst(items,3)});
-  else drawCity(g,c,L,t,{sel:s.b||null,vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):null,labels:s.b?new Set([s.b]):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3)});
+  if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:worst(items,3),stage:1});
+  else drawCity(g,c,L,t,{sel:s.b||null,vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):null,labels:s.b?new Set([s.b]):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
  const kd=e=>{if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}};addEventListener('keydown',kd);
