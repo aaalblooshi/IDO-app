@@ -17,6 +17,7 @@ const COL={ok:'#2f9e64',warn:'#e3a034',bad:'#d9475a',info:'#8a96a3'};
 const colOf=p=>COL[p.status]||COL.info;
 const SNM={ok:'على المسار',warn:'يحتاج متابعة',bad:'متعثر',info:'لا بيانات كافية'};
 const pendOf=pc=>(G('AL')||[]).filter(a=>a.pc==pc&&(a.cat=='lock'||a.cat=='rev'||a.cat=='appr'||a.cat=='scope'));
+const CATN=c=>c=='lock'?'تعديل قيم مقفلة':c=='rev'?'مراجعة احتساب':c=='appr'?'اعتماد وثيقة':c=='scope'?'الالتزام بالنطاق':'قرار';
 const hashS=s=>{let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>0;return h};
 const openP=pc=>{const f=G('openProject');if(f)f(pc)};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -74,6 +75,13 @@ function css(){if($i('v3css'))return;const st=document.createElement('style');st
 .v3s-pg{position:absolute;bottom:0;inset-inline:0;height:4px;background:#d3dbe4;z-index:2}.v3s-pg i{display:block;height:100%;background:#14324a;transition:width .4s}
 @media(max-width:640px){.v3s-txt{bottom:calc(118px + env(safe-area-inset-bottom,0px))}.v3s-sp b{min-width:70px;font-size:12px}.v3s-ctl{gap:6px}.v3s-ctl button{padding:7px 11px}.v3s-txt>div{padding:10px 12px}.v3s-ch{gap:4px}.v3s-ch span{padding:2px 8px}.v3s-top b{display:none}.v3s-top{justify-content:flex-end}}
 .v3s-sp{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #d3dbe4;border-radius:99px;padding:2px}.v3s-sp button{border:0!important;padding:6px 10px!important}.v3s-sp button:disabled{opacity:.35;cursor:default}.v3s-sp b{color:#14324a;font-size:13px;min-width:92px;text-align:center}
+.v3s-ch button{font:inherit;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.14);border-radius:99px;padding:3px 11px;font-size:clamp(12.5px,1.5vw,15px);color:#fff;cursor:pointer}.v3s-ch button:hover{background:rgba(255,255,255,.26)}
+.v3s-pn{position:absolute;top:calc(58px + env(safe-area-inset-top,0px));bottom:calc(70px + env(safe-area-inset-bottom,0px));inset-inline-end:12px;width:min(420px,calc(100% - 24px));background:#fff;color:#1f2b37;border-radius:16px;box-shadow:0 18px 50px rgba(20,40,60,.35);z-index:4;display:flex;flex-direction:column;overflow:hidden}.v3s-pn[hidden]{display:none}
+.v3s-ph{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #e6ebf0}.v3s-ph b{flex:1;font-size:15.5px;line-height:1.4}.v3s-ph button,.v3s-r button{font:inherit;font-weight:700;font-size:12.5px;border:1px solid #d3dbe4;background:#fff;color:#14324a;border-radius:99px;padding:5px 11px;cursor:pointer}
+.v3s-pb{flex:1;overflow:auto;padding:8px 14px}.v3s-pb p{color:#33414f;line-height:1.7;margin:8px 0}.v3s-pf{padding:8px 14px;border-top:1px solid #e6ebf0;color:#5c6168;font-size:12.5px;background:#f6f8fb}
+.v3s-r{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #f0f2f5}.v3s-r>i{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:0 0 auto}.v3s-r>div{flex:1;min-width:0}.v3s-r b{display:block;font-size:14px}.v3s-r small{display:block;color:#5c6168;font-size:12.5px;line-height:1.6}.v3s-r>span{display:flex;gap:4px;align-items:center}.v3s-r a{text-decoration:none;color:#14324a;font-weight:800;padding:4px 6px}
+.v3s-k{display:flex;flex-wrap:wrap;gap:5px}.v3s-k span{background:#f0f3f6;border-radius:99px;padding:2px 9px;font-size:12.5px}.v3s-e{color:#5c6168;font-size:13px;padding:10px 0;text-align:center}
+@media(max-width:640px){.v3s-pn{top:auto;bottom:0;inset-inline:0;width:100%;max-height:72vh;border-radius:18px 18px 0 0}}
 .v3s-dots{display:flex;gap:5px}.v3s-dots i{width:8px;height:8px;border-radius:50%;background:#c3ccd6}.v3s-dots i.on{background:#14324a;width:20px;border-radius:5px}
 `;document.head.appendChild(st)}
 
@@ -316,12 +324,12 @@ async function globeStart(){const box=$i('v3sd');if(box)box.insertAdjacentHTML('
 const nD=n=>plr(n,'يوم واحد','يومان','أيام','يومًا'),nT=n=>plr(n,'مهمة واحدة','مهمتان','مهام','مهمة'),nK=n=>plr(n,'مؤشر واحد','مؤشران','مؤشرات','مؤشرًا'),nR=n=>plr(n,'خطر واحد','خطران','مخاطر','خطرًا');
 const fD=x=>{if(!x)return '';const d=x instanceof Date?x:new Date(String(x).slice(0,10)+'T00:00:00');return isNaN(d)?'':d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear()};
 function pFacts(p,pend){const a=p.act!=null?Math.round(p.act):null,e=p.exp!=null?Math.round(p.exp):null,F=[];
- F.push([SNM[p.status]||'—',colOf(p)]);
+ F.push([SNM[p.status]||'—',colOf(p),{t:'proj',p}]);
  if(a!=null)F.push([`الإنجاز ${a}٪ من ${e??0}٪ مخطط`]);if(p.ps!=null)F.push([`النسبة إلى المخطط ${p.ps}٪`]);
- F.push([`المهام: ${p.tasks||0}`+(p.late?` · منها ${p.late} متأخرة`:'')]);
- const kp=p.kp||[];if(kp.length)F.push([`المؤشرات: ${kp.length}`+((p.kOff||0)+(p.kWarn||0)?` · ${(p.kOff||0)+(p.kWarn||0)} خارج المستهدف`:'')]);
- const rk=p.rk||[];if(rk.length)F.push([`المخاطر: ${rk.length}`+(p.rHigh?` · ${p.rHigh} ذات تقييم عالٍ`:''),p.rHigh?COL.bad:null]);
- if(pend.length)F.push([`${nDc(pend.length)} عند المكتب`,'#c99a2e']);
+ F.push([`المهام: ${p.tasks||0}`+(p.late?` · منها ${p.late} متأخرة`:''),p.late?COL.warn:null,{t:'late',p}]);
+ const kp=p.kp||[];if(kp.length)F.push([`المؤشرات: ${kp.length}`+((p.kOff||0)+(p.kWarn||0)?` · ${(p.kOff||0)+(p.kWarn||0)} خارج المستهدف`:''),null,{t:'kpi',p}]);
+ const rk=p.rk||[];if(rk.length)F.push([`المخاطر: ${rk.length}`+(p.rHigh?` · ${p.rHigh} ذات تقييم عالٍ`:''),p.rHigh?COL.bad:null,{t:'risk',p}]);
+ if(pend.length)F.push([`${nDc(pend.length)} عند المكتب`,'#c99a2e',{t:'dec',p}]);
  if(p.ed)F.push([`الانتهاء المخطط ${fD(p.ed)}`]);
  if(p.fc&&p.fc.stall)F.push(['لا تقدّم ملحوظ مؤخرًا',COL.bad]);else if(p.fc&&p.fc.f)F.push([`الانتهاء المتوقع ${fD(p.fc.f)}`+(p.fcLate?` (بعد الموعد بـ${nD(p.fcLate)})`:''),p.fcLate?COL.warn:null]);
  if(p.pm)F.push([`مدير المشروع: ${p.pm}`]);
@@ -346,14 +354,14 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
  SC.push({k:'city',g:'البداية',h:'خارطة الإنجاز: نظرة عامة',p:`${nP(P.length)} جارية في ${L.D.length} ${L.D.length<=2?'قطاع':'قطاعات'}: ${T0.ok} على المسار، و${T0.wn} تحتاج متابعة، و${T0.bd} متعثرة. كل مبنى مشروع، وارتفاعه إنجازه، والإطار المنقّط المخطط حتى اليوم.`,cam:{yaw:-.5,pitch:.72,zoom:.9},ms:9000});
  L.D.slice().sort((a,b)=>(a.v??0)-(b.v??0)).forEach((d,di)=>{const A=d.L,c=cnt(A),late=A.reduce((s,p)=>s+(p.late||0),0),rh=A.reduce((s,p)=>s+(p.rHigh||0),0),pd=A.reduce((s,p)=>s+pendOf(p.pc).length,0);
   const zoom=Math.max(.95,Math.min(1.45,L.span/(d.size*2.4)));
-  const F=[[`${nP(A.length)}`],[`الأداء ${d.v??'—'}٪ من المخطط`,bandCol(d.v)],[`${c.ok} على المسار`,COL.ok],[`${c.wn} تحتاج متابعة`,COL.warn],[`${c.bd} متعثرة`,COL.bad]];if(late)F.push([`${nT(late)} متأخرة`]);if(rh)F.push([`مخاطر ذات تقييم عالٍ: ${rh}`,COL.bad]);if(pd)F.push([`${nDc(pd)} عند المكتب`,'#c99a2e']);
+  const F=[[`${nP(A.length)}`,null,{t:'sp',d}],[`الأداء ${d.v??'—'}٪ من المخطط`,bandCol(d.v),{t:'sp',d}],[`${c.ok} على المسار`,COL.ok,{t:'sp',d,st:'ok'}],[`${c.wn} تحتاج متابعة`,COL.warn,{t:'sp',d,st:'warn'}],[`${c.bd} متعثرة`,COL.bad,{t:'sp',d,st:'bad'}]];if(late)F.push([`${nT(late)} متأخرة`,COL.warn,{t:'sl',d}]);if(rh)F.push([`مخاطر ذات تقييم عالٍ: ${rh}`,COL.bad,{t:'sr',d}]);if(pd)F.push([`${nDc(pd)} عند المكتب`,'#c99a2e',{t:'sd',d}]);
   const w=A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0))[0],bst=A.slice().sort((a,b)=>(b.ps??0)-(a.ps??0))[0];
   SC.push({k:'sec',d,g:d.s.n,h:`القطاع ${di+1} من ${L.D.length}: ${d.s.n}`,p:A.length>1?`الأضعف «${w.n}» (${w.ps}٪)، والأفضل «${bst.n}» (${bst.ps}٪). سنمر على مشاريعه واحدًا واحدًا.`:`مشروع واحد: «${A[0].n}».`,F,cam:{yaw:-.62-di*.45,pitch:.8,zoom,x:d.cx,z:d.cz},ms:10000});
   A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0)).forEach((p,pi)=>{const b=items.find(x=>x.p===p),pend=pendOf(p.pc);
    SC.push({k:'focus',b,g:d.s.n,h:p.n,sub:`${d.s.n} · المشروع ${pi+1} من ${A.length}`,p:pStory(p,pend),F:pFacts(p,pend),cam:{yaw:-.62-di*.45-(pi%2?.25:-.25),pitch:.85,zoom:Math.min(1.6,zoom*1.15),x:b.x,z:b.z},ms:11000})})});
- if(pendAll.length){const byK={};pendAll.forEach(x=>{const k=x.a.cat=='lock'?'تعديل قيم مقفلة':x.a.cat=='rev'?'مراجعة احتساب':x.a.cat=='appr'?'اعتماد':'تغيير نطاق';byK[k]=(byK[k]||0)+1});
-  SC.push({k:'dec',g:'الختام',h:'قرارات تنتظر المكتب',p:`${nDc(pendAll.length)} على ${nP(new Set(pendAll.map(x=>x.p.pc)).size)}، وهي المباني ذات الشارة الذهبية.`,F:Object.entries(byK).map(([k,n])=>[`${k}: ${n}`,'#c99a2e']),cam:{yaw:-1,pitch:.7,zoom:.95},hl:'pend',ms:9000})}
- if(D2.length)SC.push({k:'terrain',g:'الختام',h:'ملامح الإنجاز',p:`الأدنى قطاع ${D2[0].s.n} (${D2[0].v}٪ من المخطط)${D2.length>1?`، والأعلى ${D2[D2.length-1].s.n} (${D2[D2.length-1].v}٪).`:'.'}`,F:D2.map(d=>[`${d.s.n}: ${d.v}٪`,bandCol(d.v)]),cam:{yaw:-.62,pitch:.85,zoom:.95},ms:9000});
+ if(pendAll.length){const byK={};pendAll.forEach(x=>{const k=CATN(x.a.cat);byK[k]=(byK[k]||0)+1});
+  SC.push({k:'dec',g:'الختام',h:'قرارات تنتظر المكتب',p:`${nDc(pendAll.length)} على ${nP(new Set(pendAll.map(x=>x.p.pc)).size)}، وهي المباني ذات الشارة الذهبية.`,F:Object.entries(byK).map(([k,n])=>[`${k}: ${n}`,'#c99a2e',{t:'ad',k}]),cam:{yaw:-1,pitch:.7,zoom:.95},hl:'pend',ms:9000})}
+ if(D2.length)SC.push({k:'terrain',g:'الختام',h:'ملامح الإنجاز',p:`الأدنى قطاع ${D2[0].s.n} (${D2[0].v}٪ من المخطط)${D2.length>1?`، والأعلى ${D2[D2.length-1].s.n} (${D2[D2.length-1].v}٪).`:'.'}`,F:D2.map(d=>[`${d.s.n}: ${d.v}٪`,bandCol(d.v),{t:'sp',d}]),cam:{yaw:-.62,pitch:.85,zoom:.95},ms:9000});
  SC.push({k:'globe',g:'الختام',h:'الأهداف المؤسسية',p:'كل رقعة هدف استراتيجي، وكل دائرة مشروع بلون حالته.',goals:1,cam:{yaw:.3,pitch:.12,zoom:1},ms:11000});
  let brief='';try{const f=G('briefText');brief=f?f():''}catch(_){}
  SC.push({k:'end',g:'الختام',h:'الخلاصة',p:String(brief||`${T0.ok} على المسار، ${T0.wn} تحتاج متابعة، ${T0.bd} متعثرة.`).replace(/<[^>]+>/g,''),cam:{yaw:-.62,pitch:.95,zoom:.8},ms:14000});
@@ -364,22 +372,46 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
  const cv=$i('v3sc'),c=mkCam({span:L.span,cy:.42});let T=null,M=null,i=0,play=true,timer=null,raf=0;const SPD=[1/3,1/2,1,2,3],SPN=['أبطأ ×3','أبطأ ×2','السرعة ×1','أسرع ×2','أسرع ×3'];let spi=2;try{const v=+localStorage.getItem('ido_v3sp');if(v>=0&&v<=4&&localStorage.getItem('ido_v3sp')!==null)spi=v}catch(_){}
  const fit=()=>{const w=cv.clientWidth,h=cv.clientHeight,dp=Math.min(2,devicePixelRatio||1);cv.width=w*dp;cv.height=h*dp;c.w=w;c.h=h;c.dp=dp};fit();addEventListener('resize',fit);
  loadGoals().then(()=>{M=globeModel()});
- const chips=F=>F&&F.length?`<div class="v3s-ch">${F.map(([t,col])=>`<span${col?` style="border-color:${col};box-shadow:inset 3px 0 0 ${col}"`:''}>${E(t)}</span>`).join('')}</div>`:'';
+ let CF=[];const chips=F=>{CF=F||[];return F&&F.length?`<div class="v3s-ch">${F.map(([t,col,a],j)=>a?`<button type="button" data-ci="${j}"${col?` style="border-color:${col};box-shadow:inset 3px 0 0 ${col}"`:''}>${E(t)} ›</button>`:`<span${col?` style="border-color:${col};box-shadow:inset 3px 0 0 ${col}"`:''}>${E(t)}</span>`).join('')}</div>`:''};
  const show=k=>{i=Math.max(0,Math.min(SC.length-1,k));const s=SC[i];$i('v3sn2').textContent=(i+1)+' / '+SC.length;$i('v3spg').style.width=((i+1)/SC.length*100)+'%';const sj=$i('v3sj');if(sj)sj.value=String(i);
-  let F=s.F;if(s.goals&&M)F=M.G.filter(x=>x.L.length).sort((a,b)=>(a.v??0)-(b.v??0)).map(x=>[`${x.n}: ${x.v??'—'}٪ · ${nP(x.L.length)}`,bandCol(x.v)]);
+  let F=s.F;if(s.goals&&M)F=M.G.filter(x=>x.L.length).sort((a,b)=>(a.v??0)-(b.v??0)).map(x=>[`${x.n}: ${x.v??'—'}٪ · ${nP(x.L.length)}`,bandCol(x.v),{t:'gp',g:x}]);
   $i('v3st').innerHTML=s.k=='title'?`<h3>${E(s.h)}</h3><p class="v3s-big">${E(s.big)}</p><p>${E(s.p)}</p>`:`${s.sub?`<small>${E(s.sub)}</small>`:''}<h3>${E(s.h)}</h3><p>${E(s.p)}</p>${chips(F)}`;
   if(s.k=='terrain'&&!T)T=terrainGrid(L,p=>p.ps);
   c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,Math.max(500,1500/Math.max(1,SPD[spi])),s.cam.x||0,s.cam.z||0);
   clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},(s.ms||9000)/SPD[spi])};
  const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=(s.k=='globe'?.0045:.0006)*Math.min(2,SPD[spi]);const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
   if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:new Set(),stage:1});
-  else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length)):new Set(),stage:1});
+  else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length)):new Set(),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
  const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}if(e.key=='+'||e.key=='=')$i('v3s+').click();if(e.key=='-')$i('v3s-').click()};addEventListener('keydown',kd);
  const spT=()=>{$i('v3sv').textContent=SPN[spi];$i('v3s-').disabled=spi==0;$i('v3s+').disabled=spi==SPD.length-1};spT();
  const spSet=d=>{spi=Math.max(0,Math.min(SPD.length-1,spi+d));try{localStorage.setItem('ido_v3sp',String(spi))}catch(_){}spT();if(play)show(i)};$i('v3s-').onclick=()=>spSet(-1);$i('v3s+').onclick=()=>spSet(1);
  $i('v3sj').onchange=e=>show(+e.target.value);
+ const pause=()=>{if(!play)return;play=false;clearTimeout(timer);$i('v3sg').textContent='▶ تشغيل'};
+ const pn=document.createElement('div');pn.className='v3s-pn';pn.hidden=true;o.appendChild(pn);
+ const kS=G('kSt');const toP=pc=>{const j=SC.findIndex(z=>z.k=='focus'&&z.b.p.pc==pc);if(j>=0){pn.hidden=true;show(j)}};
+ const pRow=(p,sub)=>`<div class="v3s-r"><i style="background:${colOf(p)}"></i><div><b>${E(p.n)}</b><small>${E(sub||(secN(p.sec)+' · '+(p.ps!=null?p.ps+'٪ من المخطط':'')))}</small></div><span><button type="button" data-go="${E(p.pc)}">عرض</button><a href="myprojects.html?pc=${encodeURIComponent(p.pc)}" target="_blank" rel="noopener">↗</a></span></div>`;
+ const none=t=>`<div class="v3s-e">${t}</div>`;
+ const det=a=>{const p=a.p,d=a.d;let h='',b='';
+  if(a.t=='proj'){h=p.n;b=`<div class="v3s-k">${pFacts(p,pendOf(p.pc)).map(f=>`<span>${E(f[0])}</span>`).join('')}</div><p>${E(pStory(p,pendOf(p.pc)))}</p>`+pRow(p)}
+  else if(a.t=='late'){const L=(p.tk||[]).filter(t=>t.late>0).sort((x,y)=>y.late-x.late);h='المهام المتأخرة · '+p.n;b=`<div class="v3s-e" style="text-align:start">${p.tasks||0} مهمة في الخطة، منها ${p.late||0} متأخرة.</div>`+(L.length?L.map(t=>`<div class="v3s-r"><i style="background:${t.late>=60?COL.bad:COL.warn}"></i><div><b>${E(t.name)}</b><small>متأخرة ${nD(t.late)} · ${E(t.owner?t.owner.name:(t.owner_txt||'بلا مكلّف'))} · الإنجاز ${Math.round(+t.pc||0)}٪${t.late>=60?' · المقترح إعادة جدولة':''}</small></div></div>`).join(''):none('لا مهام متأخرة.'))}
+  else if(a.t=='kpi'){const L=p.kp||[];h='المؤشرات · '+p.n;b=L.length?L.map(k=>{const st=kS?kS(k):null,last=(k.v||[])[0];return `<div class="v3s-r"><i style="background:${st=='bad'?COL.bad:st=='warn'?COL.warn:st?COL.ok:COL.info}"></i><div><b>${E(k.name)}</b><small>${st=='bad'?'خارج المستهدف':st=='warn'?'قريب من الحد':st?'ضمن المستهدف':'لا قراءة كافية'}${last&&last.x!=null?' · آخر قراءة '+E(last.x):''}${(k.pend||[]).length?' · '+k.pend.length+' بانتظار الاعتماد':''}</small></div></div>`}).join(''):none('لا مؤشرات.')}
+  else if(a.t=='risk'){const L=(p.rk||[]).slice().sort((x,y)=>y.s-x.s);h='المخاطر · '+p.n;b=L.length?L.map(r=>`<div class="v3s-r"><i style="background:${r.s>=15?COL.bad:r.s>=5?COL.warn:COL.ok}"></i><div><b>${E(r.t)}</b><small>الدرجة ${r.s}${r.s>=15?' (تقييم عالٍ)':''}${r.own?' · '+E(r.own):''}${r.resp?'':' · بلا إجراء استجابة'}</small></div></div>`).join(''):none('لا مخاطر مفتوحة.')}
+  else if(a.t=='dec'){const L=pendOf(p.pc);h='بانتظار المكتب · '+p.n;b=L.length?L.map(x=>`<div class="v3s-r"><i style="background:#c99a2e"></i><div><b>${E(x.t||CATN(x.cat))}</b><small>${E(CATN(x.cat))}${x.f?' · '+E(x.f):''}</small></div></div>`).join(''):none('لا شيء.')}
+  else if(a.t=='sp'){const L=d.L.filter(q=>!a.st||q.status==a.st).sort((x,y)=>(x.ps??0)-(y.ps??0));h=d.s.n+(a.st?' · '+SNM[a.st]:' · المشاريع');b=L.length?L.map(q=>pRow(q)).join(''):none('لا مشاريع.')}
+  else if(a.t=='sl'){const L=d.L.filter(q=>q.late>0).sort((x,y)=>y.late-x.late);h=d.s.n+' · المهام المتأخرة';b=L.map(q=>pRow(q,`${nT(q.late)} متأخرة${q.oldest?' · أقدمها '+nD(q.oldest):''}`)).join('')||none('لا مهام متأخرة.')}
+  else if(a.t=='sr'){const L=d.L.filter(q=>q.rHigh>0);h=d.s.n+' · المخاطر ذات التقييم العالي';b=L.map(q=>pRow(q,(q.rk||[]).filter(r=>r.s>=15).map(r=>r.t).join('، '))).join('')||none('لا مخاطر عالية.')}
+  else if(a.t=='sd'){const L=d.L.filter(q=>pendOf(q.pc).length);h=d.s.n+' · بانتظار المكتب';b=L.map(q=>pRow(q,pendOf(q.pc).map(x=>CATN(x.cat)).join('، '))).join('')||none('لا شيء.')}
+  else if(a.t=='ad'){const L=pendAll.filter(x=>CATN(x.a.cat)==a.k);h='بانتظار المكتب · '+a.k;b=L.map(x=>pRow(x.p,x.a.t||'')).join('')||none('لا شيء.')}
+  else if(a.t=='gp'){const L=a.g.L.slice().sort((x,y)=>(x.ps??0)-(y.ps??0));h=a.g.n;b=`<div class="v3s-e" style="text-align:start">الأداء ${a.g.v??'—'}٪ من المخطط · ${a.g.share}٪ من أوزان المحفظة</div>`+(L.map(q=>pRow(q)).join('')||none('لا مشاريع.'))}
+  pause();pn.innerHTML=`<div class="v3s-ph"><b>${E(h)}</b><button type="button" data-pnx="1">✕ إغلاق</button></div><div class="v3s-pb">${b}</div><div class="v3s-pf">العرض متوقف. اضغط «▶ تشغيل» للمتابعة.</div>`;pn.hidden=false};
+ o.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;const ci=t.closest('[data-ci]');if(ci){const a=(CF[+ci.dataset.ci]||[])[2];if(a)det(a);return}
+  if(t.closest('[data-pnx]')){pn.hidden=true;return}const go=t.closest('[data-go]');if(go){toP(go.dataset.go);return}});
+ cv.addEventListener('click',e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;const s=SC[i];let hit=null;
+  if(s.k=='globe'&&M)M.G.forEach(g=>g.lights.forEach(l=>{if(l.bb&&x>=l.bb[0]&&x<=l.bb[2]&&y>=l.bb[1]&&y<=l.bb[3])hit=l}));
+  else items.forEach(b=>{if(b.bb&&x>=b.bb[0]-6&&x<=b.bb[2]+6&&y>=b.bb[1]-6&&y<=b.bb[3]+6&&(!hit||(b.dz??0)<(hit.dz??0)))hit=b});
+  if(hit)det({t:'proj',p:hit.p});else pause()});
  $i('v3sx').onclick=end;$i('v3sn').onclick=()=>show(i+1);$i('v3sp').onclick=()=>show(i-1);$i('v3sg').onclick=()=>{play=!play;$i('v3sg').textContent=play?'⏸ إيقاف':'▶ تشغيل';if(play)show(i);else clearTimeout(timer)};
  show(0)}
 function stageHTML(){css();const P=pjs(),L=layout();const mins=Math.max(1,Math.round((7+9+L.D.length*10+P.length*11+30)/60));return {svg:`<div class="v3-card" style="max-width:760px;margin:0 auto;text-align:center;padding:22px"><div style="font-size:44px">🎬</div><h3 style="margin:6px 0">العرض التفاعلي</h3><p class="v3-help" style="font-size:14px">عرض شامل يمر على كل القطاعات وكل المشاريع الجارية بالتفصيل، ويتنقل وحده مع تعليق عربي لكل مشهد:</p>
