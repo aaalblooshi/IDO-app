@@ -948,7 +948,7 @@ function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=G
    let a0=-Math.PI/2;[[P.ok,'#2fa866'],[P.wn,'#e0a030'],[P.bd,'#d9475a']].forEach(([n,c])=>{if(!n)return;const a1=a0+n/tot*Math.PI*2;g.beginPath();g.arc(P.sx,P.sy,P.sr,a0,a1);g.strokeStyle=c;g.lineWidth=Math.max(3,P.sr*.28);g.stroke();a0=a1});
    g.beginPath();g.arc(P.sx,P.sy,P.sr*.78,0,7);g.fillStyle='#14223a';g.fill();g.strokeStyle=on&&FP?'#5cc8ff':'#2a3a57';g.lineWidth=1.2;g.stroke();
    g.fillStyle='#e8eef6';g.font='bold '+Math.max(10,Math.min(15,P.sr*.7))+'px system-ui';g.textAlign='center';g.textBaseline='middle';g.fillText(String(P.L.length),P.sx,P.sy+.5);g.textBaseline='alphabetic';
-   LB.push([P.sx,P.sy+P.sr+14,P.n+' · '+Math.round(P.ok/tot*100)+'٪ على المسار',{b:1,fs:ph?12.5:12,bg:'rgba(8,14,26,.8)'},on?1:.4]);g.globalAlpha=1;return}
+   LB.push([P.sx,P.sy+P.sr+14,P.n+' · '+nP(P.L.length)+(P.bd?'، منها '+cnt(P.bd,'مشروع متعثر','مشروعان متعثران','متعثرة','متعثرًا'):P.wn?'، منها '+cnt(P.wn,'مشروع يحتاج متابعة','مشروعان يحتاجان متابعة','تحتاج متابعة','تحتاج متابعة'):'، كلها على المسار'),{b:1,fs:ph?12.5:12,bg:'rgba(8,14,26,.8)'},on?1:.4]);g.globalAlpha=1;return}
   const d=it.d,vis=glxVis(d)&&(!REL||REL.has(d))&&(!FP||d.P===FP||REL),sel=GX.sel===d,hv=GX.hover===d||(GX.tour&&GX.tour.d===d);g.globalAlpha=vis?1:.16;
   if(REL&&risky&&SD.casc.has(d)){const a=(t/900)%1;g.beginPath();g.arc(d.sx,d.sy,d.sr+5+a*10,0,7);g.strokeStyle='rgba(255,138,92,'+(1-a)*.8+')';g.lineWidth=2;g.stroke()}
   const rg=g.createRadialGradient(d.sx,d.sy,0,d.sx,d.sy,d.sr*2.3);rg.addColorStop(0,d.col+'88');rg.addColorStop(1,d.col+'00');g.fillStyle=rg;g.beginPath();g.arc(d.sx,d.sy,d.sr*2.3,0,7);g.fill();
