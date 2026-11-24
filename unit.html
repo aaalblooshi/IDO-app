@@ -103,8 +103,8 @@ const Q=async(tb,c,f)=>{try{let r=sb.from(tb).select(c);if(f)r=f(r);const x=awai
 
 let ME=null,ADM=false,UNITS=[],U='',SECS=[],DEPS=[],SECTL=[],US={},LOADING=false,DATA=null,SEC='dec';
 const nm=a=>a?(a[A()?0:1]||a[0]):'';
-const ukLab=k=>{const p=String(k).split(':');const s=nm(SECS[p[0]-1])||P('القطاع ','Sector ')+p[0];if(p.length==1)return s;const d=nm((DEPS[p[0]-1]||[])[p[1]-1])||P('الإدارة ','Dept ')+p[1];return p.length==2?s+' — '+d:d+' — '+p.slice(2).join(':')};
-const inUnit=(x,k)=>{const p=String(k).split(':'),s=+p[0],d=p[1]?+p[1]:null,c=p.length>2?p.slice(2).join(':'):null;return x.org_sector==s&&(d==null||x.org_dept==d)&&(c==null||x.org_section==c)};
+const ukLab=k=>{if(k=='C')return P('🏛️ المركز كاملًا','🏛️ Whole centre');const p=String(k).split(':');const s=nm(SECS[p[0]-1])||P('القطاع ','Sector ')+p[0];if(p.length==1)return s;const d=nm((DEPS[p[0]-1]||[])[p[1]-1])||P('الإدارة ','Dept ')+p[1];return p.length==2?s+' — '+d:d+' — '+p.slice(2).join(':')};
+const inUnit=(x,k)=>{if(k=='C')return true;const p=String(k).split(':'),s=+p[0],d=p[1]?+p[1]:null,c=p.length>2?p.slice(2).join(':'):null;return x.org_sector==s&&(d==null||x.org_dept==d)&&(c==null||x.org_section==c)};
 
 function ana(tasks){tasks=tasks||[];const kids={};tasks.forEach(x=>{(kids[x.p||'']=kids[x.p||'']||[]).push(x)});
  const lv=tasks.filter(x=>!(kids[x.id]||[]).length);let tw=0,pa=0,pe=0,late=0,minS=null,maxE=null;const stale=[];
@@ -173,6 +173,7 @@ async function load(){if(!sb)return (function(){var el=document.getElementById('
  try{const {data:ss}=await sb.from('app_settings').select('value').eq('key','opt_lists').maybeSingle();const L=ss&&ss.value?JSON.parse(ss.value):null;if(L&&Array.isArray(L.sectors))SECS=L.sectors;if(L&&Array.isArray(L.depts))DEPS=L.depts;if(L&&Array.isArray(L.sects))SECTL=L.sects}catch(_){}
  UNITS=(p.head_units||[]).slice();
  if(ADM){const all=[];SECS.forEach((_,i)=>{all.push(String(i+1));(DEPS[i]||[]).forEach((__,j)=>{all.push((i+1)+':'+(j+1));(((SECTL[i]||[])[j])||[]).forEach(c=>all.push((i+1)+':'+(j+1)+':'+c[0]))})});UNITS=[...new Set(UNITS.concat(all))]}
+ try{const {data:co}=await sb.rpc('my_center_ok');if(co){UNITS=['C'].concat(UNITS.filter(k=>k!='C'));localStorage.setItem('hdrHead','1')}}catch(_){}
  if(!UNITS.length)return gate('noHead');
  let pv='';try{pv=localStorage.getItem('unitSel')||''}catch(_){}U=UNITS.includes(pv)?pv:UNITS[0];draw();loadUnit()}
 load().catch(e=>{console.error(e);$('app').innerHTML='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>'});

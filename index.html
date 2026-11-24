@@ -339,6 +339,7 @@ async function loadMine0(){
   try{const {data:co}=await sb.rpc('chat_on');if(!co){ROLEOFF=ROLEOFF.concat(['chat.html']);applySvc()}else{const {data:un}=await sb.rpc('chat_unread');const n=(un||[]).reduce((x,y)=>x+(+y.n||0),0);if(n)document.querySelectorAll('a[href="chat.html"]').forEach(a=>{if(!a.dataset.b){a.dataset.b=1;a.insertAdjacentHTML('beforeend',' <b style="background:#d1101d;color:#fff;border-radius:99px;padding:0 6px;font-size:11px">'+n+'</b>')}})}}catch(e){}
   ME0=me;try{USRCFG=me.home_cfg?JSON.parse(me.home_cfg):null}catch(e){USRCFG=null}setCfg();if(USRCFG)applyCfg();
   hdrBtns(me.role);try{localStorage.setItem('hdrRole',me.role);localStorage.setItem('hdrScope',me.view_scope?'1':'0');localStorage.setItem('hdrPerf',(me.perf_scope||me.scope_perf||(me.head_units||[]).length)?'1':'0');localStorage.setItem('hdrHead',(me.head_units||[]).length?'1':'0')}catch(e){}
+  if(!(me.head_units||[]).length)sb.rpc('my_center_ok').then(r=>{try{if(r&&r.data)localStorage.setItem('hdrHead','1')}catch(_){}},()=>{});
   {let mo=true;try{mo=FOLDST?!!FOLDST.m:secCfg('m').open;if(!secCfg('m').on)mo=false}catch(_){}if(!mo){MINE={state:'none'};return drawMine()}}
   const panels=await Promise.all(sv.map(async s=>{let tiles=null;try{tiles=await STATS[s.stats](me)}catch(e){}return{s,tiles}}));
   MINE={state:'ok',name:me.full_name||'',admin:me.role=='admin',panels}
