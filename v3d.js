@@ -371,9 +371,9 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
   if(s.k=='terrain'&&!T)T=terrainGrid(L,p=>p.ps);
   c.span=s.k=='globe'?400:L.span;anim(c,s.cam.yaw,s.cam.pitch,s.cam.zoom,Math.max(500,1500/Math.max(1,SPD[spi])),s.cam.x||0,s.cam.z||0);
   clearTimeout(timer);if(play)timer=setTimeout(()=>{if(i<SC.length-1)show(i+1);else{play=false;$i('v3sg').textContent='▶ تشغيل'}},(s.ms||9000)/SPD[spi])};
- const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=.0006;const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
-  if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:worst(items,3),stage:1});
-  else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length).slice(0,6)):worst(items,3),stage:1});
+ const loop=t=>{if(!document.body.contains(o))return;step(c,t);const s=SC[i];if(!c.anim&&!reduce&&s.k!='title')c.yaw+=(s.k=='globe'?.0045:.0006)*Math.min(2,SPD[spi]);const g=cv.getContext('2d');g.setTransform(c.dp,0,0,c.dp,0,0);g.setLineDash([]);
+  if(s.k=='globe'&&M)drawGlobe(g,c,M,t,{});else if(s.k=='terrain'&&T)drawTerrain(g,c,L,T,t,{labels:new Set(),stage:1});
+  else drawCity(g,c,L,t,{sel:s.b||null,sec:s.d?s.d.s.id:s.b?s.b.dist.s.id:'all',vis:s.hl=='pend'?(b=>b.pend.length>0):s.b?(b=>b===s.b||b.dist===s.b.dist):s.d?(b=>b.dist===s.d):null,labels:s.b?new Set([s.b]):s.d?new Set(items.filter(b=>b.dist===s.d)):s.hl=='pend'?new Set(items.filter(b=>b.pend.length)):new Set(),stage:1});
   raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
  const end=()=>{clearTimeout(timer);cancelAnimationFrame(raf);removeEventListener('resize',fit);removeEventListener('keydown',kd);try{if(document.fullscreenElement)document.exitFullscreen()}catch(_){}o.remove();const f=G('drawMap');if(f)f()};
  const kd=e=>{if(e.target&&e.target.tagName=='SELECT')return;if(e.key=='Escape')end();if(e.key=='ArrowLeft')show(i+1);if(e.key=='ArrowRight')show(i-1);if(e.key==' '){e.preventDefault();$i('v3sg').click()}if(e.key=='+'||e.key=='=')$i('v3s+').click();if(e.key=='-')$i('v3s-').click()};addEventListener('keydown',kd);
