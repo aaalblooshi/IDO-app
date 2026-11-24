@@ -106,6 +106,7 @@ self.addEventListener('push', function (e) {
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
   var base = self.registration.scope;
   var u = String(d.url || 'inbox.html'); if (!/^https?:/.test(u)) u = base + u.replace(/^\.?\//, ''); try { if (new URL(u).origin !== self.location.origin) u = base + 'inbox.html'; } catch (_) { u = base + 'inbox.html'; }
+  try { if (d.badge != null && self.navigator && self.navigator.setAppBadge) { +d.badge > 0 ? self.navigator.setAppBadge(+d.badge) : self.navigator.clearAppBadge(); } } catch (_) {}
   e.waitUntil(self.registration.showNotification(d.title || 'منصة مكتب التطوير المؤسسي', { body: d.body || '', data: { url: u }, tag: d.tag || undefined, dir: 'rtl', lang: 'ar' }));
 });
 self.addEventListener('notificationclick', function (e) {
