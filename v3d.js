@@ -317,9 +317,9 @@ const fD=x=>{if(!x)return '';const d=x instanceof Date?x:new Date(String(x).slic
 function pFacts(p,pend){const a=p.act!=null?Math.round(p.act):null,e=p.exp!=null?Math.round(p.exp):null,F=[];
  F.push([SNM[p.status]||'—',colOf(p)]);
  if(a!=null)F.push([`الإنجاز ${a}٪ من ${e??0}٪ مخطط`]);if(p.ps!=null)F.push([`النسبة إلى المخطط ${p.ps}٪`]);
- F.push([`المهام: ${p.tasks||0}`+(p.late?` · ${p.late} متأخرة`:'')]);
+ F.push([`المهام: ${p.tasks||0}`+(p.late?` · منها ${p.late} متأخرة`:'')]);
  const kp=p.kp||[];if(kp.length)F.push([`المؤشرات: ${kp.length}`+((p.kOff||0)+(p.kWarn||0)?` · ${(p.kOff||0)+(p.kWarn||0)} خارج المستهدف`:'')]);
- const rk=p.rk||[];if(rk.length)F.push([`المخاطر: ${rk.length}`+(p.rHigh?` · ${p.rHigh} عالية`:''),p.rHigh?COL.bad:null]);
+ const rk=p.rk||[];if(rk.length)F.push([`المخاطر: ${rk.length}`+(p.rHigh?` · ${p.rHigh} ذات تقييم عالٍ`:''),p.rHigh?COL.bad:null]);
  if(pend.length)F.push([`${nDc(pend.length)} عند المكتب`,'#c99a2e']);
  if(p.ed)F.push([`الانتهاء المخطط ${fD(p.ed)}`]);
  if(p.fc&&p.fc.stall)F.push(['لا تقدّم ملحوظ مؤخرًا',COL.bad]);else if(p.fc&&p.fc.f)F.push([`الانتهاء المتوقع ${fD(p.fc.f)}`+(p.fcLate?` (بعد الموعد بـ${nD(p.fcLate)})`:''),p.fcLate?COL.warn:null]);
@@ -331,9 +331,9 @@ function pStory(p,pend){const a=p.act!=null?Math.round(p.act):null,e=p.exp!=null
  if(p.status=='ok')s.push(a>=(e??0)?`يسير على المسار: أنجز ${a}٪ والمخطط حتى اليوم ${e??0}٪.`:`ضمن المسار: أنجز ${a}٪ والمخطط ${e??0}٪.`);
  else if(p.status=='warn')s.push(`يحتاج متابعة: أنجز ${a}٪ والمخطط حتى اليوم ${e??0}٪.`);
  else s.push(`متعثر: أنجز ${a}٪ فقط والمخطط حتى اليوم ${e??0}٪.`);
- if(p.late)s.push(`عليه ${nT(p.late)} متأخرة${p.oldest?`، أقدمها متأخرة ${nD(p.oldest)}`:''}.`);
- if(p.rHigh)s.push(`لديه ${nR(p.rHigh)} عالية التقييم.`);
- if(pend.length)s.push(`وينتظر ${nDc(pend.length)} من المكتب.`);
+ if(p.late)s.push(`يتضمن ${nT(p.late)} متأخرة${p.oldest?`، أقدمها متأخرة ${nD(p.oldest)}`:''}.`);
+ if(p.rHigh)s.push(`يحتوي على مخاطر ذات تقييم عالٍ (${nR(p.rHigh)}).`);
+ if(pend.length)s.push(`وهناك ${nDc(pend.length)} بانتظار المكتب.`);
  if(p.fcLate)s.push(`وبالوتيرة الحالية سينتهي بعد موعده بـ${nD(p.fcLate)}.`);
  return s.join(' ')}
 function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G('HIST')||[];const P=items.map(b=>b.p);
@@ -345,7 +345,7 @@ function stage(){stop();css();const L=layout(),items=L.items,cur=G('CUR'),hist=G
  SC.push({k:'city',g:'البداية',h:'خارطة الإنجاز: نظرة عامة',p:`${nP(P.length)} جارية في ${L.D.length} ${L.D.length<=2?'قطاع':'قطاعات'}: ${T0.ok} على المسار، و${T0.wn} تحتاج متابعة، و${T0.bd} متعثرة. كل مبنى مشروع، وارتفاعه إنجازه، والإطار المنقّط المخطط حتى اليوم.`,cam:{yaw:-.5,pitch:.72,zoom:.9},ms:9000});
  L.D.slice().sort((a,b)=>(a.v??0)-(b.v??0)).forEach((d,di)=>{const A=d.L,c=cnt(A),late=A.reduce((s,p)=>s+(p.late||0),0),rh=A.reduce((s,p)=>s+(p.rHigh||0),0),pd=A.reduce((s,p)=>s+pendOf(p.pc).length,0);
   const zoom=Math.max(.95,Math.min(1.45,L.span/(d.size*2.4)));
-  const F=[[`${nP(A.length)}`],[`الأداء ${d.v??'—'}٪ من المخطط`,bandCol(d.v)],[`${c.ok} على المسار`,COL.ok],[`${c.wn} تحتاج متابعة`,COL.warn],[`${c.bd} متعثرة`,COL.bad]];if(late)F.push([`${nT(late)} متأخرة`]);if(rh)F.push([`${nR(rh)} عالية`,COL.bad]);if(pd)F.push([`${nDc(pd)} عند المكتب`,'#c99a2e']);
+  const F=[[`${nP(A.length)}`],[`الأداء ${d.v??'—'}٪ من المخطط`,bandCol(d.v)],[`${c.ok} على المسار`,COL.ok],[`${c.wn} تحتاج متابعة`,COL.warn],[`${c.bd} متعثرة`,COL.bad]];if(late)F.push([`${nT(late)} متأخرة`]);if(rh)F.push([`مخاطر ذات تقييم عالٍ: ${rh}`,COL.bad]);if(pd)F.push([`${nDc(pd)} عند المكتب`,'#c99a2e']);
   const w=A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0))[0],bst=A.slice().sort((a,b)=>(b.ps??0)-(a.ps??0))[0];
   SC.push({k:'sec',d,g:d.s.n,h:`القطاع ${di+1} من ${L.D.length}: ${d.s.n}`,p:A.length>1?`الأضعف «${w.n}» (${w.ps}٪)، والأفضل «${bst.n}» (${bst.ps}٪). سنمر على مشاريعه واحدًا واحدًا.`:`مشروع واحد: «${A[0].n}».`,F,cam:{yaw:-.62-di*.45,pitch:.8,zoom,x:d.cx,z:d.cz},ms:10000});
   A.slice().sort((a,b)=>(a.ps??0)-(b.ps??0)).forEach((p,pi)=>{const b=items.find(x=>x.p===p),pend=pendOf(p.pc);
