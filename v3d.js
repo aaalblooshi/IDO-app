@@ -8,7 +8,7 @@ const AR=n=>String(n);
 const plr=(n,one,two,few,many)=>n==1?one:n==2?two:(n>=3&&n<=10?n+' '+few:n+' '+many);
 const nP=n=>!n?'لا مشاريع':plr(n,'مشروع واحد','مشروعان','مشاريع','مشروعًا');
 const nDc=n=>plr(n,'قرار واحد','قراران','قرارات','قرارًا');
-const G=k=>{try{return eval(k)}catch(_){return undefined}};
+const G=k=>{const r=window.__room;if(r&&r[k])try{return r[k]()}catch(_){}try{return eval(k)}catch(_){return undefined}};
 const pjs=()=>(G('PJ')||[]).filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null);
 const secs=()=>G('SEC')||[];
 const secN=id=>{const f=G('secName');return f?f(id):(secs().find(s=>s.id==id)||{}).n||id};
@@ -141,7 +141,7 @@ let GOALS=null,PGOAL=null;
 async function loadGoals(){if(GOALS)return;GOALS=[];PGOAL={};try{const sb=G('sb');const [a,b]=await Promise.all([sb.from('app_settings').select('key,value').in('key',['opt_lists','opt_goals']),sb.from('charters').select('code,goal:data->>goal').eq('archived',false)]);
  let u={};(a.data||[]).forEach(r=>{try{if(r.key=='opt_lists')u=Object.assign({},JSON.parse(r.value||'{}'),u);if(r.key=='opt_goals'&&!u.goals){const gg=JSON.parse(r.value||'[]');if(Array.isArray(gg)&&gg.length)u.goals=gg}}catch(_){}});
  const GA=['الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع'];GOALS=(Array.isArray(u.goals)&&u.goals.length?u.goals:GA.map(x=>['الهدف '+x])).map((x,i)=>({i:i+1,n:Array.isArray(x)?x[0]:String(x)}));
- (b.data||[]).forEach(r=>{if(r.goal)PGOAL[r.code]=+r.goal})}catch(_){GOALS=[]}}
+ (b.data||[]).forEach(r=>{if(r.goal)PGOAL[r.code]=+r.goal});if(b.error||!Object.keys(PGOAL).length)GOALS=null}catch(_){GOALS=null}}
 function globeModel(){const P=pjs(),gl=(GOALS||[]).slice();const un=P.filter(p=>!PGOAL||!PGOAL[p.pc]||!gl.some(x=>x.i==PGOAL[p.pc]));const G2=gl.concat(un.length?[{i:0,n:'بدون هدف محدد'}]:[]);
  const n=G2.length,tw=P.reduce((s,p)=>s+(p.w||1),0)||1;
  G2.forEach((x,k)=>{const yy=1-(k+.5)/n*2,r=Math.sqrt(1-yy*yy),ph=k*2.399963;x.c=[Math.cos(ph)*r,yy*.85,Math.sin(ph)*r];const l=Math.hypot(...x.c);x.c=x.c.map(v=>v/l);
