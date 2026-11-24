@@ -810,12 +810,21 @@ function hashS(s){let h=0;for(const ch of String(s))h=(h*31+ch.charCodeAt(0))>>>
 function glxPend(pc){return AL.filter(a=>a.pc==pc&&(a.cat=='lock'||a.cat=='rev'||a.cat=='appr'||a.cat=='scope'))}
 function glxData(){const run=PJ.filter(p=>p.appr&&!p.done&&!p.halted&&p.ps!=null);
  const secs=SEC.filter(s=>run.some(p=>p.sec==s.id)).map(s=>({id:s.id,n:s.n}));if(run.some(p=>!secs.some(z=>z.id==p.sec)))secs.push({id:'__o',n:'بلا قطاع'});
- const ns=Math.max(1,secs.length),R0=95,dR=ns<=3?70:ns<=5?58:48;GX.span=R0+(ns-1)*dR+90;
- GX.planets=secs.map((s,i)=>{const L=run.filter(p=>s.id=='__o'?!secs.some(z=>z.id==p.sec&&z.id!='__o'):p.sec==s.id),R=R0+i*dR,a=i*2.39996+.6;
-  const ok=L.filter(p=>p.status=='ok').length,wn=L.filter(p=>p.status=='warn').length,sw=L.reduce((t,p)=>t+(p.w||1),0),v=sw?Math.round(L.reduce((t,p)=>t+(p.ps||0)*(p.w||1),0)/sw):null;return {id:s.id,n:s.n,L,R,a,v,x:R*Math.cos(a),z:R*Math.sin(a),ok,wn,bd:L.length-ok-wn,r:11+Math.sqrt(L.length)*3.8}});
- const out=[];GX.planets.forEach(P=>{const n=P.L.length;P.L.slice().sort((a,b)=>String(a.pc).localeCompare(String(b.pc))).forEach((p,j)=>{const k=p.c&&p.c.k!=null?p.c.k:null,dist=Math.max(0,Math.min(100,100-p.ps)),
-   b=j/Math.max(1,n)*Math.PI*2+(hashS(p.pc)%100)/100*.5,rr=P.r+10+dist*.62,pend=glxPend(p.pc);
-   out.push({p,P,ang:b,dist,x:P.x+rr*Math.cos(b),y:rr*.22*Math.sin(b+1.1),z:P.z+rr*Math.sin(b),r:4+Math.min(6,Math.sqrt(p.size||6)*.8),k,pend,risk:p.rHigh||0,col:{ok:'#2fbf74',warn:'#f0a93a',bad:'#ef4b5c'}[p.status]||'#8fa0b3',zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2})})});
+ /* 1) each sector: moons placed around their planet without touching. Distance from the planet still grows with lag behind plan;
+       when many projects share the same distance (e.g. most are on track) the ring simply widens until every moon has room. */
+ const GAP=3;
+ const PL=secs.map((s,i)=>{const L=run.filter(p=>s.id=='__o'?!secs.some(z=>z.id==p.sec&&z.id!='__o'):p.sec==s.id),ok=L.filter(p=>p.status=='ok').length,wn=L.filter(p=>p.status=='warn').length,
+   sw=L.reduce((t,p)=>t+(p.w||1),0),v=sw?Math.round(L.reduce((t,p)=>t+(p.ps||0)*(p.w||1),0)/sw):null,P={id:s.id,n:s.n,L,v,ok,wn,bd:L.length-ok-wn,r:11+Math.sqrt(L.length)*3.8,M:[]};
+   const placed=[];L.slice().sort((a,b)=>(b.ps-a.ps)||String(a.pc).localeCompare(String(b.pc))).forEach(p=>{const dist=Math.max(0,Math.min(100,100-p.ps)),r=4+Math.min(6,Math.sqrt(p.size||6)*.8),rad=Math.max(r,7.5),b0=(hashS(p.pc)%360)*Math.PI/180;
+    let rr=P.r+6+rad+dist*.62,pos=null;
+    for(let k=0;k<400&&!pos;k++){const n=Math.max(12,Math.round(2*Math.PI*rr/(rad*1.2)));for(let j=0;j<n;j++){const a=b0+(j%2?1:-1)*Math.ceil(j/2)*2*Math.PI/n,x=rr*Math.cos(a),z=rr*Math.sin(a);if(placed.every(q=>Math.hypot(q.x-x,q.z-z)>=q.rad+rad+GAP)){pos={x,z,a};break}}if(!pos)rr+=2}
+    if(!pos)pos={x:rr,z:0,a:0};const m={p,dist,r,rad,lx:pos.x,lz:pos.z,a:pos.a,rr};placed.push({x:pos.x,z:pos.z,rad});P.M.push(m)});
+   P.ext=Math.max(P.r*1.7,...P.M.map(m=>m.rr+m.rad))+6;return P});
+ /* 2) orbits spaced by the actual size of each sector's cluster, so neighbouring sectors never overlap */
+ let R=0;PL.forEach((P,i)=>{R=i?R+PL[i-1].ext+P.ext+16:34+P.ext;P.R=R;P.a=i*2.39996+.6;P.x=R*Math.cos(P.a);P.z=R*Math.sin(P.a)});
+ GX.span=(PL.length?PL[PL.length-1].R+PL[PL.length-1].ext:120)+30;GX.planets=PL;
+ const out=[];PL.forEach(P=>P.M.forEach(m=>{const p=m.p,k=p.c&&p.c.k!=null?p.c.k:null,pend=glxPend(p.pc);
+  out.push({p,P,ang:m.a,dist:m.dist,x:P.x+m.lx,y:m.rr*.18*Math.sin(m.a+1.1),z:P.z+m.lz,r:m.r,k,pend,risk:p.rHigh||0,col:{ok:'#2fbf74',warn:'#f0a93a',bad:'#ef4b5c'}[p.status]||'#8fa0b3',zone:p.ps>=BND.g?0:p.ps>=BND.a?1:2})}));
  return out}
 function glxGraph(P){const M={};P.forEach(d=>{M[d.p.pc]=d;d.up=[];d.dn=[];d.casc=new Set();d.ce=[]});let n=0;
  (X.links||[]).forEach(l=>{const a=M[l.f],b=M[l.t];if(!a||!b||a===b)return;if(!b.up.includes(a)){b.up.push(a);a.dn.push(b);n++}});
@@ -934,11 +943,11 @@ function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=G
  PL.forEach(P=>{const on=!FP||FP===P;g.beginPath();for(let a=0;a<=96;a++){const an=a/96*Math.PI*2,[px,py]=glxProj(P.R*Math.cos(an),0,P.R*Math.sin(an));a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle=on&&FP?'rgba(92,200,255,.45)':'rgba(147,170,200,.16)';g.lineWidth=on&&FP?1.4:1;g.stroke()});
  // the centre
  const [cx,cy,cs]=glxProj(0,0,0),pul=1+Math.sin(t/700)*.06,cr=26*cs*pul;GX.sun=[cx,cy,Math.max(cr,ph?24:16)];const _u=0,cg=g.createRadialGradient(cx,cy,0,cx,cy,cr*1.6);cg.addColorStop(0,'rgba(255,248,225,1)');cg.addColorStop(.3,'rgba(255,210,122,.85)');cg.addColorStop(.6,'rgba(255,194,75,.25)');cg.addColorStop(1,'rgba(255,194,75,0)');g.fillStyle=cg;g.beginPath();g.arc(cx,cy,cr*1.6,0,7);g.fill();
- pill(cx,cy+cr+12,FP?'المركز · عرض الكل':'المركز',{fg:'#ffe3a3',bg:'rgba(8,14,26,.6)',fs:ph?12:11.5});
+ 
  // project positions
- GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z);d.sx=sx;d.sy=sy;d.sr=Math.max(ph?5:4,d.r*s);d.dz=z;const [bx,by]=glxProj(d.P.x,0,d.P.z);d.px=bx;d.py=by});
+ GX.pts.forEach(d=>{const [sx,sy,s,z]=glxProj(d.x,d.y,d.z);d.sx=sx;d.sy=sy;d.sr=Math.max(d.r*s,Math.min(ph?5:4,7.5*s));d.dz=z;const [bx,by]=glxProj(d.P.x,0,d.P.z);d.px=bx;d.py=by});
  // focused sector: status rings around its planet
- if(FP){[[FP.r+10+(100-BND.g)*.62,'#3fbf7f','على المسار'],[FP.r+10+(100-BND.a)*.62,'#f0b54a','يحتاج متابعة']].forEach(([rr,c])=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(FP.x+rr*Math.cos(an),0,FP.z+rr*Math.sin(an));a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle=c;g.globalAlpha=.55;g.setLineDash([3,5]);g.lineWidth=1.2;g.stroke();g.setLineDash([]);g.globalAlpha=1})}
+ if(FP){[[FP.r+13.5+(100-BND.g)*.62,'#3fbf7f','على المسار'],[FP.r+13.5+(100-BND.a)*.62,'#f0b54a','يحتاج متابعة']].forEach(([rr,c])=>{g.beginPath();for(let a=0;a<=72;a++){const an=a/72*Math.PI*2,[px,py]=glxProj(FP.x+rr*Math.cos(an),0,FP.z+rr*Math.sin(an));a?g.lineTo(px,py):g.moveTo(px,py)}g.strokeStyle=c;g.globalAlpha=.55;g.setLineDash([3,5]);g.lineWidth=1.2;g.stroke();g.setLineDash([]);g.globalAlpha=1})}
  const REL=glxRel(GX.sel),SD=GX.sel,risky=SD&&SD.p.status!='ok';
  const lnk=(a,b,col,w,dash)=>{g.beginPath();g.moveTo(a.sx,a.sy);const mx=(a.sx+b.sx)/2,my=Math.min(a.sy,b.sy)-Math.abs(a.sx-b.sx)*.12-10;g.quadraticCurveTo(mx,my,b.sx,b.sy);g.strokeStyle=col;g.lineWidth=w;g.setLineDash(dash||[]);g.stroke();g.setLineDash([]);
   const t2=.55,ax=(1-t2)*(1-t2)*a.sx+2*(1-t2)*t2*mx+t2*t2*b.sx,ay=(1-t2)*(1-t2)*a.sy+2*(1-t2)*t2*my+t2*t2*b.sy,an=Math.atan2(b.sy-my,b.sx-mx);g.beginPath();g.moveTo(ax,ay);g.lineTo(ax-7*Math.cos(an-.45),ay-7*Math.sin(an-.45));g.lineTo(ax-7*Math.cos(an+.45),ay-7*Math.sin(an+.45));g.closePath();g.fillStyle=col;g.fill()};
@@ -948,7 +957,7 @@ function glxFrame(t){const cv=$('glxC'),g=cv.getContext('2d'),W=GX.w,H=GX.h,dp=G
  GX.pts.forEach(d=>{if(!glxVis(d)||(REL&&!REL.has(d))||(FP&&d.P!==FP&&!REL))return;g.beginPath();g.moveTo(d.px,d.py);g.lineTo(d.sx,d.sy);g.strokeStyle='rgba(180,200,225,.12)';g.lineWidth=1;g.stroke()});
  if(SD){SD.up.forEach(u=>lnk(u,SD,'rgba(232,238,248,.8)',1.6,[5,4]));SD.ce.forEach(([a,b])=>lnk(a,b,risky?'rgba(255,138,92,.95)':'rgba(111,168,255,.9)',2.2))}
  else if(GX.net)GX.pts.forEach(d=>d.dn.forEach(x=>{if(glxVis(d)||glxVis(x))lnk(d,x,d.P===x.P?'rgba(180,200,225,.5)':'rgba(92,200,255,.65)',1.3)}));
- const NM=window.V3NM&&V3NM(),LB=[];
+ const NM=window.V3NM&&V3NM(),LB=[[[[cx,cy+cr+12],[cx,cy-cr-12],[cx+cr+40,cy]],0,FP?'المركز · عرض الكل':'المركز',{fg:'#ffe3a3',bg:'rgba(8,14,26,.75)',fs:ph?12:11.5},1,1]];
  items.sort((a,b)=>b.z-a.z).forEach(it=>{
   if(it.P){const P=it.P,on=!FP||FP===P,tot=Math.max(1,P.L.length);g.globalAlpha=on?1:.35;
    // a lit planet: colour = sector performance, light comes from the centre, Saturn-like ring = status mix
