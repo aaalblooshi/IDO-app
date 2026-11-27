@@ -132,6 +132,9 @@ function actDraw(){const b=$('actcb');if(!b||!ACF)return;const ar=lang=='ar',c=A
  const days=ar?['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
  b.innerHTML=`<label style="display:flex;gap:8px;align-items:center;font-weight:700;margin:4px 0 8px"><input type="checkbox" data-ak="esc_mgr" ${c.esc_mgr!==false?'checked':''}> ${ar?'إظهار البنود المتأخرة لمدير الوحدة':'Show overdue items to the unit head'}</label>
  <div class="mut" style="font-size:13px;margin:-4px 0 8px">${ar?'عند التفعيل: يظهر البند المتأخر في شاشة «وحدتي» لمدير الوحدة مع تنبيه واحد يومي داخل النظام. عند الإيقاف: لا يصل المدير أي تنبيه، وتبقى شاشة الوحدة للاطلاع فقط.':'When on, overdue items show in the unit head’s “My unit” screen with one daily in-app notice.'}</div>
+ <h3 style="font-size:15px;margin:10px 0 4px">${ar?'لوحات الوحدة والمركز':'Unit and centre boards'}</h3>
+ ${num('late_target',ar?'هدف نسبة المتأخر في منحنى الوحدة (%)':'Late-share target on the unit curve (%)',0,100)}
+ <label style="display:flex;gap:8px;align-items:center;margin:4px 0 8px"><input type="checkbox" data-ak="cmp_units" ${c.cmp_units?'checked':''}> ${ar?'إظهار مقارنة القطاعات في لوحة «المركز كاملًا» (حساسة، متوقفة افتراضيًا)':'Show the sector comparison on the whole-centre board'}</label>
  <h3 style="font-size:15px;margin:10px 0 4px">${ar?'سلّم التصعيد بدل التكرار':'Escalation ladder'}</h3>
  ${num('push_days',ar?'إشعار هاتف بعد تأخر البند (أيام)':'Phone notice after (days)',1,30)}
  ${num('mail_days',ar?'إبرازه في البريد اليومي بعد (أيام)':'Highlight in daily email after (days)',1,60)}
