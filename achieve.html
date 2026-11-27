@@ -345,7 +345,7 @@ async function tmAll(pub){let ok=0,bad=0;for(let i=0;i<TEAM.length;i++){const m=
  if(pub)pmDraw();toast((pub?P('نُشر ','Published '):P('حُفظ ','Saved '))+ok+(bad?P(' · تعذّر ',' · failed ')+bad:''))}
 init();
 </script>
-<script src="ido-ui.js?v=66"></script><script>(function itInit(n){if(!window.IDOTabs||!document.querySelector('#app .kg')){if(n<120)setTimeout(()=>itInit(n+1),150);return}let A=true;try{A=(localStorage.getItem('lang')||'ar')!='en'}catch(_){}
+<script src="ido-ui.js?v=67"></script><script>(function itInit(n){if(!window.IDOTabs||!document.querySelector('#app .kg')){if(n<120)setTimeout(()=>itInit(n+1),150);return}let A=true;try{A=(localStorage.getItem('lang')||'ar')!='en'}catch(_){}
 const W=['dOpen','dTasks'],D=['dDocs'],E=['dPins','kudos'];
 try{window.ACHT=IDOTabs({host:'#app',key:'ach',deep:false,count:false,items:':scope > *',always:e=>e.classList.contains('ptitle')||!!e.querySelector(':scope .ah h1'),
  tabs:[['sum',A?'📊 الملخص والمشاريع':'📊 Summary',(e,t)=>e.classList.contains('kg')||e.id=='pjs'||!!e.querySelector('#msum')],

@@ -730,3 +730,8 @@ window.IDOASK=function(msg,o){o=o||{};return new Promise(function(res){
 
 /* ===== رقم أيقونة التطبيق = «بانتظار إجرائك» نفسه في الرئيسية ===== */
 (function(){try{if(window.top!==window||!navigator.setAppBadge)return;var v=JSON.parse(localStorage.getItem('ido_needN')||'null');if(v&&Date.now()-v.at<12*3600e3){v.n?navigator.setAppBadge(v.n):navigator.clearAppBadge()}}catch(_){}})();
+/* رقم أيقونة التطبيق = عدد الإجراءات المطلوبة (يُحدَّث كل 5 دقائق على الأكثر) */
+(function(){if(window.top!==window.self||!('setAppBadge' in navigator))return;var tries=0;
+ function go(){try{if(typeof sb=='undefined'||!sb||!sb.rpc){if(++tries<8)setTimeout(go,1500);return}var l=0;try{l=+sessionStorage.getItem('ido_bdg')||0}catch(_){}if(Date.now()-l<300000)return;try{sessionStorage.setItem('ido_bdg',String(Date.now()))}catch(_){}
+  sb.auth.getSession().then(function(r){if(!r||!r.data||!r.data.session)return;return sb.rpc('my_action_count').then(function(x){if(x&&!x.error){var n=+x.data||0;if(n)navigator.setAppBadge(n);else navigator.clearAppBadge()}})}).catch(function(){})}catch(_){}}
+ setTimeout(go,3000);document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(go,1000)})})();
