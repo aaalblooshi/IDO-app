@@ -175,7 +175,9 @@ async function load(){if(!sb)return (function(){var el=document.getElementById('
  if(ADM){const all=[];SECS.forEach((_,i)=>{all.push(String(i+1));(DEPS[i]||[]).forEach((__,j)=>{all.push((i+1)+':'+(j+1));(((SECTL[i]||[])[j])||[]).forEach(c=>all.push((i+1)+':'+(j+1)+':'+c[0]))})});UNITS=[...new Set(UNITS.concat(all))]}
  try{const {data:co}=await sb.rpc('my_center_ok');if(co){UNITS=['C'].concat(UNITS.filter(k=>k!='C'));localStorage.setItem('hdrHead','1')}}catch(_){}
  if(!UNITS.length)return gate('noHead');
- let pv='';try{pv=localStorage.getItem('unitSel')||''}catch(_){}U=UNITS.includes(pv)?pv:UNITS[0];draw();loadUnit()}
+ let pv='';try{pv=localStorage.getItem('unitSel')||''}catch(_){}U=UNITS.includes(pv)?pv:UNITS[0];
+ /* مدير النظام ومكتب التطوير: وحدتهم دائمًا المركز كاملًا عند الفتح */
+ try{if(UNITS.includes('C')){const {data:of}=await sb.rpc('my_is_office');if(of||ADM)U='C'}}catch(_){}draw();loadUnit()}
 load().catch(e=>{console.error(e);$('app').innerHTML='<div class="card warn">'+esc(String(e&&e.message||e))+'</div>'});
 
 </script>

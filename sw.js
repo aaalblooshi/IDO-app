@@ -1,4 +1,4 @@
-// IDO service worker v4 — pages come from the network first (new versions show on the first open),
+// IDO service worker v4 (r3 badge) — pages come from the network first (new versions show on the first open),
 // falling back to the saved copy when the network is slow or offline.
 var HC = 'ido-html-v4', AC = 'ido-asset-v4' /* r2 */, KEEP = [HC, AC];
 var PRE = ['index.html', 'tasks.html', 'inbox.html', 'myprojects.html', 'chat.html', 'charter.html', 'plan.html', 'cr.html', 'closure.html', 'account.html'];
@@ -106,8 +106,10 @@ self.addEventListener('push', function (e) {
   try { d = e.data ? e.data.json() : {}; } catch (x) { d = { body: e.data ? e.data.text() : '' }; }
   var base = self.registration.scope;
   var u = String(d.url || 'inbox.html'); if (!/^https?:/.test(u)) u = base + u.replace(/^\.?\//, ''); try { if (new URL(u).origin !== self.location.origin) u = base + 'inbox.html'; } catch (_) { u = base + 'inbox.html'; }
-  try { if (d.badge != null && self.navigator && self.navigator.setAppBadge) { +d.badge > 0 ? self.navigator.setAppBadge(+d.badge) : self.navigator.clearAppBadge(); } } catch (_) {}
-  e.waitUntil(self.registration.showNotification(d.title || 'منصة مكتب التطوير المؤسسي', { body: d.body || '', data: { url: u }, tag: d.tag || undefined, dir: 'rtl', lang: 'ar' }));
+  // رقم أيقونة التطبيق = عدد الإجراءات المطلوبة (يرسله الخادم مع كل إشعار)
+  var bd = Promise.resolve();
+  try { if (d.badge != null && self.navigator && self.navigator.setAppBadge) { bd = (+d.badge > 0 ? self.navigator.setAppBadge(+d.badge) : self.navigator.clearAppBadge()).catch(function () {}); } } catch (_) {}
+  e.waitUntil(Promise.all([bd, self.registration.showNotification(d.title || 'منصة مكتب التطوير المؤسسي', { body: d.body || '', data: { url: u }, tag: d.tag || undefined, dir: 'rtl', lang: 'ar' })]));
 });
 self.addEventListener('notificationclick', function (e) {
   e.notification.close();
